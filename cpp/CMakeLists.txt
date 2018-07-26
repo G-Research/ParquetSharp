@@ -1,0 +1,74 @@
+include(GenerateExportHeader)
+
+find_package(Arrow REQUIRED)
+find_package(Boost COMPONENTS filesystem regex system REQUIRED)
+find_package(Brotli REQUIRED)
+find_package(Lz4 REQUIRED)
+find_package(Snappy REQUIRED)
+find_package(Thrift REQUIRED)
+find_package(Zlib REQUIRED)
+find_package(Zstd REQUIRED)
+find_package(ParquetCpp REQUIRED)
+
+add_library(ParquetSharpNative SHARED 
+	Buffer.cpp
+	BufferReader.cpp
+	BufferOutputStream.cpp
+	ColumnChunkMetaData.cpp
+	ColumnDescriptor.cpp
+	ColumnReader.cpp
+	ColumnWriter.cpp
+	ExceptionInfo.h
+	ExceptionInfo.cpp
+	FileMetaData.cpp
+	GroupNode.cpp
+	InputStream.cpp
+	KeyValueMetadata.cpp
+	Node.cpp
+	OutputStream.cpp
+	ParquetFileReader.cpp
+	ParquetFileWriter.cpp
+	PrimitiveNode.cpp
+	ResizableBuffer.cpp
+	RowGroupMetaData.cpp
+	RowGroupReader.cpp
+	RowGroupWriter.cpp
+	SchemaDescriptor.cpp
+	TypedColumnReader.cpp
+	TypedColumnWriter.cpp
+	WriterProperties.cpp
+	WriterPropertiesBuilder.cpp
+)
+
+generate_export_header(ParquetSharpNative 
+	EXPORT_MACRO_NAME PARQUETSHARP_EXPORT 
+	EXPORT_FILE_NAME ParquetSharpExport.h
+)
+
+include_directories(
+	${PROJECT_BINARY_DIR}
+	${Arrow_INCLUDE_DIRS} 
+	${Boost_INCLUDE_DIRS} 
+	${Brotli_INCLUDE_DIRS} 
+	${Lz4_INCLUDE_DIRS} 
+	${Snappy_INCLUDE_DIRS}
+	${Thrift_INCLUDE_DIRS}
+	${ZLIB_INCLUDE_DIRS} 
+	${Zstd_INCLUDE_DIRS} 
+	${ParquetCpp_INCLUDE_DIRS})
+
+target_link_libraries(ParquetSharpNative 
+	${Arrow_LIBRARIES} 
+	${Boost_LIBRARIES}
+	${Brotli_LIBRARIES}
+	${Lz4_LIBRARIES}
+	${Snappy_LIBRARIES}
+	${Thrift_LIBRARIES}
+	${ZLIB_LIBRARIES} 
+	${Zstd_LIBRARIES} 
+	${ParquetCpp_LIBRARIES})
+	
+if (MSVC)
+	# Disable annoying linker warnings.
+	set_target_properties(ParquetSharpNative PROPERTIES LINK_FLAGS "/ignore:4049 /ignore:4217")
+endif ()
