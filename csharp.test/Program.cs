@@ -18,7 +18,7 @@ namespace ParquetSharp.Test
 
                 AppDomain.CurrentDomain.UnhandledException += UncaughtExceptionHandler;
 
-                TestParquetFileWriter.ReadWriteParquetMultipleTasks();
+                TestParquetFileWriter.TestReadWriteParquetMultipleTasks();
                 //TestColumnReader.TestHasNext();
                 //TestLogicalTypeRoundtrip.TestReaderWriteTypes();
                 //TestPhysicalTypeRoundtrip.TestReaderWriteTypes();

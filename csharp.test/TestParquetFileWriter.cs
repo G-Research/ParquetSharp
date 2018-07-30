@@ -30,7 +30,7 @@ namespace ParquetSharp.Test
 
         [Test]
         [Explicit("Stress test the parquet calls in multiple threads")]
-        public static void ReadWriteParquetMultipleTasks()
+        public static void TestReadWriteParquetMultipleTasks()
         {
             void WriteFile()
             {
