@@ -33,6 +33,7 @@ namespace ParquetSharp.IO
         private static IntPtr Create(ResizableBuffer buffer)
         {
             ExceptionInfo.Check(BufferOutputStream_Create_From_ResizableBuffer(buffer.Handle, out var outputStream));
+            GC.KeepAlive(buffer);
             return outputStream;
         }
 

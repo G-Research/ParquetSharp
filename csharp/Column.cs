@@ -36,7 +36,15 @@ namespace ParquetSharp
                 var item = CreateSchemaNode(type.GetElementType(), "item");
                 var list = new GroupNode("list", Repetition.Repeated, new[] {item});
 
-                return new GroupNode(name, Repetition.Optional, new [] {list}, LogicalType.List);
+                try
+                {
+                    return new GroupNode(name, Repetition.Optional, new[] {list}, LogicalType.List);
+                }
+                finally
+                {
+                    list.Dispose();
+                    item.Dispose();
+                }
             }
 
             throw new ArgumentException($"unsupported logical type {type}");

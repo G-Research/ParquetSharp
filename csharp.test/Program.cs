@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Runtime.ExceptionServices;
 
 namespace ParquetSharp.Test
 {
@@ -15,10 +16,19 @@ namespace ParquetSharp.Test
             {
                 Console.WriteLine("Working directory: {0}", Environment.CurrentDirectory);
 
-                TestColumnReader.TestHasNext();
+                AppDomain.CurrentDomain.UnhandledException += UncaughtExceptionHandler;
+
+                TestParquetFileWriter.ReadWriteParquetMultipleTasks();
+                //TestColumnReader.TestHasNext();
                 //TestLogicalTypeRoundtrip.TestReaderWriteTypes();
-                TestPhysicalTypeRoundtrip.TestReaderWriteTypes();
-                TestParquetFileReader.TestReadFileCreateByPython();
+                //TestPhysicalTypeRoundtrip.TestReaderWriteTypes();
+                //TestParquetFileReader.TestReadFileCreateByPython();
+
+                // Ensure the finalizers are executed, so we can check whether they throw.
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                AppDomain.CurrentDomain.UnhandledException -= UncaughtExceptionHandler;
 
                 return 0;
             }
@@ -33,6 +43,13 @@ namespace ParquetSharp.Test
             }
 
             return 1;
+        }
+
+        [HandleProcessCorruptedStateExceptions]
+        private static void UncaughtExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+            Console.Error.WriteLine("FATAL: UncaughtExceptionHandler: {0}", args.ExceptionObject);
+            Environment.Exit(-101); // Deliberately not NUnit UNEXPECTED_ERROR = -100. Yes, this exception is unexpected but having a different exit code gives us more information
         }
     }
 }

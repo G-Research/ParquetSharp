@@ -13,50 +13,38 @@ namespace ParquetSharp
             string path, Column[] columns, 
             Compression compression = Compression.Snappy, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
-            : this(path, CreateSchema(columns), CreateWriterProperties(compression), keyValueMetadata)
         {
+            using (var schema = CreateSchema(columns))
+            using (var writerProperties = CreateWriterProperties(compression))
+            {
+                _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
+            }
         }
 
         public ParquetFileWriter(
             OutputStream outputStream, Column[] columns, 
             Compression compression = Compression.Snappy, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
-            : this(outputStream, CreateSchema(columns), CreateWriterProperties(compression), keyValueMetadata)
         {
+            using (var schema = CreateSchema(columns))
+            using (var writerProperties = CreateWriterProperties(compression))
+            {
+                _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
+            }
         }
 
         public ParquetFileWriter(
             string path, GroupNode schema, WriterProperties writerProperties, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            if (path == null) throw new ArgumentNullException(nameof(path));
-            if (schema == null) throw new ArgumentNullException(nameof(schema));
-            if (writerProperties == null) throw new ArgumentNullException(nameof(writerProperties));
-
-            using (var kvm = keyValueMetadata == null ? null : new KeyValueMetadata(keyValueMetadata))
-            {
-                ExceptionInfo.Check(ParquetFileWriter_OpenFile(
-                    path, schema.Handle, writerProperties.Handle, kvm?.Handle ?? IntPtr.Zero, out var writer));
-
-                _handle = new ParquetHandle(writer, ParquetFileWriter_Free);
-            }
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
         }
 
         public ParquetFileWriter(
             OutputStream outputStream, GroupNode schema, WriterProperties writerProperties,
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            if (outputStream == null) throw new ArgumentNullException(nameof(outputStream));
-            if (schema == null) throw new ArgumentNullException(nameof(schema));
-            if (writerProperties == null) throw new ArgumentNullException(nameof(writerProperties));
-
-            using (var kvm = keyValueMetadata == null ? null : new KeyValueMetadata(keyValueMetadata))
-            {
-                ExceptionInfo.Check(ParquetFileWriter_Open(
-                    outputStream.Handle, schema.Handle, writerProperties.Handle, kvm?.Handle ?? IntPtr.Zero, out var writer));
-
-                _handle = new ParquetHandle(writer, ParquetFileWriter_Free);
-            }
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
         }
 
         public void Dispose()
@@ -70,11 +58,65 @@ namespace ParquetSharp
             return new RowGroupWriter(rowGroupWriter);
         }
 
+        private static ParquetHandle CreateParquetFileWriter(
+            string path, GroupNode schema, WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string> keyValueMetadata)
+        {
+            if (path == null) throw new ArgumentNullException(nameof(path));
+            if (schema == null) throw new ArgumentNullException(nameof(schema));
+            if (writerProperties == null) throw new ArgumentNullException(nameof(writerProperties));
+
+            using (var kvm = keyValueMetadata == null ? null : new KeyValueMetadata(keyValueMetadata))
+            {
+                ExceptionInfo.Check(ParquetFileWriter_OpenFile(
+                    path, schema.Handle, writerProperties.Handle, kvm?.Handle ?? IntPtr.Zero, out var writer));
+
+                // Keep alive schema and writerProperties until this point, otherwise the GC might kick in while we're in OpenFile().
+                GC.KeepAlive(schema);
+                GC.KeepAlive(writerProperties);
+
+                return new ParquetHandle(writer, ParquetFileWriter_Free);
+            }
+        }
+
+        private static ParquetHandle CreateParquetFileWriter(
+            OutputStream outputStream, GroupNode schema, WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string> keyValueMetadata)
+        {
+            if (outputStream == null) throw new ArgumentNullException(nameof(outputStream));
+            if (schema == null) throw new ArgumentNullException(nameof(schema));
+            if (writerProperties == null) throw new ArgumentNullException(nameof(writerProperties));
+
+            using (var kvm = keyValueMetadata == null ? null : new KeyValueMetadata(keyValueMetadata))
+            {
+                ExceptionInfo.Check(ParquetFileWriter_Open(
+                    outputStream.Handle, schema.Handle, writerProperties.Handle, kvm?.Handle ?? IntPtr.Zero, out var writer));
+
+                // Keep alive schema and writerProperties until this point, otherwise the GC might kick in while we're in Open().
+                GC.KeepAlive(schema);
+                GC.KeepAlive(writerProperties);
+
+                return new ParquetHandle(writer, ParquetFileWriter_Free);
+            }
+        }
+
         private static GroupNode CreateSchema(Column[] columns)
         {
             if (columns == null) throw new ArgumentNullException(nameof(columns));
 
-            return new GroupNode("Schema", Repetition.Required, columns.Select(c => c.CreateSchemaNode()).ToArray());
+            var fields = columns.Select(c => c.CreateSchemaNode()).ToArray();
+
+            try
+            {
+                return new GroupNode("Schema", Repetition.Required, fields);
+            }
+            finally
+            {
+                foreach (var node in fields)
+                {
+                    node.Dispose();
+                }
+            }
         }
 
         private static WriterProperties CreateWriterProperties(Compression compression)
