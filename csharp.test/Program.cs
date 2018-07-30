@@ -49,7 +49,7 @@ namespace ParquetSharp.Test
         private static void UncaughtExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             Console.Error.WriteLine("FATAL: UncaughtExceptionHandler: {0}", args.ExceptionObject);
-            Environment.Exit(-101); // Deliberately not NUnit UNEXPECTED_ERROR = -100. Yes, this exception is unexpected but having a different exit code gives us more information
+            Environment.Exit(1);
         }
     }
 }
