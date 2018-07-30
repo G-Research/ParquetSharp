@@ -79,9 +79,11 @@ namespace ParquetSharp
 
         private static WriterProperties CreateWriterProperties(Compression compression)
         {
-            var builder = new WriterPropertiesBuilder();
-            builder.Compression(compression);
-            return builder.Build();
+            using (var builder = new WriterPropertiesBuilder())
+            {
+                builder.Compression(compression);
+                return builder.Build();
+            }
         }
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
