@@ -23,7 +23,9 @@ namespace ParquetSharp
 
         public int ColumnIndex(Node node)
         {
-            return ExceptionInfo.Return<IntPtr, int>(_handle, node.Handle, SchemaDescriptor_ColumnIndex_ByNode);
+            var index = ExceptionInfo.Return<IntPtr, int>(_handle, node.Handle, SchemaDescriptor_ColumnIndex_ByNode);
+            GC.KeepAlive(node);
+            return index;
         }
 
         public int ColumnIndex(string path)

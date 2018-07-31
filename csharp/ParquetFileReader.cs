@@ -15,6 +15,7 @@ namespace ParquetSharp
         public ParquetFileReader(InputStream inputStream)
         {
             ExceptionInfo.Check(ParquetFileReader_Open(inputStream.Handle, out var reader));
+            GC.KeepAlive(inputStream);
             _handle = new ParquetHandle(reader, ParquetFileReader_Free);
         }
 

@@ -16,6 +16,7 @@ namespace ParquetSharp.IO
         private static IntPtr Create(Buffer buffer)
         {
             ExceptionInfo.Check(BufferReader_Create(buffer.Handle, out var outputStream));
+            GC.KeepAlive(buffer);
             return outputStream;
         }
 

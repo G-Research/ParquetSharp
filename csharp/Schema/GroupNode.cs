@@ -7,7 +7,7 @@ namespace ParquetSharp.Schema
 {
     public sealed class GroupNode : Node
     {
-        public GroupNode(string name, Repetition repetition, IEnumerable<Node> fields, LogicalType logicalType = LogicalType.None)
+        public GroupNode(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType logicalType = LogicalType.None)
             : this(Make(name, repetition, fields, logicalType))
         {
         }
@@ -32,16 +32,19 @@ namespace ParquetSharp.Schema
 
         public int FieldIndex(Node node)
         {
-            return ExceptionInfo.Return<IntPtr, int>(Handle, node.Handle, GroupNode_Field_Index_By_Node);
+            var index = ExceptionInfo.Return<IntPtr, int>(Handle, node.Handle, GroupNode_Field_Index_By_Node);
+            GC.KeepAlive(node);
+            return index;
         }
 
-        private static unsafe IntPtr Make(string name, Repetition repetition, IEnumerable<Node> fields, LogicalType logicalType)
+        private static unsafe IntPtr Make(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType logicalType)
         {
             var handles = fields.Select(f => (IntPtr) f.Handle).ToArray();
 
             fixed (IntPtr* pHandles = handles)
             {
                 ExceptionInfo.Check(GroupNode_Make(name, repetition, (IntPtr) pHandles, handles.Length, logicalType, out var groupNode));
+                GC.KeepAlive(fields);
                 return groupNode;
             }
         }
