@@ -16,6 +16,7 @@ namespace ParquetSharp
             if (typeof(TLogicalValue) == typeof(bool) ||
                 typeof(TLogicalValue) == typeof(int) ||
                 typeof(TLogicalValue) == typeof(long) ||
+                typeof(TLogicalValue) == typeof(Int96) ||
                 typeof(TLogicalValue) == typeof(float) ||
                 typeof(TLogicalValue) == typeof(double))
             {
@@ -25,6 +26,7 @@ namespace ParquetSharp
             if (typeof(TLogicalValue) == typeof(bool?) ||
                 typeof(TLogicalValue) == typeof(int?) ||
                 typeof(TLogicalValue) == typeof(long?) ||
+                typeof(TLogicalValue) == typeof(Int96?) ||
                 typeof(TLogicalValue) == typeof(float?) ||
                 typeof(TLogicalValue) == typeof(double?))
             {

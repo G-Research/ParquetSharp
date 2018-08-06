@@ -139,6 +139,20 @@ namespace ParquetSharp.Test
                 },
                 new ExpectedColumn
                 {
+                    Name = "int96_field",
+                    Physicaltype = ParquetType.Int96,
+                    LogicalType = LogicalType.None,
+                    Values = Enumerable.Range(0, NumRows).Select(i => new Int96(i, i * i, i * i * i)).ToArray()
+                },
+                new ExpectedColumn
+                {
+                    Name = "int96?_field",
+                    Physicaltype = ParquetType.Int96,
+                    LogicalType = LogicalType.None,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (Int96?) null : new Int96(i, i * i, i * i * i)).ToArray()
+                },
+                new ExpectedColumn
+                {
                     Name = "float_field",
                     Physicaltype = ParquetType.Float,
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 5 == 0 ? float.NaN : (float) Math.Sqrt(i)).ToArray()
