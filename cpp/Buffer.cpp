@@ -6,6 +6,11 @@
 
 extern "C"
 {
+	PARQUETSHARP_EXPORT ExceptionInfo* Buffer_MakeFromPointer(const uint8_t* data, int64_t size, std::shared_ptr<arrow::Buffer>** buffer)
+	{
+		TRYCATCH(*buffer = new std::shared_ptr<arrow::Buffer>(new arrow::Buffer(data, size));)
+	}
+
 	PARQUETSHARP_EXPORT void Buffer_Free(std::shared_ptr<arrow::Buffer>* buffer)
 	{
 		delete buffer;
