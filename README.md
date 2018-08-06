@@ -103,11 +103,15 @@ We've successfully built ParquetSharp for Windows using the following dependenci
 - Visual Studio 2017 (15.7 or higher)
 - Apache Parquet C++ (apache-parquet-cpp 1.4.0)
 
-For building apache-parquet-cpp and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg) (vcpkg install x64-windows-static:parquet).
+For building apache-parquet-cpp and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg) (vcpkg install parquet:x64-windows-static).
 
 Then use CMake to generate the Visual Studio solution (Win64) by setting `CMAKE_PREFIX_PATH` to point CMake to apache-parquet-cpp's compiled libraries and dependencies. (We have had to write our own `FindPackage` macros for most of the dependencies to get us going - it clearly needs more love and attention and is likely to be redundant with some vcpkg helper tools.)
 
 Building on Linux is a work in progress: in theory it is possible, but we have yet to try it. (We wanted to share this library with the open-source community as soon as possible, even if not everything is quite ready for prime time.)
+
+## Contributing
+
+We welcome new contributors! We will happily receive PRs for bug fixes or small changes. If you're contemplating something larger please get in touch first by opening a GitHub Issue describing the problem and how you propose to solve it.
 
 ## License
 

@@ -8,6 +8,11 @@ namespace ParquetSharp.IO
     /// </summary>
     public class Buffer : IDisposable
     {
+        public Buffer(IntPtr data, long size)
+            : this(Make(data, size))
+        {
+        }
+
         internal Buffer(IntPtr handle)
         {
             Handle = new ParquetHandle(handle, Buffer_Free);
@@ -28,6 +33,15 @@ namespace ParquetSharp.IO
             Marshal.Copy(Data, array, 0, array.Length);
             return array;
         }
+
+        private static IntPtr Make(IntPtr data, long size)
+        {
+            ExceptionInfo.Check(Buffer_MakeFromPointer(data, size, out var bufferHandle));
+            return bufferHandle;
+        }
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr Buffer_MakeFromPointer(IntPtr data, long size, out IntPtr buffer);
 
         [DllImport(ParquetDll.Name)]
         private static extern void Buffer_Free(IntPtr buffer);
