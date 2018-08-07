@@ -6,14 +6,14 @@ find_path(Brotli_INCLUDE_DIR brotli/decode.h)
 
 if (NOT Brotli_LIBRARIES)
 	
-	find_library(Brotli_Common_LIBRARY_RELEASE NAMES brotlicommon PATH_SUFFIXES lib)
-	find_library(Brotli_Common_LIBRARY_DEBUG NAMES brotlicommond PATH_SUFFIXES debug debug/lib)	
+	find_library(Brotli_Common_LIBRARY_RELEASE NAMES brotlicommon brotlicommon-static PATH_SUFFIXES lib)
+	find_library(Brotli_Common_LIBRARY_DEBUG NAMES brotlicommond brotlicommon-staticd PATH_SUFFIXES debug debug/lib)
     
-	find_library(Brotli_Dec_LIBRARY_RELEASE NAMES brotlidec PATH_SUFFIXES lib)
-	find_library(Brotli_Dec_LIBRARY_DEBUG NAMES brotlidecd PATH_SUFFIXES debug debug/lib)	
+	find_library(Brotli_Dec_LIBRARY_RELEASE NAMES brotlidec brotlidec-static PATH_SUFFIXES lib)
+	find_library(Brotli_Dec_LIBRARY_DEBUG NAMES brotlidecd brotlidec-staticd PATH_SUFFIXES debug debug/lib)
     
-	find_library(Brotli_Enc_LIBRARY_RELEASE NAMES brotlienc PATH_SUFFIXES lib)
-	find_library(Brotli_Enc_LIBRARY_DEBUG NAMES brotliencd PATH_SUFFIXES debug debug/lib)	
+	find_library(Brotli_Enc_LIBRARY_RELEASE NAMES brotlienc brotlienc-static PATH_SUFFIXES lib)
+	find_library(Brotli_Enc_LIBRARY_DEBUG NAMES brotliencd brotlienc-staticd PATH_SUFFIXES debug debug/lib)
     
 	SELECT_LIBRARY_CONFIGURATIONS(Brotli_Common)
 	SELECT_LIBRARY_CONFIGURATIONS(Brotli_Dec)
