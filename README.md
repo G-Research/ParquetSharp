@@ -1,4 +1,4 @@
-# ParquetSharp
+# ParquetSharp [![NuGet](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp)
 
 ParquetSharp is a .NET library for reading and writing Apache [Parquet][1] files.
 
@@ -98,16 +98,39 @@ Typically this can arise when attempting to access an instance whose owner has b
 
 ## Building
 
-We've successfully built ParquetSharp for Windows using the following dependencies:
+Building ParquetSharp for Windows requires the following dependencies:
 - CMake (3.8 or higher)
 - Visual Studio 2017 (15.7 or higher)
 - Apache Parquet C++ (apache-parquet-cpp 1.4.0)
 
-For building apache-parquet-cpp and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg) (vcpkg install parquet:x64-windows-static).
+For building apache-parquet-cpp and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). The following build steps will compile apache-parquet-cpp and generate a Windows x64 Visual Studio solution.
 
-Then use CMake to generate the Visual Studio solution (Win64) by setting `CMAKE_PREFIX_PATH` to point CMake to apache-parquet-cpp's compiled libraries and dependencies. (We have had to write our own `FindPackage` macros for most of the dependencies to get us going - it clearly needs more love and attention and is likely to be redundant with some vcpkg helper tools.)
+**Initial directory**
+```
+> mkdir workdir
+> cd workdir
+```
+**Apache-parquet-cpp & dependencies (static libraries)**
+```
+> git clone https://github.com/Microsoft/vcpkg.git
+> cd vcpkg
+> bootstrap-vcpkg.bat
+> vcpkg install parquet:x64-windows-static
+```
+**ParquetSharp (Visual Studio 2017 Win64)**
+```
+> cd ..
+> git clone https://github.com/G-Research/ParquetSharp.git
+> cd ParquetSharp
+> mkdir build
+> cd build
+> set 
+> cmake -D CMAKE_PREFIX_PATH=../../vcpkg/installed/x64-windows-static/ -G "Visual Studio 15 2017 Win64" ..
+```
 
-Building on Linux is a work in progress: in theory it is possible, but we have yet to try it. (We wanted to share this library with the open-source community as soon as possible, even if not everything is quite ready for prime time.)
+We have had to write our own `FindPackage` macros for most of the dependencies to get us going - it clearly needs more love and attention and is likely to be redundant with some vcpkg helper tools. The build step aboves will lead to CMake not finding the right debug library paths for several dependencies, you can manually fix these paths using CMake-GUI or equivalent (otherwise the build will fail in Debug).
+
+Building on Linux is a work in progress: in theory it is possible, but we have yet to try it. We wanted to share this library with the open-source community as soon as possible, even if not everything is quite ready for prime time.
 
 ## Contributing
 
