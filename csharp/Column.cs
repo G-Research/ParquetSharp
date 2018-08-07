@@ -63,6 +63,8 @@ namespace ParquetSharp
                 {typeof(long?), (Repetition.Optional, ParquetType.Int64, LogicalType.None)},
                 {typeof(ulong), (Repetition.Required, ParquetType.Int64, LogicalType.UInt64)},
                 {typeof(ulong?), (Repetition.Optional, ParquetType.Int64, LogicalType.UInt64)},
+                {typeof(Int96), (Repetition.Required, ParquetType.Int96, LogicalType.None)},
+                {typeof(Int96?), (Repetition.Optional, ParquetType.Int96, LogicalType.None)},
                 {typeof(float), (Repetition.Required, ParquetType.Float, LogicalType.None)},
                 {typeof(float?), (Repetition.Optional, ParquetType.Float, LogicalType.None)},
                 {typeof(double), (Repetition.Required, ParquetType.Double, LogicalType.None)},

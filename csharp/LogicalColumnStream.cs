@@ -141,6 +141,8 @@ namespace ParquetSharp
                             return (typeof(int), nullable ? typeof(int?) : typeof(int));
                         case ParquetType.Int64:
                             return (typeof(long), nullable ? typeof(long?) : typeof(long));
+                        case ParquetType.Int96:
+                            return (typeof(Int96), nullable ? typeof(Int96?) : typeof(Int96));
                         case ParquetType.Float:
                             return (typeof(float), nullable ? typeof(float?) : typeof(float));
                         case ParquetType.Double:
