@@ -124,7 +124,6 @@ For building apache-parquet-cpp and its dependencies, we recommend using Microso
 > cd ParquetSharp
 > mkdir build
 > cd build
-> set 
 > cmake -D CMAKE_PREFIX_PATH=../../vcpkg/installed/x64-windows-static/ -G "Visual Studio 15 2017 Win64" ..
 ```
 
