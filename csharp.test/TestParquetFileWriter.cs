@@ -29,6 +29,51 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestByteBufferOptimisation()
+        {
+            const int numStrings = 100_000;
+
+            var strings = Enumerable.Range(0, numStrings).Select(i => i.ToString()).ToArray();
+
+            var cancel = new CancellationTokenSource();
+            var task = Task.Run(() =>
+            {
+                while (!cancel.IsCancellationRequested)
+                {
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    Thread.Sleep(1);
+                }
+            });
+
+            using (var buffer = new ResizableBuffer())
+            {
+                using (var outStream = new BufferOutputStream(buffer))
+                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string>("Name")}))
+                using (var group = fileWriter.AppendRowGroup())
+                using (var col = group.NextColumn().LogicalWriter<string>())
+                {
+                    // Strings to byte arrays memory pooling is done by the ByteBuffer class.
+                    // If something is fishy there (e.g. bad memory ownership wrt the GC),
+                    // we expect to see consequences here if we write enough strings.
+                    // It's not bullet proof, but it has found a few issues.
+                    col.WriteBatch(strings);
+                }
+
+                using (var inStream = new BufferReader(buffer))
+                using (var fileReader = new ParquetFileReader(inStream))
+                using (var group = fileReader.RowGroup(0))
+                using (var col = group.Column(0).LogicalReader<string>())
+                {
+                    Assert.AreEqual(strings, col.ReadAll(numStrings));
+                }
+            }
+
+            cancel.Cancel();
+            task.Wait();
+        }
+
+        [Test]
         [Explicit("Stress test the parquet calls in multiple threads")]
         public static void TestReadWriteParquetMultipleTasks()
         {

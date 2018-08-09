@@ -1,64 +1,101 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ParquetSharp
 {
     /// <summary>
-    /// Pool the ByteArray allocation into one buffer that we can pin, rather than many small byte[]. 
+    /// Pool the ByteArray allocations into few buffers that we can pin, rather than many small byte[].
+    /// 
+    /// This allows us to more efficiently pass byte-arrays to Parquet native API without having
+    /// a pinning handle per byte[] (and indirectly, strings).
     /// </summary>
     internal sealed class ByteBuffer : IDisposable
     {
-        public ByteBuffer(int capacity)
+        public ByteBuffer(int blockSize)
         {
-            _initialCapacity = capacity;
+            _blockSize = blockSize;
+            _blocks = new List<Block>();
         }
 
         public void Dispose()
         {
-            _handle?.Free();
-            _handle = null;
+            Clear();
+
+            GC.SuppressFinalize(this);
         }
 
         ~ByteBuffer()
         {
-            Dispose();
+            Clear();
         }
 
         public void Clear()
         {
-            _size = 0;
+            foreach (var block in _blocks)
+            {
+                block.Dispose();
+            }
+
+            _blocks.Clear();
         }
 
         public ByteArray Allocate(int length)
         {
-            if (_buffer == null || _handle == null)
+            if (_blocks.Count == 0 || _blocks[_blocks.Count - 1].Available < length)
             {
-                _buffer = new byte[_initialCapacity];
-                _handle = GCHandle.Alloc(_buffer, GCHandleType.Pinned);
+                _blocks.Add(new Block(GetNextCapacity(length)));
             }
 
-            if (_size + length > _buffer.Length)
-            {
-                Dispose();
-
-                var newCapacity = Math.Max(_size + length, _buffer.Length * 2);
-                var newBuffer = new byte[newCapacity];
-
-                Array.Copy(_buffer, newBuffer, _size);
-
-                _buffer = newBuffer;
-                _handle = GCHandle.Alloc(_buffer, GCHandleType.Pinned);
-            }
-
-            var offset = _size;
-            _size += length;
-
-            return new ByteArray(_handle.Value.AddrOfPinnedObject() + offset, length);
+            return _blocks[_blocks.Count - 1].Allocate(length);
         }
 
-        private readonly int _initialCapacity;
-        private GCHandle? _handle;
-        private byte[] _buffer;
-        private int _size;
+        private int GetNextCapacity(int length)
+        {
+            // Start at blockSize for the initial block, but allocate 50% on each new block.
+            if (_blocks.Count == 0)
+            {
+                return _blockSize;
+            }
+
+            var lastCapacity = _blocks[_blocks.Count - 1].Capacity;
+            var newCapacity = Math.Max(2, lastCapacity + lastCapacity / 2);
+
+            return Math.Max(length, newCapacity);
+        }
+
+        private sealed class Block : IDisposable
+        {
+            public Block(int capacity)
+            {
+                _buffer = new byte[capacity];
+                _handle = GCHandle.Alloc(_buffer, GCHandleType.Pinned);
+                _size = 0;
+            }
+
+            public void Dispose()
+            {
+                _handle.Free();
+            }
+
+            public int Available => _buffer.Length - _size;
+            public int Capacity => _buffer.Length;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ByteArray Allocate(int length)
+            {
+                var byteArray = new ByteArray(_handle.AddrOfPinnedObject() + _size, length);
+                _size += length;
+                return byteArray;
+            }
+
+            private readonly byte[] _buffer;
+            private GCHandle _handle;
+            private int _size;
+        }
+
+        private readonly int _blockSize;
+        private readonly List<Block> _blocks;
     }
 }
