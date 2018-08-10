@@ -16,7 +16,7 @@ namespace ParquetSharp.Test
             {
                 Console.WriteLine("Testing primitive type {0}", expected.Type);
 
-                using (var node = new Column(expected.Type, expected.Name).CreateSchemaNode())
+                using (var node = new Column(expected.Type, expected.Name, expected.LogicalTypeOverride).CreateSchemaNode())
                 {
                     Assert.AreEqual(expected.LogicalType, node.LogicalType);
                     Assert.AreEqual(-1, node.Id);
@@ -32,6 +32,17 @@ namespace ParquetSharp.Test
                     Assert.AreEqual(-1, primitive.TypeLength);
                 }
             }
+        }
+
+        [Test]
+        public static void TestUnsupportedLogicalTypeOverride()
+        {
+            var exception = Assert.Throws<ArgumentOutOfRangeException>(() => 
+                new Column<DateTime>("DateTime", LogicalType.Json).CreateSchemaNode());
+
+            Assert.AreEqual(
+                "Json is not a valid override for System.DateTime\r\nParameter name: logicalTypeOverride", 
+                exception.Message);
         }
 
         private static ExpectedPrimitive[] CreateExpectedPrimitives()
@@ -89,9 +100,23 @@ namespace ParquetSharp.Test
                 },
                 new ExpectedPrimitive
                 {
+                    Type = typeof(DateTime),
+                    PhysicalType = ParquetType.Int64,
+                    LogicalType = LogicalType.TimestampMillis,
+                    LogicalTypeOverride = LogicalType.TimestampMillis
+                },
+                new ExpectedPrimitive
+                {
                     Type = typeof(TimeSpan),
                     PhysicalType = ParquetType.Int64,
                     LogicalType = LogicalType.TimeMicros
+                },
+                new ExpectedPrimitive
+                {
+                    Type = typeof(TimeSpan),
+                    PhysicalType = ParquetType.Int32,
+                    LogicalType = LogicalType.TimeMillis,
+                    LogicalTypeOverride = LogicalType.TimeMillis
                 },
                 new ExpectedPrimitive
                 {
@@ -102,8 +127,24 @@ namespace ParquetSharp.Test
                 },
                 new ExpectedPrimitive
                 {
+                    Type = typeof(string),
+                    PhysicalType = ParquetType.ByteArray,
+                    LogicalType = LogicalType.Json,
+                    LogicalTypeOverride = LogicalType.Json,
+                    Repetition = Repetition.Optional
+                },
+                new ExpectedPrimitive
+                {
                     Type = typeof(byte[]),
                     PhysicalType = ParquetType.ByteArray,
+                    Repetition = Repetition.Optional
+                },
+                new ExpectedPrimitive
+                {
+                    Type = typeof(byte[]),
+                    PhysicalType = ParquetType.ByteArray,
+                    LogicalType = LogicalType.Bson,
+                    LogicalTypeOverride = LogicalType.Bson,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
@@ -166,9 +207,25 @@ namespace ParquetSharp.Test
                 },
                 new ExpectedPrimitive
                 {
+                    Type = typeof(DateTime?),
+                    PhysicalType = ParquetType.Int64,
+                    LogicalType = LogicalType.TimestampMillis,
+                    LogicalTypeOverride = LogicalType.TimestampMillis,
+                    Repetition = Repetition.Optional
+                },
+                new ExpectedPrimitive
+                {
                     Type = typeof(TimeSpan?),
                     PhysicalType = ParquetType.Int64,
                     LogicalType = LogicalType.TimeMicros,
+                    Repetition = Repetition.Optional
+                },
+                new ExpectedPrimitive
+                {
+                    Type = typeof(TimeSpan?),
+                    PhysicalType = ParquetType.Int32,
+                    LogicalType = LogicalType.TimeMillis,
+                    LogicalTypeOverride = LogicalType.TimeMillis,
                     Repetition = Repetition.Optional
                 }
             };
@@ -178,6 +235,7 @@ namespace ParquetSharp.Test
         {
             public Type Type;
             public LogicalType LogicalType = LogicalType.None;
+            public LogicalType LogicalTypeOverride = LogicalType.None;
             public string Name = "MyName";
             public Repetition Repetition = Repetition.Required;
             public ColumnOrder ColumnOrder = ColumnOrder.TypeDefinedOrder;
