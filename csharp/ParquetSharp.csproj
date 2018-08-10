@@ -7,7 +7,7 @@
     <RootNamespace>ParquetSharp</RootNamespace>
     <PlatformTarget>x64</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>1.4.0.1-beta8</Version>
+    <Version>1.4.0.1-beta9</Version>
     <Company>G-Research</Company>
     <Authors>G-Research</Authors>
     <Product>ParquetSharp</Product>
@@ -16,7 +16,7 @@
     <Copyright>Copyright G-Research 2018</Copyright>
     <PackageProjectUrl>https://github.com/G-Research/ParquetSharp</PackageProjectUrl>
     <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
-    <PackageTags>parquet gresearch g-research .net c#</PackageTags>
+    <PackageTags>apache parquet gresearch g-research .net c#</PackageTags>
   </PropertyGroup>
 
   <ItemGroup Label="Additional nuget files">
