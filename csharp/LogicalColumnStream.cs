@@ -175,7 +175,7 @@ namespace ParquetSharp
 
                 case LogicalType.TimestampMillis:
                     return (typeof(long), nullable ? typeof(DateTime?) : typeof(DateTime));
-                    
+
                 case LogicalType.TimeMicros:
                     return (typeof(long), nullable ? typeof(TimeSpan?) : typeof(TimeSpan));
 
