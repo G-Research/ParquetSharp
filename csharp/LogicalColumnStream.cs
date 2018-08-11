@@ -22,7 +22,7 @@ namespace ParquetSharp
             }
 
             Buffer = Array.CreateInstance(physicalType, bufferLength);
-            DefLevels = descriptor.MaxDefinitionlevel == 0 ? null : new short[bufferLength];
+            DefLevels = descriptor.MaxDefinitionLevel == 0 ? null : new short[bufferLength];
             RepLevels = descriptor.MaxRepetitionLevel == 0 ? null : new short[bufferLength];
         }
 
@@ -135,19 +135,19 @@ namespace ParquetSharp
 
                     switch (physicalType)
                     {
-                        case ParquetType.Boolean:
+                        case PhysicalType.Boolean:
                             return (typeof(bool), nullable ? typeof(bool?) : typeof(bool));
-                        case ParquetType.Int32:
+                        case PhysicalType.Int32:
                             return (typeof(int), nullable ? typeof(int?) : typeof(int));
-                        case ParquetType.Int64:
+                        case PhysicalType.Int64:
                             return (typeof(long), nullable ? typeof(long?) : typeof(long));
-                        case ParquetType.Int96:
+                        case PhysicalType.Int96:
                             return (typeof(Int96), nullable ? typeof(Int96?) : typeof(Int96));
-                        case ParquetType.Float:
+                        case PhysicalType.Float:
                             return (typeof(float), nullable ? typeof(float?) : typeof(float));
-                        case ParquetType.Double:
+                        case PhysicalType.Double:
                             return (typeof(double), nullable ? typeof(double?) : typeof(double));
-                        case ParquetType.ByteArray:
+                        case PhysicalType.ByteArray:
                             return (typeof(ByteArray), typeof(byte[]));
                     }
 

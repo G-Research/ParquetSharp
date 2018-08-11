@@ -50,33 +50,33 @@ namespace ParquetSharp
             throw new ArgumentException($"unsupported logical type {type}");
         }
 
-        private static readonly IReadOnlyDictionary<Type, (Repetition Repetition, ParquetType PhysicalType, LogicalType LogicalType)> Primitives =
-            new Dictionary<Type, (Repetition, ParquetType, LogicalType)>
+        private static readonly IReadOnlyDictionary<Type, (Repetition Repetition, PhysicalType PhysicalType, LogicalType LogicalType)> Primitives =
+            new Dictionary<Type, (Repetition, PhysicalType, LogicalType)>
             {
-                {typeof(bool), (Repetition.Required, ParquetType.Boolean, LogicalType.None)},
-                {typeof(bool?), (Repetition.Optional, ParquetType.Boolean, LogicalType.None)},
-                {typeof(int), (Repetition.Required, ParquetType.Int32, LogicalType.None)},
-                {typeof(int?), (Repetition.Optional, ParquetType.Int32, LogicalType.None)},
-                {typeof(uint), (Repetition.Required, ParquetType.Int32, LogicalType.UInt32)},
-                {typeof(uint?), (Repetition.Optional, ParquetType.Int32, LogicalType.UInt32)},
-                {typeof(long), (Repetition.Required, ParquetType.Int64, LogicalType.None)},
-                {typeof(long?), (Repetition.Optional, ParquetType.Int64, LogicalType.None)},
-                {typeof(ulong), (Repetition.Required, ParquetType.Int64, LogicalType.UInt64)},
-                {typeof(ulong?), (Repetition.Optional, ParquetType.Int64, LogicalType.UInt64)},
-                {typeof(Int96), (Repetition.Required, ParquetType.Int96, LogicalType.None)},
-                {typeof(Int96?), (Repetition.Optional, ParquetType.Int96, LogicalType.None)},
-                {typeof(float), (Repetition.Required, ParquetType.Float, LogicalType.None)},
-                {typeof(float?), (Repetition.Optional, ParquetType.Float, LogicalType.None)},
-                {typeof(double), (Repetition.Required, ParquetType.Double, LogicalType.None)},
-                {typeof(double?), (Repetition.Optional, ParquetType.Double, LogicalType.None)},
-                {typeof(Date), (Repetition.Required, ParquetType.Int32, LogicalType.Date)},
-                {typeof(Date?), (Repetition.Optional, ParquetType.Int32, LogicalType.Date)},
-                {typeof(DateTime), (Repetition.Required, ParquetType.Int64, LogicalType.TimestampMicros)},
-                {typeof(DateTime?), (Repetition.Optional, ParquetType.Int64, LogicalType.TimestampMicros)},
-                {typeof(TimeSpan), (Repetition.Required, ParquetType.Int64, LogicalType.TimeMicros)},
-                {typeof(TimeSpan?), (Repetition.Optional, ParquetType.Int64, LogicalType.TimeMicros)},
-                {typeof(string), (Repetition.Optional, ParquetType.ByteArray, LogicalType.Utf8)},
-                {typeof(byte[]), (Repetition.Optional, ParquetType.ByteArray, LogicalType.None)}
+                {typeof(bool), (Repetition.Required, PhysicalType.Boolean, LogicalType.None)},
+                {typeof(bool?), (Repetition.Optional, PhysicalType.Boolean, LogicalType.None)},
+                {typeof(int), (Repetition.Required, PhysicalType.Int32, LogicalType.None)},
+                {typeof(int?), (Repetition.Optional, PhysicalType.Int32, LogicalType.None)},
+                {typeof(uint), (Repetition.Required, PhysicalType.Int32, LogicalType.UInt32)},
+                {typeof(uint?), (Repetition.Optional, PhysicalType.Int32, LogicalType.UInt32)},
+                {typeof(long), (Repetition.Required, PhysicalType.Int64, LogicalType.None)},
+                {typeof(long?), (Repetition.Optional, PhysicalType.Int64, LogicalType.None)},
+                {typeof(ulong), (Repetition.Required, PhysicalType.Int64, LogicalType.UInt64)},
+                {typeof(ulong?), (Repetition.Optional, PhysicalType.Int64, LogicalType.UInt64)},
+                {typeof(Int96), (Repetition.Required, PhysicalType.Int96, LogicalType.None)},
+                {typeof(Int96?), (Repetition.Optional, PhysicalType.Int96, LogicalType.None)},
+                {typeof(float), (Repetition.Required, PhysicalType.Float, LogicalType.None)},
+                {typeof(float?), (Repetition.Optional, PhysicalType.Float, LogicalType.None)},
+                {typeof(double), (Repetition.Required, PhysicalType.Double, LogicalType.None)},
+                {typeof(double?), (Repetition.Optional, PhysicalType.Double, LogicalType.None)},
+                {typeof(Date), (Repetition.Required, PhysicalType.Int32, LogicalType.Date)},
+                {typeof(Date?), (Repetition.Optional, PhysicalType.Int32, LogicalType.Date)},
+                {typeof(DateTime), (Repetition.Required, PhysicalType.Int64, LogicalType.TimestampMicros)},
+                {typeof(DateTime?), (Repetition.Optional, PhysicalType.Int64, LogicalType.TimestampMicros)},
+                {typeof(TimeSpan), (Repetition.Required, PhysicalType.Int64, LogicalType.TimeMicros)},
+                {typeof(TimeSpan?), (Repetition.Optional, PhysicalType.Int64, LogicalType.TimeMicros)},
+                {typeof(string), (Repetition.Optional, PhysicalType.ByteArray, LogicalType.Utf8)},
+                {typeof(byte[]), (Repetition.Optional, PhysicalType.ByteArray, LogicalType.None)}
             };
     }
 

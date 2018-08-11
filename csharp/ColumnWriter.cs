@@ -10,28 +10,28 @@ namespace ParquetSharp
     {
         internal static ColumnWriter Create(IntPtr handle)
         {
-            var type = ExceptionInfo.Return<ParquetType>(handle, ColumnWriter_Type);
+            var type = ExceptionInfo.Return<PhysicalType>(handle, ColumnWriter_Type);
 
             switch (type)
             {
-                case ParquetType.Boolean:
+                case PhysicalType.Boolean:
                     return new ColumnWriter<bool>(handle);
-                case ParquetType.Int32:
+                case PhysicalType.Int32:
                     return new ColumnWriter<int>(handle);
-                case ParquetType.Int64:
+                case PhysicalType.Int64:
                     return new ColumnWriter<long>(handle);
-                case ParquetType.Int96:
+                case PhysicalType.Int96:
                     return new ColumnWriter<Int96>(handle);
-                case ParquetType.Float:
+                case PhysicalType.Float:
                     return new ColumnWriter<float>(handle);
-                case ParquetType.Double:
+                case PhysicalType.Double:
                     return new ColumnWriter<double>(handle);
-                case ParquetType.ByteArray:
+                case PhysicalType.ByteArray:
                     return new ColumnWriter<ByteArray>(handle);
-                case ParquetType.FixedLenByteArray:
+                case PhysicalType.FixedLenByteArray:
                     return new ColumnWriter<FixedLenByteArray>(handle);
                 default:
-                    throw new NotSupportedException($"Parquet type {type} is not supported");
+                    throw new NotSupportedException($"Physical type {type} is not supported");
             }
         }
 
@@ -58,26 +58,10 @@ namespace ParquetSharp
             return ExceptionInfo.Return<long>(Handle, ColumnWriter_Close);
         }
 
-        public ColumnDescriptor ColumnDescriptor
-        {
-            get
-            {
-                ExceptionInfo.Check(ColumnWriter_Descr(Handle, out var columnDescriptor));
-                return new ColumnDescriptor(columnDescriptor);
-            }
-        }
-
-        public WriterProperties WriterProperties
-        {
-            get
-            {
-                ExceptionInfo.Check(ColumnWriter_Properties(Handle, out var writerProperties));
-                return new WriterProperties(writerProperties);
-            }
-        }
-
+        public ColumnDescriptor ColumnDescriptor => new ColumnDescriptor(ExceptionInfo.Return<IntPtr>(Handle, ColumnWriter_Descr));
         public long RowWritten => ExceptionInfo.Return<long>(Handle, ColumnWriter_Rows_Written);
-        public ParquetType Type => ExceptionInfo.Return<ParquetType>(Handle, ColumnWriter_Type);
+        public PhysicalType Type => ExceptionInfo.Return<PhysicalType>(Handle, ColumnWriter_Type);
+        public WriterProperties WriterProperties => new WriterProperties(ExceptionInfo.Return<IntPtr>(Handle, ColumnWriter_Properties));
 
         public abstract Type ElementType { get; }
         public abstract TReturn Apply<TReturn>(IColumnWriterVisitor<TReturn> visitor);
@@ -105,7 +89,7 @@ namespace ParquetSharp
         private static extern IntPtr ColumnWriter_Rows_Written(IntPtr columnWriter, out long rowsWritten);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ColumnWriter_Type(IntPtr columnWriter, out ParquetType type);
+        private static extern IntPtr ColumnWriter_Type(IntPtr columnWriter, out PhysicalType type);
 
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatch_Bool(

@@ -41,133 +41,133 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(bool),
-                    PhysicalType = ParquetType.Boolean
+                    PhysicalType = PhysicalType.Boolean
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(int),
-                    PhysicalType = ParquetType.Int32
+                    PhysicalType = PhysicalType.Int32
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(uint),
-                    PhysicalType = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.UInt32
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(long),
-                    PhysicalType = ParquetType.Int64
+                    PhysicalType = PhysicalType.Int64
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(ulong),
-                    PhysicalType = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.UInt64
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(float),
-                    PhysicalType = ParquetType.Float
+                    PhysicalType = PhysicalType.Float
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(double),
-                    PhysicalType = ParquetType.Double
+                    PhysicalType = PhysicalType.Double
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(Date),
-                    PhysicalType = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Date
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime),
-                    PhysicalType = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimestampMicros
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan),
-                    PhysicalType = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimeMicros
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(string),
-                    PhysicalType = ParquetType.ByteArray,
+                    PhysicalType = PhysicalType.ByteArray,
                     LogicalType = LogicalType.Utf8,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(byte[]),
-                    PhysicalType = ParquetType.ByteArray,
+                    PhysicalType = PhysicalType.ByteArray,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(bool?),
-                    PhysicalType = ParquetType.Boolean,
+                    PhysicalType = PhysicalType.Boolean,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(int?),
-                    PhysicalType = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(uint?),
-                    PhysicalType = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.UInt32,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(long?),
-                    PhysicalType = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(ulong?),
-                    PhysicalType = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.UInt64,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(float?),
-                    PhysicalType = ParquetType.Float,
+                    PhysicalType = PhysicalType.Float,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(double?),
-                    PhysicalType = ParquetType.Double,
+                    PhysicalType = PhysicalType.Double,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(Date?),
-                    PhysicalType = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Date,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime?),
-                    PhysicalType = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimestampMicros,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan?),
-                    PhysicalType = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimeMicros,
                     Repetition = Repetition.Optional
                 }
@@ -181,7 +181,7 @@ namespace ParquetSharp.Test
             public string Name = "MyName";
             public Repetition Repetition = Repetition.Required;
             public ColumnOrder ColumnOrder = ColumnOrder.TypeDefinedOrder;
-            public ParquetType PhysicalType;
+            public PhysicalType PhysicalType;
         }
     }
 }

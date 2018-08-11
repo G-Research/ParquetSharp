@@ -1,7 +1,7 @@
 
 namespace ParquetSharp
 {
-    public enum ParquetType
+    public enum PhysicalType
     {
         Boolean = 0,
         Int32 = 1,

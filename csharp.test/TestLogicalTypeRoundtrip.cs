@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using ParquetSharp.IO;
 using NUnit.Framework;
 
@@ -56,12 +57,33 @@ namespace ParquetSharp.Test
                             {
                                 var expected = expectedColumns[c];
                                 var descr = columnReader.ColumnDescriptor;
+                                var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
+                                var statistics = chunkMetaData.Statistics;
 
                                 Console.WriteLine("Reading '{0}'", expected.Name);
 
-                                Assert.AreEqual(expected.Physicaltype, descr.PhysicalType);
+                                Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
                                 Assert.AreEqual(expected.LogicalType, descr.LogicalType);
                                 Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalValueGetter(checked((int) numRows), rowsPerBatch)));
+                                Assert.AreEqual(expected.HasStatistics, chunkMetaData.IsStatsSet);
+
+                                if (expected.HasStatistics)
+                                {
+                                    Assert.AreEqual(expected.HasMinMax, statistics.HasMinMax);
+                                    Assert.AreEqual(expected.NullCount, statistics.NullCount);
+                                    Assert.AreEqual(expected.NumValues, statistics.NumValues);
+                                    Assert.AreEqual(expected.PhysicalType, statistics.PhysicalType);
+
+                                    if (expected.HasMinMax)
+                                    {
+                                        Assert.AreEqual(expected.Min, expected.Converter(statistics.MinUntyped));
+                                        Assert.AreEqual(expected.Max, expected.Converter(statistics.MaxUntyped));
+                                    }
+                                }
+                                else
+                                {
+                                    Assert.IsNull(statistics);
+                                }
                             }
                         }
                     }
@@ -76,164 +98,236 @@ namespace ParquetSharp.Test
                 new ExpectedColumn
                 {
                     Name = "boolean_field",
-                    Physicaltype = ParquetType.Boolean,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 3 == 0).ToArray()
+                    PhysicalType = PhysicalType.Boolean,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 3 == 0).ToArray(),
+                    Min = false,
+                    Max = true
                 },
                 new ExpectedColumn
                 {
                     Name = "boolean?_field",
-                    Physicaltype = ParquetType.Boolean,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (bool?) null : i % 3 == 0).ToArray()
+                    PhysicalType = PhysicalType.Boolean,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (bool?) null : i % 3 == 0).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = false,
+                    Max = true
                 },
                 new ExpectedColumn
                 {
                     Name = "int32_field",
-                    Physicaltype = ParquetType.Int32,
-                    Values = Enumerable.Range(0, NumRows).ToArray()
+                    PhysicalType = PhysicalType.Int32,
+                    Values = Enumerable.Range(0, NumRows).ToArray(),
+                    Min = 0,
+                    Max = NumRows - 1
                 },
                 new ExpectedColumn
                 {
                     Name = "int32?_field",
-                    Physicaltype = ParquetType.Int32,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (int?) null : i).ToArray()
+                    PhysicalType = PhysicalType.Int32,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (int?) null : i).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = 1,
+                    Max = NumRows - 1
                 },
                 new ExpectedColumn
                 {
                     Name = "uint32_field",
-                    Physicaltype = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.UInt32,
-                    Values = Enumerable.Range(0, NumRows).Select(i => (uint) i).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => (uint) i).ToArray(),
+                    Min = 0,
+                    Max = NumRows - 1
                 },
                 new ExpectedColumn
                 {
                     Name = "uint32?_field",
-                    Physicaltype = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.UInt32,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (uint?) null : (uint) i).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (uint?) null : (uint) i).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = 1,
+                    Max = NumRows - 1
                 },
                 new ExpectedColumn
                 {
                     Name = "int64_field",
-                    Physicaltype = ParquetType.Int64,
-                    Values = Enumerable.Range(0, NumRows).Select(i => (long) i * i).ToArray()
+                    PhysicalType = PhysicalType.Int64,
+                    Values = Enumerable.Range(0, NumRows).Select(i => (long) i * i).ToArray(),
+                    Min = 0,
+                    Max = (NumRows - 1) * (NumRows - 1)
                 },
                 new ExpectedColumn
                 {
                     Name = "int64?_field",
-                    Physicaltype = ParquetType.Int64,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (long?) null : (long) i * i).ToArray()
+                    PhysicalType = PhysicalType.Int64,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (long?) null : (long) i * i).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = 1,
+                    Max = (NumRows - 1) * (NumRows - 1)
                 },
                 new ExpectedColumn
                 {
                     Name = "uint64_field",
-                    Physicaltype = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.UInt64,
-                    Values = Enumerable.Range(0, NumRows).Select(i => (ulong) (i * i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => (ulong) (i * i)).ToArray(),
+                    Min = 0,
+                    Max = (NumRows - 1) * (NumRows - 1)
                 },
                 new ExpectedColumn
                 {
                     Name = "uint64?_field",
-                    Physicaltype = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.UInt64,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (ulong?) null : (ulong) (i * i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (ulong?) null : (ulong) (i * i)).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = 1,
+                    Max = (NumRows - 1) * (NumRows - 1)
                 },
                 new ExpectedColumn
                 {
                     Name = "int96_field",
-                    Physicaltype = ParquetType.Int96,
+                    PhysicalType = PhysicalType.Int96,
                     LogicalType = LogicalType.None,
-                    Values = Enumerable.Range(0, NumRows).Select(i => new Int96(i, i * i, i * i * i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => new Int96(i, i * i, i * i * i)).ToArray(),
+                    HasStatistics = false
                 },
                 new ExpectedColumn
                 {
                     Name = "int96?_field",
-                    Physicaltype = ParquetType.Int96,
+                    PhysicalType = PhysicalType.Int96,
                     LogicalType = LogicalType.None,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (Int96?) null : new Int96(i, i * i, i * i * i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (Int96?) null : new Int96(i, i * i, i * i * i)).ToArray(),
+                    HasStatistics = false
                 },
                 new ExpectedColumn
                 {
                     Name = "float_field",
-                    Physicaltype = ParquetType.Float,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 5 == 0 ? float.NaN : (float) Math.Sqrt(i)).ToArray()
+                    PhysicalType = PhysicalType.Float,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 5 == 0 ? float.NaN : (float) Math.Sqrt(i)).ToArray(),
+                    Min = 1,
+                    Max = (float) Math.Sqrt(NumRows - 1)
                 },
                 new ExpectedColumn
                 {
                     Name = "float?_field",
-                    Physicaltype = ParquetType.Float,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (float?) null : i % 5 == 0 ? float.NaN : (float) Math.Sqrt(i)).ToArray()
+                    PhysicalType = PhysicalType.Float,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (float?) null : i % 5 == 0 ? float.NaN : (float) Math.Sqrt(i)).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = 1,
+                    Max = (float) Math.Sqrt(NumRows - 1)
                 },
                 new ExpectedColumn
                 {
                     Name = "double_field",
-                    Physicaltype = ParquetType.Double,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 7 == 0 ? double.NaN : i * Math.PI).ToArray()
+                    PhysicalType = PhysicalType.Double,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 7 == 0 ? double.NaN : i * Math.PI).ToArray(),
+                    Min = Math.PI,
+                    Max = (NumRows - 1) * Math.PI
                 },
                 new ExpectedColumn
                 {
                     Name = "double?_field",
-                    Physicaltype = ParquetType.Double,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (double?) null : i % 7 == 0 ? double.NaN : i * Math.PI).ToArray()
+                    PhysicalType = PhysicalType.Double,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (double?) null : i % 7 == 0 ? double.NaN : i * Math.PI).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = Math.PI,
+                    Max = (NumRows - 1) * Math.PI
                 },
                 new ExpectedColumn
                 {
                     Name = "date_field",
-                    Physicaltype = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Date,
-                    Values = Enumerable.Range(0, NumRows).Select(i => new Date(2018, 01, 01).AddDays(i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => new Date(2018, 01, 01).AddDays(i)).ToArray(),
+                    Min = new Date(2018, 01, 01).Days,
+                    Max = new Date(2018, 01, 01).AddDays(NumRows - 1).Days
                 },
                 new ExpectedColumn
                 {
                     Name = "date?_field",
-                    Physicaltype = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Date,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (Date?) null : new Date(2018, 01, 01).AddDays(i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (Date?) null : new Date(2018, 01, 01).AddDays(i)).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = new Date(2018, 01, 01).AddDays(1).Days,
+                    Max = new Date(2018, 01, 01).AddDays(NumRows - 1).Days
                 },
                 new ExpectedColumn
                 {
                     Name = "datetime_field",
-                    Physicaltype = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimestampMicros,
-                    Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
+                    Min = (new DateTime(2018, 01, 01).Ticks - new DateTime(1970, 01, 01).Ticks) / (TimeSpan.TicksPerMillisecond / 1000),
+                    Max = ((new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1)).Ticks - new DateTime(1970, 01, 01).Ticks) / (TimeSpan.TicksPerMillisecond / 1000)
                 },
                 new ExpectedColumn
                 {
                     Name = "datetime?_field",
-                    Physicaltype = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimestampMicros,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (DateTime?) null : new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (DateTime?) null : new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = ((new DateTime(2018, 01, 01) + TimeSpan.FromHours(1)).Ticks - new DateTime(1970, 01, 01).Ticks) / (TimeSpan.TicksPerMillisecond / 1000),
+                    Max = ((new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1)).Ticks - new DateTime(1970, 01, 01).Ticks) / (TimeSpan.TicksPerMillisecond / 1000)
                 },
                 new ExpectedColumn
                 {
                     Name = "timespan_field",
-                    Physicaltype = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimeMicros,
-                    Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
+                    Min = TimeSpan.FromHours(-13).Ticks / (TimeSpan.TicksPerMillisecond / 1000),
+                    Max = TimeSpan.FromHours(-13 + NumRows - 1).Ticks / (TimeSpan.TicksPerMillisecond / 1000)
                 },
                 new ExpectedColumn
                 {
                     Name = "timespan?_field",
-                    Physicaltype = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimeMicros,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (TimeSpan?) null : TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (TimeSpan?) null : TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = TimeSpan.FromHours(-13 + 1).Ticks / (TimeSpan.TicksPerMillisecond / 1000),
+                    Max = TimeSpan.FromHours(-13 + NumRows - 1).Ticks / (TimeSpan.TicksPerMillisecond / 1000)
                 },
                 new ExpectedColumn
                 {
                     Name = "string_field",
-                    Physicaltype = ParquetType.ByteArray,
+                    PhysicalType = PhysicalType.ByteArray,
                     LogicalType = LogicalType.Utf8,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 9 == 0 ? null : $"Hello, {i}!").ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 9 == 0 ? null : $"Hello, {i}!").ToArray(),
+                    NullCount = NumRows / 9 + 1,
+                    NumValues = NumRows - (NumRows / 9 + 1),
+                    Min = "Hello, 1!",
+                    Max = "Hello, 98!",
+                    Converter = StringConverter
                 },
                 new ExpectedColumn
                 {
                     Name = "bytearray_field",
-                    Physicaltype = ParquetType.ByteArray,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 3 == 0 ? null : BitConverter.GetBytes(i)).ToArray()
+                    PhysicalType = PhysicalType.ByteArray,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 3 == 0 ? null : BitConverter.GetBytes(i)).ToArray(),
+                    NullCount = NumRows / 3 + 1,
+                    NumValues = NumRows - (NumRows / 3 + 1),
+                    Min = BitConverter.GetBytes(1),
+                    Max = BitConverter.GetBytes(NumRows - 1),
+                    Converter = ByteArrayConverter
                 },
                 new ExpectedColumn
                 {
                     Name = "nested_array_field",
-                    Physicaltype = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     Values = Enumerable.Range(0, NumRows).Select(i =>
                     {
                         if (i % 3 == 0)
@@ -259,12 +353,16 @@ namespace ParquetSharp.Test
                         {
                             null
                         };
-                    }).ToArray()
+                    }).ToArray(),
+                    NullCount = (NumRows / 3 + 1) * 4 - 1,
+                    NumValues = (NumRows / 3 + 1) * 8,
+                    Min = 1,
+                    Max = 16
                 },
                 new ExpectedColumn
                 {
                     Name = "nullable_nested_array_field",
-                    Physicaltype = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     Values = Enumerable.Range(0, NumRows).Select(i =>
                     {
                         if (i % 3 == 0)
@@ -290,20 +388,24 @@ namespace ParquetSharp.Test
                         {
                             null
                         };
-                    }).ToArray()
+                    }).ToArray(),
+                    NullCount = (NumRows / 3 + 1) * 6 - 1,
+                    NumValues = (NumRows / 3 + 1) * 6,
+                    Min = 1,
+                    Max = 16
                 },
                 new ExpectedColumn
                 {
                     Name = "array_of_bytearrays",
-                    Physicaltype = ParquetType.ByteArray,
+                    PhysicalType = PhysicalType.ByteArray,
                     Values = Enumerable.Range(0, NumRows).Select(i =>
                     {
                         if (i % 3 == 0)
                         {
                             return new[]
                             {
-                                BitConverter.GetBytes(3*i).ToArray(),
-                                BitConverter.GetBytes(2*i).ToArray()
+                                BitConverter.GetBytes(3*i),
+                                BitConverter.GetBytes(2*i)
                             };
                         }
                         if (i % 3 == 1)
@@ -312,7 +414,7 @@ namespace ParquetSharp.Test
                             {
                                 null,
                                 null,
-                                BitConverter.GetBytes(i).ToArray(),
+                                BitConverter.GetBytes(i),
                                 null
                             };
                         }
@@ -320,17 +422,45 @@ namespace ParquetSharp.Test
                         {
                             null
                         };
-                    }).ToArray()
+                    }).ToArray(),
+                    NullCount = (NumRows / 3 + 1) * 4 - 1,
+                    NumValues = (NumRows / 3 + 1) * 3,
+                    Min = BitConverter.GetBytes(0),
+                    Max = BitConverter.GetBytes(252),
+                    Converter = ByteArrayConverter
                 }
             };
         }
-        
+
+        private static object ByteArrayConverter(object v)
+        {
+            var byteArray = (ByteArray)v;
+            var array = new byte[byteArray.Length];
+            Marshal.Copy(byteArray.Pointer, array, 0, array.Length);
+            return array;
+        }
+
+        private static unsafe object StringConverter(object v)
+        {
+            var byteArray = (ByteArray) v;
+            return System.Text.Encoding.UTF8.GetString((byte*) byteArray.Pointer, byteArray.Length);
+        }
+
         private sealed class ExpectedColumn
         {
             public string Name;
             public Array Values;
-            public ParquetType Physicaltype;
+            public PhysicalType PhysicalType;
             public LogicalType LogicalType = LogicalType.None;
+
+            public bool HasStatistics = true;
+            public bool HasMinMax = true;
+            public object Min;
+            public object Max;
+            public long NullCount;
+            public long NumValues = NumRows;
+
+            public Func<object, object> Converter = v => v;
         }
 
         private const int NumRows = 119;
