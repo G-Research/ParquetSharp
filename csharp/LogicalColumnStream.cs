@@ -15,6 +15,7 @@ namespace ParquetSharp
             Source = source ?? throw new ArgumentNullException(nameof(source));
             ColumnDescriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
             BufferLength = bufferLength;
+            LogicalType = descriptor.LogicalType;
 
             if (elementType != typeof(byte[]) && elementType.IsArray)
             {
@@ -34,6 +35,7 @@ namespace ParquetSharp
         public TSource Source { get; }
         public ColumnDescriptor ColumnDescriptor { get; }
         public int BufferLength { get; }
+        public LogicalType LogicalType { get; }
 
         protected readonly short NestingDepth;
         protected readonly short[] NullDefinitionLevels;
@@ -171,11 +173,21 @@ namespace ParquetSharp
                 case LogicalType.TimestampMicros:
                     return (typeof(long), nullable ? typeof(DateTime?) : typeof(DateTime));
 
+                case LogicalType.TimestampMillis:
+                    return (typeof(long), nullable ? typeof(DateTime?) : typeof(DateTime));
+
                 case LogicalType.TimeMicros:
                     return (typeof(long), nullable ? typeof(TimeSpan?) : typeof(TimeSpan));
 
+                case LogicalType.TimeMillis:
+                    return (typeof(int), nullable ? typeof(TimeSpan?) : typeof(TimeSpan));
+
+                case LogicalType.Json:
                 case LogicalType.Utf8:
                     return (typeof(ByteArray), typeof(string));
+
+                case LogicalType.Bson:
+                    return (typeof(ByteArray), typeof(byte[]));
             }
 
             throw new ArgumentOutOfRangeException(nameof(logicalType), $"unsupported logical type {logicalType} with physical type {physicalType}");

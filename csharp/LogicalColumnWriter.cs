@@ -67,7 +67,7 @@ namespace ParquetSharp
         public override void WriteBatch(TElement[] values, int start, int length)
         {
             // Convert logical values into physical values at the lowest array level
-            var converter = LogicalWrite<TLogicalValue, TPhysicalValue>.GetConverter(_byteBuffer);
+            var converter = LogicalWrite<TLogicalValue, TPhysicalValue>.GetConverter(LogicalType, _byteBuffer);
 
             // Handle arrays separately
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)

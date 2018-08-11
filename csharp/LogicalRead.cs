@@ -11,7 +11,7 @@ namespace ParquetSharp
     {
         public delegate void Converter(ReadOnlySpan<TPhysicalValue> source, ReadOnlySpan<short> defLevels, Span<TLogicalValue> destination, short nullLevel);
 
-        public static Converter GetConverter()
+        public static Converter GetConverter(LogicalType logicalType)
         {
             if (typeof(TLogicalValue) == typeof(bool) ||
                 typeof(TLogicalValue) == typeof(int) ||
@@ -65,22 +65,54 @@ namespace ParquetSharp
 
             if (typeof(TLogicalValue) == typeof(DateTime))
             {
-                return (Converter) (Delegate) (LogicalRead<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTime(s, d));
+                if (logicalType == LogicalType.TimestampMicros)
+                {
+                    return (Converter) (Delegate) (LogicalRead<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMicros(s, d));
+                }
+
+                if (logicalType == LogicalType.TimestampMillis)
+                {
+                    return (Converter) (Delegate) (LogicalRead<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMillis(s, d));
+                }
             }
 
             if (typeof(TLogicalValue) == typeof(DateTime?))
             {
-                return (Converter) (Delegate) (LogicalRead<DateTime?, long>.Converter) ConvertDateTime;
+                if (logicalType == LogicalType.TimestampMicros)
+                {
+                    return (Converter) (Delegate) (LogicalRead<DateTime?, long>.Converter) ConvertDateTimeMicros;
+                }
+
+                if (logicalType == LogicalType.TimestampMillis)
+                {
+                    return (Converter) (Delegate) (LogicalRead<DateTime?, long>.Converter) ConvertDateTimeMillis;
+                }
             }
 
             if (typeof(TLogicalValue) == typeof(TimeSpan))
             {
-                return (Converter) (Delegate) (LogicalRead<TimeSpan, long>.Converter) ((s, dl, d, nl) => ConvertTimeSpan(s, d));
+                if (logicalType == LogicalType.TimeMicros)
+                {
+                    return (Converter) (Delegate) (LogicalRead<TimeSpan, long>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMicros(s, d));
+                }
+
+                if (logicalType == LogicalType.TimeMillis)
+                {
+                    return (Converter) (Delegate) (LogicalRead<TimeSpan, int>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMillis(s, d));
+                }
             }
 
             if (typeof(TLogicalValue) == typeof(TimeSpan?))
             {
-                return (Converter) (Delegate) (LogicalRead<TimeSpan?, long>.Converter) ConvertTimeSpan;
+                if (logicalType == LogicalType.TimeMicros)
+                {
+                    return (Converter) (Delegate) (LogicalRead<TimeSpan?, long>.Converter) ConvertTimeSpanMicros;
+                }
+
+                if (logicalType == LogicalType.TimeMillis)
+                {
+                    return (Converter) (Delegate) (LogicalRead<TimeSpan?, int>.Converter) ConvertTimeSpanMillis;
+                }
             }
 
             if (typeof(TLogicalValue) == typeof(string))
@@ -93,7 +125,7 @@ namespace ParquetSharp
                 return (Converter) (Delegate) (LogicalRead<byte[], ByteArray>.Converter) ConvertByteArray;
             }
 
-            throw new NotSupportedException($"unsupported logical type {typeof(TLogicalValue)}");
+            throw new NotSupportedException($"unsupported logical system type {typeof(TLogicalValue)} with logical type {logicalType}");
         }
 
         private static void ConvertNative<TValue>(ReadOnlySpan<TValue> source, Span<TValue> destination) where TValue : unmanaged
@@ -109,7 +141,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertDateTime(ReadOnlySpan<long> source, Span<DateTime> destination)
+        private static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination)
         {
             for (int i = 0; i != destination.Length; ++i)
             {
@@ -117,17 +149,35 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertDateTime(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short nullLevel)
+        private static void ConvertDateTimeMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i != destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel 
-                    ? default(DateTime?) 
+                destination[i] = defLevels[i] == nullLevel
+                    ? default(DateTime?)
                     : DateTime.FromBinary(DateTimeOffset + source[src++] * (TimeSpan.TicksPerMillisecond / 1000));
             }
         }
 
-        private static void ConvertTimeSpan(ReadOnlySpan<long> source, Span<TimeSpan> destination)
+        private static void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination)
+        {
+            for (int i = 0; i != destination.Length; ++i)
+            {
+                destination[i] = DateTime.FromBinary(DateTimeOffset + source[i] * TimeSpan.TicksPerMillisecond);
+            }
+        }
+
+        private static void ConvertDateTimeMillis(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short nullLevel)
+        {
+            for (int i = 0, src = 0; i != destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] == nullLevel
+                    ? default(DateTime?)
+                    : DateTime.FromBinary(DateTimeOffset + source[src++] * TimeSpan.TicksPerMillisecond);
+            }
+        }
+
+        private static void ConvertTimeSpanMicros(ReadOnlySpan<long> source, Span<TimeSpan> destination)
         {
             for (int i = 0; i != destination.Length; ++i)
             {
@@ -135,13 +185,31 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertTimeSpan(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<TimeSpan?> destination, short nullLevel)
+        private static void ConvertTimeSpanMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<TimeSpan?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i != destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel 
-                    ? default(TimeSpan?) 
+                destination[i] = defLevels[i] == nullLevel
+                    ? default(TimeSpan?)
                     : TimeSpan.FromTicks(source[src++] * (TimeSpan.TicksPerMillisecond / 1000));
+            }
+        }
+
+        private static void ConvertTimeSpanMillis(ReadOnlySpan<int> source, Span<TimeSpan> destination)
+        {
+            for (int i = 0; i != destination.Length; ++i)
+            {
+                destination[i] = TimeSpan.FromTicks(source[i] * TimeSpan.TicksPerMillisecond);
+            }
+        }
+
+        private static void ConvertTimeSpanMillis(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<TimeSpan?> destination, short nullLevel)
+        {
+            for (int i = 0, src = 0; i != destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] == nullLevel
+                    ? default(TimeSpan?)
+                    : TimeSpan.FromTicks(source[src++] * TimeSpan.TicksPerMillisecond);
             }
         }
 
