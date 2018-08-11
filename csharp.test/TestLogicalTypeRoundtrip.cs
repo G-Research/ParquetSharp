@@ -267,71 +267,91 @@ namespace ParquetSharp.Test
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimestampMicros,
                     Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
-                    Min = (new DateTime(2018, 01, 01).Ticks - new DateTime(1970, 01, 01).Ticks) / (TimeSpan.TicksPerMillisecond / 1000),
-                    Max = ((new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1)).Ticks - new DateTime(1970, 01, 01).Ticks) / (TimeSpan.TicksPerMillisecond / 1000)
+                    Min = new DateTime(2018, 01, 01),
+                    Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
+                    Converter = DateTimeMicrosConverter
                 },
                 new ExpectedColumn
                 {
                     Name = "datetime?_micros_field",
-                    Physicaltype = PhysicalType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimestampMicros,
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (DateTime?) null : new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     NullCount = NumRows / 11 + 1,
                     NumValues = NumRows - (NumRows / 11 + 1),
-                    Min = ((new DateTime(2018, 01, 01) + TimeSpan.FromHours(1)).Ticks - new DateTime(1970, 01, 01).Ticks) / (TimeSpan.TicksPerMillisecond / 1000),
-                    Max = ((new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1)).Ticks - new DateTime(1970, 01, 01).Ticks) / (TimeSpan.TicksPerMillisecond / 1000)
+                    Min = new DateTime(2018, 01, 01) + TimeSpan.FromHours(1),
+                    Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
+                    Converter = DateTimeMicrosConverter
                 },
                 new ExpectedColumn
                 {
                     Name = "datetime_millis_field",
-                    Physicaltype = PhysicalType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimestampMillis,
                     LogicalTypeOverride = LogicalType.TimestampMillis,
-                    Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
+                    Min = new DateTime(2018, 01, 01),
+                    Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
+                    Converter = DateTimeMillisConverter
                 },
                 new ExpectedColumn
                 {
                     Name = "datetime?_millis_field",
-                    Physicaltype = PhysicalType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimestampMillis,
                     LogicalTypeOverride = LogicalType.TimestampMillis,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (DateTime?) null : new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (DateTime?) null : new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = new DateTime(2018, 01, 01) + TimeSpan.FromHours(1),
+                    Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
+                    Converter = DateTimeMillisConverter
                 },
                 new ExpectedColumn
                 {
                     Name = "timespan_micros_field",
-                    Physicaltype = PhysicalType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimeMicros,
                     Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
-                    Min = TimeSpan.FromHours(-13).Ticks / (TimeSpan.TicksPerMillisecond / 1000),
-                    Max = TimeSpan.FromHours(-13 + NumRows - 1).Ticks / (TimeSpan.TicksPerMillisecond / 1000)
+                    Min = TimeSpan.FromHours(-13),
+                    Max = TimeSpan.FromHours(-13 + NumRows - 1),
+                    Converter = TimeSpanMicrosConverter
                 },
                 new ExpectedColumn
                 {
                     Name = "timespan?_micros_field",
-                    Physicaltype = PhysicalType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimeMicros,
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (TimeSpan?) null : TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     NullCount = NumRows / 11 + 1,
                     NumValues = NumRows - (NumRows / 11 + 1),
-                    Min = TimeSpan.FromHours(-13 + 1).Ticks / (TimeSpan.TicksPerMillisecond / 1000),
-                    Max = TimeSpan.FromHours(-13 + NumRows - 1).Ticks / (TimeSpan.TicksPerMillisecond / 1000)
+                    Min = TimeSpan.FromHours(-13 + 1),
+                    Max = TimeSpan.FromHours(-13 + NumRows - 1),
+                    Converter = TimeSpanMicrosConverter
                 },
                 new ExpectedColumn
                 {
                     Name = "timespan_millis_field",
-                    Physicaltype = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.TimeMillis,
                     LogicalTypeOverride = LogicalType.TimeMillis,
-                    Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
+                    Min = TimeSpan.FromHours(-13),
+                    Max = TimeSpan.FromHours(-13 + NumRows - 1),
+                    Converter = TimeSpanMillisConverter
                 },
                 new ExpectedColumn
                 {
                     Name = "timespan?_millis_field",
-                    Physicaltype = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.TimeMillis,
                     LogicalTypeOverride = LogicalType.TimeMillis,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (TimeSpan?) null : TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (TimeSpan?) null : TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
+                    NullCount = NumRows / 11 + 1,
+                    NumValues = NumRows - (NumRows / 11 + 1),
+                    Min = TimeSpan.FromHours(-13 + 1),
+                    Max = TimeSpan.FromHours(-13 + NumRows - 1),
+                    Converter = TimeSpanMillisConverter
                 },
                 new ExpectedColumn
                 {
@@ -348,10 +368,15 @@ namespace ParquetSharp.Test
                 new ExpectedColumn
                 {
                     Name = "json_field",
-                    Physicaltype = ParquetType.ByteArray,
+                    PhysicalType = PhysicalType.ByteArray,
                     LogicalType = LogicalType.Json,
                     LogicalTypeOverride = LogicalType.Json,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 9 == 0 ? null : $"{{ \"id\", {i}}}").ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 9 == 0 ? null : $"{{ \"id\", {i} }}").ToArray(),
+                    NullCount = NumRows / 9 + 1,
+                    NumValues = NumRows - (NumRows / 9 + 1),
+                    Min = "{ \"id\", 1 }",
+                    Max = "{ \"id\", 98 }",
+                    Converter = StringConverter
                 },
                 new ExpectedColumn
                 {
@@ -367,10 +392,15 @@ namespace ParquetSharp.Test
                 new ExpectedColumn
                 {
                     Name = "bson_field",
-                    Physicaltype = ParquetType.ByteArray,
+                    PhysicalType = PhysicalType.ByteArray,
                     LogicalType = LogicalType.Bson,
                     LogicalTypeOverride = LogicalType.Bson,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 3 == 0 ? null : BitConverter.GetBytes(i)).ToArray()
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 3 == 0 ? null : BitConverter.GetBytes(i)).ToArray(),
+                    NullCount = NumRows / 3 + 1,
+                    NumValues = NumRows - (NumRows / 3 + 1),
+                    Min = BitConverter.GetBytes(1),
+                    Max = BitConverter.GetBytes(NumRows - 1),
+                    Converter = ByteArrayConverter
                 },
                 new ExpectedColumn
                 {
@@ -386,6 +416,7 @@ namespace ParquetSharp.Test
                                 new long[] {3, 4}
                             };
                         }
+
                         if (i % 3 == 1)
                         {
                             return new[]
@@ -397,6 +428,7 @@ namespace ParquetSharp.Test
                                 new long[] {15, 16}
                             };
                         }
+
                         return new long[][]
                         {
                             null
@@ -421,6 +453,7 @@ namespace ParquetSharp.Test
                                 new long?[] {3, null}
                             };
                         }
+
                         if (i % 3 == 1)
                         {
                             return new[]
@@ -432,6 +465,7 @@ namespace ParquetSharp.Test
                                 new long?[] {null, 16}
                             };
                         }
+
                         return new long?[][]
                         {
                             null
@@ -452,10 +486,11 @@ namespace ParquetSharp.Test
                         {
                             return new[]
                             {
-                                BitConverter.GetBytes(3*i),
-                                BitConverter.GetBytes(2*i)
+                                BitConverter.GetBytes(3 * i),
+                                BitConverter.GetBytes(2 * i)
                             };
                         }
+
                         if (i % 3 == 1)
                         {
                             return new[]
@@ -466,6 +501,7 @@ namespace ParquetSharp.Test
                                 null
                             };
                         }
+
                         return new byte[][]
                         {
                             null
@@ -480,9 +516,29 @@ namespace ParquetSharp.Test
             };
         }
 
+        private static object DateTimeMicrosConverter(object v)
+        {
+            return new DateTime(1970, 01, 01).AddTicks((long) v * (TimeSpan.TicksPerMillisecond / 1000));
+        }
+
+        private static object DateTimeMillisConverter(object v)
+        {
+            return new DateTime(1970, 01, 01).AddTicks((long) v * TimeSpan.TicksPerMillisecond);
+        }
+
+        private static object TimeSpanMicrosConverter(object v)
+        {
+            return TimeSpan.FromTicks((long) v * (TimeSpan.TicksPerMillisecond / 1000));
+        }
+
+        private static object TimeSpanMillisConverter(object v)
+        {
+            return TimeSpan.FromTicks((int) v * TimeSpan.TicksPerMillisecond);
+        }
+
         private static object ByteArrayConverter(object v)
         {
-            var byteArray = (ByteArray)v;
+            var byteArray = (ByteArray) v;
             var array = new byte[byteArray.Length];
             Marshal.Copy(byteArray.Pointer, array, 0, array.Length);
             return array;

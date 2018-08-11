@@ -101,7 +101,7 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime),
-                    PhysicalType = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimestampMillis,
                     LogicalTypeOverride = LogicalType.TimestampMillis
                 },
@@ -114,7 +114,7 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan),
-                    PhysicalType = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.TimeMillis,
                     LogicalTypeOverride = LogicalType.TimeMillis
                 },
@@ -128,7 +128,7 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(string),
-                    PhysicalType = ParquetType.ByteArray,
+                    PhysicalType = PhysicalType.ByteArray,
                     LogicalType = LogicalType.Json,
                     LogicalTypeOverride = LogicalType.Json,
                     Repetition = Repetition.Optional
@@ -136,13 +136,13 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(byte[]),
-                    PhysicalType = ParquetType.ByteArray,
+                    PhysicalType = PhysicalType.ByteArray,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(byte[]),
-                    PhysicalType = ParquetType.ByteArray,
+                    PhysicalType = PhysicalType.ByteArray,
                     LogicalType = LogicalType.Bson,
                     LogicalTypeOverride = LogicalType.Bson,
                     Repetition = Repetition.Optional
@@ -208,7 +208,7 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime?),
-                    PhysicalType = ParquetType.Int64,
+                    PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.TimestampMillis,
                     LogicalTypeOverride = LogicalType.TimestampMillis,
                     Repetition = Repetition.Optional
@@ -223,7 +223,7 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan?),
-                    PhysicalType = ParquetType.Int32,
+                    PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.TimeMillis,
                     LogicalTypeOverride = LogicalType.TimeMillis,
                     Repetition = Repetition.Optional
