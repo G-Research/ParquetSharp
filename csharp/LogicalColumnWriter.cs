@@ -81,7 +81,7 @@ namespace ParquetSharp
 
         private void WriteBatchArray(TElement[] values, int start, int length, LogicalWrite<TLogicalValue, TPhysicalValue>.Converter converter)
         {
-            WriteArrayInternal(values, start, length, 0, NestingDepth, 0, NullDefinitionLevels, ColumnDescriptor.MaxDefinitionlevel, converter);
+            WriteArrayInternal(values, start, length, 0, NestingDepth, 0, NullDefinitionLevels, ColumnDescriptor.MaxDefinitionLevel, converter);
         }
 
         private void WriteArrayInternal(

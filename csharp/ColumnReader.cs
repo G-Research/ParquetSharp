@@ -14,28 +14,28 @@ namespace ParquetSharp
 
             try
             {
-                var type = ExceptionInfo.Return<ParquetType>(handle, ColumnReader_Type);
+                var type = ExceptionInfo.Return<PhysicalType>(handle, ColumnReader_Type);
 
                 switch (type)
                 {
-                    case ParquetType.Boolean:
+                    case PhysicalType.Boolean:
                         return new ColumnReader<bool>(parquetHandle);
-                    case ParquetType.Int32:
+                    case PhysicalType.Int32:
                         return new ColumnReader<int>(parquetHandle);
-                    case ParquetType.Int64:
+                    case PhysicalType.Int64:
                         return new ColumnReader<long>(parquetHandle);
-                    case ParquetType.Int96:
+                    case PhysicalType.Int96:
                         return new ColumnReader<Int96>(parquetHandle);
-                    case ParquetType.Float:
+                    case PhysicalType.Float:
                         return new ColumnReader<float>(parquetHandle);
-                    case ParquetType.Double:
+                    case PhysicalType.Double:
                         return new ColumnReader<double>(parquetHandle);
-                    case ParquetType.ByteArray:
+                    case PhysicalType.ByteArray:
                         return new ColumnReader<ByteArray>(parquetHandle);
-                    case ParquetType.FixedLenByteArray:
+                    case PhysicalType.FixedLenByteArray:
                         return new ColumnReader<FixedLenByteArray>(parquetHandle);
                     default:
-                        throw new NotSupportedException($"Parquet type {type} is not supported");
+                        throw new NotSupportedException($"Physical type {type} is not supported");
                 }
             }
 
@@ -58,7 +58,7 @@ namespace ParquetSharp
 
         public ColumnDescriptor ColumnDescriptor => new ColumnDescriptor(ExceptionInfo.Return<IntPtr>(Handle, ColumnReader_Descr));
         public bool HasNext => ExceptionInfo.Return<bool>(Handle, ColumnReader_HasNext);
-        public ParquetType Type => ExceptionInfo.Return<ParquetType>(Handle, ColumnReader_Type);
+        public PhysicalType Type => ExceptionInfo.Return<PhysicalType>(Handle, ColumnReader_Type);
 
         public abstract Type ElementType { get; }
         public abstract TReturn Apply<TReturn>(IColumnReaderVisitor<TReturn> visitor);
@@ -83,7 +83,7 @@ namespace ParquetSharp
         private static extern IntPtr ColumnReader_HasNext(IntPtr columnReader, [MarshalAs(UnmanagedType.I1)] out bool hasNext);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ColumnReader_Type(IntPtr columnReader, out ParquetType type);
+        private static extern IntPtr ColumnReader_Type(IntPtr columnReader, out PhysicalType type);
 
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Bool(

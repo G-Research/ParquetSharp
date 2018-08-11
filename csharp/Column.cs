@@ -54,9 +54,9 @@ namespace ParquetSharp
             throw new ArgumentException($"unsupported logical type {type}");
         }
 
-        private static (LogicalType LogicalType, ParquetType PhysicalType) GetEntry(
+        private static (LogicalType LogicalType, PhysicalType PhysicalType) GetEntry(
             Type type, LogicalType logicalTypeOverride, 
-            IReadOnlyList<(LogicalType LogicalTypes, ParquetType PhysicalType)> entries)
+            IReadOnlyList<(LogicalType LogicalTypes, PhysicalType PhysicalType)> entries)
         {
             // By default, return the first listed logical type.
             if (logicalTypeOverride == LogicalType.None)
@@ -74,68 +74,68 @@ namespace ParquetSharp
             return entry;
         }
 
-        private static readonly IReadOnlyDictionary<Type, (Repetition Repetition, IReadOnlyList<(LogicalType LogicalType, ParquetType PhysicalType)> Entries)>
-            Primitives = new Dictionary<Type, (Repetition, IReadOnlyList<(LogicalType, ParquetType)>)>
+        private static readonly IReadOnlyDictionary<Type, (Repetition Repetition, IReadOnlyList<(LogicalType LogicalType, PhysicalType PhysicalType)> Entries)>
+            Primitives = new Dictionary<Type, (Repetition, IReadOnlyList<(LogicalType, PhysicalType)>)>
             {
-                {typeof(bool), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Boolean)})},
-                {typeof(bool?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Boolean)})},
-                {typeof(int), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Int32)})},
-                {typeof(int?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Int32)})},
-                {typeof(uint), (Repetition.Required, new[] {(LogicalType.UInt32, ParquetType.Int32)})},
-                {typeof(uint?), (Repetition.Optional, new[] {(LogicalType.UInt32, ParquetType.Int32)})},
-                {typeof(long), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Int64)})},
-                {typeof(long?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Int64)})},
-                {typeof(ulong), (Repetition.Required, new[] {(LogicalType.UInt64, ParquetType.Int64)})},
-                {typeof(ulong?), (Repetition.Optional, new[] {(LogicalType.UInt64, ParquetType.Int64)})},
-                {typeof(Int96), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Int96)})},
-                {typeof(Int96?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Int96)})},
-                {typeof(float), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Float)})},
-                {typeof(float?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Float)})},
-                {typeof(double), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Double)})},
-                {typeof(double?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Double)})},
-                {typeof(Date), (Repetition.Required, new[] {(LogicalType.Date, ParquetType.Int32)})},
-                {typeof(Date?), (Repetition.Optional, new[] {(LogicalType.Date, ParquetType.Int32)})},
+                {typeof(bool), (Repetition.Required, new[] {(LogicalType.None, PhysicalType.Boolean)})},
+                {typeof(bool?), (Repetition.Optional, new[] {(LogicalType.None, PhysicalType.Boolean)})},
+                {typeof(int), (Repetition.Required, new[] {(LogicalType.None, PhysicalType.Int32)})},
+                {typeof(int?), (Repetition.Optional, new[] {(LogicalType.None, PhysicalType.Int32)})},
+                {typeof(uint), (Repetition.Required, new[] {(LogicalType.UInt32, PhysicalType.Int32)})},
+                {typeof(uint?), (Repetition.Optional, new[] {(LogicalType.UInt32, PhysicalType.Int32)})},
+                {typeof(long), (Repetition.Required, new[] {(LogicalType.None, PhysicalType.Int64)})},
+                {typeof(long?), (Repetition.Optional, new[] {(LogicalType.None, PhysicalType.Int64)})},
+                {typeof(ulong), (Repetition.Required, new[] {(LogicalType.UInt64, PhysicalType.Int64)})},
+                {typeof(ulong?), (Repetition.Optional, new[] {(LogicalType.UInt64, PhysicalType.Int64)})},
+                {typeof(Int96), (Repetition.Required, new[] {(LogicalType.None, PhysicalType.Int96)})},
+                {typeof(Int96?), (Repetition.Optional, new[] {(LogicalType.None, PhysicalType.Int96)})},
+                {typeof(float), (Repetition.Required, new[] {(LogicalType.None, PhysicalType.Float)})},
+                {typeof(float?), (Repetition.Optional, new[] {(LogicalType.None, PhysicalType.Float)})},
+                {typeof(double), (Repetition.Required, new[] {(LogicalType.None, PhysicalType.Double)})},
+                {typeof(double?), (Repetition.Optional, new[] {(LogicalType.None, PhysicalType.Double)})},
+                {typeof(Date), (Repetition.Required, new[] {(LogicalType.Date, PhysicalType.Int32)})},
+                {typeof(Date?), (Repetition.Optional, new[] {(LogicalType.Date, PhysicalType.Int32)})},
                 {
                     typeof(DateTime), (Repetition.Required, new[]
                     {
-                        (LogicalType.TimestampMicros, ParquetType.Int64),
-                        (LogicalType.TimestampMillis, ParquetType.Int64)
+                        (LogicalType.TimestampMicros, PhysicalType.Int64),
+                        (LogicalType.TimestampMillis, PhysicalType.Int64)
                     })
                 },
                 {
                     typeof(DateTime?), (Repetition.Optional, new[]
                     {
-                        (LogicalType.TimestampMicros, ParquetType.Int64),
-                        (LogicalType.TimestampMillis, ParquetType.Int64)
+                        (LogicalType.TimestampMicros, PhysicalType.Int64),
+                        (LogicalType.TimestampMillis, PhysicalType.Int64)
 
                     })
                 },
                 {
                     typeof(TimeSpan), (Repetition.Required, new[]
                     {
-                        (LogicalType.TimeMicros, ParquetType.Int64),
-                        (LogicalType.TimeMillis, ParquetType.Int32)
+                        (LogicalType.TimeMicros, PhysicalType.Int64),
+                        (LogicalType.TimeMillis, PhysicalType.Int32)
                     })
                 },
                 {
                     typeof(TimeSpan?), (Repetition.Optional, new[]
                     {
-                        (LogicalType.TimeMicros, ParquetType.Int64),
-                        (LogicalType.TimeMillis, ParquetType.Int32)
+                        (LogicalType.TimeMicros, PhysicalType.Int64),
+                        (LogicalType.TimeMillis, PhysicalType.Int32)
                     })
                 },
                 {
                     typeof(string), (Repetition.Optional, new[]
                     {
-                        (LogicalType.Utf8, ParquetType.ByteArray),
-                        (LogicalType.Json, ParquetType.ByteArray)
+                        (LogicalType.Utf8, PhysicalType.ByteArray),
+                        (LogicalType.Json, PhysicalType.ByteArray)
                     })
                 },
                 {
                     typeof(byte[]), (Repetition.Optional, new[]
                     {
-                        (LogicalType.None, ParquetType.ByteArray),
-                        (LogicalType.Bson, ParquetType.ByteArray)
+                        (LogicalType.None, PhysicalType.ByteArray),
+                        (LogicalType.Bson, PhysicalType.ByteArray)
                     })
                 }
             };
