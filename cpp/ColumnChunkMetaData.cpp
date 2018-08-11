@@ -2,7 +2,7 @@
 #include "cpp/ParquetSharpExport.h"
 #include "ExceptionInfo.h"
 
-#include <parquet/metadata.h>
+#include <parquet/file_reader.h>
 
 using namespace parquet;
 
@@ -11,6 +11,8 @@ extern "C"
 	// TODO native API that still needs to be ported.
 	//const std::string& file_path() const;
 	//std::shared_ptr<schema::ColumnPath> path_in_schema() const;
+	//std::shared_ptr<RowGroupStatistics> statistics() const;
+	//bool is_stats_set() const;
 
 	//int64_t has_dictionary_page() const;
 	//int64_t dictionary_page_offset() const;
@@ -42,23 +44,9 @@ extern "C"
 		TRYCATCH(*file_offset = column_chunk_meta_data->file_offset();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnChunkMetaData_Is_Stats_Set(const ColumnChunkMetaData* column_chunk_meta_data, bool* is_stats_set)
-	{
-		TRYCATCH(*is_stats_set = column_chunk_meta_data->is_stats_set();)
-	}
-
 	PARQUETSHARP_EXPORT ExceptionInfo* ColumnChunkMetaData_Num_Values(const ColumnChunkMetaData* column_chunk_meta_data, int64_t* num_values)
 	{
 		TRYCATCH(*num_values = column_chunk_meta_data->num_values();)
-	}
-
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnChunkMetaData_Statistics(const ColumnChunkMetaData* column_chunk_meta_data, std::shared_ptr<RowGroupStatistics>** statistics)
-	{
-		TRYCATCH
-		(
-			auto& s = column_chunk_meta_data->statistics();
-			*statistics = s ? new std::shared_ptr<RowGroupStatistics>(s) : nullptr;
-		)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ColumnChunkMetaData_Total_Compressed_Size(const ColumnChunkMetaData* column_chunk_meta_data, int64_t* total_compressed_size)

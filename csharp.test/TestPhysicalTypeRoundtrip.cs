@@ -66,9 +66,9 @@ namespace ParquetSharp.Test
                                 var descr = columnReader.ColumnDescriptor;
                                 var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(0);
 
-                                Assert.AreEqual(expected.MaxDefinitionlevel, descr.MaxDefinitionLevel);
+                                Assert.AreEqual(expected.MaxDefinitionlevel, descr.MaxDefinitionlevel);
                                 Assert.AreEqual(expected.MaxRepetitionLevel, descr.MaxRepetitionLevel);
-                                Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
+                                Assert.AreEqual(expected.Physicaltype, descr.PhysicalType);
                                 Assert.AreEqual(expected.LogicalType, descr.LogicalType);
                                 Assert.AreEqual(expected.ColumnOrder, descr.ColumnOrder);
                                 Assert.AreEqual(expected.SortOrder, descr.SortOrder);
@@ -91,12 +91,12 @@ namespace ParquetSharp.Test
         {
             var fields = new Node[]
             {
-                new PrimitiveNode("boolean_field", Repetition.Required, PhysicalType.Boolean), 
-                new PrimitiveNode("int32_field", Repetition.Required, PhysicalType.Int32), 
-                new PrimitiveNode("int64_field", Repetition.Required, PhysicalType.Int64),
-                new PrimitiveNode("int96_field", Repetition.Required, PhysicalType.Int96), 
-                new PrimitiveNode("float_field", Repetition.Required, PhysicalType.Float), 
-                new PrimitiveNode("double_field", Repetition.Required, PhysicalType.Double),
+                new PrimitiveNode("boolean_field", Repetition.Required, ParquetType.Boolean), 
+                new PrimitiveNode("int32_field", Repetition.Required, ParquetType.Int32), 
+                new PrimitiveNode("int64_field", Repetition.Required, ParquetType.Int64),
+                new PrimitiveNode("int96_field", Repetition.Required, ParquetType.Int96), 
+                new PrimitiveNode("float_field", Repetition.Required, ParquetType.Float), 
+                new PrimitiveNode("double_field", Repetition.Required, ParquetType.Double),
             };
 
             return new GroupNode("schema", Repetition.Required, fields);
@@ -118,38 +118,38 @@ namespace ParquetSharp.Test
                 new ExpectedColumn
                 {
                     Name = "boolean_field",
-                    PhysicalType = PhysicalType.Boolean,
+                    Physicaltype = ParquetType.Boolean,
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 3 == 0).ToArray()
                 },
                 new ExpectedColumn
                 {
                     Name = "int32_field",
-                    PhysicalType = PhysicalType.Int32,
+                    Physicaltype = ParquetType.Int32,
                     Values = Enumerable.Range(0, NumRows).ToArray()
                 },
                 new ExpectedColumn
                 {
                     Name = "int64_field",
-                    PhysicalType = PhysicalType.Int64,
+                    Physicaltype = ParquetType.Int64,
                     Values = Enumerable.Range(0, NumRows).Select(i => (long) i * i).ToArray()
                 },
                 new ExpectedColumn
                 {
                     Name = "int96_field",
-                    PhysicalType = PhysicalType.Int96,
+                    Physicaltype = ParquetType.Int96,
                     SortOrder = SortOrder.Unknown,
                     Values = Enumerable.Range(0, NumRows).Select(i => new Int96(i, i*2, i*3)).ToArray()
                 },
                 new ExpectedColumn
                 {
                     Name = "float_field",
-                    PhysicalType = PhysicalType.Float,
+                    Physicaltype = ParquetType.Float,
                     Values = Enumerable.Range(0, NumRows).Select(i => (float) Math.Sqrt(i)).ToArray()
                 },
                 new ExpectedColumn
                 {
                     Name = "double_field",
-                    PhysicalType = PhysicalType.Double,
+                    Physicaltype = ParquetType.Double,
                     Values = Enumerable.Range(0, NumRows).Select(i =>  i * Math.PI).ToArray()
                 }
             };
@@ -162,7 +162,7 @@ namespace ParquetSharp.Test
 
             public int MaxDefinitionlevel = 0;
             public int MaxRepetitionLevel = 0;
-            public PhysicalType PhysicalType;
+            public ParquetType Physicaltype;
             public LogicalType LogicalType = LogicalType.None;
             public ColumnOrder ColumnOrder = ColumnOrder.TypeDefinedOrder;
             public SortOrder SortOrder = SortOrder.Signed;

@@ -18,7 +18,7 @@ namespace ParquetSharp.Test
                 new ExpectedColumn
                 {
                     Name = "int32_field",
-                    Physicaltype = PhysicalType.Int32,
+                    Physicaltype = ParquetType.Int32,
                     Values = Enumerable.Range(0, numRows).ToArray()
                 }
             };
@@ -61,7 +61,7 @@ namespace ParquetSharp.Test
     {
         public string Name;
         public Array Values;
-        public PhysicalType Physicaltype;
+        public ParquetType Physicaltype;
         public LogicalType LogicalType = LogicalType.None;
     }
 }

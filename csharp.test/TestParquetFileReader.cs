@@ -60,7 +60,7 @@ namespace ParquetSharp.Test
                                 var colChunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
 
                                 Console.WriteLine("  - reader type: {0}", columnReader.Type);
-                                Console.WriteLine("  - max definition level: {0}", descr.MaxDefinitionLevel);
+                                Console.WriteLine("  - max definition level: {0}", descr.MaxDefinitionlevel);
                                 Console.WriteLine("  - max repetition level: {0}", descr.MaxRepetitionLevel);
                                 Console.WriteLine("  - physical type: {0}", descr.PhysicalType);
                                 Console.WriteLine("  - logical type: {0}", descr.LogicalType);

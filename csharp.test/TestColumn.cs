@@ -52,50 +52,50 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(bool),
-                    PhysicalType = PhysicalType.Boolean
+                    PhysicalType = ParquetType.Boolean
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(int),
-                    PhysicalType = PhysicalType.Int32
+                    PhysicalType = ParquetType.Int32
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(uint),
-                    PhysicalType = PhysicalType.Int32,
+                    PhysicalType = ParquetType.Int32,
                     LogicalType = LogicalType.UInt32
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(long),
-                    PhysicalType = PhysicalType.Int64
+                    PhysicalType = ParquetType.Int64
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(ulong),
-                    PhysicalType = PhysicalType.Int64,
+                    PhysicalType = ParquetType.Int64,
                     LogicalType = LogicalType.UInt64
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(float),
-                    PhysicalType = PhysicalType.Float
+                    PhysicalType = ParquetType.Float
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(double),
-                    PhysicalType = PhysicalType.Double
+                    PhysicalType = ParquetType.Double
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(Date),
-                    PhysicalType = PhysicalType.Int32,
+                    PhysicalType = ParquetType.Int32,
                     LogicalType = LogicalType.Date
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime),
-                    PhysicalType = PhysicalType.Int64,
+                    PhysicalType = ParquetType.Int64,
                     LogicalType = LogicalType.TimestampMicros
                 },
                 new ExpectedPrimitive
@@ -108,7 +108,7 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan),
-                    PhysicalType = PhysicalType.Int64,
+                    PhysicalType = ParquetType.Int64,
                     LogicalType = LogicalType.TimeMicros
                 },
                 new ExpectedPrimitive
@@ -121,7 +121,7 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(string),
-                    PhysicalType = PhysicalType.ByteArray,
+                    PhysicalType = ParquetType.ByteArray,
                     LogicalType = LogicalType.Utf8,
                     Repetition = Repetition.Optional
                 },
@@ -150,58 +150,58 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(bool?),
-                    PhysicalType = PhysicalType.Boolean,
+                    PhysicalType = ParquetType.Boolean,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(int?),
-                    PhysicalType = PhysicalType.Int32,
+                    PhysicalType = ParquetType.Int32,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(uint?),
-                    PhysicalType = PhysicalType.Int32,
+                    PhysicalType = ParquetType.Int32,
                     LogicalType = LogicalType.UInt32,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(long?),
-                    PhysicalType = PhysicalType.Int64,
+                    PhysicalType = ParquetType.Int64,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(ulong?),
-                    PhysicalType = PhysicalType.Int64,
+                    PhysicalType = ParquetType.Int64,
                     LogicalType = LogicalType.UInt64,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(float?),
-                    PhysicalType = PhysicalType.Float,
+                    PhysicalType = ParquetType.Float,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(double?),
-                    PhysicalType = PhysicalType.Double,
+                    PhysicalType = ParquetType.Double,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(Date?),
-                    PhysicalType = PhysicalType.Int32,
+                    PhysicalType = ParquetType.Int32,
                     LogicalType = LogicalType.Date,
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime?),
-                    PhysicalType = PhysicalType.Int64,
+                    PhysicalType = ParquetType.Int64,
                     LogicalType = LogicalType.TimestampMicros,
                     Repetition = Repetition.Optional
                 },
@@ -216,7 +216,7 @@ namespace ParquetSharp.Test
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan?),
-                    PhysicalType = PhysicalType.Int64,
+                    PhysicalType = ParquetType.Int64,
                     LogicalType = LogicalType.TimeMicros,
                     Repetition = Repetition.Optional
                 },
@@ -239,7 +239,7 @@ namespace ParquetSharp.Test
             public string Name = "MyName";
             public Repetition Repetition = Repetition.Required;
             public ColumnOrder ColumnOrder = ColumnOrder.TypeDefinedOrder;
-            public PhysicalType PhysicalType;
+            public ParquetType PhysicalType;
         }
     }
 }
