@@ -32,10 +32,12 @@ add_library(ParquetSharpNative SHARED
 	ResizableBuffer.cpp
 	RowGroupMetaData.cpp
 	RowGroupReader.cpp
+	RowGroupStatistics.cpp
 	RowGroupWriter.cpp
 	SchemaDescriptor.cpp
 	TypedColumnReader.cpp
 	TypedColumnWriter.cpp
+	TypedRowGroupStatistics.cpp
 	WriterProperties.cpp
 	WriterPropertiesBuilder.cpp
 )

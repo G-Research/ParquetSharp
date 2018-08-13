@@ -17,11 +17,11 @@ namespace ParquetSharp
 
         public ColumnOrder ColumnOrder => ExceptionInfo.Return<ColumnOrder>(_handle, ColumnDescriptor_ColumnOrder);
         public LogicalType LogicalType => ExceptionInfo.Return<LogicalType>(_handle, ColumnDescriptor_Logical_Type);
-        public short MaxDefinitionlevel => ExceptionInfo.Return<short>(_handle, ColumnDescriptor_Max_Definition_Level);
+        public short MaxDefinitionLevel => ExceptionInfo.Return<short>(_handle, ColumnDescriptor_Max_Definition_Level);
         public short MaxRepetitionLevel => ExceptionInfo.Return<short>(_handle, ColumnDescriptor_Max_Repetition_Level);
         public string Name => Marshal.PtrToStringAnsi(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Name));
         public Schema.Node SchemaNode => Schema.Node.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Schema_Node));
-        public ParquetType PhysicalType => ExceptionInfo.Return<ParquetType>(_handle, ColumnDescriptor_Physical_Type);
+        public PhysicalType PhysicalType => ExceptionInfo.Return<PhysicalType>(_handle, ColumnDescriptor_Physical_Type);
         public SortOrder SortOrder => ExceptionInfo.Return<SortOrder>(_handle, ColumnDescriptor_SortOrder);
         public int TypeLength => ExceptionInfo.Return<int>(_handle, ColumnDescriptor_Type_Length);
         public int TypePrecision => ExceptionInfo.Return<int>(_handle, ColumnDescriptor_Type_Precision);
@@ -34,7 +34,7 @@ namespace ParquetSharp
         private static extern IntPtr ColumnDescriptor_Max_Repetition_Level(IntPtr columnDescriptor, out short maxRepetitionLevel);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ColumnDescriptor_Physical_Type(IntPtr columnDescriptor, out ParquetType physicalType);
+        private static extern IntPtr ColumnDescriptor_Physical_Type(IntPtr columnDescriptor, out PhysicalType physicalType);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnDescriptor_Logical_Type(IntPtr columnDescriptor, out LogicalType logicalType);
