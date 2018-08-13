@@ -7,12 +7,14 @@
     <RootNamespace>ParquetSharp</RootNamespace>
     <PlatformTarget>x64</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <NoWarn>1591;</NoWarn>
     <Version>1.4.0.1-beta9</Version>
     <Company>G-Research</Company>
     <Authors>G-Research</Authors>
     <Product>ParquetSharp</Product>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>ParquetSharp is a library for reading and writing Parquet files. It's implemented in C# as a PInvoke wrapper around apache-parquet-cpp to provide high performance and compatibility.</Description>
+    <Description>ParquetSharp is a .NET library for reading and writing Parquet files. It's implemented in C# as a PInvoke wrapper around apache-parquet-cpp to provide high performance and compatibility.</Description>
     <Copyright>Copyright G-Research 2018</Copyright>
     <PackageProjectUrl>https://github.com/G-Research/ParquetSharp</PackageProjectUrl>
     <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
