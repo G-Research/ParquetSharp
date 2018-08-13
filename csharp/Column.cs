@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ParquetSharp.Schema;
 
 namespace ParquetSharp
@@ -10,30 +11,33 @@ namespace ParquetSharp
     /// </summary>
     public class Column
     {
-        public Column(Type logicalSystemType, string name)
+        public Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride = LogicalType.None)
         {
             LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            LogicalTypeOverride = logicalTypeOverride;
         }
 
         public readonly Type LogicalSystemType;
         public readonly string Name;
+        public readonly LogicalType LogicalTypeOverride;
 
         public Node CreateSchemaNode()
         {
-            return CreateSchemaNode(LogicalSystemType, Name);
+            return CreateSchemaNode(LogicalSystemType, Name, LogicalTypeOverride);
         }
 
-        private static Node CreateSchemaNode(Type type, string name)
+        private static Node CreateSchemaNode(Type type, string name, LogicalType logicalTypeOverride)
         {
             if (Primitives.TryGetValue(type, out var p))
             {
-                return new PrimitiveNode(name, p.Repetition, p.PhysicalType, p.LogicalType);
+                var entry = GetEntry(type, logicalTypeOverride, p.Entries);
+                return new PrimitiveNode(name, p.Repetition, entry.PhysicalType, entry.LogicalType);
             }
 
             if (type.IsArray)
             {
-                var item = CreateSchemaNode(type.GetElementType(), "item");
+                var item = CreateSchemaNode(type.GetElementType(), "item", logicalTypeOverride);
                 var list = new GroupNode("list", Repetition.Repeated, new[] {item});
 
                 try
@@ -50,40 +54,97 @@ namespace ParquetSharp
             throw new ArgumentException($"unsupported logical type {type}");
         }
 
-        private static readonly IReadOnlyDictionary<Type, (Repetition Repetition, ParquetType PhysicalType, LogicalType LogicalType)> Primitives =
-            new Dictionary<Type, (Repetition, ParquetType, LogicalType)>
+        private static (LogicalType LogicalType, ParquetType PhysicalType) GetEntry(
+            Type type, LogicalType logicalTypeOverride, 
+            IReadOnlyList<(LogicalType LogicalTypes, ParquetType PhysicalType)> entries)
+        {
+            // By default, return the first listed logical type.
+            if (logicalTypeOverride == LogicalType.None)
             {
-                {typeof(bool), (Repetition.Required, ParquetType.Boolean, LogicalType.None)},
-                {typeof(bool?), (Repetition.Optional, ParquetType.Boolean, LogicalType.None)},
-                {typeof(int), (Repetition.Required, ParquetType.Int32, LogicalType.None)},
-                {typeof(int?), (Repetition.Optional, ParquetType.Int32, LogicalType.None)},
-                {typeof(uint), (Repetition.Required, ParquetType.Int32, LogicalType.UInt32)},
-                {typeof(uint?), (Repetition.Optional, ParquetType.Int32, LogicalType.UInt32)},
-                {typeof(long), (Repetition.Required, ParquetType.Int64, LogicalType.None)},
-                {typeof(long?), (Repetition.Optional, ParquetType.Int64, LogicalType.None)},
-                {typeof(ulong), (Repetition.Required, ParquetType.Int64, LogicalType.UInt64)},
-                {typeof(ulong?), (Repetition.Optional, ParquetType.Int64, LogicalType.UInt64)},
-                {typeof(Int96), (Repetition.Required, ParquetType.Int96, LogicalType.None)},
-                {typeof(Int96?), (Repetition.Optional, ParquetType.Int96, LogicalType.None)},
-                {typeof(float), (Repetition.Required, ParquetType.Float, LogicalType.None)},
-                {typeof(float?), (Repetition.Optional, ParquetType.Float, LogicalType.None)},
-                {typeof(double), (Repetition.Required, ParquetType.Double, LogicalType.None)},
-                {typeof(double?), (Repetition.Optional, ParquetType.Double, LogicalType.None)},
-                {typeof(Date), (Repetition.Required, ParquetType.Int32, LogicalType.Date)},
-                {typeof(Date?), (Repetition.Optional, ParquetType.Int32, LogicalType.Date)},
-                {typeof(DateTime), (Repetition.Required, ParquetType.Int64, LogicalType.TimestampMicros)},
-                {typeof(DateTime?), (Repetition.Optional, ParquetType.Int64, LogicalType.TimestampMicros)},
-                {typeof(TimeSpan), (Repetition.Required, ParquetType.Int64, LogicalType.TimeMicros)},
-                {typeof(TimeSpan?), (Repetition.Optional, ParquetType.Int64, LogicalType.TimeMicros)},
-                {typeof(string), (Repetition.Optional, ParquetType.ByteArray, LogicalType.Utf8)},
-                {typeof(byte[]), (Repetition.Optional, ParquetType.ByteArray, LogicalType.None)}
+                return entries[0];
+            }
+
+            // Otherwise allow one of the supported override.
+            var entry = entries.SingleOrDefault(e => e.LogicalTypes == logicalTypeOverride);
+            if (entry.LogicalTypes == LogicalType.None)
+            {
+                throw new ArgumentOutOfRangeException(nameof(logicalTypeOverride), $"{logicalTypeOverride} is not a valid override for {type}");
+            }
+
+            return entry;
+        }
+
+        private static readonly IReadOnlyDictionary<Type, (Repetition Repetition, IReadOnlyList<(LogicalType LogicalType, ParquetType PhysicalType)> Entries)>
+            Primitives = new Dictionary<Type, (Repetition, IReadOnlyList<(LogicalType, ParquetType)>)>
+            {
+                {typeof(bool), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Boolean)})},
+                {typeof(bool?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Boolean)})},
+                {typeof(int), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Int32)})},
+                {typeof(int?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Int32)})},
+                {typeof(uint), (Repetition.Required, new[] {(LogicalType.UInt32, ParquetType.Int32)})},
+                {typeof(uint?), (Repetition.Optional, new[] {(LogicalType.UInt32, ParquetType.Int32)})},
+                {typeof(long), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Int64)})},
+                {typeof(long?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Int64)})},
+                {typeof(ulong), (Repetition.Required, new[] {(LogicalType.UInt64, ParquetType.Int64)})},
+                {typeof(ulong?), (Repetition.Optional, new[] {(LogicalType.UInt64, ParquetType.Int64)})},
+                {typeof(Int96), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Int96)})},
+                {typeof(Int96?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Int96)})},
+                {typeof(float), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Float)})},
+                {typeof(float?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Float)})},
+                {typeof(double), (Repetition.Required, new[] {(LogicalType.None, ParquetType.Double)})},
+                {typeof(double?), (Repetition.Optional, new[] {(LogicalType.None, ParquetType.Double)})},
+                {typeof(Date), (Repetition.Required, new[] {(LogicalType.Date, ParquetType.Int32)})},
+                {typeof(Date?), (Repetition.Optional, new[] {(LogicalType.Date, ParquetType.Int32)})},
+                {
+                    typeof(DateTime), (Repetition.Required, new[]
+                    {
+                        (LogicalType.TimestampMicros, ParquetType.Int64),
+                        (LogicalType.TimestampMillis, ParquetType.Int64)
+                    })
+                },
+                {
+                    typeof(DateTime?), (Repetition.Optional, new[]
+                    {
+                        (LogicalType.TimestampMicros, ParquetType.Int64),
+                        (LogicalType.TimestampMillis, ParquetType.Int64)
+
+                    })
+                },
+                {
+                    typeof(TimeSpan), (Repetition.Required, new[]
+                    {
+                        (LogicalType.TimeMicros, ParquetType.Int64),
+                        (LogicalType.TimeMillis, ParquetType.Int32)
+                    })
+                },
+                {
+                    typeof(TimeSpan?), (Repetition.Optional, new[]
+                    {
+                        (LogicalType.TimeMicros, ParquetType.Int64),
+                        (LogicalType.TimeMillis, ParquetType.Int32)
+                    })
+                },
+                {
+                    typeof(string), (Repetition.Optional, new[]
+                    {
+                        (LogicalType.Utf8, ParquetType.ByteArray),
+                        (LogicalType.Json, ParquetType.ByteArray)
+                    })
+                },
+                {
+                    typeof(byte[]), (Repetition.Optional, new[]
+                    {
+                        (LogicalType.None, ParquetType.ByteArray),
+                        (LogicalType.Bson, ParquetType.ByteArray)
+                    })
+                }
             };
     }
 
     public sealed class Column<TLogicalType> : Column
     {
-        public Column(string name) 
-            : base(typeof(TLogicalType), name)
+        public Column(string name, LogicalType logicalTypeOverride = LogicalType.None) 
+            : base(typeof(TLogicalType), name, logicalTypeOverride)
         {
         }
     }

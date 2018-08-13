@@ -70,7 +70,7 @@ namespace ParquetSharp
 
         public override int ReadBatch(TElement[] destination, int start, int length)
         {
-            var converter = LogicalRead<TLogicalValue, TPhysicalValue>.GetConverter();
+            var converter = LogicalRead<TLogicalValue, TPhysicalValue>.GetConverter(LogicalType);
 
             // Handle arrays separately as they are nested structures.
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
