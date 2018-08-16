@@ -5,6 +5,8 @@ using System.IO.Compression;
 using System.Linq;
 using ParquetSharp.RowOriented;
 using NUnit.Framework;
+using Parquet;
+using Parquet.Data;
 
 namespace ParquetSharp.Test
 {
@@ -151,6 +153,37 @@ namespace ParquetSharp.Test
             }
 
             Console.WriteLine("Saved to Parquet.RowOriented ({0:N0} bytes) in {1:N1} sec", new FileInfo("float_timeseries.parquet.roworiented").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine();
+            Console.WriteLine("Saving to Parquet.NET");
+
+            timer.Restart();
+
+            {
+                var dateTimeField = new DateTimeDataField("DateTime", DateTimeFormat.DateAndTime);
+                var objectIdField = new DataField<int>("ObjectId");
+                var valueField = new DataField<float>("Value");
+                var schema = new Parquet.Data.Schema(dateTimeField, objectIdField, valueField);
+
+                using (var stream = File.OpenWrite("float_timeseries.parquet.net"))
+                using (var parquetWriter = new ParquetWriter(schema, stream))
+                using (var groupWriter = parquetWriter.CreateRowGroup(dates.Length*objectIds.Length))
+                {
+                    var dateTimeColumn = new DataColumn(dateTimeField,
+                        dates.SelectMany(d => Enumerable.Repeat(new DateTimeOffset(d), objectIds.Length)).ToArray());
+
+                    var objectIdColumn = new DataColumn(objectIdField,
+                        dates.SelectMany(d => objectIds).ToArray());
+
+                    var valueColumn = new DataColumn(valueField,
+                        dates.SelectMany((d, i) => values[i]).ToArray());
+
+                    groupWriter.WriteColumn(dateTimeColumn);
+                    groupWriter.WriteColumn(objectIdColumn);
+                    groupWriter.WriteColumn(valueColumn);
+                }
+            }
+
+            Console.WriteLine("Saved to Parquet.NET ({0:N0} bytes) in {1:N1} sec", new FileInfo("float_timeseries.parquet.net").Length, timer.Elapsed.TotalSeconds);
         }
 
         private static Column[] CreateColumns()

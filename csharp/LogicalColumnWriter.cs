@@ -22,7 +22,17 @@ namespace ParquetSharp
 
         internal static LogicalColumnWriter<TElementType> Create<TElementType>(ColumnWriter columnWriter, int bufferLength = 4 * 1024)
         {
-            return (LogicalColumnWriter<TElementType>) Create(columnWriter, bufferLength);
+            var writer = Create(columnWriter, bufferLength);
+
+            try
+            {
+                return (LogicalColumnWriter<TElementType>) writer;
+            }
+            catch
+            {
+                writer.Dispose();
+                throw;
+            }
         }
 
         public abstract TReturn Apply<TReturn>(ILogicalColumnWriterVisitor<TReturn> visitor);

@@ -18,11 +18,12 @@ namespace ParquetSharp.Test
 
                 AppDomain.CurrentDomain.UnhandledException += UncaughtExceptionHandler;
 
-                TestParquetFileWriter.TestReadWriteParquetMultipleTasks();
+                //TestParquetFileWriter.TestReadWriteParquetMultipleTasks();
                 //TestColumnReader.TestHasNext();
                 //TestLogicalTypeRoundtrip.TestReaderWriteTypes();
                 //TestPhysicalTypeRoundtrip.TestReaderWriteTypes();
                 //TestParquetFileReader.TestReadFileCreateByPython();
+                TestParquetFileReader.TestFileHandleHasBeenReleased();
 
                 // Ensure the finalizers are executed, so we can check whether they throw.
                 GC.Collect();
