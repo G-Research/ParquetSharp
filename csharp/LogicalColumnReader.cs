@@ -23,7 +23,17 @@ namespace ParquetSharp
 
         internal static LogicalColumnReader<TElement> Create<TElement>(ColumnReader columnReader, int bufferLength)
         {
-            return (LogicalColumnReader<TElement>) Create(columnReader, bufferLength);
+            var reader = Create(columnReader, bufferLength);
+
+            try
+            {
+                return (LogicalColumnReader<TElement>) reader;
+            }
+            catch
+            {
+                reader.Dispose();
+                throw;
+            }
         }
 
         public bool HasNext => Source.HasNext;

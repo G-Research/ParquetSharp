@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 
@@ -16,6 +17,42 @@ namespace ParquetSharp.Test
             Assert.AreEqual(
                 "class parquet::ParquetException " +
                 "(message: 'Arrow error: IOError: Failed to open local file: non_existent.parquet , error: No such file or directory')",
+                exception.Message);
+        }
+
+        [Test]
+        public static void TestFileHandleHasBeenReleased()
+        {
+            var exception = Assert.Throws<InvalidCastException>(() =>
+            {
+                try
+                {
+                    using (var writer = new ParquetFileWriter("file.parquet", new Column[] {new Column<int>("ids")}))
+                    using (var group = writer.AppendRowGroup())
+                    using (var column = group.NextColumn().LogicalWriter<int>())
+                    {
+                        column.WriteBatch(new[] {1, 2, 3});
+                    }
+
+                    // Open with the wrong logical reader type on purpose.
+                    using (var reader = new ParquetFileReader("file.parquet"))
+                    using (var group = reader.RowGroup(0))
+                    using (var column = group.Column(0).LogicalReader<float>())
+                    {
+                        Assert.AreEqual(new[] {1, 2, 3}, column.ReadAll(3));
+                    }
+                }
+                finally
+                {
+                    // This will throw on Windows if the file handle has not been released.
+                    File.Delete("file.parquet");
+                }
+            });
+
+            Assert.AreEqual(
+                "Unable to cast object of type " +
+                "'ParquetSharp.LogicalColumnReader`3[System.Int32,System.Int32,System.Int32]'" +
+                " to type 'ParquetSharp.LogicalColumnReader`1[System.Single]'.",
                 exception.Message);
         }
 
