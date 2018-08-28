@@ -6,64 +6,64 @@ namespace ParquetSharp
     /// <summary>
     /// C# types to Parquet physical types write conversion logic.
     /// </summary>
-    internal static class LogicalWrite<TLogicalValue, TPhysicalValue>
-        where TPhysicalValue : unmanaged
+    internal static class LogicalWrite<TLogical, TPhysical>
+        where TPhysical : unmanaged
     {
-        public delegate void Converter(ReadOnlySpan<TLogicalValue> source, Span<short> defLevels, Span<TPhysicalValue> destination, short nullLevel);
+        public delegate void Converter(ReadOnlySpan<TLogical> source, Span<short> defLevels, Span<TPhysical> destination, short nullLevel);
 
         public static Converter GetConverter(LogicalType logicalType, ByteBuffer byteBuffer)
         {
-            if (typeof(TLogicalValue) == typeof(bool) ||
-                typeof(TLogicalValue) == typeof(int) ||
-                typeof(TLogicalValue) == typeof(long) ||
-                typeof(TLogicalValue) == typeof(Int96) ||
-                typeof(TLogicalValue) == typeof(float) ||
-                typeof(TLogicalValue) == typeof(double))
+            if (typeof(TLogical) == typeof(bool) ||
+                typeof(TLogical) == typeof(int) ||
+                typeof(TLogical) == typeof(long) ||
+                typeof(TLogical) == typeof(Int96) ||
+                typeof(TLogical) == typeof(float) ||
+                typeof(TLogical) == typeof(double))
             {
-                return (Converter) (Delegate) (LogicalWrite<TPhysicalValue, TPhysicalValue>.Converter) ((s, dl, d, nl) => ConvertNative(s, d));
+                return (Converter) (Delegate) (LogicalWrite<TPhysical, TPhysical>.Converter) ((s, dl, d, nl) => ConvertNative(s, d));
             }
 
-            if (typeof(TLogicalValue) == typeof(bool?) ||
-                typeof(TLogicalValue) == typeof(int?) ||
-                typeof(TLogicalValue) == typeof(long?) ||
-                typeof(TLogicalValue) == typeof(Int96?) ||
-                typeof(TLogicalValue) == typeof(float?) ||
-                typeof(TLogicalValue) == typeof(double?))
+            if (typeof(TLogical) == typeof(bool?) ||
+                typeof(TLogical) == typeof(int?) ||
+                typeof(TLogical) == typeof(long?) ||
+                typeof(TLogical) == typeof(Int96?) ||
+                typeof(TLogical) == typeof(float?) ||
+                typeof(TLogical) == typeof(double?))
             {
-                return (Converter) (Delegate) (LogicalWrite<TPhysicalValue?, TPhysicalValue>.Converter) ConvertNative;
+                return (Converter) (Delegate) (LogicalWrite<TPhysical?, TPhysical>.Converter) ConvertNative;
             }
 
-            if (typeof(TLogicalValue) == typeof(uint))
+            if (typeof(TLogical) == typeof(uint))
             {
                 return (Converter) (Delegate) (LogicalWrite<uint, int>.Converter) ((s, dl, d, nl) => ConvertNative(s, MemoryMarshal.Cast<int, uint>(d)));
             }
 
-            if (typeof(TLogicalValue) == typeof(uint?))
+            if (typeof(TLogical) == typeof(uint?))
             {
                 return (Converter) (Delegate) (LogicalWrite<uint?, int>.Converter) ((s, dl, d, nl) => ConvertNative(s, dl, MemoryMarshal.Cast<int, uint>(d), nl));
             }
 
-            if (typeof(TLogicalValue) == typeof(ulong))
+            if (typeof(TLogical) == typeof(ulong))
             {
                 return (Converter) (Delegate) (LogicalWrite<ulong, long>.Converter) ((s, dl, d, nl) => ConvertNative(s, MemoryMarshal.Cast<long, ulong>(d)));
             }
 
-            if (typeof(TLogicalValue) == typeof(ulong?))
+            if (typeof(TLogical) == typeof(ulong?))
             {
                 return (Converter) (Delegate) (LogicalWrite<ulong?, long>.Converter) ((s, dl, d, nl) => ConvertNative(s, dl, MemoryMarshal.Cast<long, ulong>(d), nl));
             }
 
-            if (typeof(TLogicalValue) == typeof(Date))
+            if (typeof(TLogical) == typeof(Date))
             {
                 return (Converter) (Delegate) (LogicalWrite<Date, int>.Converter) ((s, dl, d, nl) => ConvertNative(s, MemoryMarshal.Cast<int, Date>(d)));
             }
 
-            if (typeof(TLogicalValue) == typeof(Date?))
+            if (typeof(TLogical) == typeof(Date?))
             {
                 return (Converter) (Delegate) (LogicalWrite<Date?, int>.Converter) ((s, dl, d, nl) => ConvertNative(s, dl, MemoryMarshal.Cast<int, Date>(d), nl));
             }
 
-            if (typeof(TLogicalValue) == typeof(DateTime))
+            if (typeof(TLogical) == typeof(DateTime))
             {
                 if (logicalType == LogicalType.TimestampMicros)
                 {
@@ -76,7 +76,7 @@ namespace ParquetSharp
                 }
             }
 
-            if (typeof(TLogicalValue) == typeof(DateTime?))
+            if (typeof(TLogical) == typeof(DateTime?))
             {
                 if (logicalType == LogicalType.TimestampMicros)
                 {
@@ -89,7 +89,7 @@ namespace ParquetSharp
                 }
             }
 
-            if (typeof(TLogicalValue) == typeof(TimeSpan))
+            if (typeof(TLogical) == typeof(TimeSpan))
             {
                 if (logicalType == LogicalType.TimeMicros)
                 {
@@ -102,7 +102,7 @@ namespace ParquetSharp
                 }
             }
 
-            if (typeof(TLogicalValue) == typeof(TimeSpan?))
+            if (typeof(TLogical) == typeof(TimeSpan?))
             {
                 if (logicalType == LogicalType.TimeMicros)
                 {
@@ -115,17 +115,17 @@ namespace ParquetSharp
                 }
             }
 
-            if (typeof(TLogicalValue) == typeof(string))
+            if (typeof(TLogical) == typeof(string))
             {
                 return (Converter) (Delegate) (LogicalWrite<string, ByteArray>.Converter) ((s, dl, d, nl) => ConvertString(s, dl, d, nl, byteBuffer));
             }
 
-            if (typeof(TLogicalValue) == typeof(byte[]))
+            if (typeof(TLogical) == typeof(byte[]))
             {
                 return (Converter) (Delegate) (LogicalWrite<byte[], ByteArray>.Converter) ((s, dl, d, nl) => ConvertByteArray(s, dl, d, nl, byteBuffer));
             }
 
-            throw new NotSupportedException($"unsupported logical system type {typeof(TLogicalValue)} with logical type {logicalType}");
+            throw new NotSupportedException($"unsupported logical system type {typeof(TLogical)} with logical type {logicalType}");
         }
 
         private static void ConvertNative<TValue>(ReadOnlySpan<TValue> source, Span<TValue> destination) where TValue : unmanaged
