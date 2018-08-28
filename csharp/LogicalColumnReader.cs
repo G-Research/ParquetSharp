@@ -7,7 +7,7 @@ namespace ParquetSharp
     /// Column reader transparently converting Parquet physical types to C# types.
     /// This is a higher-level API not part of apache-parquet-cpp.
     /// </summary>
-    public abstract class LogicalColumnReader : LogicalColumnStream<LogicalColumnReader, ColumnReader>
+    public abstract class LogicalColumnReader : LogicalColumnStream<ColumnReader>
     {
         protected LogicalColumnReader(ColumnReader columnReader, Type elementType, int bufferLength)
             : base(columnReader, columnReader.ColumnDescriptor, elementType, columnReader.ElementType, bufferLength)
@@ -18,7 +18,7 @@ namespace ParquetSharp
         {
             if (columnReader == null) throw new ArgumentNullException(nameof(columnReader));
 
-            return Create(typeof(LogicalColumnReader<,,>), columnReader.ColumnDescriptor, columnReader, bufferLength);
+            return columnReader.ColumnDescriptor.Apply(new Creator(columnReader, bufferLength));
         }
 
         internal static LogicalColumnReader<TElement> Create<TElement>(ColumnReader columnReader, int bufferLength)
@@ -39,6 +39,23 @@ namespace ParquetSharp
         public bool HasNext => Source.HasNext;
 
         public abstract TReturn Apply<TReturn>(ILogicalColumnReaderVisitor<TReturn> visitor);
+
+        private sealed class Creator : IColumnDescriptorVisitor<LogicalColumnReader>
+        {
+            public Creator(ColumnReader columnReader, int bufferLength)
+            {
+                _columnReader = columnReader;
+                _bufferLength = bufferLength;
+            }
+
+            public LogicalColumnReader OnColumnDescriptor<TPhysical, TLogical, TElement>() where TPhysical : unmanaged
+            {
+                return new LogicalColumnReader<TPhysical, TLogical, TElement>(_columnReader, _bufferLength);
+            }
+
+            private readonly ColumnReader _columnReader;
+            private readonly int _bufferLength;
+        }
     }
 
     public abstract class LogicalColumnReader<TElement> : LogicalColumnReader
@@ -69,18 +86,18 @@ namespace ParquetSharp
         public abstract int ReadBatch(TElement[] destination, int start, int length);
     }
 
-    internal sealed class LogicalColumnReader<TPhysicalValue, TLogicalValue, TElement> : LogicalColumnReader<TElement>
-        where TPhysicalValue : unmanaged
+    internal sealed class LogicalColumnReader<TPhysical, TLogical, TElement> : LogicalColumnReader<TElement>
+        where TPhysical : unmanaged
     {
         internal LogicalColumnReader(ColumnReader columnReader, int bufferLength)
             : base(columnReader, bufferLength)
         {
-            _bufferedReader = new BufferedReader<TPhysicalValue>(Source, (TPhysicalValue[]) Buffer, DefLevels, RepLevels);
+            _bufferedReader = new BufferedReader<TPhysical>(Source, (TPhysical[]) Buffer, DefLevels, RepLevels);
         }
 
         public override int ReadBatch(TElement[] destination, int start, int length)
         {
-            var converter = LogicalRead<TLogicalValue, TPhysicalValue>.GetConverter(LogicalType);
+            var converter = LogicalRead<TLogical, TPhysical>.GetConverter(LogicalType);
 
             // Handle arrays separately as they are nested structures.
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
@@ -89,10 +106,10 @@ namespace ParquetSharp
             }
 
             // Otherwise deal with flat values.
-            return ReadBatchSimple(((TLogicalValue[]) (object) destination).AsSpan(start, length), converter);
+            return ReadBatchSimple(((TLogical[]) (object) destination).AsSpan(start, length), converter);
         }
 
-        private int ReadBatchArray(TElement[] destination, int start, int length, LogicalRead<TLogicalValue, TPhysicalValue>.Converter converter)
+        private int ReadBatchArray(TElement[] destination, int start, int length, LogicalRead<TLogical, TPhysical>.Converter converter)
         {
             var result = ReadArrayInternal(0, NestingDepth, NullDefinitionLevels, length, _bufferedReader, converter, typeof(TElement));
             result.CopyTo(destination, start);
@@ -101,7 +118,7 @@ namespace ParquetSharp
 
         private static Array ReadArrayInternal(
             short repetitionLevel, short maxRepetitionLevel, short[] nullDefinitionLevels, int numArrayEntriesToRead, 
-            BufferedReader<TPhysicalValue> valueReader, LogicalRead<TLogicalValue, TPhysicalValue>.Converter converter, Type elementType)
+            BufferedReader<TPhysical> valueReader, LogicalRead<TLogical, TPhysical>.Converter converter, Type elementType)
         {
             var nullDefinitionLevel = nullDefinitionLevels[repetitionLevel];
 
@@ -109,7 +126,7 @@ namespace ParquetSharp
             if (maxRepetitionLevel == repetitionLevel)
             {
                 var defnLevel = new List<short>();
-                var values = new List<TPhysicalValue>();
+                var values = new List<TPhysical>();
                 var firstValue = true;
 
                 while (!valueReader.IsEofDefinition)
@@ -137,7 +154,7 @@ namespace ParquetSharp
                     firstValue = false;
                 }
 
-                var dest = new TLogicalValue[defnLevel.Count];
+                var dest = new TLogical[defnLevel.Count];
                 converter(values.ToArray(), defnLevel.ToArray(), dest, nullDefinitionLevel);
                 return dest;
             }
@@ -199,13 +216,13 @@ namespace ParquetSharp
         /// <summary>
         /// Fast implementation when a column contains only flat primitive values.
         /// </summary>
-        private int ReadBatchSimple(Span<TLogicalValue> destination, LogicalRead<TLogicalValue, TPhysicalValue>.Converter converter)
+        private int ReadBatchSimple(Span<TLogical> destination, LogicalRead<TLogical, TPhysical>.Converter converter)
         {
             var rowsRead = 0;
             var nullLevel = DefLevels == null ? (short)-1 : (short)0;
-            var columnReader = (ColumnReader<TPhysicalValue>)Source;
+            var columnReader = (ColumnReader<TPhysical>)Source;
 
-            var buffer = (TPhysicalValue[]) Buffer;
+            var buffer = (TPhysical[]) Buffer;
 
             while (rowsRead < destination.Length && HasNext)
             {
@@ -218,6 +235,6 @@ namespace ParquetSharp
             return rowsRead;
         }
 
-        private readonly BufferedReader<TPhysicalValue> _bufferedReader;
+        private readonly BufferedReader<TPhysical> _bufferedReader;
     }
 }

@@ -6,7 +6,7 @@ namespace ParquetSharp
     /// Column writer transparently converting C# types to Parquet physical types.
     /// This is a higher-level API not part of apache-parquet-cpp.
     /// </summary>
-    public abstract class LogicalColumnWriter : LogicalColumnStream<LogicalColumnWriter, ColumnWriter>
+    public abstract class LogicalColumnWriter : LogicalColumnStream<ColumnWriter>
     {
         protected LogicalColumnWriter(ColumnWriter columnWriter, Type elementType, int bufferLength)
             : base(columnWriter, columnWriter.ColumnDescriptor, elementType, columnWriter.ElementType, bufferLength)
@@ -17,7 +17,7 @@ namespace ParquetSharp
         {
             if (columnWriter == null) throw new ArgumentNullException(nameof(columnWriter));
 
-            return Create(typeof(LogicalColumnWriter<,,>), columnWriter.ColumnDescriptor, columnWriter, bufferLength);
+            return columnWriter.ColumnDescriptor.Apply(new Creator(columnWriter, bufferLength));
         }
 
         internal static LogicalColumnWriter<TElementType> Create<TElementType>(ColumnWriter columnWriter, int bufferLength = 4 * 1024)
@@ -36,6 +36,23 @@ namespace ParquetSharp
         }
 
         public abstract TReturn Apply<TReturn>(ILogicalColumnWriterVisitor<TReturn> visitor);
+
+        private sealed class Creator : IColumnDescriptorVisitor<LogicalColumnWriter>
+        {
+            public Creator(ColumnWriter columnWriter, int bufferLength)
+            {
+                _columnWriter = columnWriter;
+                _bufferLength = bufferLength;
+            }
+
+            public LogicalColumnWriter OnColumnDescriptor<TPhysical, TLogical, TElement>() where TPhysical : unmanaged
+            {
+                return new LogicalColumnWriter<TPhysical, TLogical, TElement>(_columnWriter, _bufferLength);
+            }
+
+            private readonly ColumnWriter _columnWriter;
+            private readonly int _bufferLength;
+        }
     }
 
     public abstract class LogicalColumnWriter<TElement> : LogicalColumnWriter
@@ -58,13 +75,13 @@ namespace ParquetSharp
         public abstract void WriteBatch(TElement[] values, int start, int length);
     }
 
-    internal sealed class LogicalColumnWriter<TPhysicalValue, TLogicalValue, TElement> : LogicalColumnWriter<TElement>
-        where TPhysicalValue : unmanaged
+    internal sealed class LogicalColumnWriter<TPhysical, TLogical, TElement> : LogicalColumnWriter<TElement>
+        where TPhysical : unmanaged
     {
         internal LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength)
             : base(columnWriter, bufferLength)
         {
-            _byteBuffer = typeof(TPhysicalValue) == typeof(ByteArray) ? new ByteBuffer(bufferLength) : null;
+            _byteBuffer = typeof(TPhysical) == typeof(ByteArray) ? new ByteBuffer(bufferLength) : null;
         }
 
         public override void Dispose()
@@ -77,7 +94,7 @@ namespace ParquetSharp
         public override void WriteBatch(TElement[] values, int start, int length)
         {
             // Convert logical values into physical values at the lowest array level
-            var converter = LogicalWrite<TLogicalValue, TPhysicalValue>.GetConverter(LogicalType, _byteBuffer);
+            var converter = LogicalWrite<TLogical, TPhysical>.GetConverter(LogicalType, _byteBuffer);
 
             // Handle arrays separately
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
@@ -86,10 +103,10 @@ namespace ParquetSharp
                 return;
             }
 
-            WriteBatchSimple(((TLogicalValue[]) (object) values).AsSpan(start, length), converter);
+            WriteBatchSimple(((TLogical[]) (object) values).AsSpan(start, length), converter);
         }
 
-        private void WriteBatchArray(TElement[] values, int start, int length, LogicalWrite<TLogicalValue, TPhysicalValue>.Converter converter)
+        private void WriteBatchArray(TElement[] values, int start, int length, LogicalWrite<TLogical, TPhysical>.Converter converter)
         {
             WriteArrayInternal(values, start, length, 0, NestingDepth, 0, NullDefinitionLevels, ColumnDescriptor.MaxDefinitionLevel, converter);
         }
@@ -98,7 +115,7 @@ namespace ParquetSharp
             Array values, int start, int length,
             short repetitionLevel, short maxRepetitionLevel, short leafFirstRepLevel, 
             short[] nullDefinitionLevels, short leafDefinitionLevel,
-            LogicalWrite<TLogicalValue, TPhysicalValue>.Converter converter)
+            LogicalWrite<TLogical, TPhysical>.Converter converter)
         {
             if (values.Length < start + length) throw new ArgumentOutOfRangeException(nameof(length), "start + length is larger tha values length");
 
@@ -113,14 +130,14 @@ namespace ParquetSharp
                 }
 
                 var rowsWritten = 0;
-                var columnWriter = (ColumnWriter<TPhysicalValue>) Source;
-                var buffer = (TPhysicalValue[]) Buffer;
+                var columnWriter = (ColumnWriter<TPhysical>) Source;
+                var buffer = (TPhysical[]) Buffer;
 
                 while (rowsWritten < length)
                 {
                     var bufferLength = Math.Min(length - rowsWritten, buffer.Length);
 
-                    converter(((TLogicalValue[]) values).AsSpan(start + rowsWritten), DefLevels, buffer, nullDefinitionLevel);
+                    converter(((TLogical[]) values).AsSpan(start + rowsWritten), DefLevels, buffer, nullDefinitionLevel);
 
                     for (int i = 0; i < bufferLength; i++)
                     {
@@ -168,11 +185,11 @@ namespace ParquetSharp
                         throw new Exception("Array is null but the schema says it is a required value.");
                     }
 
-                    var columnWriter = (ColumnWriter<TPhysicalValue>) Source;
+                    var columnWriter = (ColumnWriter<TPhysical>) Source;
 
                     columnWriter.WriteBatchSpaced(
                         1, new[] {nullDefinitionLevel}, new[] {innerLeafFirstRepLevel}, 
-                        new byte[] {0}, 0, new TPhysicalValue[] { });
+                        new byte[] {0}, 0, new TPhysical[] { });
                 }
 
                 writtenFirstItem = true;
@@ -182,12 +199,12 @@ namespace ParquetSharp
         /// <summary>
         /// Fast implementation when a column contains only flat primitive values.
         /// </summary>
-        private void WriteBatchSimple(ReadOnlySpan<TLogicalValue> values, LogicalWrite<TLogicalValue, TPhysicalValue>.Converter converter)
+        private void WriteBatchSimple(ReadOnlySpan<TLogical> values, LogicalWrite<TLogical, TPhysical>.Converter converter)
         {
             var rowsWritten = 0;
             var nullLevel = DefLevels == null ? (short) -1 : (short) 0;
-            var columnWriter = (ColumnWriter<TPhysicalValue>) Source;
-            var buffer = (TPhysicalValue[]) Buffer;
+            var columnWriter = (ColumnWriter<TPhysical>) Source;
+            var buffer = (TPhysical[]) Buffer;
 
             while (rowsWritten < values.Length)
             {

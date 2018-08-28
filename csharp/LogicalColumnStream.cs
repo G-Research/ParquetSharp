@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 
 namespace ParquetSharp
 {
-    public abstract class LogicalColumnStream<TDerived, TSource> : IDisposable
+    public abstract class LogicalColumnStream<TSource> : IDisposable
         where TSource : class, IDisposable
     {
         protected LogicalColumnStream(TSource source, ColumnDescriptor descriptor, Type elementType, Type physicalType, int bufferLength)
@@ -43,26 +40,6 @@ namespace ParquetSharp
         protected readonly Array Buffer;
         protected readonly short[] DefLevels;
         protected readonly short[] RepLevels;
-
-        protected static TDerived Create(Type genericTypeDefinition, ColumnDescriptor descriptor, TSource source, int bufferLength)
-        {
-            var creator = CreatorCache.GetOrAdd(GetGenericArguments(descriptor), t =>
-            {
-                const BindingFlags bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
-
-                var sourceParam = Expression.Parameter(typeof(TSource), nameof(source));
-                var bufferLengthParam = Expression.Parameter(typeof(int), nameof(bufferLength));
-                var args = new[] {sourceParam.Type, bufferLengthParam.Type};
-
-                var columnWriterType = genericTypeDefinition.MakeGenericType(t.physicalType, t.logicalType, t.elementType);
-                var ctor = columnWriterType.GetConstructor(bindingFlags, null, args, null);
-                var newExpr = Expression.New(ctor, sourceParam, bufferLengthParam);
-
-                return Expression.Lambda<CreateMethod>(newExpr, sourceParam, bufferLengthParam).Compile();
-            });
-
-            return creator(source, bufferLength);
-        }
 
         private static (short nestingDepth, short[] nullDefinitionLevels) GetArraySchemaInfo(Type elementType, Schema.Node node, int maxRepetitionLevel)
         {
@@ -108,94 +85,5 @@ namespace ParquetSharp
 
             return (checked((short) nestingDepth), nullDefinitionLevels);
         }
-
-        private static (Type physicalType, Type logicalType, Type elementType) GetGenericArguments(ColumnDescriptor descriptor)
-        {
-            var (physicalType, logicalType) = GetColumnPhysicalAndLogicalTypes(descriptor);
-            var elementType = logicalType;
-
-            for (var node = descriptor.SchemaNode; node != null; node = node.Parent)
-            {
-                if (node.LogicalType == LogicalType.List)
-                {
-                    elementType = elementType.MakeArrayType();
-                }
-            }
-
-            return (physicalType, logicalType, elementType);
-        }
-
-        private static (Type physicalType, Type logicalType) GetColumnPhysicalAndLogicalTypes(ColumnDescriptor descriptor)
-        {
-            var physicalType = descriptor.PhysicalType;
-            var logicalType = descriptor.LogicalType;
-            var nullable = descriptor.SchemaNode.Repetition == Repetition.Optional;
-
-            switch (logicalType)
-            {
-                case LogicalType.None:
-
-                    switch (physicalType)
-                    {
-                        case PhysicalType.Boolean:
-                            return (typeof(bool), nullable ? typeof(bool?) : typeof(bool));
-                        case PhysicalType.Int32:
-                            return (typeof(int), nullable ? typeof(int?) : typeof(int));
-                        case PhysicalType.Int64:
-                            return (typeof(long), nullable ? typeof(long?) : typeof(long));
-                        case PhysicalType.Int96:
-                            return (typeof(Int96), nullable ? typeof(Int96?) : typeof(Int96));
-                        case PhysicalType.Float:
-                            return (typeof(float), nullable ? typeof(float?) : typeof(float));
-                        case PhysicalType.Double:
-                            return (typeof(double), nullable ? typeof(double?) : typeof(double));
-                        case PhysicalType.ByteArray:
-                            return (typeof(ByteArray), typeof(byte[]));
-                    }
-
-                    break;
-
-                case LogicalType.Int32:
-                    return (typeof(int), nullable ? typeof(int?) : typeof(int));
-
-                case LogicalType.UInt32:
-                    return (typeof(int), nullable ? typeof(uint?) : typeof(uint));
-
-                case LogicalType.Int64:
-                    return (typeof(long), nullable ? typeof(long?) : typeof(long));
-
-                case LogicalType.UInt64:
-                    return (typeof(long), nullable ? typeof(ulong?) : typeof(ulong));
-
-                case LogicalType.Date:
-                    return (typeof(int), nullable ? typeof(Date?) : typeof(Date));
-
-                case LogicalType.TimestampMicros:
-                    return (typeof(long), nullable ? typeof(DateTime?) : typeof(DateTime));
-
-                case LogicalType.TimestampMillis:
-                    return (typeof(long), nullable ? typeof(DateTime?) : typeof(DateTime));
-
-                case LogicalType.TimeMicros:
-                    return (typeof(long), nullable ? typeof(TimeSpan?) : typeof(TimeSpan));
-
-                case LogicalType.TimeMillis:
-                    return (typeof(int), nullable ? typeof(TimeSpan?) : typeof(TimeSpan));
-
-                case LogicalType.Json:
-                case LogicalType.Utf8:
-                    return (typeof(ByteArray), typeof(string));
-
-                case LogicalType.Bson:
-                    return (typeof(ByteArray), typeof(byte[]));
-            }
-
-            throw new ArgumentOutOfRangeException(nameof(logicalType), $"unsupported logical type {logicalType} with physical type {physicalType}");
-        }
-
-        private delegate TDerived CreateMethod(TSource columnWriter, int bufferLength);
-
-        private static readonly ConcurrentDictionary<(Type physicalType, Type logicalType, Type elementType), CreateMethod> CreatorCache = 
-            new ConcurrentDictionary<(Type physicalType, Type logicalType, Type elementType), CreateMethod>();
     }
 }
