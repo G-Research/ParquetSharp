@@ -23,7 +23,8 @@ namespace ParquetSharp.Test
                 //TestLogicalTypeRoundtrip.TestReaderWriteTypes();
                 //TestPhysicalTypeRoundtrip.TestReaderWriteTypes();
                 //TestParquetFileReader.TestReadFileCreateByPython();
-                TestParquetFileReader.TestFileHandleHasBeenReleased();
+                //TestParquetFileReader.TestFileHandleHasBeenReleased();
+                TestParquetFileWriter.TestWriteLongString();
 
                 // Ensure the finalizers are executed, so we can check whether they throw.
                 GC.Collect();

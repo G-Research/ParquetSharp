@@ -56,7 +56,7 @@ namespace ParquetSharp
             // Start at blockSize for the initial block, but allocate 50% on each new block.
             if (_blocks.Count == 0)
             {
-                return _blockSize;
+                return Math.Max(length, _blockSize);
             }
 
             var lastCapacity = _blocks[_blocks.Count - 1].Capacity;
