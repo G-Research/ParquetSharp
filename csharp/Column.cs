@@ -12,32 +12,78 @@ namespace ParquetSharp
     public class Column
     {
         public Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride = LogicalType.None)
+            : this(logicalSystemType, name, logicalTypeOverride, -1, -1, -1)
         {
             LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
             Name = name ?? throw new ArgumentNullException(nameof(name));
             LogicalTypeOverride = logicalTypeOverride;
         }
 
+        public Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride, int length, int precision, int scale)
+        {
+            if ((length != -1 || precision != -1 || scale != -1) && 
+                logicalSystemType != typeof(decimal) &&
+                logicalSystemType != typeof(decimal?))
+            {
+                throw new ArgumentException("length, precision and scale can only be set with the decimal type");
+            }
+
+            LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            LogicalTypeOverride = logicalTypeOverride;
+            Length = length;
+            Precision = precision;
+            Scale = scale;
+        }
+
         public readonly Type LogicalSystemType;
         public readonly string Name;
         public readonly LogicalType LogicalTypeOverride;
+        public readonly int Length;
+        public readonly int Precision;
+        public readonly int Scale;
 
+        /// <summary>
+        /// Create a schema node representing this column with its given properties.
+        /// </summary>
         public Node CreateSchemaNode()
         {
-            return CreateSchemaNode(LogicalSystemType, Name, LogicalTypeOverride);
+            return CreateSchemaNode(LogicalSystemType, Name, LogicalTypeOverride, Length, Precision, Scale);
         }
 
-        private static Node CreateSchemaNode(Type type, string name, LogicalType logicalTypeOverride)
+        /// <summary>
+        /// Query whether the given C# type is supported and a schema node can potentially be created.
+        /// </summary>
+        public static bool IsSupported(Type type)
+        {
+            while (true)
+            {
+                if (Primitives.ContainsKey(type))
+                {
+                    return true;
+                }
+
+                if (type.IsArray)
+                {
+                    type = type.GetElementType();
+                    continue;
+                }
+
+                return false;
+            }
+        }
+
+        private static Node CreateSchemaNode(Type type, string name, LogicalType logicalTypeOverride, int length, int precision, int scale)
         {
             if (Primitives.TryGetValue(type, out var p))
             {
                 var entry = GetEntry(type, logicalTypeOverride, p.Entries);
-                return new PrimitiveNode(name, p.Repetition, entry.PhysicalType, entry.LogicalType);
+                return new PrimitiveNode(name, p.Repetition, entry.PhysicalType, entry.LogicalType, length, precision, scale);
             }
 
             if (type.IsArray)
             {
-                var item = CreateSchemaNode(type.GetElementType(), "item", logicalTypeOverride);
+                var item = CreateSchemaNode(type.GetElementType(), "item", logicalTypeOverride, length, precision, scale);
                 var list = new GroupNode("list", Repetition.Repeated, new[] {item});
 
                 try
@@ -51,7 +97,7 @@ namespace ParquetSharp
                 }
             }
 
-            throw new ArgumentException($"unsupported logical type {type}");
+            return null;
         }
 
         private static (LogicalType LogicalType, PhysicalType PhysicalType) GetEntry(
@@ -93,6 +139,8 @@ namespace ParquetSharp
                 {typeof(float?), (Repetition.Optional, new[] {(LogicalType.None, PhysicalType.Float)})},
                 {typeof(double), (Repetition.Required, new[] {(LogicalType.None, PhysicalType.Double)})},
                 {typeof(double?), (Repetition.Optional, new[] {(LogicalType.None, PhysicalType.Double)})},
+                {typeof(decimal), (Repetition.Required, new[] {(LogicalType.Decimal, PhysicalType.FixedLenByteArray)})},
+                {typeof(decimal?), (Repetition.Optional, new[] {(LogicalType.Decimal, PhysicalType.FixedLenByteArray) })},
                 {typeof(Date), (Repetition.Required, new[] {(LogicalType.Date, PhysicalType.Int32)})},
                 {typeof(Date?), (Repetition.Optional, new[] {(LogicalType.Date, PhysicalType.Int32)})},
                 {
@@ -146,6 +194,20 @@ namespace ParquetSharp
         public Column(string name, LogicalType logicalTypeOverride = LogicalType.None) 
             : base(typeof(TLogicalType), name, logicalTypeOverride)
         {
+        }
+    }
+
+    public sealed class ColumnDecimal : Column
+    {
+        public ColumnDecimal(string name, int precision = 28, int scale = 0, bool isNullable = false) 
+            : base(isNullable ? typeof(decimal?) : typeof(decimal), name, LogicalType.Decimal, 12, precision, scale)
+        {
+            // For the moment we only support serialising decimal to Decimal96.
+            // This reflects the C# decimal structure with 28 digits precision. Will implement 32-bits, 64-bits and other precision later.
+            if (precision != 28)
+            {
+                throw new NotSupportedException("only 28 digits of precision is currently supported");
+            }
         }
     }
 }

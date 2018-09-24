@@ -81,7 +81,9 @@ namespace ParquetSharp
         internal LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength)
             : base(columnWriter, bufferLength)
         {
-            _byteBuffer = typeof(TPhysical) == typeof(ByteArray) ? new ByteBuffer(bufferLength) : null;
+            _byteBuffer = typeof(TPhysical) == typeof(ByteArray) || typeof(TPhysical) == typeof(FixedLenByteArray)
+                ? new ByteBuffer(bufferLength) 
+                : null;
         }
 
         public override void Dispose()
@@ -94,7 +96,7 @@ namespace ParquetSharp
         public override void WriteBatch(TElement[] values, int start, int length)
         {
             // Convert logical values into physical values at the lowest array level
-            var converter = LogicalWrite<TLogical, TPhysical>.GetConverter(LogicalType, _byteBuffer);
+            var converter = LogicalWrite<TLogical, TPhysical>.GetConverter(LogicalType, ColumnDescriptor.TypeScale, _byteBuffer);
 
             // Handle arrays separately
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)

@@ -16,7 +16,15 @@ namespace ParquetSharp.Test
             {
                 Console.WriteLine("Testing primitive type {0}", expected.Type);
 
-                using (var node = new Column(expected.Type, expected.Name, expected.LogicalTypeOverride).CreateSchemaNode())
+                Assert.True(Column.IsSupported(expected.Type));
+
+                var type = expected.Type;
+                var isDecimal = type == typeof(decimal) || type == typeof(decimal?);
+                var column = isDecimal
+                    ? new ColumnDecimal(expected.Name, expected.Precision, expected.Scale, type == typeof(decimal?))
+                    : new Column(type, expected.Name, expected.LogicalTypeOverride);
+
+                using (var node = column.CreateSchemaNode())
                 {
                     Assert.AreEqual(expected.LogicalType, node.LogicalType);
                     Assert.AreEqual(-1, node.Id);
@@ -29,9 +37,18 @@ namespace ParquetSharp.Test
 
                     Assert.AreEqual(expected.ColumnOrder, primitive.ColumnOrder);
                     Assert.AreEqual(expected.PhysicalType, primitive.PhysicalType);
-                    Assert.AreEqual(-1, primitive.TypeLength);
+                    Assert.AreEqual(expected.Length, primitive.TypeLength);
+                    Assert.AreEqual(isDecimal, primitive.DecimalMetadata.IsSet);
+                    Assert.AreEqual(isDecimal ? expected.Precision : 0, primitive.DecimalMetadata.Precision);
+                    Assert.AreEqual(isDecimal ? expected.Scale : 0, primitive.DecimalMetadata.Scale);
                 }
             }
+        }
+
+        [Test]
+        public static void TestUnsupportedType()
+        {
+            Assert.False(Column.IsSupported(typeof(TestColumn)));
         }
 
         [Test]
@@ -85,6 +102,15 @@ namespace ParquetSharp.Test
                 {
                     Type = typeof(double),
                     PhysicalType = PhysicalType.Double
+                },
+                new ExpectedPrimitive
+                {
+                    Type = typeof(decimal),
+                    PhysicalType = PhysicalType.FixedLenByteArray,
+                    LogicalType = LogicalType.Decimal,
+                    Length = 12,
+                    Precision = 28,
+                    Scale = 3
                 },
                 new ExpectedPrimitive
                 {
@@ -193,6 +219,16 @@ namespace ParquetSharp.Test
                 },
                 new ExpectedPrimitive
                 {
+                    Type = typeof(decimal?),
+                    PhysicalType = PhysicalType.FixedLenByteArray,
+                    LogicalType = LogicalType.Decimal,
+                    Repetition = Repetition.Optional,
+                    Length = 12,
+                    Precision = 28,
+                    Scale = 2
+                },
+                new ExpectedPrimitive
+                {
                     Type = typeof(Date?),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Date,
@@ -240,6 +276,9 @@ namespace ParquetSharp.Test
             public Repetition Repetition = Repetition.Required;
             public ColumnOrder ColumnOrder = ColumnOrder.TypeDefinedOrder;
             public PhysicalType PhysicalType;
+            public int Length = -1;
+            public int Precision = -1;
+            public int Scale = -1;
         }
     }
 }

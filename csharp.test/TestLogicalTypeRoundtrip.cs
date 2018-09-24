@@ -18,7 +18,13 @@ namespace ParquetSharp.Test
         )
         {
             var expectedColumns = CreateExpectedColumns();
-            var schemaColumns = expectedColumns.Select(c => new Column(c.Values.GetType().GetElementType(), c.Name, c.LogicalTypeOverride)).ToArray();
+            var schemaColumns = expectedColumns.Select(c =>
+            {
+                var type = c.Values.GetType().GetElementType();
+                return type == typeof(decimal) || type == typeof(decimal?)
+                    ? new ColumnDecimal(c.Name, c.Precision, c.Scale, type == typeof(decimal?))
+                    : new Column(c.Values.GetType().GetElementType(), c.Name, c.LogicalTypeOverride);
+            }).ToArray();
 
             using (var buffer = new ResizableBuffer())
             {
@@ -65,6 +71,9 @@ namespace ParquetSharp.Test
                                 Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
                                 Assert.AreEqual(expected.LogicalType, descr.LogicalType);
                                 Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalValueGetter(checked((int) numRows), rowsPerBatch)));
+                                Assert.AreEqual(expected.Length, descr.TypeLength);
+                                Assert.AreEqual(expected.Precision, descr.TypePrecision);
+                                Assert.AreEqual(expected.Scale, descr.TypeScale);
                                 Assert.AreEqual(expected.HasStatistics, chunkMetaData.IsStatsSet);
 
                                 if (expected.HasStatistics)
@@ -240,6 +249,30 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = Math.PI,
                     Max = (NumRows - 1) * Math.PI
+                },
+                new ExpectedColumn
+                {
+                    Name = "decimal96_field",
+                    PhysicalType = PhysicalType.FixedLenByteArray,
+                    LogicalType = LogicalType.Decimal,
+                    Length = 12,
+                    Precision = 28,
+                    Scale = 3,
+                    Values = Enumerable.Range(0, NumRows).Select(i => ((decimal) i * i * i) / 1000 - 10).ToArray(),
+                    HasStatistics = false
+                },
+                new ExpectedColumn
+                {
+                    Name = "decimal96?_field",
+                    PhysicalType = PhysicalType.FixedLenByteArray,
+                    LogicalType = LogicalType.Decimal,
+                    Length = 12,
+                    Precision = 28,
+                    Scale = 3,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? null : ((decimal?) i * i * i) / 1000 - 10).ToArray(),
+                    NullCount = (NumRows + 10) / 11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
+                    HasStatistics = false
                 },
                 new ExpectedColumn
                 {
@@ -557,6 +590,9 @@ namespace ParquetSharp.Test
             public PhysicalType PhysicalType;
             public LogicalType LogicalType = LogicalType.None;
             public LogicalType LogicalTypeOverride = LogicalType.None;
+            public int Length;
+            public int Precision;
+            public int Scale;
 
             public bool HasStatistics = true;
             public bool HasMinMax = true;
