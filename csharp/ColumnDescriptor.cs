@@ -112,6 +112,11 @@ namespace ParquetSharp
                 case LogicalType.UInt64:
                     return (typeof(long), nullable ? typeof(ulong?) : typeof(ulong));
 
+                case LogicalType.Decimal:
+                    if (TypeLength != 12) throw new NotSupportedException("only 12 bytes of decimal length is supported");
+                    if (TypePrecision != 28) throw new NotSupportedException("only 28 digits of decimal precision is supported");
+                    return (typeof(FixedLenByteArray), nullable ? typeof(decimal?) : typeof(decimal));
+
                 case LogicalType.Date:
                     return (typeof(int), nullable ? typeof(Date?) : typeof(Date));
 

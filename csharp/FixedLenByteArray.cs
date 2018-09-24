@@ -9,6 +9,11 @@ namespace ParquetSharp
     [StructLayout(LayoutKind.Sequential)]
     public struct FixedLenByteArray
     {
+        public FixedLenByteArray(IntPtr pointer)
+        {
+            Pointer = pointer;
+        }
+
         public readonly IntPtr Pointer;
     }
 }
