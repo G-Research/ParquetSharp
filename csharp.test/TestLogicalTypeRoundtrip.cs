@@ -22,7 +22,7 @@ namespace ParquetSharp.Test
             {
                 var type = c.Values.GetType().GetElementType();
                 return type == typeof(decimal) || type == typeof(decimal?)
-                    ? new ColumnDecimal(c.Name, c.Scale, c.Precision, type == typeof(decimal?))
+                    ? new ColumnDecimal(c.Name, c.Precision, c.Scale, type == typeof(decimal?))
                     : new Column(c.Values.GetType().GetElementType(), c.Name, c.LogicalTypeOverride);
             }).ToArray();
 

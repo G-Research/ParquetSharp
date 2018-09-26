@@ -208,7 +208,7 @@ namespace ParquetSharp.Test
 
             timer.Restart();
 
-            using (var fileWriter = new ParquetFileWriter("decimal_timeseries.parquet", new Column[] { new ColumnDecimal("Value", scale: 3) }))
+            using (var fileWriter = new ParquetFileWriter("decimal_timeseries.parquet", new Column[] { new ColumnDecimal("Value", precision: 29, scale: 3) }))
             using (var rowGroupWriter = fileWriter.AppendRowGroup())
             using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>())
             {

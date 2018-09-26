@@ -201,7 +201,7 @@ namespace ParquetSharp
 
     public sealed class ColumnDecimal : Column
     {
-        public unsafe ColumnDecimal(string name, int scale, int precision = 29, bool isNullable = false) 
+        public unsafe ColumnDecimal(string name, int precision, int scale, bool isNullable = false) 
             : base(isNullable ? typeof(decimal?) : typeof(decimal), name, LogicalType.Decimal, sizeof(Decimal128), precision, scale)
         {
             // For the moment we only support serializing decimal to Decimal128.
