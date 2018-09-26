@@ -21,7 +21,7 @@ namespace ParquetSharp.Test
                 var type = expected.Type;
                 var isDecimal = type == typeof(decimal) || type == typeof(decimal?);
                 var column = isDecimal
-                    ? new ColumnDecimal(expected.Name, expected.Precision, expected.Scale, type == typeof(decimal?))
+                    ? new ColumnDecimal(expected.Name, expected.Scale, expected.Precision, type == typeof(decimal?))
                     : new Column(type, expected.Name, expected.LogicalTypeOverride);
 
                 using (var node = column.CreateSchemaNode())
@@ -108,8 +108,8 @@ namespace ParquetSharp.Test
                     Type = typeof(decimal),
                     PhysicalType = PhysicalType.FixedLenByteArray,
                     LogicalType = LogicalType.Decimal,
-                    Length = 12,
-                    Precision = 28,
+                    Length = 16,
+                    Precision = 29,
                     Scale = 3
                 },
                 new ExpectedPrimitive
@@ -223,8 +223,8 @@ namespace ParquetSharp.Test
                     PhysicalType = PhysicalType.FixedLenByteArray,
                     LogicalType = LogicalType.Decimal,
                     Repetition = Repetition.Optional,
-                    Length = 12,
-                    Precision = 28,
+                    Length = 16,
+                    Precision = 29,
                     Scale = 2
                 },
                 new ExpectedPrimitive

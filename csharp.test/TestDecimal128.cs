@@ -9,13 +9,13 @@ using System.Linq;
 namespace ParquetSharp.Test
 {
     [TestFixture]
-    internal static class TestDecimal
+    internal static class TestDecimal128
     {
         private static readonly int[] Scales = Enumerable.Range(0, 29).ToArray();
 
         [Test]
         [TestCaseSource(nameof(Scales))]
-        public static void TestDecimal96RoundTrip(int scale)
+        public static void TestRoundTrip(int scale)
         {
             var list = new List<decimal>{0, 1};
             for (int i = 0; i != 28; ++i)
@@ -23,33 +23,50 @@ namespace ParquetSharp.Test
                 list.Add(list.Last() * 10);
             }
 
-            var multiplier = Decimal96.GetScaleMultiplier(scale);
+            list.Add(decimal.MaxValue);
+
+            var multiplier = Decimal128.GetScaleMultiplier(scale);
             var decimals = list.Select(v => v / multiplier).ToArray();
 
             foreach (var value in decimals)
             {
                 Console.WriteLine($"{value:E}");
-                Assert.AreEqual(value, new Decimal96(value, multiplier).ToDecimal(multiplier));
+                Assert.AreEqual(value, new Decimal128(value, multiplier).ToDecimal(multiplier));
 
                 Console.WriteLine($"{-value:E}");
-                Assert.AreEqual(-value, new Decimal96(-value, multiplier).ToDecimal(multiplier));
+                Assert.AreEqual(-value, new Decimal128(-value, multiplier).ToDecimal(multiplier));
             }
         }
 
         [Test]
-        public static void TestDecimal96ScaleMultiplier()
+        public static void TestScaleMultiplier()
         {
-            Assert.AreEqual(1M, Decimal96.GetScaleMultiplier(0));
-            Assert.AreEqual(10M, Decimal96.GetScaleMultiplier(1));
-            Assert.AreEqual(100M, Decimal96.GetScaleMultiplier(2));
-            Assert.AreEqual(1e+028, Decimal96.GetScaleMultiplier(28));
+            Assert.AreEqual(1M, Decimal128.GetScaleMultiplier(0));
+            Assert.AreEqual(10M, Decimal128.GetScaleMultiplier(1));
+            Assert.AreEqual(100M, Decimal128.GetScaleMultiplier(2));
+            Assert.AreEqual(1e+028M, Decimal128.GetScaleMultiplier(28));
         }
 
         [Test]
-        public static void TestDecimal96AgainstThirdParty()
+        public static void TestScaleOverflow()
+        {
+            var exception = Assert.Throws<OverflowException>(() =>
+            {
+                // ReSharper disable once ObjectCreationAsStatement
+                new Decimal128(1e+027M, multiplier: 100);
+            });
+
+            Assert.AreEqual("value 1.000000E+027 is too large for decimal scale 2", exception.Message);
+        }
+
+        [Test]
+        public static void TestAgainstThirdParty()
         {
             var columns = new Column[] {new ColumnDecimal("Decimal", scale: 3)};
-            var values = Enumerable.Range(0, 10_000).Select(i => ((decimal) i * i * i) / 1000 - 10).ToArray();
+            var values = Enumerable.Range(0, 10_000)
+                .Select(i => ((decimal) i * i * i) / 1000 - 10)
+                .Concat(new [] {decimal.MinValue / 1000, decimal.MaxValue / 1000})
+                .ToArray();
 
             using (var buffer = new ResizableBuffer())
             {

@@ -55,14 +55,14 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(decimal))
             {
-                var multiplier = Decimal96.GetScaleMultiplier(scale);
-                return (Converter) (Delegate) (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal96(s, d, multiplier, byteBuffer));
+                var multiplier = Decimal128.GetScaleMultiplier(scale);
+                return (Converter) (Delegate) (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal128(s, d, multiplier, byteBuffer));
             }
 
             if (typeof(TLogical) == typeof(decimal?))
             {
-                var multiplier = Decimal96.GetScaleMultiplier(scale);
-                return (Converter) (Delegate) (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal96(s, dl, d, multiplier, nl, byteBuffer));
+                var multiplier = Decimal128.GetScaleMultiplier(scale);
+                return (Converter) (Delegate) (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal128(s, dl, d, multiplier, nl, byteBuffer));
             }
 
             if (typeof(TLogical) == typeof(Date))
@@ -162,16 +162,16 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertDecimal96(ReadOnlySpan<decimal> source, Span<FixedLenByteArray> destination, decimal multiplier, ByteBuffer byteBuffer)
+        private static void ConvertDecimal128(ReadOnlySpan<decimal> source, Span<FixedLenByteArray> destination, decimal multiplier, ByteBuffer byteBuffer)
         {
             for (int i = 0; i != source.Length; ++i)
             {
-                var dec = new Decimal96(source[i], multiplier);
+                var dec = new Decimal128(source[i], multiplier);
                 destination[i] = FromFixedLength(in dec, byteBuffer);
             }
         }
 
-        private static void ConvertDecimal96(ReadOnlySpan<decimal?> source, Span<short> defLevels, Span<FixedLenByteArray> destination, decimal multiplier, short nullLevel, ByteBuffer byteBuffer)
+        private static void ConvertDecimal128(ReadOnlySpan<decimal?> source, Span<short> defLevels, Span<FixedLenByteArray> destination, decimal multiplier, short nullLevel, ByteBuffer byteBuffer)
         {
             for (int i = 0, dst = 0; i != source.Length; ++i)
             {
@@ -182,7 +182,7 @@ namespace ParquetSharp
                 }
                 else
                 {
-                    var dec = new Decimal96(value.Value, multiplier);
+                    var dec = new Decimal128(value.Value, multiplier);
                     destination[dst++] = FromFixedLength(in dec, byteBuffer);
                     defLevels[i] = (short) (nullLevel + 1);
                 }

@@ -55,14 +55,14 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(decimal))
             {
-                var multiplier = Decimal96.GetScaleMultiplier(scale);
-                return (Converter) (Delegate) (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal96(s, d, multiplier));
+                var multiplier = Decimal128.GetScaleMultiplier(scale);
+                return (Converter) (Delegate) (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal128(s, d, multiplier));
             }
 
             if (typeof(TLogical) == typeof(decimal?))
             {
-                var multiplier = Decimal96.GetScaleMultiplier(scale);
-                return (Converter) (Delegate) (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal96(s, dl, d, multiplier, nl));
+                var multiplier = Decimal128.GetScaleMultiplier(scale);
+                return (Converter) (Delegate) (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal128(s, dl, d, multiplier, nl));
             }
 
             if (typeof(TLogical) == typeof(Date))
@@ -153,21 +153,21 @@ namespace ParquetSharp
             }
         }
 
-        private static unsafe void ConvertDecimal96(ReadOnlySpan<FixedLenByteArray> source, Span<decimal> destination, decimal multiplier)
+        private static unsafe void ConvertDecimal128(ReadOnlySpan<FixedLenByteArray> source, Span<decimal> destination, decimal multiplier)
         {
             for (int i = 0; i != destination.Length; ++i)
             {
-                destination[i] = (*(Decimal96*) source[i].Pointer).ToDecimal(multiplier);
+                destination[i] = (*(Decimal128*) source[i].Pointer).ToDecimal(multiplier);
             }
         }
 
-        private static unsafe void ConvertDecimal96(ReadOnlySpan<FixedLenByteArray> source, ReadOnlySpan<short> defLevels, Span<decimal?> destination, decimal multiplier, short nullLevel)
+        private static unsafe void ConvertDecimal128(ReadOnlySpan<FixedLenByteArray> source, ReadOnlySpan<short> defLevels, Span<decimal?> destination, decimal multiplier, short nullLevel)
         {
             for (int i = 0, src = 0; i != destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel
                     ? default(decimal?)
-                    : (*(Decimal96*) source[src++].Pointer).ToDecimal(multiplier);
+                    : (*(Decimal128*) source[src++].Pointer).ToDecimal(multiplier);
             }
         }
 

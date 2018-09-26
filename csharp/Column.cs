@@ -56,6 +56,8 @@ namespace ParquetSharp
         /// </summary>
         public static bool IsSupported(Type type)
         {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+
             while (true)
             {
                 if (Primitives.ContainsKey(type))
@@ -199,14 +201,15 @@ namespace ParquetSharp
 
     public sealed class ColumnDecimal : Column
     {
-        public ColumnDecimal(string name, int precision = 28, int scale = 0, bool isNullable = false) 
-            : base(isNullable ? typeof(decimal?) : typeof(decimal), name, LogicalType.Decimal, 12, precision, scale)
+        public unsafe ColumnDecimal(string name, int scale, int precision = 29, bool isNullable = false) 
+            : base(isNullable ? typeof(decimal?) : typeof(decimal), name, LogicalType.Decimal, sizeof(Decimal128), precision, scale)
         {
-            // For the moment we only support serialising decimal to Decimal96.
-            // This reflects the C# decimal structure with 28 digits precision. Will implement 32-bits, 64-bits and other precision later.
-            if (precision != 28)
+            // For the moment we only support serializing decimal to Decimal128.
+            // This reflects the C# decimal structure with 28-29 digits precision.
+            // Will implement 32-bits, 64-bits and other precision later.
+            if (precision != 29)
             {
-                throw new NotSupportedException("only 28 digits of precision is currently supported");
+                throw new NotSupportedException("only 29 digits of precision is currently supported");
             }
         }
     }

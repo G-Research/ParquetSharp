@@ -11,14 +11,24 @@ namespace ParquetSharp
     /// For Parquet, the scale is stored in the schema as a fixed point reference.
     /// Parquet uses big-endian byte order, two's complement representation.
     /// 
-    /// 12-bytes ought to be enough for C# max precision (28 digits)
+    /// 13-bytes ought to be enough for C# max precision (29 digits). Round up to 16-bytes.
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, Size = 12)]
-    internal unsafe struct Decimal96
+    [StructLayout(LayoutKind.Sequential, Size = 16)]
+    internal unsafe struct Decimal128
     {
-        public Decimal96(decimal value, decimal multiplier)
+        public Decimal128(decimal value, decimal multiplier)
         {
-            var unscaled = decimal.Truncate(value * multiplier);
+            decimal unscaled;
+
+            try
+            {
+                unscaled = decimal.Truncate(value * multiplier);
+            }
+            catch (OverflowException exception)
+            {
+                throw new OverflowException($"value {value:E} is too large for decimal scale {Math.Log10((double)multiplier)}", exception);
+            }
+
             var src = (uint*) &unscaled;
 
             // From .NET Core sources (2018-09-24):
@@ -43,6 +53,7 @@ namespace ParquetSharp
                 dst[0] = src[2];
                 dst[1] = src[3];
                 dst[2] = src[1];
+                dst[3] = 0;
 
 #if DEBUG
                 if (src[0] != 0 && src[0] != SignMask)
@@ -54,6 +65,7 @@ namespace ParquetSharp
                 if (src[0] == SignMask)
                 {
                     TwosComplement(dst);
+                    dst[3] = 0xFFFFFFFF;
                 }
 
                 // Go to big endian representation.
@@ -67,26 +79,24 @@ namespace ParquetSharp
             var dst = (uint*) &unscaled;
             var tmp = stackalloc uint[4];
 
-            fixed (uint* src = _uints)
+            tmp[0] = _uints[0];
+            tmp[1] = _uints[1];
+            tmp[2] = _uints[2];
+            tmp[3] = _uints[3];
+
+            // Go the little endian representation.
+            ReverseByteOrder(tmp);
+
+            if (tmp[3] != 0)
             {
-                tmp[0] = src[0];
-                tmp[1] = src[1];
-                tmp[2] = src[2];
-
-                // Go the little endian representation.
-                ReverseByteOrder(tmp);
-
-                if ((tmp[2] & SignMask) != 0)
-                {
-                    TwosComplement(tmp);
-                    tmp[3] = SignMask;
-                }
-
-                dst[2] = tmp[0];
-                dst[3] = tmp[1];
-                dst[1] = tmp[2];
-                dst[0] = tmp[3];
+                TwosComplement(tmp);
+                tmp[3] = SignMask;
             }
+
+            dst[2] = tmp[0];
+            dst[3] = tmp[1];
+            dst[1] = tmp[2];
+            dst[0] = tmp[3];
 
             return unscaled / multiplier;
         }
@@ -115,11 +125,11 @@ namespace ParquetSharp
         {
             var b = (byte*) ptr;
 
-            for (int i = 0; i != sizeof(Decimal96) / 2; ++i)
+            for (int i = 0; i != sizeof(Decimal128) / 2; ++i)
             {
                 var tmp = b[i];
-                b[i] = b[sizeof(Decimal96) - i - 1];
-                b[sizeof(Decimal96) - i - 1] = tmp;
+                b[i] = b[sizeof(Decimal128) - i - 1];
+                b[sizeof(Decimal128) - i - 1] = tmp;
             }
         }
 
@@ -133,7 +143,6 @@ namespace ParquetSharp
 
         private const uint SignMask = 0x80000000;
 
-        [FieldOffset(0)]
-        private fixed uint _uints[3];
+        private fixed uint _uints[4];
     }
 }
