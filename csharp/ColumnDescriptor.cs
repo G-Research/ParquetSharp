@@ -70,7 +70,7 @@ namespace ParquetSharp
             return (physicalType, logicalType, elementType);
         }
 
-        private (Type physicalType, Type logicalType) GetPhysicalAndLogicalSystemTypes()
+        private unsafe (Type physicalType, Type logicalType) GetPhysicalAndLogicalSystemTypes()
         {
             var physicalType = PhysicalType;
             var logicalType = LogicalType;
@@ -113,8 +113,8 @@ namespace ParquetSharp
                     return (typeof(long), nullable ? typeof(ulong?) : typeof(ulong));
 
                 case LogicalType.Decimal:
-                    if (TypeLength != 12) throw new NotSupportedException("only 12 bytes of decimal length is supported");
-                    if (TypePrecision != 28) throw new NotSupportedException("only 28 digits of decimal precision is supported");
+                    if (TypeLength != sizeof(Decimal128)) throw new NotSupportedException($"only {sizeof(Decimal128)} bytes of decimal length is supported");
+                    if (TypePrecision > 29) throw new NotSupportedException("only max 29 digits of decimal precision is supported");
                     return (typeof(FixedLenByteArray), nullable ? typeof(decimal?) : typeof(decimal));
 
                 case LogicalType.Date:

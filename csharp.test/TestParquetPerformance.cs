@@ -77,7 +77,7 @@ namespace ParquetSharp.Test
 
             timer.Restart();
 
-            using (var fileWriter = new ParquetFileWriter("float_timeseries.parquet", CreateColumns()))
+            using (var fileWriter = new ParquetFileWriter("float_timeseries.parquet", CreateFloatColumns()))
             using (var rowGroupWriter = fileWriter.AppendRowGroup())
             {
                 using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
@@ -111,7 +111,7 @@ namespace ParquetSharp.Test
 
             timer.Restart();
 
-            using (var fileWriter = new ParquetFileWriter("float_timeseries.parquet.chunked", CreateColumns()))
+            using (var fileWriter = new ParquetFileWriter("float_timeseries.parquet.chunked", CreateFloatColumns()))
             {
                 for (int i = 0; i != dates.Length; ++i)
                 {
@@ -164,7 +164,7 @@ namespace ParquetSharp.Test
                 var valueField = new DataField<float>("Value");
                 var schema = new Parquet.Data.Schema(dateTimeField, objectIdField, valueField);
 
-                using (var stream = File.OpenWrite("float_timeseries.parquet.net"))
+                using (var stream = File.Create("float_timeseries.parquet.net"))
                 using (var parquetWriter = new ParquetWriter(schema, stream))
                 using (var groupWriter = parquetWriter.CreateRowGroup(dates.Length*objectIds.Length))
                 {
@@ -186,7 +186,57 @@ namespace ParquetSharp.Test
             Console.WriteLine("Saved to Parquet.NET ({0:N0} bytes) in {1:N1} sec", new FileInfo("float_timeseries.parquet.net").Length, timer.Elapsed.TotalSeconds);
         }
 
-        private static Column[] CreateColumns()
+        [Test]
+        [Explicit("Benchmark")]
+        public static void TestDecimalSeries()
+        {
+            var timer = Stopwatch.StartNew();
+            var rand = new Random(123);
+
+            Console.WriteLine("Generating data...");
+
+            var values = Enumerable.Range(0, 10_000_000).Select(i =>
+            {
+                var n = rand.Next();
+                var sign = rand.NextDouble() < 0.5 ? -1M : +1M;
+                return sign * ((decimal) n * n * n) / 1000M;
+            }).ToArray();
+
+            Console.WriteLine("Generated {0:N0} rows in {1:N1} sec", values.Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine();
+            Console.WriteLine("Saving to Parquet");
+
+            timer.Restart();
+
+            using (var fileWriter = new ParquetFileWriter("decimal_timeseries.parquet", new Column[] { new ColumnDecimal("Value", precision: 29, scale: 3) }))
+            using (var rowGroupWriter = fileWriter.AppendRowGroup())
+            using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>())
+            {
+                valueWriter.WriteBatch(values);
+            }
+
+            Console.WriteLine("Saved to Parquet ({0:N0} bytes) in {1:N1} sec", new FileInfo("decimal_timeseries.parquet").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine();
+            Console.WriteLine("Saving to Parquet.NET");
+
+            timer.Restart();
+
+            {
+                var valueField = new DecimalDataField("Value", precision: 29, scale: 3);
+                var schema = new Parquet.Data.Schema(valueField);
+
+                using (var stream = File.Create("decimal_timeseries.parquet.net"))
+                using (var parquetWriter = new ParquetWriter(schema, stream))
+                using (var groupWriter = parquetWriter.CreateRowGroup(values.Length))
+                {
+                    groupWriter.WriteColumn(new DataColumn(valueField, values));
+                }
+            }
+
+            Console.WriteLine("Saved to Parquet.NET ({0:N0} bytes) in {1:N1} sec", new FileInfo("decimal_timeseries.parquet.net").Length, timer.Elapsed.TotalSeconds);
+        }
+
+        private static Column[] CreateFloatColumns()
         {
             return new Column[]
             {

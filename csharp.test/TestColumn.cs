@@ -108,8 +108,8 @@ namespace ParquetSharp.Test
                     Type = typeof(decimal),
                     PhysicalType = PhysicalType.FixedLenByteArray,
                     LogicalType = LogicalType.Decimal,
-                    Length = 12,
-                    Precision = 28,
+                    Length = 16,
+                    Precision = 29,
                     Scale = 3
                 },
                 new ExpectedPrimitive
@@ -223,8 +223,8 @@ namespace ParquetSharp.Test
                     PhysicalType = PhysicalType.FixedLenByteArray,
                     LogicalType = LogicalType.Decimal,
                     Repetition = Repetition.Optional,
-                    Length = 12,
-                    Precision = 28,
+                    Length = 16,
+                    Precision = 29,
                     Scale = 2
                 },
                 new ExpectedPrimitive

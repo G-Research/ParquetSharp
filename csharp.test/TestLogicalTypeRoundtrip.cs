@@ -252,22 +252,22 @@ namespace ParquetSharp.Test
                 },
                 new ExpectedColumn
                 {
-                    Name = "decimal96_field",
+                    Name = "decimal128_field",
                     PhysicalType = PhysicalType.FixedLenByteArray,
                     LogicalType = LogicalType.Decimal,
-                    Length = 12,
-                    Precision = 28,
+                    Length = 16,
+                    Precision = 29,
                     Scale = 3,
                     Values = Enumerable.Range(0, NumRows).Select(i => ((decimal) i * i * i) / 1000 - 10).ToArray(),
                     HasStatistics = false
                 },
                 new ExpectedColumn
                 {
-                    Name = "decimal96?_field",
+                    Name = "decimal128?_field",
                     PhysicalType = PhysicalType.FixedLenByteArray,
                     LogicalType = LogicalType.Decimal,
-                    Length = 12,
-                    Precision = 28,
+                    Length = 16,
+                    Precision = 29,
                     Scale = 3,
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? null : ((decimal?) i * i * i) / 1000 - 10).ToArray(),
                     NullCount = (NumRows + 10) / 11,
