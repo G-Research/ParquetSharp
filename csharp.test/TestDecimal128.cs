@@ -84,7 +84,7 @@ namespace ParquetSharp.Test
                 using (var fileReader = new ParquetReader(memoryStream))
                 using (var rowGroupReader = fileReader.OpenRowGroupReader(0))
                 {
-                    var read = (decimal[]) rowGroupReader.ReadColumn(fileReader.Schema.DataFieldAt(0)).Data;
+                    var read = (decimal[]) rowGroupReader.ReadColumn(fileReader.Schema.GetDataFields()[0]).Data;
 
                     Assert.AreEqual(values, read);
                 }

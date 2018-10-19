@@ -75,7 +75,7 @@ namespace ParquetSharp.RowOriented
 
         internal void WriteColumn<TValue>(TValue[] values, int length)
         {
-            using (var columnWriter = LogicalColumnWriter.Create<TValue>(_rowGroupWriter.NextColumn()))
+            using (var columnWriter = _rowGroupWriter.NextColumn().LogicalWriter<TValue>())
             {
                 columnWriter.WriteBatch(values, 0, length);
             }

@@ -181,7 +181,6 @@ namespace ParquetSharp
         public unsafe void WriteBatch(long numValues, ReadOnlySpan<short> defLevels, ReadOnlySpan<short> repLevels, ReadOnlySpan<TValue> values)
         {
             if (values == null) throw new ArgumentNullException(nameof(values));
-            if (values.Length < numValues) throw new ArgumentOutOfRangeException(nameof(values), "numValues is larger than length of values");
             if (defLevels != null && defLevels.Length < numValues) throw new ArgumentOutOfRangeException(nameof(defLevels), "numValues is larger than length of defLevels");
             if (repLevels != null && repLevels.Length < numValues) throw new ArgumentOutOfRangeException(nameof(repLevels), "numValues is larger than length of repLevels");
 

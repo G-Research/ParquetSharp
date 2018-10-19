@@ -59,9 +59,11 @@ namespace ParquetSharp.Test
 
                         for (int c = 0; c != fileMetaData.NumColumns; ++c)
                         {
+                            var expected = expectedColumns[c];
+
+                            // Test properties, and read methods.
                             using (var columnReader = rowGroupReader.Column(c).LogicalReader(readBufferLength))
                             {
-                                var expected = expectedColumns[c];
                                 var descr = columnReader.ColumnDescriptor;
                                 var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
                                 var statistics = chunkMetaData.Statistics;
@@ -93,6 +95,12 @@ namespace ParquetSharp.Test
                                 {
                                     Assert.IsNull(statistics);
                                 }
+                            }
+
+                            // Test IEnumerable interface
+                            using (var columnReader = rowGroupReader.Column(c).LogicalReader(readBufferLength))
+                            {
+                                Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalColumnReaderToArray()));
                             }
                         }
                     }

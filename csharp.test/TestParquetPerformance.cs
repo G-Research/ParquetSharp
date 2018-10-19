@@ -166,7 +166,7 @@ namespace ParquetSharp.Test
 
                 using (var stream = File.Create("float_timeseries.parquet.net"))
                 using (var parquetWriter = new ParquetWriter(schema, stream))
-                using (var groupWriter = parquetWriter.CreateRowGroup(dates.Length*objectIds.Length))
+                using (var groupWriter = parquetWriter.CreateRowGroup())
                 {
                     var dateTimeColumn = new DataColumn(dateTimeField,
                         dates.SelectMany(d => Enumerable.Repeat(new DateTimeOffset(d), objectIds.Length)).ToArray());
@@ -227,7 +227,7 @@ namespace ParquetSharp.Test
 
                 using (var stream = File.Create("decimal_timeseries.parquet.net"))
                 using (var parquetWriter = new ParquetWriter(schema, stream))
-                using (var groupWriter = parquetWriter.CreateRowGroup(values.Length))
+                using (var groupWriter = parquetWriter.CreateRowGroup())
                 {
                     groupWriter.WriteColumn(new DataColumn(valueField, values));
                 }
