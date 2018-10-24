@@ -69,10 +69,15 @@ namespace ParquetSharp
 
         public void WriteBatch(TElement[] values)
         {
-            WriteBatch(values, 0, values.Length);
+            WriteBatch(values.AsSpan());
         }
 
-        public abstract void WriteBatch(TElement[] values, int start, int length);
+        public void WriteBatch(TElement[] values, int start, int length)
+        {
+            WriteBatch(values.AsSpan(start, length));
+        }
+
+        public abstract void WriteBatch(ReadOnlySpan<TElement> values);
     }
 
     internal sealed class LogicalColumnWriter<TPhysical, TLogical, TElement> : LogicalColumnWriter<TElement>
@@ -93,7 +98,7 @@ namespace ParquetSharp
             base.Dispose();
         }
 
-        public override void WriteBatch(TElement[] values, int start, int length)
+        public override void WriteBatch(ReadOnlySpan<TElement> values)
         {
             // Convert logical values into physical values at the lowest array level
             var converter = LogicalWrite<TLogical, TPhysical>.GetConverter(LogicalType, ColumnDescriptor.TypeScale, _byteBuffer);
@@ -101,108 +106,169 @@ namespace ParquetSharp
             // Handle arrays separately
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
             {
-                WriteBatchArray(values, start, length, converter);
-                return;
-            }
-
-            WriteBatchSimple(((TLogical[]) (object) values).AsSpan(start, length), converter);
-        }
-
-        private void WriteBatchArray(TElement[] values, int start, int length, LogicalWrite<TLogical, TPhysical>.Converter converter)
-        {
-            WriteArrayInternal(values, start, length, 0, NestingDepth, 0, NullDefinitionLevels, ColumnDescriptor.MaxDefinitionLevel, converter);
-        }
-
-        private void WriteArrayInternal(
-            Array values, int start, int length,
-            short repetitionLevel, short maxRepetitionLevel, short leafFirstRepLevel, 
-            short[] nullDefinitionLevels, short leafDefinitionLevel,
-            LogicalWrite<TLogical, TPhysical>.Converter converter)
-        {
-            if (values.Length < start + length) throw new ArgumentOutOfRangeException(nameof(length), "start + length is larger tha values length");
-
-            short nullDefinitionLevel = nullDefinitionLevels[repetitionLevel];
-            bool writtenFirstItem = false;
-
-            if (repetitionLevel == maxRepetitionLevel)
-            {
-                if (nullDefinitionLevel != -1 && DefLevels == null)
+                if (NestingDepth == 0)
                 {
-                    throw new Exception("Internal error: DefLevels should not be null.");
-                }
-
-                var rowsWritten = 0;
-                var columnWriter = (ColumnWriter<TPhysical>) Source;
-                var buffer = (TPhysical[]) Buffer;
-
-                while (rowsWritten < length)
-                {
-                    var bufferLength = Math.Min(length - rowsWritten, buffer.Length);
-
-                    converter(((TLogical[]) values).AsSpan(start + rowsWritten), DefLevels, buffer, nullDefinitionLevel);
-
-                    for (int i = 0; i < bufferLength; i++)
-                    {
-                        RepLevels[i] = repetitionLevel;
-
-                        // If the leaves are required, we have to write the deflevel because the converter won't do this for us.
-                        if (nullDefinitionLevel == -1)
-                        {
-                            DefLevels[i] = leafDefinitionLevel;
-                        }
-                    }
-
-                    if (!writtenFirstItem)
-                    {
-                        RepLevels[0] = leafFirstRepLevel;
-                    }
-
-                    columnWriter.WriteBatch(bufferLength, DefLevels, RepLevels, buffer);
-                    rowsWritten += bufferLength;
-
-                    writtenFirstItem = true;
-
-                    _byteBuffer?.Clear();
-                }
-
-                return;
-            }
-
-            for (int i = start; i != start + length; ++i)
-            {
-                var item = (Array) values.GetValue(i);
-                short innerLeafFirstRepLevel = writtenFirstItem ? repetitionLevel : leafFirstRepLevel;
-
-                if (item != null)
-                {
-                    WriteArrayInternal(
-                        item, 0, item.Length, 
-                        (short) (repetitionLevel + 1), maxRepetitionLevel, innerLeafFirstRepLevel,
-                        nullDefinitionLevels, leafDefinitionLevel, converter);
+                    WriteArrayFinalLevel(values, 0, 0, ColumnDescriptor.MaxDefinitionLevel, converter, NullDefinitionLevels[0]);
                 }
                 else
                 {
-                    if (nullDefinitionLevel == -1)
-                    {
-                        throw new Exception("Array is null but the schema says it is a required value.");
-                    }
+                    WriteArrayIntermediateLevel(values, 0, NestingDepth, 0, NullDefinitionLevels, ColumnDescriptor.MaxDefinitionLevel, converter);
+                }
+            }
+            else
+            {
+                WriteBatchSimple(values, converter as LogicalWrite<TElement, TPhysical>.Converter);
+            }
+        }
 
-                    var columnWriter = (ColumnWriter<TPhysical>) Source;
+        private void WriteArrayIntermediateLevel(
+            ReadOnlySpan<TElement> values,
+            short repetitionLevel, short maxRepetitionLevel, short leafFirstRepLevel, 
+            short[] nullDefinitionLevels, short leafDefinitionLevel, 
+            LogicalWrite<TLogical, TPhysical>.Converter converter)
+        {
+            var firstItem = true;
 
-                    columnWriter.WriteBatchSpaced(
-                        1, new[] {nullDefinitionLevel}, new[] {innerLeafFirstRepLevel}, 
-                        new byte[] {0}, 0, new TPhysical[] { });
+            for (int i = 0; i != values.Length; ++i)
+            {
+                WriteArrayNextLevel(
+                    values[i] as Array,
+                    repetitionLevel, maxRepetitionLevel, leafFirstRepLevel,
+                    nullDefinitionLevels, leafDefinitionLevel,
+                    converter,
+                    ref firstItem);
+            }
+        }
+
+        private void WriteArrayIntermediateLevel(
+            Array values,
+            short repetitionLevel, short maxRepetitionLevel, short leafFirstRepLevel,
+            short[] nullDefinitionLevels, short leafDefinitionLevel,
+            LogicalWrite<TLogical, TPhysical>.Converter converter)
+        {
+            var firstItem = true;
+
+            for (int i = 0; i != values.Length; ++i)
+            {
+                WriteArrayNextLevel(
+                    (Array) values.GetValue(i), 
+                    repetitionLevel, maxRepetitionLevel, leafFirstRepLevel, 
+                    nullDefinitionLevels, leafDefinitionLevel,
+                    converter, 
+                    ref firstItem);
+            }
+        }
+
+        private void WriteArrayNextLevel(
+            Array item,
+            short repetitionLevel, short maxRepetitionLevel, short leafFirstRepLevel,
+            short[] nullDefinitionLevels, short leafDefinitionLevel,
+            LogicalWrite<TLogical, TPhysical>.Converter converter,
+            ref bool firstItem)
+        {
+            var nullDefinitionLevel = nullDefinitionLevels[repetitionLevel];
+            var innerLeafFirstRepLevel = firstItem ? leafFirstRepLevel : repetitionLevel;
+
+            if (item != null)
+            {
+                var nextLevel = (short) (repetitionLevel + 1);
+                if (nextLevel == maxRepetitionLevel)
+                {
+                    WriteArrayFinalLevel<TLogical>(
+                        (TLogical[]) item,
+                        nextLevel, innerLeafFirstRepLevel, leafDefinitionLevel,
+                        converter,
+                        nullDefinitionLevels[nextLevel]);
+                }
+                else
+                {
+                    WriteArrayIntermediateLevel(
+                        item,
+                        nextLevel, maxRepetitionLevel, innerLeafFirstRepLevel,
+                        nullDefinitionLevels, leafDefinitionLevel,
+                        converter);
+                }
+            }
+            else
+            {
+                if (nullDefinitionLevel == -1)
+                {
+                    throw new Exception("Array is null but the schema says it is a required value.");
                 }
 
-                writtenFirstItem = true;
+                var columnWriter = (ColumnWriter<TPhysical>) Source;
+
+                columnWriter.WriteBatchSpaced(
+                    1, new[] {nullDefinitionLevel}, new[] {innerLeafFirstRepLevel},
+                    new byte[] {0}, 0, new TPhysical[] { });
+            }
+
+            firstItem = false;
+        }
+
+        /// <summary>
+        /// Write implementation for writing the deepest level array.
+        /// </summary>
+        private void WriteArrayFinalLevel<TTLogical>(
+            ReadOnlySpan<TTLogical> values, 
+            short repetitionLevel, short leafFirstRepLevel, 
+            short leafDefinitionLevel, 
+            LogicalWrite<TLogical, TPhysical>.Converter converter, 
+            short nullDefinitionLevel)
+        {
+            if (typeof(TTLogical) != typeof(TLogical)) throw new ArgumentException("generic logical type should never be different");
+            if (converter == null) throw new ArgumentNullException(nameof(converter));
+            if (nullDefinitionLevel != -1 && DefLevels == null) throw new ArgumentException("internal error: DefLevels should not be null.");
+
+            var rowsWritten = 0;
+            var columnWriter = (ColumnWriter<TPhysical>) Source;
+            var buffer = (TPhysical[]) Buffer;
+            var convert = converter as LogicalWrite<TTLogical, TPhysical>.Converter;
+            var firstItem = true;
+
+            if (convert == null)
+            {
+                throw new InvalidCastException("generic logical type should never be different");
+            }
+
+            while (rowsWritten < values.Length)
+            {
+                var bufferLength = Math.Min(values.Length - rowsWritten, buffer.Length);
+
+                convert(values.Slice(rowsWritten), DefLevels, buffer, nullDefinitionLevel);
+
+                for (int i = 0; i < bufferLength; i++)
+                {
+                    RepLevels[i] = repetitionLevel;
+
+                    // If the leaves are required, we have to write the deflevel because the converter won't do this for us.
+                    if (nullDefinitionLevel == -1)
+                    {
+                        DefLevels[i] = leafDefinitionLevel;
+                    }
+                }
+
+                if (firstItem)
+                {
+                    RepLevels[0] = leafFirstRepLevel;
+                }
+
+                columnWriter.WriteBatch(bufferLength, DefLevels, RepLevels, buffer);
+                rowsWritten += bufferLength;
+                firstItem = false;
+
+                _byteBuffer?.Clear();
             }
         }
 
         /// <summary>
         /// Fast implementation when a column contains only flat primitive values.
         /// </summary>
-        private void WriteBatchSimple(ReadOnlySpan<TLogical> values, LogicalWrite<TLogical, TPhysical>.Converter converter)
+        private void WriteBatchSimple<TTLogical>(ReadOnlySpan<TTLogical> values, LogicalWrite<TTLogical, TPhysical>.Converter converter)
         {
+            if (typeof(TTLogical) != typeof(TLogical)) throw new ArgumentException("generic logical type should never be different");
+            if (converter == null) throw new ArgumentNullException(nameof(converter));
+
             var rowsWritten = 0;
             var nullLevel = DefLevels == null ? (short) -1 : (short) 0;
             var columnWriter = (ColumnWriter<TPhysical>) Source;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace ParquetSharp
@@ -58,7 +59,7 @@ namespace ParquetSharp
         }
     }
 
-    public abstract class LogicalColumnReader<TElement> : LogicalColumnReader
+    public abstract class LogicalColumnReader<TElement> : LogicalColumnReader, IEnumerable<TElement>
     {
         protected LogicalColumnReader(ColumnReader columnReader, int bufferLength)
             : base(columnReader, typeof(TElement), bufferLength)
@@ -70,10 +71,30 @@ namespace ParquetSharp
             return visitor.OnLogicalColumnReader(this);
         }
 
+        public IEnumerator<TElement> GetEnumerator()
+        {
+            var buffer = new TElement[BufferLength];
+
+            while (HasNext)
+            {
+                var read = ReadBatch(buffer);
+
+                for (int i = 0; i != read; ++i)
+                {
+                    yield return buffer[i];
+                }
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
         public TElement[] ReadAll(int rows)
         {
             var values = new TElement[rows];
-            var read = ReadBatch(values, 0, values.Length);
+            var read = ReadBatch(values);
 
             if (read != rows)
             {
@@ -83,7 +104,12 @@ namespace ParquetSharp
             return values;
         }
 
-        public abstract int ReadBatch(TElement[] destination, int start, int length);
+        public int ReadBatch(TElement[] destination, int start, int length)
+        {
+            return ReadBatch(destination.AsSpan(start, length));
+        }
+
+        public abstract int ReadBatch(Span<TElement> destination);
     }
 
     internal sealed class LogicalColumnReader<TPhysical, TLogical, TElement> : LogicalColumnReader<TElement>
@@ -95,24 +121,24 @@ namespace ParquetSharp
             _bufferedReader = new BufferedReader<TPhysical>(Source, (TPhysical[]) Buffer, DefLevels, RepLevels);
         }
 
-        public override int ReadBatch(TElement[] destination, int start, int length)
+        public override int ReadBatch(Span<TElement> destination)
         {
             var converter = LogicalRead<TLogical, TPhysical>.GetConverter(LogicalType, ColumnDescriptor.TypeScale);
 
             // Handle arrays separately as they are nested structures.
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
             {
-                return ReadBatchArray(destination, start, length, converter);
+                return ReadBatchArray(destination, converter);
             }
 
             // Otherwise deal with flat values.
-            return ReadBatchSimple(((TLogical[]) (object) destination).AsSpan(start, length), converter);
+            return ReadBatchSimple(destination, converter as LogicalRead<TElement, TPhysical>.Converter);
         }
 
-        private int ReadBatchArray(TElement[] destination, int start, int length, LogicalRead<TLogical, TPhysical>.Converter converter)
+        private int ReadBatchArray(Span<TElement> destination, LogicalRead<TLogical, TPhysical>.Converter converter)
         {
-            var result = ReadArrayInternal(0, NestingDepth, NullDefinitionLevels, length, _bufferedReader, converter, typeof(TElement));
-            result.CopyTo(destination, start);
+            var result = (Span<TElement>) ReadArrayInternal(0, NestingDepth, NullDefinitionLevels, destination.Length, _bufferedReader, converter, typeof(TElement));
+            result.CopyTo(destination);
             return result.Length;
         }
 
@@ -216,11 +242,14 @@ namespace ParquetSharp
         /// <summary>
         /// Fast implementation when a column contains only flat primitive values.
         /// </summary>
-        private int ReadBatchSimple(Span<TLogical> destination, LogicalRead<TLogical, TPhysical>.Converter converter)
+        private int ReadBatchSimple<TTLogical>(Span<TTLogical> destination, LogicalRead<TTLogical, TPhysical>.Converter converter)
         {
+            if (typeof(TTLogical) != typeof(TLogical)) throw new ArgumentException("generic logical type should never be different");
+            if (converter == null) throw new ArgumentNullException(nameof(converter));
+
             var rowsRead = 0;
-            var nullLevel = DefLevels == null ? (short)-1 : (short)0;
-            var columnReader = (ColumnReader<TPhysical>)Source;
+            var nullLevel = DefLevels == null ? (short) -1 : (short) 0;
+            var columnReader = (ColumnReader<TPhysical>) Source;
 
             var buffer = (TPhysical[]) Buffer;
 
