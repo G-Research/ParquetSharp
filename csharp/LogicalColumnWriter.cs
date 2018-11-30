@@ -235,7 +235,7 @@ namespace ParquetSharp
             {
                 var bufferLength = Math.Min(values.Length - rowsWritten, buffer.Length);
 
-                convert(values.Slice(rowsWritten), DefLevels, buffer, nullDefinitionLevel);
+                convert(values.Slice(rowsWritten, bufferLength), DefLevels, buffer, nullDefinitionLevel);
 
                 for (int i = 0; i < bufferLength; i++)
                 {
