@@ -108,6 +108,52 @@ namespace ParquetSharp.Test
             }
         }
 
+        [Test]
+        public static unsafe void TestBigArrayRoundtrip()
+        {
+            // create a big array of float arrays.
+            var m = 8196;
+            var ar = new float[m];
+            for (var i = 0; i < m; i++)
+            {
+                ar[i] = i;
+            }
+
+            var n = 4;
+            var expected = new float[n][];
+            for (var i = 0; i < n; i++)
+            {
+                expected[i] = ar;
+            }
+
+            // Write out a single column
+            byte[] parquetFileBytes;
+            using (var outBuffer = new ResizableBuffer())
+            {
+                using (var outStream = new BufferOutputStream(outBuffer))
+                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<float[]>("big_array_field") }))
+                using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<float[]>())
+                {
+                    colWriter.WriteBatch(expected);
+                }
+
+                parquetFileBytes = outBuffer.ToArray();
+            }
+
+            // Read it back
+            fixed (byte* fixedBytes = parquetFileBytes)
+            using (var buffer = new IO.Buffer(new IntPtr(fixedBytes), parquetFileBytes.Length))
+            using (var inStream = new BufferReader(buffer))
+            using (var fileReader = new ParquetFileReader(inStream))
+            using (var rowGroup = fileReader.RowGroup(0))
+            using (var columnReader = rowGroup.Column(0).LogicalReader<float[]>())
+            {
+                var allData = columnReader.ReadAll((int)rowGroup.MetaData.NumRows);
+                Assert.AreEqual(expected, allData);
+            }
+        }
+
         private static ExpectedColumn[] CreateExpectedColumns()
         {
             return new[]
