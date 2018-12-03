@@ -109,9 +109,9 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static unsafe void TestBigArrayRoundtrip()
+        public static void TestBigArrayRoundtrip()
         {
-            // create a big array of float arrays.
+            // Create a big array of float arrays. Try to detect buffer-size related issues.
             var m = 8196;
             var ar = new float[m];
             for (var i = 0; i < m; i++)
@@ -126,31 +126,26 @@ namespace ParquetSharp.Test
                 expected[i] = ar;
             }
 
-            // Write out a single column
-            byte[] parquetFileBytes;
-            using (var outBuffer = new ResizableBuffer())
+            using (var buffer = new ResizableBuffer())
             {
-                using (var outStream = new BufferOutputStream(outBuffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<float[]>("big_array_field") }))
+                // Write out a single column
+                using (var outStream = new BufferOutputStream(buffer))
+                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<float[]>("big_array_field")}))
                 using (var rowGroupWriter = fileWriter.AppendRowGroup())
                 using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<float[]>())
                 {
                     colWriter.WriteBatch(expected);
                 }
 
-                parquetFileBytes = outBuffer.ToArray();
-            }
-
-            // Read it back
-            fixed (byte* fixedBytes = parquetFileBytes)
-            using (var buffer = new IO.Buffer(new IntPtr(fixedBytes), parquetFileBytes.Length))
-            using (var inStream = new BufferReader(buffer))
-            using (var fileReader = new ParquetFileReader(inStream))
-            using (var rowGroup = fileReader.RowGroup(0))
-            using (var columnReader = rowGroup.Column(0).LogicalReader<float[]>())
-            {
-                var allData = columnReader.ReadAll((int)rowGroup.MetaData.NumRows);
-                Assert.AreEqual(expected, allData);
+                // Read it back.
+                using (var inStream = new BufferReader(buffer))
+                using (var fileReader = new ParquetFileReader(inStream))
+                using (var rowGroup = fileReader.RowGroup(0))
+                using (var columnReader = rowGroup.Column(0).LogicalReader<float[]>())
+                {
+                    var allData = columnReader.ReadAll((int) rowGroup.MetaData.NumRows);
+                    Assert.AreEqual(expected, allData);
+                }
             }
         }
 

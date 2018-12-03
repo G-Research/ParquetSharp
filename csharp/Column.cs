@@ -99,7 +99,7 @@ namespace ParquetSharp
                 }
             }
 
-            return null;
+            throw new ArgumentException($"unsupported logical type {type}");
         }
 
         private static (LogicalType LogicalType, PhysicalType PhysicalType) GetEntry(
