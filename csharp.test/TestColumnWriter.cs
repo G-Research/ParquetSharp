@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 using ParquetSharp.IO;
 
 namespace ParquetSharp.Test
@@ -32,6 +33,19 @@ namespace ParquetSharp.Test
 
                     Assert.AreEqual(new int?[] {1, null, 2}, results);
                 }
+            }
+        }
+
+        [Test]
+        public static void TestUnsupportedType()
+        {
+            using (var buffer = new ResizableBuffer())
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                var exception = Assert.Throws<ArgumentException>(() => 
+                    new ParquetFileWriter(outStream, new Column[] {new Column<object>("unsupported")}));
+
+                Assert.AreEqual("unsupported logical type System.Object", exception.Message);
             }
         }
     }
