@@ -104,21 +104,21 @@ Typically this can arise when attempting to access an instance whose owner has b
 Building ParquetSharp for Windows requires the following dependencies:
 - CMake (3.8 or higher)
 - Visual Studio 2017 (15.7 or higher)
-- Apache Parquet C++ (apache-parquet-cpp 1.4.0)
+- Apache Arrow (0.11.1)
 
-For building apache-parquet-cpp and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). The following build steps will compile apache-parquet-cpp and generate a Windows x64 Visual Studio solution.
+For building arrow (including parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). The following build steps will compile arrow and generate a Windows x64 Visual Studio solution.
 
 **Initial directory**
 ```
 > mkdir workdir
 > cd workdir
 ```
-**Apache-parquet-cpp & dependencies (static libraries)**
+**Arrow & dependencies (static libraries)**
 ```
 > git clone https://github.com/Microsoft/vcpkg.git
 > cd vcpkg
 > bootstrap-vcpkg.bat
-> vcpkg install parquet:x64-windows-static
+> vcpkg install arrow:x64-windows-static
 ```
 **ParquetSharp (Visual Studio 2017 Win64)**
 ```
