@@ -71,6 +71,6 @@ target_link_libraries(ParquetSharpNative
 	${ParquetCpp_LIBRARIES})
 	
 if (MSVC)
-	# Disable annoying linker warnings.
-	set_target_properties(ParquetSharpNative PROPERTIES LINK_FLAGS "/ignore:4049 /ignore:4217")
+	# Statically link against Arrow
+	add_definitions(-DARROW_STATIC)
 endif ()
