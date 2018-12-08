@@ -54,8 +54,12 @@ namespace ParquetSharp
 
         public RowGroupWriter AppendRowGroup()
         {
-            ExceptionInfo.Check(ParquetFileWriter_AppendRowGroup(_handle, out var rowGroupWriter));
-            return new RowGroupWriter(rowGroupWriter);
+            return new RowGroupWriter(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendRowGroup));
+        }
+
+        public RowGroupWriter AppendBufferedRowGroup()
+        {
+            return new RowGroupWriter(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendBufferedRowGroup));
         }
 
         private static ParquetHandle CreateParquetFileWriter(
@@ -139,6 +143,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ParquetFileWriter_AppendRowGroup(IntPtr writer, out IntPtr rowGroupWriter);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_AppendBufferedRowGroup(IntPtr writer, out IntPtr rowGroupWriter);
 
         private readonly ParquetHandle _handle;
     }
