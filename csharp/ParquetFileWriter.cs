@@ -14,7 +14,7 @@ namespace ParquetSharp
             Compression compression = Compression.Snappy, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            using (var schema = CreateSchema(columns))
+            using (var schema = Column.CreateSchemaNode(columns))
             using (var writerProperties = CreateWriterProperties(compression))
             {
                 _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
@@ -26,7 +26,7 @@ namespace ParquetSharp
             Compression compression = Compression.Snappy, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            using (var schema = CreateSchema(columns))
+            using (var schema = Column.CreateSchemaNode(columns))
             using (var writerProperties = CreateWriterProperties(compression))
             {
                 _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
@@ -101,25 +101,6 @@ namespace ParquetSharp
                 GC.KeepAlive(writerProperties);
 
                 return new ParquetHandle(writer, ParquetFileWriter_Free);
-            }
-        }
-
-        private static GroupNode CreateSchema(Column[] columns)
-        {
-            if (columns == null) throw new ArgumentNullException(nameof(columns));
-
-            var fields = columns.Select(c => c.CreateSchemaNode()).ToArray();
-
-            try
-            {
-                return new GroupNode("Schema", Repetition.Required, fields);
-            }
-            finally
-            {
-                foreach (var node in fields)
-                {
-                    node.Dispose();
-                }
             }
         }
 

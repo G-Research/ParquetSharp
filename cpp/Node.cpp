@@ -8,35 +8,32 @@ using namespace parquet;
 
 extern "C"
 {
-	// TODO native API that still needs to be ported.
-	//const std::shared_ptr<ColumnPath> path() const;
-
-	PARQUETSHARP_EXPORT void Node_Free(const std::shared_ptr<schema::Node>* node)
+	PARQUETSHARP_EXPORT void Node_Free(const std::shared_ptr<const schema::Node>* node)
 	{
 		delete node;
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* Node_Id(const std::shared_ptr<schema::Node>* node, int* id)
+	PARQUETSHARP_EXPORT ExceptionInfo* Node_Id(const std::shared_ptr<const schema::Node>* node, int* id)
 	{
 		TRYCATCH(*id = (*node)->id();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* Node_Logical_Type(const std::shared_ptr<schema::Node>* node, LogicalType::type* logical_type)
+	PARQUETSHARP_EXPORT ExceptionInfo* Node_Logical_Type(const std::shared_ptr<const schema::Node>* node, LogicalType::type* logical_type)
 	{
 		TRYCATCH(*logical_type = (*node)->logical_type();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* Node_Name(const std::shared_ptr<schema::Node>* node, const char** name)
+	PARQUETSHARP_EXPORT ExceptionInfo* Node_Name(const std::shared_ptr<const schema::Node>* node, const char** name)
 	{
 		TRYCATCH(*name = (*node)->name().c_str();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* Node_Node_Type(const std::shared_ptr<schema::Node>* node, schema::Node::type* node_type)
+	PARQUETSHARP_EXPORT ExceptionInfo* Node_Node_Type(const std::shared_ptr<const schema::Node>* node, schema::Node::type* node_type)
 	{
 		TRYCATCH(*node_type = (*node)->node_type();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* Node_Parent(const std::shared_ptr<schema::Node>* node, const std::shared_ptr<const schema::Node>** parent)
+	PARQUETSHARP_EXPORT ExceptionInfo* Node_Parent(const std::shared_ptr<const schema::Node>* node, const std::shared_ptr<const schema::Node>** parent)
 	{
 		TRYCATCH
 		(
@@ -46,7 +43,12 @@ extern "C"
 		)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* Node_Repetition(const std::shared_ptr<schema::Node>* node, Repetition::type* repetition)
+	PARQUETSHARP_EXPORT ExceptionInfo* Node_Path(const std::shared_ptr<const schema::Node>* node, std::shared_ptr<const schema::ColumnPath>** path)
+	{
+		TRYCATCH(*path = new std::shared_ptr<const schema::ColumnPath>((*node)->path());)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* Node_Repetition(const std::shared_ptr<const schema::Node>* node, Repetition::type* repetition)
 	{
 		TRYCATCH(*repetition = (*node)->repetition();)
 	}

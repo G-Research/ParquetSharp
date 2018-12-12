@@ -25,6 +25,7 @@ namespace ParquetSharp.Schema
         public string Name => ExceptionInfo.ReturnString(Handle, Node_Name);
         public NodeType NodeType => ExceptionInfo.Return<NodeType>(Handle, Node_Node_Type);
         public Node Parent => Create(ExceptionInfo.Return<IntPtr>(Handle, Node_Parent));
+        public ColumnPath Path => new ColumnPath(ExceptionInfo.Return<IntPtr>(Handle, Node_Path));
         public Repetition Repetition => ExceptionInfo.Return<Repetition>(Handle, Node_Repetition);
 
         internal static Node Create(IntPtr handle)
@@ -64,6 +65,9 @@ namespace ParquetSharp.Schema
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Node_Parent(IntPtr node, out IntPtr parent);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr Node_Path(IntPtr node, out IntPtr parent);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Node_Repetition(IntPtr node, out Repetition repetition);

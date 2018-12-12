@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using ParquetSharp.Schema;
 
 namespace ParquetSharp
 {
@@ -42,6 +43,31 @@ namespace ParquetSharp
         public ParquetVersion Version => ExceptionInfo.Return<ParquetVersion>(Handle, WriterProperties_Version);
         public long WriteBatchSize => ExceptionInfo.Return<long>(Handle, WriterProperties_Write_Batch_Size);
 
+        public Compression Compression(ColumnPath path)
+        {
+            return ExceptionInfo.Return<IntPtr, Compression>(Handle, path.Handle, WriterProperties_Compression);
+        }
+
+        public bool DictionaryEnabled(ColumnPath path)
+        {
+            return ExceptionInfo.Return<IntPtr, bool>(Handle, path.Handle, WriterProperties_Dictionary_Enabled);
+        }
+
+        public Encoding Encoding(ColumnPath path)
+        {
+            return ExceptionInfo.Return<IntPtr, Encoding>(Handle, path.Handle, WriterProperties_Encoding);
+        }
+
+        public bool StatisticsEnabled(ColumnPath path)
+        {
+            return ExceptionInfo.Return<IntPtr, bool>(Handle, path.Handle, WriterProperties_Statistics_Enabled);
+        }
+
+        public ulong MaxStatisticsSize(ColumnPath path)
+        {
+            return ExceptionInfo.Return<IntPtr, ulong>(Handle, path.Handle, WriterProperties_Max_Statistics_Size);
+        }
+
         internal readonly ParquetHandle Handle;
         
         [DllImport(ParquetDll.Name)]
@@ -77,10 +103,8 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Write_Batch_Size(IntPtr writerProperties, out long size);
 
-        // TODO: interface to be implemented, ColumnPath taking methods.
-
-        [DllImport(ParquetDll.Name)]
-        private static extern IntPtr WriterProperties_Column_Properties(IntPtr writerProperties, IntPtr path, out IntPtr columnProperties);
+        //[DllImport(ParquetDll.Name)]
+        //private static extern IntPtr WriterProperties_Column_Properties(IntPtr writerProperties, IntPtr path, out IntPtr columnProperties);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Compression(IntPtr writerProperties, IntPtr path, out Compression compression);
@@ -93,5 +117,8 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Statistics_Enabled(IntPtr writerProperties, IntPtr path, [MarshalAs(UnmanagedType.I1)] out bool enabled);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Max_Statistics_Size(IntPtr writerProperties, IntPtr path, [MarshalAs(UnmanagedType.I1)] out ulong maxStatisticsSize);
     }
 }

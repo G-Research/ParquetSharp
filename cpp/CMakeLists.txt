@@ -16,8 +16,10 @@ add_library(ParquetSharpNative SHARED
 	BufferOutputStream.cpp
 	ColumnChunkMetaData.cpp
 	ColumnDescriptor.cpp
+	ColumnPath.cpp
 	ColumnReader.cpp
 	ColumnWriter.cpp
+	CString.h
 	ExceptionInfo.h
 	ExceptionInfo.cpp
 	FileMetaData.cpp
