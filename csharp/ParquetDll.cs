@@ -4,10 +4,9 @@ namespace ParquetSharp
     internal static class ParquetDll
     {
 #if DEBUG
-        public const string Name = "ParquetSharpNatived.dll";
+        public const string Name = "ParquetSharpNatived";
 #else
-        public const string Name = "ParquetSharpNative.dll";
+        public const string Name = "ParquetSharpNative";
 #endif
     }
-
 }
