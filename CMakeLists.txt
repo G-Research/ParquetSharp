@@ -5,6 +5,7 @@ project(ParquetSharp)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Semicolon separated list of supported configuration types" FORCE)
 
 set(CMAKE_DEBUG_POSTFIX d)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 # set(CMAKE_PREFIX_PATH "F:/Temporary/Parquet/20180517/x64-windows-static" CACHE STRING "The default location for CMake to look libraries in.")
@@ -24,10 +25,17 @@ if (MSVC)
 
 endif ()
 
-include_external_msproject(ParquetSharp ${CMAKE_SOURCE_DIR}/csharp/ParquetSharp.csproj TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC)
-add_dependencies(ParquetSharp ParquetSharpNative)
+if (UNIX)
+	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+	#add_link_options($<$<CXX_COMPILER_ID:GCC>:--no-undefined>) # Only supported in CMake 3.13+
+endif ()
 
-include_external_msproject(ParquetSharp.Test ${CMAKE_SOURCE_DIR}/csharp.test/ParquetSharp.Test.csproj TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC)
-add_dependencies(ParquetSharp.Test ParquetSharp)
+if (MSVC)
+	include_external_msproject(ParquetSharp ${CMAKE_SOURCE_DIR}/csharp/ParquetSharp.csproj TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC)
+	add_dependencies(ParquetSharp ParquetSharpNative)
+
+	include_external_msproject(ParquetSharp.Test ${CMAKE_SOURCE_DIR}/csharp.test/ParquetSharp.Test.csproj TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC)
+	add_dependencies(ParquetSharp.Test ParquetSharp)
+endif ()
 
 add_subdirectory(cpp)
