@@ -5,8 +5,8 @@ include(FindPackageHandleStandardArgs)
 find_path(Zstd_INCLUDE_DIR zstd.h)
 
 if (NOT Zstd_LIBRARIES)
-	find_library(Zstd_LIBRARY_RELEASE NAMES zstd_static PATH_SUFFIXES lib)
-	find_library(Zstd_LIBRARY_DEBUG NAMES zstd_staticd PATH_SUFFIXES debug debug/lib)	
+	find_library(Zstd_LIBRARY_RELEASE NAMES zstd zstd_static PATH_SUFFIXES lib)
+	find_library(Zstd_LIBRARY_DEBUG NAMES zstdd zstd_staticd PATH_SUFFIXES debug debug/lib)	
     SELECT_LIBRARY_CONFIGURATIONS(Zstd)
 endif()
 

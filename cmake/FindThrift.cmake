@@ -2,18 +2,18 @@
 include(SelectLibraryConfigurations)
 include(FindPackageHandleStandardArgs)
 
-find_path(Thrift_INCLUDE_DIR thrift/thrift.h)
+find_path(Thrift_INCLUDE_DIR thrift/Thrift.h PATH_SUFFIXES include)
 
 if (NOT Thrift_LIBRARIES)
 	
-	find_library(Thrift_Common_LIBRARY_RELEASE NAMES thriftmd PATH_SUFFIXES lib)
-	find_library(Thrift_Common_LIBRARY_DEBUG NAMES thriftmdd PATH_SUFFIXES debug debug/lib)	
+	find_library(Thrift_Common_LIBRARY_RELEASE NAMES thrift thriftmd PATH_SUFFIXES lib)
+	find_library(Thrift_Common_LIBRARY_DEBUG NAMES thriftd thriftmdd PATH_SUFFIXES debug debug/lib)	
     
-	find_library(Thrift_Nb_LIBRARY_RELEASE NAMES thriftnbmd PATH_SUFFIXES lib)
-	find_library(Thrift_Nb_LIBRARY_DEBUG NAMES thriftnbmdd PATH_SUFFIXES debug debug/lib)	
+	find_library(Thrift_Nb_LIBRARY_RELEASE NAMES thriftnb thriftnbmd PATH_SUFFIXES lib)
+	find_library(Thrift_Nb_LIBRARY_DEBUG NAMES thriftnbd thriftnbmdd PATH_SUFFIXES debug debug/lib)	
     
-	find_library(Thrift_Z_LIBRARY_RELEASE NAMES thriftzmd PATH_SUFFIXES lib)
-	find_library(Thrift_Z_LIBRARY_DEBUG NAMES thriftzmdd PATH_SUFFIXES debug debug/lib)	
+	find_library(Thrift_Z_LIBRARY_RELEASE NAMES thriftz thriftzmd PATH_SUFFIXES lib)
+	find_library(Thrift_Z_LIBRARY_DEBUG NAMES thriftzd thriftzmdd PATH_SUFFIXES debug debug/lib)	
     
 	SELECT_LIBRARY_CONFIGURATIONS(Thrift_Common)
 	SELECT_LIBRARY_CONFIGURATIONS(Thrift_Nb)
