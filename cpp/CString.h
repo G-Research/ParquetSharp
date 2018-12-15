@@ -2,6 +2,7 @@
 #pragma once
 
 #include <string>
+#include <cstring>
 
 inline char* AllocateCString(const std::string& str)
 {

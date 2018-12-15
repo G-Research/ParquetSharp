@@ -61,7 +61,7 @@ namespace ParquetSharp.Test
                 new Column<DateTime>("DateTime", LogicalType.Json).CreateSchemaNode());
 
             Assert.AreEqual(
-                "Json is not a valid override for System.DateTime\r\nParameter name: logicalTypeOverride", 
+                "Json is not a valid override for System.DateTime" + Environment.NewLine + "Parameter name: logicalTypeOverride", 
                 exception.Message);
         }
 

@@ -10,6 +10,11 @@ find_package(Zlib REQUIRED)
 find_package(Zstd REQUIRED)
 find_package(ParquetCpp REQUIRED)
 
+if (UNIX)
+	find_package(Threads REQUIRED)
+	set(Threads_LIBRARIES Threads::Threads)
+endif ()
+
 add_library(ParquetSharpNative SHARED 
 	Buffer.cpp
 	BufferReader.cpp
@@ -57,20 +62,25 @@ include_directories(
 	${Lz4_INCLUDE_DIRS} 
 	${Snappy_INCLUDE_DIRS}
 	${Thrift_INCLUDE_DIRS}
-	${ZLIB_INCLUDE_DIRS} 
+	${Zlib_INCLUDE_DIRS}
 	${Zstd_INCLUDE_DIRS} 
 	${ParquetCpp_INCLUDE_DIRS})
 
+
+message(STATUS "Thrift libs are ${Thrift_LIBRARIES}")
+
 target_link_libraries(ParquetSharpNative 
+	${ParquetCpp_LIBRARIES}
 	${Arrow_LIBRARIES} 
 	${Boost_LIBRARIES}
 	${Brotli_LIBRARIES}
 	${Lz4_LIBRARIES}
 	${Snappy_LIBRARIES}
 	${Thrift_LIBRARIES}
-	${ZLIB_LIBRARIES} 
+	${Zlib_LIBRARIES}
 	${Zstd_LIBRARIES} 
-	${ParquetCpp_LIBRARIES})
+	${Threads_LIBRARIES}
+)
 	
 if (MSVC)
 	# Statically link against Arrow

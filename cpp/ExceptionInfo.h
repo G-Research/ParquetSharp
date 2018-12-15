@@ -28,3 +28,5 @@ struct ExceptionInfo
 	{																		\
 		return new ExceptionInfo("unkown", "uncaught exception");			\
 	}																		\
+
+
