@@ -2,7 +2,14 @@ cmake_minimum_required(VERSION 3.8)
 project(ParquetSharp)
 
 # Exclude MinSizeRel and RelWithDebugInfo, to simplify integration with C#
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Semicolon separated list of supported configuration types" FORCE)
+if (MSVC)
+	set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Semicolon separated list of supported configuration types" FORCE)
+endif ()
+
+# On Linux, default to Release if not specified.
+if (UNIX AND NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Specifies the build type on single-configuration generators" FORCE)
+endif ()
 
 set(CMAKE_DEBUG_POSTFIX d)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
