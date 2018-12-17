@@ -28,14 +28,21 @@ if (MSVC)
 		endif()
 	endforeach()
 
-	add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
+	add_compile_options("/MP")
 
 endif ()
 
 if (UNIX)
-	SET(CMAKE_SHARED_LIBRARY_PREFIX )
-	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+	
+	set(CMAKE_SHARED_LIBRARY_PREFIX )
+	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
 	#add_link_options($<$<CXX_COMPILER_ID:GCC>:--no-undefined>) # Only supported in CMake 3.13+
+
+	add_compile_options("-Wall")
+	add_compile_options("-fvisibility=hidden")
+
+	# TODO call strip --strip-unneeded on the generated shared library
+
 endif ()
 
 if (MSVC)

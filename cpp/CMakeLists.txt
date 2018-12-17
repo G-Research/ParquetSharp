@@ -66,9 +66,6 @@ include_directories(
 	${Zstd_INCLUDE_DIRS} 
 	${ParquetCpp_INCLUDE_DIRS})
 
-
-message(STATUS "Thrift libs are ${Thrift_LIBRARIES}")
-
 target_link_libraries(ParquetSharpNative 
 	${ParquetCpp_LIBRARIES}
 	${Arrow_LIBRARIES} 
@@ -82,7 +79,4 @@ target_link_libraries(ParquetSharpNative
 	${Threads_LIBRARIES}
 )
 	
-if (MSVC)
-	# Statically link against Arrow
-	add_definitions(-DARROW_STATIC)
-endif ()
+add_definitions(-DARROW_STATIC)
