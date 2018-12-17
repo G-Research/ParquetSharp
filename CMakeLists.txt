@@ -36,7 +36,6 @@ if (UNIX)
 	
 	set(CMAKE_SHARED_LIBRARY_PREFIX )
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
-	#add_link_options($<$<CXX_COMPILER_ID:GCC>:--no-undefined>) # Only supported in CMake 3.13+
 
 	add_compile_options("-Wall")
 	add_compile_options("-fvisibility=hidden")
