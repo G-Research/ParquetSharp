@@ -2,7 +2,7 @@
 include(SelectLibraryConfigurations)
 include(FindPackageHandleStandardArgs)
 
-find_path(Arrow_INCLUDE_DIR arrow/api.h)
+find_path(Arrow_INCLUDE_DIR arrow/api.h PATH_SUFFIXES include)
 
 if (NOT Arrow_LIBRARIES)
 	find_library(Arrow_LIBRARY_RELEASE NAMES arrow PATH_SUFFIXES lib)
