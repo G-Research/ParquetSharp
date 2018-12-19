@@ -2,6 +2,7 @@
 
 [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp)
 [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp)
+[![Build status](https://ci.appveyor.com/api/projects/status/wac4f57a46ecg3gi?svg=true)](https://ci.appveyor.com/project/G-Research/parquetsharp)
 
 ParquetSharp is a .NET library for reading and writing Apache [Parquet][1] files.
 
