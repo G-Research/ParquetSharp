@@ -1,9 +1,5 @@
 # ParquetSharp 
 
-[![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp)
-[![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp)
-[![Build status](https://ci.appveyor.com/api/projects/status/wac4f57a46ecg3gi?svg=true)](https://ci.appveyor.com/project/G-Research/parquetsharp)
-
 ParquetSharp is a .NET library for reading and writing Apache [Parquet][1] files.
 
 It is implemented in C# as a [PInvoke][2] wrapper around [apache-parquet-cpp][3] to provide high performance and compatibility.
@@ -11,6 +7,13 @@ It is implemented in C# as a [PInvoke][2] wrapper around [apache-parquet-cpp][3]
 [1]: https://parquet.apache.org
 [2]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
 [3]: https://github.com/apache/parquet-cpp
+
+|     | Status |
+| ---: | --- |
+| **Release** | [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
+| **Pre-Release** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
+| **Windows** | [![Build status](https://ci.appveyor.com/api/projects/status/wac4f57a46ecg3gi?svg=true)](https://ci.appveyor.com/project/G-Research/parquetsharp) |
+| **Linux** | [![Build status](https://ci.appveyor.com/api/projects/status/a551k0wrf5r6afj0?svg=true)](https://ci.appveyor.com/project/G-Research/parquetsharp-w98lm) |
 
 ## Examples
 
