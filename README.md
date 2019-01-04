@@ -6,7 +6,7 @@ It is implemented in C# as a [PInvoke][2] wrapper around [apache-parquet-cpp][3]
 
 [1]: https://parquet.apache.org
 [2]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
-[3]: https://github.com/apache/parquet-cpp
+[3]: https://github.com/apache/arrow
 
 |     | Status |
 | ---: | --- |
