@@ -5,7 +5,6 @@ cd vcpkg.windows || goto :error
 git checkout ArrowUpdateLinux || goto :error
 call bootstrap-vcpkg.bat || goto :error
 
-vcpkg.exe install boost-format:x64-windows-static || goto :error
 vcpkg.exe install arrow:x64-windows-static || goto :error
 
 cd ..

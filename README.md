@@ -110,33 +110,21 @@ Building ParquetSharp for Windows requires the following dependencies:
 - Visual Studio 2017 (15.7 or higher)
 - Apache Arrow (0.11.1)
 
-For building arrow (including parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). The following build steps will compile arrow and generate a Windows x64 Visual Studio solution.
+For building arrow (including parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). Note that the Windows build needs to be done in a Visual Studio x64 Native Tools Command Prompt for the build script to succeed.
 
-**Initial directory**
+**Windows (Visual Studio 2017 Win64 solution)**
 ```
-> mkdir workdir
-> cd workdir
+> vcpkg_windows.bat
+> build_windows.bat
 ```
-**Arrow & dependencies (static libraries)**
+**Linux**
 ```
-> git clone https://github.com/Microsoft/vcpkg.git
-> cd vcpkg
-> bootstrap-vcpkg.bat
-> vcpkg install arrow:x64-windows-static
-```
-**ParquetSharp (Visual Studio 2017 Win64)**
-```
-> cd ..
-> git clone https://github.com/G-Research/ParquetSharp.git
-> cd ParquetSharp
-> mkdir build
-> cd build
-> cmake -D CMAKE_PREFIX_PATH=../../vcpkg/installed/x64-windows-static/ -G "Visual Studio 15 2017 Win64" ..
+> ./vcpkg_linux.sh
+> ./build_linux.sh
+> dotnet build csharp.test --configuration=Release
 ```
 
 We have had to write our own `FindPackage` macros for most of the dependencies to get us going - it clearly needs more love and attention and is likely to be redundant with some vcpkg helper tools. The build step aboves will lead to CMake not finding the right debug library paths for several dependencies, you can manually fix these paths using CMake-GUI or equivalent (otherwise the build will fail in Debug).
-
-Building on Linux is a work in progress: in theory it is possible, but we have yet to try it. We wanted to share this library with the open-source community as soon as possible, even if not everything is quite ready for prime time.
 
 ## Contributing
 

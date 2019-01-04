@@ -33,10 +33,10 @@
     <Content Include="..\bin\Release\ParquetSharpNative.dll" Link="ParquetSharpNative.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Release' AND '$(OS)'=='Windows_NT'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\ParquetSharpNatived.so" Link="ParquetSharpNatived.so" PackagePath="runtimes/linux-x64/native" Condition="'$(Configuration)'=='Debug' AND '$(OS)'=='Unix'">
+    <Content Include="..\bin\ParquetSharpNatived.so" Link="ParquetSharpNatived.so" PackagePath="runtimes/linux-x64/native" Condition="'$(Configuration)'=='Debug' AND ('$(OS)'=='Unix' OR Exists('..\bin\ParquetSharpNatived.so'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\ParquetSharpNative.so" Link="ParquetSharpNative.so" PackagePath="runtimes/linux-x64/native" Condition="'$(Configuration)'=='Release' AND '$(OS)'=='Unix'">
+    <Content Include="..\bin\ParquetSharpNative.so" Link="ParquetSharpNative.so" PackagePath="runtimes/linux-x64/native" Condition="'$(Configuration)'=='Release' AND ('$(OS)'=='Unix' OR Exists('..\bin\ParquetSharpNative.so'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
