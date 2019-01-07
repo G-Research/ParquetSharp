@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using ParquetSharp.Schema;
 
 namespace ParquetSharp
 {
@@ -22,7 +23,7 @@ namespace ParquetSharp
             return new WriterProperties(writerProperties);
         }
 
-        // Dictonary enable/disable
+        // Dictionary enable/disable
 
         public WriterPropertiesBuilder DisableDictionary()
         {
@@ -36,6 +37,12 @@ namespace ParquetSharp
             return this;
         }
 
+        public WriterPropertiesBuilder DisableDictionary(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Dictionary_By_ColumnPath(_handle, path.Handle));
+            return this;
+        }
+
         public WriterPropertiesBuilder EnableDictionary()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Dictionary(_handle));
@@ -45,6 +52,12 @@ namespace ParquetSharp
         public WriterPropertiesBuilder EnableDictionary(string path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Dictionary_By_Path(_handle, path));
+            return this;
+        }
+
+        public WriterPropertiesBuilder EnableDictionary(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Dictionary_By_ColumnPath(_handle, path.Handle));
             return this;
         }
 
@@ -62,6 +75,12 @@ namespace ParquetSharp
             return this;
         }
 
+        public WriterPropertiesBuilder DisableStatistics(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Statistics_By_ColumnPath(_handle, path.Handle));
+            return this;
+        }
+
         public WriterPropertiesBuilder EnableStatistics()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Statistics(_handle));
@@ -71,6 +90,12 @@ namespace ParquetSharp
         public WriterPropertiesBuilder EnableStatistics(string path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Statistics_By_Path(_handle, path));
+            return this;
+        }
+
+        public WriterPropertiesBuilder EnableStatistics(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Statistics_By_ColumnPath(_handle, path.Handle));
             return this;
         }
 
@@ -85,6 +110,12 @@ namespace ParquetSharp
         public WriterPropertiesBuilder Compression(string path, Compression codec)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Compression_By_Path(_handle, path, codec));
+            return this;
+        }
+
+        public WriterPropertiesBuilder Compression(ColumnPath path, Compression codec)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Compression_By_ColumnPath(_handle, path.Handle, codec));
             return this;
         }
 
@@ -118,6 +149,12 @@ namespace ParquetSharp
             return this;
         }
 
+        public WriterPropertiesBuilder Encoding(ColumnPath path, Encoding encoding)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Encoding_By_ColumnPath(_handle, path.Handle, encoding));
+            return this;
+        }
+
         public WriterPropertiesBuilder MaxRowGroupLength(long maxRowGroupLength)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Max_Row_Group_Length(_handle, maxRowGroupLength));
@@ -145,7 +182,7 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Build(IntPtr builder, out IntPtr writerProperties);
 
-        // Dictonary enable/disable
+        // Dictionary enable/disable
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Disable_Dictionary(IntPtr builder);

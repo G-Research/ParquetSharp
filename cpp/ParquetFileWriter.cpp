@@ -43,4 +43,9 @@ extern "C"
 	{
 		TRYCATCH(*row_group_writer = writer->AppendRowGroup();)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_AppendBufferedRowGroup(ParquetFileWriter* writer, RowGroupWriter** row_group_writer)
+	{
+		TRYCATCH(*row_group_writer = writer->AppendBufferedRowGroup();)
+	}
 }

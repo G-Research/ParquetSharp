@@ -1,5 +1,6 @@
 
 #include "cpp/ParquetSharpExport.h"
+#include "CString.h"
 #include "ExceptionInfo.h"
 
 #include <arrow/io/file.h>
@@ -21,20 +22,12 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Created_By(const std::shared_ptr<WriterProperties>* writerProperties, const char** created_by)
 	{
-		TRYCATCH
-		(
-			const std::string str = (*writerProperties)->created_by();
-			char* const cstr = new char[str.length() + 1];
-
-			std::memcpy(cstr, str.c_str(), str.length() + 1);
-
-			*created_by = cstr;
-		)
+		TRYCATCH(*created_by = AllocateCString((*writerProperties)->created_by());)
 	}
 
 	PARQUETSHARP_EXPORT void WriterProperties_Created_By_Free(const char* cstr)
 	{
-		delete[] cstr;
+		FreeCString(cstr);
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Data_Pagesize(const std::shared_ptr<WriterProperties>* writerProperties, int64_t* dataPageSize)
@@ -74,10 +67,10 @@ extern "C"
 
 	// ColumnPath taking methods.
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Column_Properties(const std::shared_ptr<WriterProperties>* writerProperties, const std::shared_ptr<schema::ColumnPath>* path, const ColumnProperties** columnProperties)
-	{
-		TRYCATCH(*columnProperties = &(*writerProperties)->column_properties(*path);)
-	}
+	//PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Column_Properties(const std::shared_ptr<WriterProperties>* writerProperties, const std::shared_ptr<schema::ColumnPath>* path, const ColumnProperties** columnProperties)
+	//{
+	//	TRYCATCH(*columnProperties = &(*writerProperties)->column_properties(*path);)
+	//}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Compression(const std::shared_ptr<WriterProperties>* writerProperties, const std::shared_ptr<schema::ColumnPath>* path, Compression::type* compression)
 	{
@@ -97,5 +90,10 @@ extern "C"
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Statistics_Enabled(const std::shared_ptr<WriterProperties>* writerProperties, const std::shared_ptr<schema::ColumnPath>* path, bool* enabled)
 	{
 		TRYCATCH(*enabled = (*writerProperties)->statistics_enabled(*path);)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Max_Statistics_Size(const std::shared_ptr<WriterProperties>* writerProperties, const std::shared_ptr<schema::ColumnPath>* path, size_t* max_statistics_size)
+	{
+		TRYCATCH(*max_statistics_size = (*writerProperties)->max_statistics_size(*path);)
 	}
 }

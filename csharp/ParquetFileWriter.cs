@@ -14,7 +14,7 @@ namespace ParquetSharp
             Compression compression = Compression.Snappy, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            using (var schema = CreateSchema(columns))
+            using (var schema = Column.CreateSchemaNode(columns))
             using (var writerProperties = CreateWriterProperties(compression))
             {
                 _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
@@ -26,7 +26,7 @@ namespace ParquetSharp
             Compression compression = Compression.Snappy, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            using (var schema = CreateSchema(columns))
+            using (var schema = Column.CreateSchemaNode(columns))
             using (var writerProperties = CreateWriterProperties(compression))
             {
                 _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
@@ -54,8 +54,12 @@ namespace ParquetSharp
 
         public RowGroupWriter AppendRowGroup()
         {
-            ExceptionInfo.Check(ParquetFileWriter_AppendRowGroup(_handle, out var rowGroupWriter));
-            return new RowGroupWriter(rowGroupWriter);
+            return new RowGroupWriter(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendRowGroup));
+        }
+
+        public RowGroupWriter AppendBufferedRowGroup()
+        {
+            return new RowGroupWriter(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendBufferedRowGroup));
         }
 
         private static ParquetHandle CreateParquetFileWriter(
@@ -100,25 +104,6 @@ namespace ParquetSharp
             }
         }
 
-        private static GroupNode CreateSchema(Column[] columns)
-        {
-            if (columns == null) throw new ArgumentNullException(nameof(columns));
-
-            var fields = columns.Select(c => c.CreateSchemaNode()).ToArray();
-
-            try
-            {
-                return new GroupNode("Schema", Repetition.Required, fields);
-            }
-            finally
-            {
-                foreach (var node in fields)
-                {
-                    node.Dispose();
-                }
-            }
-        }
-
         private static WriterProperties CreateWriterProperties(Compression compression)
         {
             using (var builder = new WriterPropertiesBuilder())
@@ -139,6 +124,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ParquetFileWriter_AppendRowGroup(IntPtr writer, out IntPtr rowGroupWriter);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_AppendBufferedRowGroup(IntPtr writer, out IntPtr rowGroupWriter);
 
         private readonly ParquetHandle _handle;
     }

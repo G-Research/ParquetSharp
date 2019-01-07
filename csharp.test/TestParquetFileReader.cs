@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using NUnit.Framework;
 
 namespace ParquetSharp.Test
@@ -15,8 +16,8 @@ namespace ParquetSharp.Test
             var exception = Assert.Throws<ParquetException>(() => { new ParquetFileReader("non_existent.parquet"); });
 
             Assert.AreEqual(
-                "class parquet::ParquetException " +
-                "(message: 'Arrow error: IOError: Failed to open local file: non_existent.parquet , error: No such file or directory')",
+                (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "N7parquet16ParquetExceptionE" : "class parquet::ParquetException") +
+                " (message: 'Arrow error: IOError: Failed to open local file: non_existent.parquet , error: No such file or directory')",
                 exception.Message);
         }
 

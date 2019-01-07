@@ -11,7 +11,7 @@ namespace ParquetSharp.Test
         {
             var p = WriterProperties.GetDefaultWriterProperties();
 
-            Assert.AreEqual("parquet-cpp version 1.4.0", p.CreatedBy);
+            Assert.AreEqual("parquet-cpp version 1.5.1-SNAPSHOT", p.CreatedBy);
             Assert.AreEqual(1024*1024, p.DataPageSize);
             Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryIndexEncoding);
             Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryPageEncoding);

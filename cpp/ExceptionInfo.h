@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <exception>
@@ -6,8 +5,6 @@
 
 struct ExceptionInfo
 {
-public:
-
 	ExceptionInfo(const char* type, const char* message);
 	ExceptionInfo(const std::exception& exception);
 	~ExceptionInfo();
@@ -31,3 +28,5 @@ public:
 	{																		\
 		return new ExceptionInfo("unkown", "uncaught exception");			\
 	}																		\
+
+

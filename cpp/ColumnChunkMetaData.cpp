@@ -56,7 +56,7 @@ extern "C"
 	{
 		TRYCATCH
 		(
-			auto& s = column_chunk_meta_data->statistics();
+			auto s = column_chunk_meta_data->statistics();
 			*statistics = s ? new std::shared_ptr<RowGroupStatistics>(s) : nullptr;
 		)
 	}

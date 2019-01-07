@@ -29,5 +29,5 @@ find_package_handle_standard_args(Brotli REQUIRED_VARS Brotli_INCLUDE_DIR Brotli
 	
 if(Brotli_Common_FOUND AND Brotli_Dec_FOUND AND Brotli_Enc_FOUND)
 	set(Brotli_INCLUDE_DIRS ${Brotli_INCLUDE_DIR})
-	set(Brotli_LIBRARIES ${Brotli_Common_LIBRARIES} ${Brotli_Dec_LIBRARIES} ${Brotli_Enc_LIBRARIES})
+	set(Brotli_LIBRARIES ${Brotli_Dec_LIBRARIES} ${Brotli_Enc_LIBRARIES} ${Brotli_Common_LIBRARIES})
 endif()
