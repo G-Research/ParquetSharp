@@ -1,8 +1,7 @@
 mkdir build || goto :error
 cd build || goto :error
-git clone https://github.com/philjdf/vcpkg.git vcpkg.windows || goto :error
+git clone https://github.com/Microsoft/vcpkg.git vcpkg.windows || goto :error
 cd vcpkg.windows || goto :error
-git checkout ArrowUpdateLinux || goto :error
 call bootstrap-vcpkg.bat || goto :error
 
 vcpkg.exe install arrow:x64-windows-static || goto :error
