@@ -40,7 +40,6 @@ namespace ParquetSharp.IO
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr BufferOutputStream_Create(out IntPtr outputStream);
 
-
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr BufferOutputStream_Create_From_ResizableBuffer(IntPtr resizableBuffer, out IntPtr outputStream);
 

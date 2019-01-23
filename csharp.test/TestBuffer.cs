@@ -52,5 +52,35 @@ namespace ParquetSharp.Test
                 Assert.AreEqual(expected, allData);
             }
         }
+
+        [Test]
+        public static void TestBufferOutputStreamFinish()
+        {
+            var expected = Enumerable.Range(0, 100).ToArray();
+
+            using (var outStream = new BufferOutputStream())
+            {
+                // Write out a single column
+                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("int_field")}))
+                using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                {
+                    colWriter.WriteBatch(expected);
+                }
+
+                // Read it back
+                using (var buffer = outStream.Finish())
+                {
+                    using (var inStream = new BufferReader(buffer))
+                    using (var fileReader = new ParquetFileReader(inStream))
+                    using (var rowGroup = fileReader.RowGroup(0))
+                    using (var columnReader = rowGroup.Column(0).LogicalReader<int>())
+                    {
+                        var allData = columnReader.ReadAll((int) rowGroup.MetaData.NumRows);
+                        Assert.AreEqual(expected, allData);
+                    }
+                }
+            }
+        }
     }
 }
