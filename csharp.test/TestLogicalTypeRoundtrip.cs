@@ -440,10 +440,10 @@ namespace ParquetSharp.Test
                     Name = "string_field",
                     PhysicalType = PhysicalType.ByteArray,
                     LogicalType = LogicalType.Utf8,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 9 == 0 ? null : $"Hello, {i}!").ToArray(),
-                    NullCount = (NumRows + 8) / 9,
-                    NumValues = NumRows - (NumRows + 8) / 9,
-                    Min = "Hello, 1!",
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 9 == 0 ? i % 18 == 0 ? null : "" : $"Hello, {i}!").ToArray(),
+                    NullCount = (NumRows + 17) / 18,
+                    NumValues = NumRows - (NumRows + 17) / 18,
+                    Min = "",
                     Max = "Hello, 98!",
                     Converter = StringConverter
                 },
@@ -464,10 +464,10 @@ namespace ParquetSharp.Test
                 {
                     Name = "bytearray_field",
                     PhysicalType = PhysicalType.ByteArray,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 3 == 0 ? null : BitConverter.GetBytes(i)).ToArray(),
-                    NullCount = (NumRows + 2) / 3,
-                    NumValues = NumRows - (NumRows + 2) / 3,
-                    Min = BitConverter.GetBytes(1),
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 3 == 0 ? i % 6 == 0 ? null : new byte[0] : BitConverter.GetBytes(i)).ToArray(),
+                    NullCount = (NumRows + 5) / 6,
+                    NumValues = NumRows - (NumRows + 5) / 6,
+                    Min = new byte[0],
                     Max = BitConverter.GetBytes(NumRows - 1),
                     Converter = ByteArrayConverter
                 },
@@ -622,14 +622,19 @@ namespace ParquetSharp.Test
         {
             var byteArray = (ByteArray) v;
             var array = new byte[byteArray.Length];
-            Marshal.Copy(byteArray.Pointer, array, 0, array.Length);
+            if (byteArray.Length != 0)
+            {
+                Marshal.Copy(byteArray.Pointer, array, 0, array.Length);
+            }
             return array;
         }
 
         private static unsafe object StringConverter(object v)
         {
             var byteArray = (ByteArray) v;
-            return System.Text.Encoding.UTF8.GetString((byte*) byteArray.Pointer, byteArray.Length);
+            return byteArray.Length == 0
+                ? string.Empty
+                : System.Text.Encoding.UTF8.GetString((byte*) byteArray.Pointer, byteArray.Length);
         }
 
         private sealed class ExpectedColumn

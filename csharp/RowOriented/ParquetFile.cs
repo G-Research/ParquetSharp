@@ -127,7 +127,7 @@ namespace ParquetSharp.RowOriented
         private static (Column[] columns, ParquetRowWriter<TTuple>.WriteAction writeDelegate) CreateWriteDelegate<TTuple>()
         {
             var fields = GetFieldsAndProperties(typeof(TTuple), BindingFlags.Public | BindingFlags.Instance).ToArray();
-            var columns = fields.Select(f => new Column(f.type, f.name)).ToArray();
+            var columns = fields.Select(GetColumn).ToArray();
 
             // Parameters
             var writer = Expression.Parameter(typeof(ParquetRowWriter<TTuple>), "writer");
@@ -226,6 +226,28 @@ namespace ParquetSharp.RowOriented
             }
 
             return list.ToArray();
+        }
+
+        private static Column GetColumn((string name, Type type, MemberInfo info) field)
+        {
+            var isDecimal = field.type == typeof(decimal) || field.type == typeof(decimal?);
+            var decimalScale = field.info.GetCustomAttributes(typeof(ParquetDecimalScaleAttribute))
+                .Cast<ParquetDecimalScaleAttribute>()
+                .SingleOrDefault();
+
+            if (!isDecimal && decimalScale != null)
+            {
+                throw new ArgumentException($"field '{field.name}' has a {nameof(ParquetDecimalScaleAttribute)} despite not being a decimal type");
+            }
+
+            if (isDecimal && decimalScale == null)
+            {
+                throw new ArgumentException($"field '{field.name}' has no {nameof(ParquetDecimalScaleAttribute)} despite being a decimal type");
+            }
+
+            return isDecimal
+                ? new ColumnDecimal(field.name, precision: 29, scale: decimalScale?.Scale ?? -1, isNullable: field.type == typeof(decimal?))
+                : new Column(field.type, field.name);
         }
 
         private static readonly ConcurrentDictionary<Type, Delegate> ReadDelegatesCache = 

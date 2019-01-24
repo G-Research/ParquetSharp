@@ -261,13 +261,18 @@ namespace ParquetSharp
 
         private static unsafe string ToString(ByteArray byteArray)
         {
-            return System.Text.Encoding.UTF8.GetString((byte*) byteArray.Pointer, byteArray.Length);
+            return byteArray.Length == 0
+                ? string.Empty
+                : System.Text.Encoding.UTF8.GetString((byte*) byteArray.Pointer, byteArray.Length);
         }
 
         private static byte[] ToByteArray(ByteArray byteArray)
         {
             var array = new byte[byteArray.Length];
-            Marshal.Copy(byteArray.Pointer, array, 0, array.Length);
+            if (byteArray.Length != 0)
+            {
+                Marshal.Copy(byteArray.Pointer, array, 0, array.Length);
+            }
             return array;
         }
 

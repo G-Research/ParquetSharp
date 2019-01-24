@@ -37,20 +37,6 @@ namespace ParquetSharp.Test
         {
             TestRoundtrip(new[]
             {
-                new Row1 {A = 123, B = 3.14f, C = new DateTime(1981, 06, 10)},
-                new Row1 {A = 456, B = 1.27f, C = new DateTime(1987, 03, 16)},
-                new Row1 {A = 789, B = 6.66f, C = new DateTime(2018, 05, 02)}
-            });
-
-            TestRoundtrip(new[]
-            {
-                new Row2 {A = 123, B = 3.14f, C = new DateTime(1981, 06, 10)},
-                new Row2 {A = 456, B = 1.27f, C = new DateTime(1987, 03, 16)},
-                new Row2 {A = 789, B = 6.66f, C = new DateTime(2018, 05, 02)}
-            });
-
-            TestRoundtrip(new[]
-            {
                 (123, 3.14f, new DateTime(1981, 06, 10)),
                 (456, 1.27f, new DateTime(1987, 03, 16)),
                 (789, 6.66f, new DateTime(2018, 05, 02))
@@ -61,6 +47,20 @@ namespace ParquetSharp.Test
                 Tuple.Create(123, 3.14f, new DateTime(1981, 06, 10)),
                 Tuple.Create(456, 1.27f, new DateTime(1987, 03, 16)),
                 Tuple.Create(789, 6.66f, new DateTime(2018, 05, 02))
+            });
+
+            TestRoundtrip(new[]
+            {
+                new Row1 {A = 123, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M},
+                new Row1 {A = 456, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M},
+                new Row1 {A = 789, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M}
+            });
+
+            TestRoundtrip(new[]
+            {
+                new Row2 {A = 123, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M},
+                new Row2 {A = 456, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M},
+                new Row2 {A = 789, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M}
             });
         }
 
@@ -90,11 +90,14 @@ namespace ParquetSharp.Test
             public float B;
             public DateTime C;
 
+            [ParquetDecimalScale(3)]
+            public decimal D;
+
             public bool Equals(Row1 other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;
-                return A == other.A && B.Equals(other.B) && C.Equals(other.C);
+                return A == other.A && B.Equals(other.B) && C.Equals(other.C) && D.Equals(other.D);
             }
         }
 
@@ -103,6 +106,9 @@ namespace ParquetSharp.Test
             public int A { get; set; }
             public float B { get; set; }
             public DateTime C { get; set; }
+
+            [ParquetDecimalScale(3)]
+            public decimal D { get; set; }
         }
 
 #if DUMP_EXPRESSION_TREES
