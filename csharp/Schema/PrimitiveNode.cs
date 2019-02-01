@@ -27,6 +27,32 @@ namespace ParquetSharp.Schema
         public PhysicalType PhysicalType => ExceptionInfo.Return<PhysicalType>(Handle, PrimitiveNode_Physical_Type);
         public int TypeLength => ExceptionInfo.Return<int>(Handle, PrimitiveNode_Type_Length);
 
+        public override Node DeepClone()
+        {
+            var decimalMetadata = DecimalMetadata;
+
+            return new PrimitiveNode(
+                Name,
+                Repetition,
+                PhysicalType,
+                LogicalType,
+                TypeLength,
+                decimalMetadata.Precision,
+                decimalMetadata.Scale);
+        }
+
+        public override bool Equals(Node other)
+        {
+            return
+                other is PrimitiveNode primitiveNode &&
+                Name == primitiveNode.Name &&
+                Repetition == primitiveNode.Repetition &&
+                PhysicalType == primitiveNode.PhysicalType &&
+                LogicalType == primitiveNode.LogicalType &&
+                TypeLength == primitiveNode.TypeLength &&
+                DecimalMetadata.Equals(primitiveNode.DecimalMetadata);
+        }
+
         private static IntPtr Make(
             string name, Repetition repetition, PhysicalType type, LogicalType logicalType,
             int length, int precision, int scale)

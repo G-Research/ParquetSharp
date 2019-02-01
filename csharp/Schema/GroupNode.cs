@@ -37,6 +37,25 @@ namespace ParquetSharp.Schema
             return index;
         }
 
+        public override Node DeepClone()
+        {
+            return new GroupNode(
+                Name,
+                Repetition,
+                Fields.Select(f => f.DeepClone()).ToArray(),
+                LogicalType);
+        }
+
+        public override bool Equals(Node other)
+        {
+            return
+                other is GroupNode groupNode &&
+                Name == groupNode.Name &&
+                Repetition == groupNode.Repetition &&
+                LogicalType == groupNode.LogicalType &&
+                Fields.SequenceEqual(groupNode.Fields);
+        }
+
         private static unsafe IntPtr Make(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType logicalType)
         {
             var handles = fields.Select(f => (IntPtr) f.Handle).ToArray();
