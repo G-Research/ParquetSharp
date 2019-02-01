@@ -62,6 +62,7 @@ namespace ParquetSharp
 
         public abstract Type ElementType { get; }
         public abstract TReturn Apply<TReturn>(IColumnReaderVisitor<TReturn> visitor);
+        public abstract long Skip(long numRowsToSkip);
 
         public LogicalColumnReader LogicalReader(int bufferLength = 4 * 1024)
         {
@@ -372,7 +373,7 @@ namespace ParquetSharp
             }
         }
 
-        public long Skip(long numRowsToSkip)
+        public override long Skip(long numRowsToSkip)
         {
             var type = typeof(TValue);
 
