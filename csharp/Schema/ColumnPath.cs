@@ -37,17 +37,12 @@ namespace ParquetSharp.Schema
 
         public string ToDotString()
         {
-            ExceptionInfo.Check(ColumnPath_ToDotString(Handle, out var cstr));
-
-            var dotString = Marshal.PtrToStringAnsi(cstr);
-            ColumnPath_ToDotString_Free(cstr);
-
-            return dotString;
+            return ExceptionInfo.ReturnString(Handle, ColumnPath_ToDotString, ColumnPath_ToDotString_Free);
         }
 
         public unsafe string[] ToDotVector()
         {
-            ExceptionInfo.Check(ColumnPath_ToDotVector(Handle, out var dotVector, out var length));
+            ExceptionInfo.Check(ColumnPath_ToDotVector(Handle.IntPtr, out var dotVector, out var length));
 
             var strings = new string[length];
             var cstrings = (IntPtr*) dotVector.ToPointer();
@@ -58,6 +53,7 @@ namespace ParquetSharp.Schema
             }
 
             ColumnPath_ToDotVector_Free(dotVector, length);
+            GC.KeepAlive(Handle);
 
             return strings;
         }
@@ -78,8 +74,7 @@ namespace ParquetSharp.Schema
 
         private static IntPtr Make(Node node)
         {
-            ExceptionInfo.Check(ColumnPath_MakeFromNode(node.Handle, out var handle));
-            return handle;
+            return ExceptionInfo.Return<IntPtr>(node.Handle, ColumnPath_MakeFromNode);
         }
 
         [DllImport(ParquetDll.Name)]

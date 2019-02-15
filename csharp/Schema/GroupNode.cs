@@ -32,9 +32,7 @@ namespace ParquetSharp.Schema
 
         public int FieldIndex(Node node)
         {
-            var index = ExceptionInfo.Return<IntPtr, int>(Handle, node.Handle, GroupNode_Field_Index_By_Node);
-            GC.KeepAlive(node);
-            return index;
+            return ExceptionInfo.Return<int>(Handle, node.Handle, GroupNode_Field_Index_By_Node);
         }
 
         public override Node DeepClone()
@@ -58,7 +56,7 @@ namespace ParquetSharp.Schema
 
         private static unsafe IntPtr Make(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType logicalType)
         {
-            var handles = fields.Select(f => (IntPtr) f.Handle).ToArray();
+            var handles = fields.Select(f => f.Handle.IntPtr).ToArray();
 
             fixed (IntPtr* pHandles = handles)
             {

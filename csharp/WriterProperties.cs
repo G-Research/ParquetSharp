@@ -8,8 +8,7 @@ namespace ParquetSharp
     {
         public static WriterProperties GetDefaultWriterProperties()
         {
-            ExceptionInfo.Check(WriterProperties_Get_Default_Writer_Properties(out var writerProperties));
-            return new WriterProperties(writerProperties);
+            return new WriterProperties(ExceptionInfo.Return<IntPtr>(WriterProperties_Get_Default_Writer_Properties));
         }
 
         internal WriterProperties(IntPtr handle)
@@ -22,19 +21,7 @@ namespace ParquetSharp
             Handle.Dispose();
         }
 
-        public string CreatedBy
-        {
-            get
-            {
-                ExceptionInfo.Check(WriterProperties_Created_By(Handle, out var cstr));
-
-                var createdBy = Marshal.PtrToStringAnsi(cstr);
-                WriterProperties_Created_By_Free(cstr);
-
-                return createdBy;
-            }
-        }
-
+        public string CreatedBy => ExceptionInfo.ReturnString(Handle, WriterProperties_Created_By, WriterProperties_Created_By_Free);
         public long DataPageSize => ExceptionInfo.Return<long>(Handle, WriterProperties_Data_Pagesize);
         public Encoding DictionaryIndexEncoding => ExceptionInfo.Return<Encoding>(Handle, WriterProperties_Dictionary_Index_Encoding);
         public Encoding DictionaryPageEncoding => ExceptionInfo.Return<Encoding>(Handle, WriterProperties_Dictionary_Page_Encoding);
@@ -45,27 +32,27 @@ namespace ParquetSharp
 
         public Compression Compression(ColumnPath path)
         {
-            return ExceptionInfo.Return<IntPtr, Compression>(Handle, path.Handle, WriterProperties_Compression);
+            return ExceptionInfo.Return<Compression>(Handle, path.Handle, WriterProperties_Compression);
         }
 
         public bool DictionaryEnabled(ColumnPath path)
         {
-            return ExceptionInfo.Return<IntPtr, bool>(Handle, path.Handle, WriterProperties_Dictionary_Enabled);
+            return ExceptionInfo.Return<bool>(Handle, path.Handle, WriterProperties_Dictionary_Enabled);
         }
 
         public Encoding Encoding(ColumnPath path)
         {
-            return ExceptionInfo.Return<IntPtr, Encoding>(Handle, path.Handle, WriterProperties_Encoding);
+            return ExceptionInfo.Return<Encoding>(Handle, path.Handle, WriterProperties_Encoding);
         }
 
         public bool StatisticsEnabled(ColumnPath path)
         {
-            return ExceptionInfo.Return<IntPtr, bool>(Handle, path.Handle, WriterProperties_Statistics_Enabled);
+            return ExceptionInfo.Return<bool>(Handle, path.Handle, WriterProperties_Statistics_Enabled);
         }
 
         public ulong MaxStatisticsSize(ColumnPath path)
         {
-            return ExceptionInfo.Return<IntPtr, ulong>(Handle, path.Handle, WriterProperties_Max_Statistics_Size);
+            return ExceptionInfo.Return<ulong>(Handle, path.Handle, WriterProperties_Max_Statistics_Size);
         }
 
         internal readonly ParquetHandle Handle;

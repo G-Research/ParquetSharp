@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using ParquetSharp.IO;
 using ParquetSharp.Schema;
@@ -73,7 +72,7 @@ namespace ParquetSharp
             using (var kvm = keyValueMetadata == null ? null : new KeyValueMetadata(keyValueMetadata))
             {
                 ExceptionInfo.Check(ParquetFileWriter_OpenFile(
-                    path, schema.Handle, writerProperties.Handle, kvm?.Handle ?? IntPtr.Zero, out var writer));
+                    path, schema.Handle.IntPtr, writerProperties.Handle.IntPtr, kvm?.Handle?.IntPtr ?? IntPtr.Zero, out var writer));
 
                 // Keep alive schema and writerProperties until this point, otherwise the GC might kick in while we're in OpenFile().
                 GC.KeepAlive(schema);
@@ -94,7 +93,7 @@ namespace ParquetSharp
             using (var kvm = keyValueMetadata == null ? null : new KeyValueMetadata(keyValueMetadata))
             {
                 ExceptionInfo.Check(ParquetFileWriter_Open(
-                    outputStream.Handle, schema.Handle, writerProperties.Handle, kvm?.Handle ?? IntPtr.Zero, out var writer));
+                    outputStream.Handle.IntPtr, schema.Handle.IntPtr, writerProperties.Handle.IntPtr, kvm?.Handle?.IntPtr ?? IntPtr.Zero, out var writer));
 
                 // Keep alive schema and writerProperties until this point, otherwise the GC might kick in while we're in Open().
                 GC.KeepAlive(schema);

@@ -25,7 +25,7 @@ namespace ParquetSharp
 
         public unsafe IReadOnlyDictionary<string, string> ToDictionary()
         {
-            ExceptionInfo.Check(KeyValueMetadata_Get_Entries(Handle, out var keys, out var values));
+            ExceptionInfo.Check(KeyValueMetadata_Get_Entries(Handle.IntPtr, out var keys, out var values));
 
             try
             {
@@ -47,7 +47,8 @@ namespace ParquetSharp
 
             finally
             {
-                KeyValueMetadata_Free_Entries(Handle, keys, values);
+                KeyValueMetadata_Free_Entries(Handle.IntPtr, keys, values);
+                GC.KeepAlive(Handle);
             }
         }
 
