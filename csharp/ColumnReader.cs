@@ -227,57 +227,65 @@ namespace ParquetSharp
             {
                 if (type == typeof(bool))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Bool(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Bool(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (bool*) pValues, out valuesRead, out var levelsRead));
+                    GC.KeepAlive(Handle);
                     return levelsRead;
                 }
 
                 if (type == typeof(int))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int32(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int32(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (int*) pValues, out valuesRead, out var levelsRead));
+                    GC.KeepAlive(Handle);
                     return levelsRead;
                 }
 
                 if (type == typeof(long))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int64(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int64(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (long*) pValues, out valuesRead, out var levelsRead));
+                    GC.KeepAlive(Handle);
                     return levelsRead;
                 }
 
                 if (type == typeof(Int96))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int96(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int96(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (Int96*) pValues, out valuesRead, out var levelsRead));
+                    GC.KeepAlive(Handle);
                     return levelsRead;
                 }
 
                 if (type == typeof(float))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Float(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Float(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (float*) pValues, out valuesRead, out var levelsRead));
+                    GC.KeepAlive(Handle);
                     return levelsRead;
                 }
 
                 if (type == typeof(double))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Double(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Double(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (double*) pValues, out valuesRead, out var levelsRead));
+                    GC.KeepAlive(Handle);
                     return levelsRead;
                 }
 
                 if (type == typeof(ByteArray))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_ByteArray(Handle,
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_ByteArray(Handle.IntPtr,
                         batchSize, pDefLevels, pRepLevels, (ByteArray*) pValues, out valuesRead, out var levelsRead));
+                    GC.KeepAlive(Handle);
                     return levelsRead;
                 }
 
                 if (type == typeof(FixedLenByteArray))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_FixedLenByteArray(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_FixedLenByteArray(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (FixedLenByteArray*) pValues, out valuesRead, out var levelsRead));
+                    GC.KeepAlive(Handle);
                     return levelsRead;
                 }
 
@@ -307,65 +315,73 @@ namespace ParquetSharp
             {
                 if (type == typeof(bool))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Bool(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Bool(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (bool*) pValues, pValidBits, validBitsOffset, 
                         out levelsRead, out valuesRead, out nullCount, out var returnValue));
+                    GC.KeepAlive(Handle);
                     return returnValue;
                 }
 
                 if (type == typeof(int))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Int32(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Int32(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (int*) pValues, pValidBits, validBitsOffset,
                         out levelsRead, out valuesRead, out nullCount, out var returnValue));
+                    GC.KeepAlive(Handle);
                     return returnValue;
                 }
 
                 if (type == typeof(long))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Int64(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Int64(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (long*) pValues, pValidBits, validBitsOffset, 
                         out levelsRead, out valuesRead, out nullCount, out var returnValue));
+                    GC.KeepAlive(Handle);
                     return returnValue;
                 }
 
                 if (type == typeof(Int96))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Int96(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Int96(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (Int96*) pValues, pValidBits, validBitsOffset, 
                         out levelsRead, out valuesRead, out nullCount, out var returnValue));
+                    GC.KeepAlive(Handle);
                     return returnValue;
                 }
 
                 if (type == typeof(float))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Float(Handle,
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Float(Handle.IntPtr,
                         batchSize, pDefLevels, pRepLevels, (float*) pValues, pValidBits, validBitsOffset, 
                         out levelsRead, out valuesRead, out nullCount, out var returnValue));
+                    GC.KeepAlive(Handle);
                     return returnValue;
                 }
 
                 if (type == typeof(double))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Double(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_Double(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (double*) pValues, pValidBits, validBitsOffset, 
                         out levelsRead, out valuesRead, out nullCount, out var returnValue));
+                    GC.KeepAlive(Handle);
                     return returnValue;
                 }
 
                 if (type == typeof(ByteArray))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_ByteArray(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_ByteArray(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (ByteArray*) pValues, pValidBits, validBitsOffset, 
                         out levelsRead, out valuesRead, out nullCount, out var returnValue));
+                    GC.KeepAlive(Handle);
                     return returnValue;
                 }
 
                 if (type == typeof(FixedLenByteArray))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_FixedLenByteArray(Handle, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatchSpaced_FixedLenByteArray(Handle.IntPtr, 
                         batchSize, pDefLevels, pRepLevels, (FixedLenByteArray*) pValues, pValidBits, validBitsOffset, 
                         out levelsRead, out valuesRead, out nullCount, out var returnValue));
+                    GC.KeepAlive(Handle);
                     return returnValue;
                 }
 
@@ -379,50 +395,42 @@ namespace ParquetSharp
 
             if (type == typeof(bool))
             {
-                ExceptionInfo.Check(TypedColumnReader_Skip_Bool(Handle, numRowsToSkip, out var levelsSkipped));
-                return levelsSkipped;
+                return ExceptionInfo.Return<long, long>(Handle, numRowsToSkip, TypedColumnReader_Skip_Bool);
             }
 
             if (type == typeof(int))
             {
-                ExceptionInfo.Check(TypedColumnReader_Skip_Int32(Handle, numRowsToSkip, out var levelsSkipped));
-                return levelsSkipped;
+                return ExceptionInfo.Return<long, long>(Handle, numRowsToSkip, TypedColumnReader_Skip_Int32);
             }
 
             if (type == typeof(long))
             {
-                ExceptionInfo.Check(TypedColumnReader_Skip_Int64(Handle, numRowsToSkip, out var levelsSkipped));
-                return levelsSkipped;
+                return ExceptionInfo.Return<long, long>(Handle, numRowsToSkip, TypedColumnReader_Skip_Int64);
             }
 
             if (type == typeof(Int96))
             {
-                ExceptionInfo.Check(TypedColumnReader_Skip_Int96(Handle, numRowsToSkip, out var levelsSkipped));
-                return levelsSkipped;
+                return ExceptionInfo.Return<long, long>(Handle, numRowsToSkip, TypedColumnReader_Skip_Int96);
             }
 
             if (type == typeof(float))
             {
-                ExceptionInfo.Check(TypedColumnReader_Skip_Float(Handle, numRowsToSkip, out var levelsSkipped));
-                return levelsSkipped;
+                return ExceptionInfo.Return<long, long>(Handle, numRowsToSkip, TypedColumnReader_Skip_Float);
             }
 
             if (type == typeof(double))
             {
-                ExceptionInfo.Check(TypedColumnReader_Skip_Double(Handle, numRowsToSkip, out var levelsSkipped));
-                return levelsSkipped;
+                return ExceptionInfo.Return<long, long>(Handle, numRowsToSkip, TypedColumnReader_Skip_Double);
             }
 
             if (type == typeof(ByteArray))
             {
-                ExceptionInfo.Check(TypedColumnReader_Skip_ByteArray(Handle, numRowsToSkip, out var levelsSkipped));
-                return levelsSkipped;
+                return ExceptionInfo.Return<long, long>(Handle, numRowsToSkip, TypedColumnReader_Skip_ByteArray);
             }
 
             if (type == typeof(FixedLenByteArray))
             {
-                ExceptionInfo.Check(TypedColumnReader_Skip_FixedLenByteArray(Handle, numRowsToSkip, out var levelsSkipped));
-                return levelsSkipped;
+                return ExceptionInfo.Return<long, long>(Handle, numRowsToSkip, TypedColumnReader_Skip_FixedLenByteArray);
             }
 
             throw new NotSupportedException($"type {type} is not supported");

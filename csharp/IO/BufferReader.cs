@@ -9,15 +9,8 @@ namespace ParquetSharp.IO
     public sealed class BufferReader : InputStream
     {
         public BufferReader(Buffer buffer)
-            : base(Create(buffer))
+            : base(ExceptionInfo.Return<IntPtr>(buffer.Handle, BufferReader_Create))
         {
-        }
-
-        private static IntPtr Create(Buffer buffer)
-        {
-            ExceptionInfo.Check(BufferReader_Create(buffer.Handle, out var outputStream));
-            GC.KeepAlive(buffer);
-            return outputStream;
         }
 
         [DllImport(ParquetDll.Name)]

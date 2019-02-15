@@ -9,32 +9,18 @@ namespace ParquetSharp.IO
     public sealed class BufferOutputStream : OutputStream
     {
         public BufferOutputStream() 
-            : base(Create())
+            : base(ExceptionInfo.Return<IntPtr>(BufferOutputStream_Create))
         {
         }
 
         public BufferOutputStream(ResizableBuffer resizableBuffer)
-            : base(Create(resizableBuffer))
+            : base(ExceptionInfo.Return<IntPtr>(resizableBuffer.Handle, BufferOutputStream_Create_From_ResizableBuffer))
         {
         }
 
         public Buffer Finish()
         {
-            ExceptionInfo.Check(BufferOutputStream_Finish(Handle, out var buffer));
-            return new Buffer(buffer);
-        }
-
-        private static IntPtr Create()
-        {
-            ExceptionInfo.Check(BufferOutputStream_Create(out var outputStream));
-            return outputStream;
-        }
-
-        private static IntPtr Create(ResizableBuffer buffer)
-        {
-            ExceptionInfo.Check(BufferOutputStream_Create_From_ResizableBuffer(buffer.Handle, out var outputStream));
-            GC.KeepAlive(buffer);
-            return outputStream;
+            return new Buffer(ExceptionInfo.Return<IntPtr>(Handle, BufferOutputStream_Finish));
         }
 
         [DllImport(ParquetDll.Name)]

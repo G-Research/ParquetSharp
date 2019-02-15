@@ -33,16 +33,19 @@ namespace ParquetSharp
             }
         }
 
-        public static implicit operator IntPtr (ParquetHandle handle)
+        public IntPtr IntPtr
         {
-            // Check the handle is not null. 
-            // This situation Usually happens when the parent class has already been disposed.
-            if (handle._handle == IntPtr.Zero)
+            get
             {
-                throw new NullReferenceException("null native handle");
-            }
+                // Check the handle is not null. 
+                // This situation Usually happens when the parent class has already been disposed.
+                if (_handle == IntPtr.Zero)
+                {
+                    throw new NullReferenceException("null native handle");
+                }
 
-            return handle._handle;
+                return _handle;
+            }
         }
 
         private IntPtr _handle;

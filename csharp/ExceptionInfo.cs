@@ -9,6 +9,7 @@ namespace ParquetSharp
     /// </summary>
     internal sealed class ExceptionInfo
     {
+        public delegate IntPtr GetAction<TValue>(out TValue value);
         public delegate IntPtr GetFunction<TValue>(IntPtr handle, out TValue value);
         public delegate IntPtr GetFunction<in TArg0, TValue>(IntPtr handle, TArg0 arg0, out TValue value);
 
@@ -27,9 +28,36 @@ namespace ParquetSharp
             throw new ParquetException(type, message);
         }
 
+        public static TValue Return<TValue>(GetAction<TValue> getter)
+        {
+            Check(getter(out var value));
+            return value;
+        }
+
+        public static TValue Return<TValue>(ParquetHandle handle, GetFunction<TValue> getter)
+        {
+            var value = Return(handle.IntPtr, getter);
+            GC.KeepAlive(handle);
+            return value;
+        }
+
         public static TValue Return<TValue>(IntPtr handle, GetFunction<TValue> getter)
         {
             Check(getter(handle, out var value));
+            return value;
+        }
+
+        public static TValue Return<TValue>(ParquetHandle handle, ParquetHandle arg0, GetFunction<IntPtr, TValue> getter)
+        {
+            var value = Return(handle.IntPtr, arg0.IntPtr, getter);
+            GC.KeepAlive(handle);
+            return value;
+        }
+
+        public static TValue Return<TArg0, TValue>(ParquetHandle handle, TArg0 arg0, GetFunction<TArg0, TValue> getter)
+        {
+            var value = Return(handle.IntPtr, arg0, getter);
+            GC.KeepAlive(handle);
             return value;
         }
 
@@ -39,10 +67,13 @@ namespace ParquetSharp
             return value;
         }
 
-        public static string ReturnString(IntPtr handle, GetFunction<IntPtr> getter)
+        public static string ReturnString(ParquetHandle handle, GetFunction<IntPtr> getter, Action<IntPtr> deleter = null)
         {
-            Check(getter(handle, out var value));
-            return Marshal.PtrToStringAnsi(value);
+            Check(getter(handle.IntPtr, out var value));
+            var str = Marshal.PtrToStringAnsi(value);
+            deleter?.Invoke(value);
+            GC.KeepAlive(handle);
+            return str;
         }
 
         [DllImport(ParquetDll.Name)]
