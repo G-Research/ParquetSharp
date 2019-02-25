@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using ParquetSharp.IO;
@@ -145,6 +145,30 @@ namespace ParquetSharp.Test
                 {
                     var allData = columnReader.ReadAll((int) rowGroup.MetaData.NumRows);
                     Assert.AreEqual(expected, allData);
+                }
+            }
+        }
+
+        [Test]
+        public static void ReadTest()
+        {
+            /*
+             * [None, [], [1.0, None, 2.0]]
+             * []
+             * None
+             * [[]]
+             */
+            using (var reader = new ParquetFileReader(@"example.parquet"))
+            using (var rg = reader.RowGroup(0))
+            {
+                var fmd = reader.FileMetaData;
+                using (var col = rg.Column(0))
+                {
+                    //using (var cr = col.LogicalReader())
+                    using (var cr = col.LogicalReader<double?[][]>())
+                    {
+                        var res = cr.ReadAll(4);
+                    }
                 }
             }
         }

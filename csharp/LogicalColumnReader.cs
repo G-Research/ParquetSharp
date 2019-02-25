@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using ParquetSharp.Schema;
 
 namespace ParquetSharp
 {
@@ -135,96 +137,134 @@ namespace ParquetSharp
             return ReadBatchSimple(destination, converter as LogicalRead<TElement, TPhysical>.Converter);
         }
 
+        private static List<Node> GetSchemaNode(Node node)
+        {
+            var schemaNodes = new List<Node>();
+            for (; node != null; node = node.Parent)
+            {
+                schemaNodes.Add(node);
+            }
+            schemaNodes.RemoveAt(schemaNodes.Count - 1); // we don't need the schema root
+            schemaNodes.Reverse(); // root to leaf
+            return schemaNodes;
+        }
+
         private int ReadBatchArray(Span<TElement> destination, LogicalRead<TLogical, TPhysical>.Converter converter)
         {
-            var result = (Span<TElement>) ReadArrayInternal(0, NestingDepth, NullDefinitionLevels, destination.Length, _bufferedReader, converter, typeof(TElement));
+            var schemaNodes = GetSchemaNode(ColumnDescriptor.SchemaNode).ToArray();
+
+            var arrayReaderFuncs = GetArrayReaderFuncs(schemaNodes, typeof(TElement), converter, 0, 0);
+
+            var result = (Span<TElement>)ReadArrayBetter(arrayReaderFuncs, 0, _bufferedReader, converter, destination.Length);
+
             result.CopyTo(destination);
             return result.Length;
         }
 
-        private static Array ReadArrayInternal(
-            short repetitionLevel, short maxRepetitionLevel, short[] nullDefinitionLevels, int numArrayEntriesToRead, 
-            BufferedReader<TPhysical> valueReader, LogicalRead<TLogical, TPhysical>.Converter converter, Type elementType)
+        private static Array ReadArrayBetter(List<Func<BufferedReader<TPhysical>, Func<Array>, int, Array>> arrayReaderFuncs, int level, BufferedReader<TPhysical> valueReader, LogicalRead<TLogical, TPhysical>.Converter converter, int numArrayEntriesToRead)
         {
-            var nullDefinitionLevel = nullDefinitionLevels[repetitionLevel];
+            return arrayReaderFuncs[level](valueReader, () => ReadArrayBetter(arrayReaderFuncs, level+1, valueReader, converter, -1), numArrayEntriesToRead);
+        }
 
-            // Check if we are at the leaf schema node.
-            if (maxRepetitionLevel == repetitionLevel)
+        private static List<Func<BufferedReader<TPhysical>, Func<Array>, int, Array>> GetArrayReaderFuncs(ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalRead<TLogical, TPhysical>.Converter converter, int repetitionLevel, int nullDefinitionLevel)
+        {
+            var ret = new List<Func<BufferedReader<TPhysical>, Func<Array>, int, Array>>();
+
+            if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                var defnLevel = new List<short>();
-                var values = new List<TPhysical>();
-                var firstValue = true;
-
-                while (!valueReader.IsEofDefinition)
+                if (schemaNodes.Length >= 2 && (schemaNodes[0] is GroupNode g1) && g1.LogicalType == LogicalType.List
+                    && g1.Repetition == Repetition.Optional && (schemaNodes[1] is GroupNode g2)
+                    && g2.LogicalType == LogicalType.None && g2.Repetition == Repetition.Repeated)
                 {
-                    var defn = valueReader.GetCurrentDefinition();
-
-                    if (!firstValue && defn.RepLevel < repetitionLevel)
+                    ret.Add((valueReader, readNestedLevel, numArrayEntriesToRead) =>
                     {
-                        break;
-                    }
+                        var acc = new List<Array>();
 
-                    if (defn.DefLevel < nullDefinitionLevel)
-                    {
-                        throw new Exception("Invalid input stream.");
-                    }
+                        while (numArrayEntriesToRead == -1 || acc.Count < numArrayEntriesToRead)
+                        {
+                            var defn = valueReader.GetCurrentDefinition();
 
-                    if (defn.DefLevel > nullDefinitionLevel)
-                    {
-                        values.Add(valueReader.ReadValue());
-                    }
+                            Array newItem = null;
 
-                    defnLevel.Add(defn.DefLevel);
+                            if (defn.DefLevel >= nullDefinitionLevel + 2)
+                            {
+                                newItem = readNestedLevel();
+                            }
+                            else
+                            {
+                                if (defn.DefLevel == nullDefinitionLevel + 1)
+                                {
+                                    newItem = CreateEmptyArray(elementType);
+                                }
+                                valueReader.NextDefinition();
+                            }
 
-                    valueReader.NextDefinition();
-                    firstValue = false;
+                            acc.Add(newItem);
+
+                            if (valueReader.IsEofDefinition || valueReader.GetCurrentDefinition().RepLevel < repetitionLevel)
+                            {
+                                break;
+                            }
+                        }
+
+                        return ListToArray(acc, elementType);
+                    });
+
+                    var containedSchemaNodes = schemaNodes.Slice(2);
+                    var containedType = elementType.GetElementType();
+
+                    ret.AddRange(GetArrayReaderFuncs(containedSchemaNodes, containedType, converter, repetitionLevel + 1, nullDefinitionLevel + 2));
+
+                    return ret;
                 }
 
-                var dest = new TLogical[defnLevel.Count];
-                converter(values.ToArray(), defnLevel.ToArray(), dest, nullDefinitionLevel);
-                return dest;
+                throw new Exception("elementType is an array but schema does not match the expected layout");
             }
-            
-            // Else read the underlying levels.
+
+            if (schemaNodes.Length == 1)
             {
-                var acc = new List<Array>();
+                bool optional = schemaNodes[0].Repetition == Repetition.Optional;
 
-                while (numArrayEntriesToRead == -1 || acc.Count < numArrayEntriesToRead)
+                ret.Add((valueReader, readNestedLevel, numArrayEntriesToRead) =>
                 {
-                    var defn = valueReader.GetCurrentDefinition();
+                    var defnLevel = new List<short>();
+                    var values = new List<TPhysical>();
+                    var firstValue = true;
 
-                    if (defn.RepLevel > repetitionLevel)
+                    while (!valueReader.IsEofDefinition)
                     {
-                        throw new Exception("Invalid Parquet input - only homogenous jagged arrays supported.");
-                    }
+                        var defn = valueReader.GetCurrentDefinition();
 
-                    if (defn.DefLevel > nullDefinitionLevel)
-                    {
-                        acc.Add(ReadArrayInternal(
-                            (short) (repetitionLevel + 1), maxRepetitionLevel, nullDefinitionLevels, -1,
-                            valueReader, converter, elementType.GetElementType()));
-                    }
-                    else
-                    {
-                        acc.Add(null);
+                        if (!firstValue && defn.RepLevel < repetitionLevel)
+                        {
+                            break;
+                        }
+
+                        if (defn.DefLevel < nullDefinitionLevel)
+                        {
+                            throw new Exception("Invalid input stream.");
+                        }
+
+                        if (defn.DefLevel > nullDefinitionLevel || !optional)
+                        {
+                            values.Add(valueReader.ReadValue());
+                        }
+
+                        defnLevel.Add(defn.DefLevel);
+
                         valueReader.NextDefinition();
+                        firstValue = false;
                     }
 
-                    if (valueReader.IsEofDefinition)
-                    {
-                        break;
-                    }
+                    var dest = new TLogical[defnLevel.Count];
+                    converter(values.ToArray(), defnLevel.ToArray(), dest, (short)nullDefinitionLevel);
+                    return dest;
+                });
 
-                    defn = valueReader.GetCurrentDefinition();
-
-                    if (defn.RepLevel < repetitionLevel)
-                    {
-                        break;
-                    }
-                }
-
-                return ListToArray(acc, elementType);
+                return ret;
             }
+
+            throw new Exception("ParquetSharp does not understand the schema used");
         }
 
         private static Array ListToArray(List<Array> list, Type elementType)
@@ -237,6 +277,16 @@ namespace ParquetSharp
             }
 
             return result;
+        }
+
+        private static Array CreateEmptyArray(Type elementType)
+        {
+            if (elementType.IsArray)
+            {
+                return Array.CreateInstance(elementType.GetElementType(), 0);
+            }
+
+            throw new NotImplementedException();
         }
 
         /// <summary>
