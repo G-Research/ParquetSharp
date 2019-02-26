@@ -150,7 +150,7 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void ReadTest()
+        public static void TestAwkwardArrayRoundtrip()
         {
             /*
              * [None, [], [1.0, None, 2.0]]
@@ -158,17 +158,31 @@ namespace ParquetSharp.Test
              * None
              * [[]]
              */
-            using (var reader = new ParquetFileReader(@"example.parquet"))
-            using (var rg = reader.RowGroup(0))
+            var expected = new double?[][][] {
+                new double?[][] { null, new double?[] { }, new double?[] {1.0, null, 2.0} },
+                new double?[][] {},
+                null,
+                new double?[][] { new double?[] { } }
+            };
+
+            using (var buffer = new ResizableBuffer())
             {
-                var fmd = reader.FileMetaData;
-                using (var col = rg.Column(0))
+                using (var outStream = new BufferOutputStream(buffer))
+                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column(typeof(double?[][]), "a") }))
+                using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[][]>())
                 {
-                    //using (var cr = col.LogicalReader())
-                    using (var cr = col.LogicalReader<double?[][]>())
-                    {
-                        var res = cr.ReadAll(4);
-                    }
+                    colWriter.WriteBatch(expected);
+                }
+
+                using (var inStream = new BufferReader(buffer))
+                using (var fileReader = new ParquetFileReader(inStream))
+                using (var rowGroup = fileReader.RowGroup(0))
+                using (var columnReader = rowGroup.Column(0).LogicalReader<double?[][]>())
+                {
+                    Assert.AreEqual(4, rowGroup.MetaData.NumRows);
+                    var allData = columnReader.ReadAll(4);
+                    Assert.AreEqual(expected, allData);
                 }
             }
         }
