@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using ParquetSharp.Schema;
 
 namespace ParquetSharp
 {
@@ -106,14 +108,7 @@ namespace ParquetSharp
             // Handle arrays separately
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
             {
-                if (NestingDepth == 0)
-                {
-                    WriteArrayFinalLevel(values, 0, 0, ColumnDescriptor.MaxDefinitionLevel, converter, NullDefinitionLevels[0]);
-                }
-                else
-                {
-                    WriteArrayIntermediateLevel(values, 0, NestingDepth, 0, NullDefinitionLevels, ColumnDescriptor.MaxDefinitionLevel, converter);
-                }
+                WriteArray(values, ColumnDescriptor.SchemaNode, converter);
             }
             else
             {
@@ -121,89 +116,105 @@ namespace ParquetSharp
             }
         }
 
-        private void WriteArrayIntermediateLevel(
-            ReadOnlySpan<TElement> values,
-            short repetitionLevel, short maxRepetitionLevel, short leafFirstRepLevel, 
-            short[] nullDefinitionLevels, short leafDefinitionLevel, 
-            LogicalWrite<TLogical, TPhysical>.Converter converter)
+        private static List<Node> GetSchemaNode(Node node)
         {
-            var firstItem = true;
-
-            for (int i = 0; i != values.Length; ++i)
+            var schemaNodes = new List<Node>();
+            for (; node != null; node = node.Parent)
             {
-                WriteArrayNextLevel(
-                    values[i] as Array,
-                    repetitionLevel, maxRepetitionLevel, leafFirstRepLevel,
-                    nullDefinitionLevels, leafDefinitionLevel,
-                    converter,
-                    ref firstItem);
+                schemaNodes.Add(node);
             }
+            schemaNodes.RemoveAt(schemaNodes.Count - 1); // we don't need the schema root
+            schemaNodes.Reverse(); // root to leaf
+            return schemaNodes;
         }
 
-        private void WriteArrayIntermediateLevel(
-            Array values,
-            short repetitionLevel, short maxRepetitionLevel, short leafFirstRepLevel,
-            short[] nullDefinitionLevels, short leafDefinitionLevel,
-            LogicalWrite<TLogical, TPhysical>.Converter converter)
+        private void WriteArray(ReadOnlySpan<TElement> values, Node schemaNode, LogicalWrite<TLogical, TPhysical>.Converter converter)
         {
-            var firstItem = true;
+            var schemaNodes = GetSchemaNode(schemaNode).ToArray();
 
-            for (int i = 0; i != values.Length; ++i)
-            {
-                WriteArrayNextLevel(
-                    (Array) values.GetValue(i), 
-                    repetitionLevel, maxRepetitionLevel, leafFirstRepLevel, 
-                    nullDefinitionLevels, leafDefinitionLevel,
-                    converter, 
-                    ref firstItem);
-            }
+            var writerFuncs = GetArrayWriterFunctions(schemaNodes, typeof(TElement), converter, 0, 0);
+
+            WriteArrayBetter(values.ToArray(), writerFuncs, 0, 0);
         }
 
-        private void WriteArrayNextLevel(
-            Array item,
-            short repetitionLevel, short maxRepetitionLevel, short leafFirstRepLevel,
-            short[] nullDefinitionLevels, short leafDefinitionLevel,
-            LogicalWrite<TLogical, TPhysical>.Converter converter,
-            ref bool firstItem)
+        private static void WriteArrayBetter(Array values, List<Action<Array, Action<object, int>, int>> writerFuncs, int level, int leafFirstRepLevel)
         {
-            var nullDefinitionLevel = nullDefinitionLevels[repetitionLevel];
-            var innerLeafFirstRepLevel = firstItem ? leafFirstRepLevel : repetitionLevel;
+            writerFuncs[level](values, (val, leafLevel) => WriteArrayBetter((Array)val, writerFuncs, level + 1, leafLevel), leafFirstRepLevel);
+        }
 
-            if (item != null)
+        private List<Action<Array, Action<object, int>, int>> GetArrayWriterFunctions(ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, int repetitionLevel, int nullDefinitionLevel)
+        {
+            var ret = new List<Action<Array, Action<object, int>, int>>();
+
+            if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                var nextLevel = (short) (repetitionLevel + 1);
-                if (nextLevel == maxRepetitionLevel)
+                if (schemaNodes.Length >= 2
+                    && (schemaNodes[0] is GroupNode g1) && g1.LogicalType == LogicalType.List && g1.Repetition == Repetition.Optional
+                    && (schemaNodes[1] is GroupNode g2) && g2.LogicalType == LogicalType.None && g2.Repetition == Repetition.Repeated)
                 {
-                    WriteArrayFinalLevel<TLogical>(
-                        (TLogical[]) item,
-                        nextLevel, innerLeafFirstRepLevel, leafDefinitionLevel,
-                        converter,
-                        nullDefinitionLevels[nextLevel]);
+                    ret.Add((values, writeNested, firstLeafRepLevel) =>
+                    {
+                        var columnWriter = (ColumnWriter<TPhysical>)Source;
+
+                        for (var i = 0; i < values.Length; i++)
+                        {
+                            var currentRepLevel = i > 0 ? repetitionLevel : firstLeafRepLevel;
+
+                            var item = values.GetValue(i);
+
+                            if (item != null)
+                            {
+                                if (!(item is Array a))
+                                {
+                                    throw new Exception("non-array encountered at non-leaf level");
+                                }
+                                if (a.Length > 0)
+                                {
+                                    writeNested(item, currentRepLevel);
+                                }
+                                else
+                                {
+                                    columnWriter.WriteBatchSpaced(1, new[] { (short)(nullDefinitionLevel+1) }, new[] { (short)currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
+                                }
+                            }
+                            else
+                            {
+                                columnWriter.WriteBatchSpaced(1, new[] { (short)nullDefinitionLevel }, new[] { (short)currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
+                            }
+                        }
+                    });
+
+                    var containedSchemaNodes = schemaNodes.Slice(2);
+                    var containedType = elementType.GetElementType();
+
+                    ret.AddRange(GetArrayWriterFunctions(containedSchemaNodes, containedType, converter, repetitionLevel+1, nullDefinitionLevel+2));
+
+                    return ret;
                 }
-                else
-                {
-                    WriteArrayIntermediateLevel(
-                        item,
-                        nextLevel, maxRepetitionLevel, innerLeafFirstRepLevel,
-                        nullDefinitionLevels, leafDefinitionLevel,
-                        converter);
-                }
+
+                throw new Exception("elementType is an array but schema does not match the expected layout");
             }
-            else
+
+            if (schemaNodes.Length == 1)
             {
-                if (nullDefinitionLevel == -1)
+                bool isOptional = schemaNodes[0].Repetition == Repetition.Optional;
+
+                ret.Add((values, writeNested, leafFirstRepLevel) =>
                 {
-                    throw new Exception("Array is null but the schema says it is a required value.");
-                }
+                    if (isOptional)
+                    {
+                        WriteArrayFinalLevel<TLogical>((TLogical[])values, (short)repetitionLevel, (short)leafFirstRepLevel, (short)(nullDefinitionLevel + 1), converter, (short)nullDefinitionLevel);
+                    }
+                    else
+                    {
+                        WriteArrayFinalLevel<TLogical>((TLogical[])values, (short)repetitionLevel, (short)leafFirstRepLevel, (short)(nullDefinitionLevel), converter, -1);
+                    }
+                });
 
-                var columnWriter = (ColumnWriter<TPhysical>) Source;
-
-                columnWriter.WriteBatchSpaced(
-                    1, new[] {nullDefinitionLevel}, new[] {innerLeafFirstRepLevel},
-                    new byte[] {0}, 0, new TPhysical[] { });
+                return ret;
             }
 
-            firstItem = false;
+            throw new Exception("ParquetSharp does not understand the schema used");
         }
 
         /// <summary>
