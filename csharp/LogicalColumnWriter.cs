@@ -152,37 +152,7 @@ namespace ParquetSharp
                     && (schemaNodes[0] is GroupNode g1) && g1.LogicalType == LogicalType.List && g1.Repetition == Repetition.Optional
                     && (schemaNodes[1] is GroupNode g2) && g2.LogicalType == LogicalType.None && g2.Repetition == Repetition.Repeated)
                 {
-                    ret.Add((values, writeNested, firstLeafRepLevel) =>
-                    {
-                        var columnWriter = (ColumnWriter<TPhysical>)Source;
-
-                        for (var i = 0; i < values.Length; i++)
-                        {
-                            var currentRepLevel = i > 0 ? repetitionLevel : firstLeafRepLevel;
-
-                            var item = values.GetValue(i);
-
-                            if (item != null)
-                            {
-                                if (!(item is Array a))
-                                {
-                                    throw new Exception("non-array encountered at non-leaf level");
-                                }
-                                if (a.Length > 0)
-                                {
-                                    writeNested(item, currentRepLevel);
-                                }
-                                else
-                                {
-                                    columnWriter.WriteBatchSpaced(1, new[] { (short)(nullDefinitionLevel+1) }, new[] { currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
-                                }
-                            }
-                            else
-                            {
-                                columnWriter.WriteBatchSpaced(1, new[] { nullDefinitionLevel }, new[] { currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
-                            }
-                        }
-                    });
+                    ret.Add((values, writeNested, firstLeafRepLevel) => WriteArrayIntermediateLevel(values, writeNested, nullDefinitionLevel, repetitionLevel, firstLeafRepLevel));
 
                     var containedSchemaNodes = schemaNodes.Slice(2);
                     var containedType = elementType.GetElementType();
@@ -216,6 +186,38 @@ namespace ParquetSharp
             }
 
             throw new Exception("ParquetSharp does not understand the schema used");
+        }
+
+        private void WriteArrayIntermediateLevel(Array values, Action<object, short> writeNested, short nullDefinitionLevel, short repetitionLevel, short firstLeafRepLevel)
+        {
+            var columnWriter = (ColumnWriter<TPhysical>)Source;
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                var currentRepLevel = i > 0 ? repetitionLevel : firstLeafRepLevel;
+
+                var item = values.GetValue(i);
+
+                if (item != null)
+                {
+                    if (!(item is Array a))
+                    {
+                        throw new Exception("non-array encountered at non-leaf level");
+                    }
+                    if (a.Length > 0)
+                    {
+                        writeNested(item, currentRepLevel);
+                    }
+                    else
+                    {
+                        columnWriter.WriteBatchSpaced(1, new[] { (short)(nullDefinitionLevel + 1) }, new[] { currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
+                    }
+                }
+                else
+                {
+                    columnWriter.WriteBatchSpaced(1, new[] { nullDefinitionLevel }, new[] { currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
+                }
+            }
         }
 
         /// <summary>
