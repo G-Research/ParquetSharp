@@ -202,16 +202,14 @@ namespace ParquetSharp
                 if (isOptional)
                 {
                     ret.Add((values, writeNested, leafFirstRepLevel) =>
-                    {
-                        WriteArrayFinalLevel(values, repetitionLevel, leafFirstRepLevel, (short)(nullDefinitionLevel + 1), converter, nullDefinitionLevel);
-                    });
+                        WriteArrayFinalLevel(values, repetitionLevel, leafFirstRepLevel, (short)(nullDefinitionLevel + 1), converter, nullDefinitionLevel)
+                    );
                 }
                 else
                 {
                     ret.Add((values, writeNested, leafFirstRepLevel) =>
-                    {
-                        WriteArrayFinalLevel(values, repetitionLevel, leafFirstRepLevel, nullDefinitionLevel, converter, -1);
-                    });
+                        WriteArrayFinalLevel(values, repetitionLevel, leafFirstRepLevel, nullDefinitionLevel, converter, -1)
+                    );
                 }
 
                 return ret;
