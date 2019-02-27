@@ -137,14 +137,14 @@ namespace ParquetSharp
             WriteArrayBetter(values.ToArray(), writerFuncs, 0, 0);
         }
 
-        private static void WriteArrayBetter(Array values, List<Action<Array, Action<object, int>, int>> writerFuncs, int level, int leafFirstRepLevel)
+        private static void WriteArrayBetter(Array values, List<Action<Array, Action<object, short>, short>> writerFuncs, int level, short leafFirstRepLevel)
         {
             writerFuncs[level](values, (val, leafLevel) => WriteArrayBetter((Array)val, writerFuncs, level + 1, leafLevel), leafFirstRepLevel);
         }
 
-        private List<Action<Array, Action<object, int>, int>> GetArrayWriterFunctions(ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, int repetitionLevel, int nullDefinitionLevel)
+        private List<Action<Array, Action<object, short>, short>> GetArrayWriterFunctions(ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, short repetitionLevel, short nullDefinitionLevel)
         {
-            var ret = new List<Action<Array, Action<object, int>, int>>();
+            var ret = new List<Action<Array, Action<object, short>, short>>();
 
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
@@ -174,12 +174,12 @@ namespace ParquetSharp
                                 }
                                 else
                                 {
-                                    columnWriter.WriteBatchSpaced(1, new[] { (short)(nullDefinitionLevel+1) }, new[] { (short)currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
+                                    columnWriter.WriteBatchSpaced(1, new[] { (short)(nullDefinitionLevel+1) }, new[] { currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
                                 }
                             }
                             else
                             {
-                                columnWriter.WriteBatchSpaced(1, new[] { (short)nullDefinitionLevel }, new[] { (short)currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
+                                columnWriter.WriteBatchSpaced(1, new[] { nullDefinitionLevel }, new[] { currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
                             }
                         }
                     });
@@ -187,7 +187,7 @@ namespace ParquetSharp
                     var containedSchemaNodes = schemaNodes.Slice(2);
                     var containedType = elementType.GetElementType();
 
-                    ret.AddRange(GetArrayWriterFunctions(containedSchemaNodes, containedType, converter, repetitionLevel+1, nullDefinitionLevel+2));
+                    ret.AddRange(GetArrayWriterFunctions(containedSchemaNodes, containedType, converter, (short)(repetitionLevel+1), (short)(nullDefinitionLevel+2)));
 
                     return ret;
                 }
@@ -199,17 +199,20 @@ namespace ParquetSharp
             {
                 bool isOptional = schemaNodes[0].Repetition == Repetition.Optional;
 
-                ret.Add((values, writeNested, leafFirstRepLevel) =>
+                if (isOptional)
                 {
-                    if (isOptional)
+                    ret.Add((values, writeNested, leafFirstRepLevel) =>
                     {
-                        WriteArrayFinalLevel<TLogical>((TLogical[])values, (short)repetitionLevel, (short)leafFirstRepLevel, (short)(nullDefinitionLevel + 1), converter, (short)nullDefinitionLevel);
-                    }
-                    else
+                        WriteArrayFinalLevel(values, repetitionLevel, leafFirstRepLevel, (short)(nullDefinitionLevel + 1), converter, nullDefinitionLevel);
+                    });
+                }
+                else
+                {
+                    ret.Add((values, writeNested, leafFirstRepLevel) =>
                     {
-                        WriteArrayFinalLevel<TLogical>((TLogical[])values, (short)repetitionLevel, (short)leafFirstRepLevel, (short)(nullDefinitionLevel), converter, -1);
-                    }
-                });
+                        WriteArrayFinalLevel(values, repetitionLevel, leafFirstRepLevel, nullDefinitionLevel, converter, -1);
+                    });
+                }
 
                 return ret;
             }
@@ -220,33 +223,28 @@ namespace ParquetSharp
         /// <summary>
         /// Write implementation for writing the deepest level array.
         /// </summary>
-        private void WriteArrayFinalLevel<TTLogical>(
-            ReadOnlySpan<TTLogical> values, 
+        private void WriteArrayFinalLevel(
+            Array values, 
             short repetitionLevel, short leafFirstRepLevel, 
             short leafDefinitionLevel, 
             LogicalWrite<TLogical, TPhysical>.Converter converter, 
             short nullDefinitionLevel)
         {
-            if (typeof(TTLogical) != typeof(TLogical)) throw new ArgumentException("generic logical type should never be different");
+            ReadOnlySpan<TLogical> valuesSpan = (TLogical[])values;
+
             if (converter == null) throw new ArgumentNullException(nameof(converter));
-            if (nullDefinitionLevel != -1 && DefLevels == null) throw new ArgumentException("internal error: DefLevels should not be null.");
+            if (DefLevels == null) throw new ArgumentException("internal error: DefLevels should not be null.");
 
             var rowsWritten = 0;
             var columnWriter = (ColumnWriter<TPhysical>) Source;
             var buffer = (TPhysical[]) Buffer;
-            var convert = converter as LogicalWrite<TTLogical, TPhysical>.Converter;
             var firstItem = true;
-
-            if (convert == null)
-            {
-                throw new InvalidCastException("generic logical type should never be different");
-            }
 
             while (rowsWritten < values.Length)
             {
                 var bufferLength = Math.Min(values.Length - rowsWritten, buffer.Length);
 
-                convert(values.Slice(rowsWritten, bufferLength), DefLevels, buffer, nullDefinitionLevel);
+                converter(valuesSpan.Slice(rowsWritten, bufferLength), DefLevels, buffer, nullDefinitionLevel);
 
                 for (int i = 0; i < bufferLength; i++)
                 {
