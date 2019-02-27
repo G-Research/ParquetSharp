@@ -108,7 +108,8 @@ namespace ParquetSharp
             // Handle arrays separately
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
             {
-                WriteArray(values, ColumnDescriptor.SchemaNode, converter);
+                var schemaNodes = GetSchemaNode(ColumnDescriptor.SchemaNode).ToArray();
+                WriteArray(values.ToArray(), schemaNodes, 0, typeof(TElement), converter, 0, 0, 0);
             }
             else
             {
@@ -128,14 +129,7 @@ namespace ParquetSharp
             return schemaNodes;
         }
 
-        private void WriteArray(ReadOnlySpan<TElement> values, Node schemaNode, LogicalWrite<TLogical, TPhysical>.Converter converter)
-        {
-            var schemaNodes = GetSchemaNode(schemaNode).ToArray();
-
-            WriteArrayRefactor(values.ToArray(), schemaNodes, 0, typeof(TElement), converter, 0, 0, 0);
-        }
-
-        private void WriteArrayRefactor(Array array, Node[] schemaNodes, int schemaNodeIndex, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, short repetitionLevel, short nullDefinitionLevel, short firstLeafRepLevel)
+        private void WriteArray(Array array, Node[] schemaNodes, int schemaNodeIndex, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, short repetitionLevel, short nullDefinitionLevel, short firstLeafRepLevel)
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
@@ -147,11 +141,7 @@ namespace ParquetSharp
 
                     WriteArrayIntermediateLevel(
                         array,
-                        (val, leafLevel) => WriteArrayRefactor(
-                            val, schemaNodes, schemaNodeIndex+2, 
-                            containedType, converter, (short)(repetitionLevel + 1), 
-                            (short)(nullDefinitionLevel + 2), leafLevel
-                        ),
+                        (val, leafLevel) => WriteArray(val, schemaNodes, schemaNodeIndex+2, containedType, converter, (short)(repetitionLevel + 1), (short)(nullDefinitionLevel + 2), leafLevel),
                         nullDefinitionLevel,
                         repetitionLevel,
                         firstLeafRepLevel
