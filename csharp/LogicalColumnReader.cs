@@ -177,39 +177,7 @@ namespace ParquetSharp
                     && g1.Repetition == Repetition.Optional && (schemaNodes[1] is GroupNode g2)
                     && g2.LogicalType == LogicalType.None && g2.Repetition == Repetition.Repeated)
                 {
-                    ret.Add((readNestedLevel) =>
-                    {
-                        var acc = new List<Array>();
-
-                        while (numArrayEntriesToRead == -1 || acc.Count < numArrayEntriesToRead)
-                        {
-                            var defn = valueReader.GetCurrentDefinition();
-
-                            Array newItem = null;
-
-                            if (defn.DefLevel >= nullDefinitionLevel + 2)
-                            {
-                                newItem = readNestedLevel();
-                            }
-                            else
-                            {
-                                if (defn.DefLevel == nullDefinitionLevel + 1)
-                                {
-                                    newItem = CreateEmptyArray(elementType);
-                                }
-                                valueReader.NextDefinition();
-                            }
-
-                            acc.Add(newItem);
-
-                            if (valueReader.IsEofDefinition || valueReader.GetCurrentDefinition().RepLevel < repetitionLevel)
-                            {
-                                break;
-                            }
-                        }
-
-                        return ListToArray(acc, elementType);
-                    });
+                    ret.Add((readNestedLevel) => ReadArrayIntermediateLevel(valueReader, elementType, numArrayEntriesToRead, (short)repetitionLevel, (short)nullDefinitionLevel, readNestedLevel));
 
                     var containedSchemaNodes = schemaNodes.Slice(2);
                     var containedType = elementType.GetElementType();
@@ -228,44 +196,83 @@ namespace ParquetSharp
 
                 ret.Add((readNestedLevel) =>
                 {
-                    var defnLevel = new List<short>();
-                    var values = new List<TPhysical>();
-                    var firstValue = true;
-
-                    while (!valueReader.IsEofDefinition)
-                    {
-                        var defn = valueReader.GetCurrentDefinition();
-
-                        if (!firstValue && defn.RepLevel < repetitionLevel)
-                        {
-                            break;
-                        }
-
-                        if (defn.DefLevel < nullDefinitionLevel)
-                        {
-                            throw new Exception("Invalid input stream.");
-                        }
-
-                        if (defn.DefLevel > nullDefinitionLevel || !optional)
-                        {
-                            values.Add(valueReader.ReadValue());
-                        }
-
-                        defnLevel.Add(defn.DefLevel);
-
-                        valueReader.NextDefinition();
-                        firstValue = false;
-                    }
-
-                    var dest = new TLogical[defnLevel.Count];
-                    converter(values.ToArray(), defnLevel.ToArray(), dest, (short)nullDefinitionLevel);
-                    return dest;
+                    return ReadArrayLeafLevel(valueReader, converter, optional, (short)repetitionLevel, (short)nullDefinitionLevel);
                 });
 
                 return ret;
             }
 
             throw new Exception("ParquetSharp does not understand the schema used");
+        }
+
+        private static Array ReadArrayIntermediateLevel(BufferedReader<TPhysical> valueReader, Type elementType, int numArrayEntriesToRead, short repetitionLevel, short nullDefinitionLevel, Func<Array> readNestedLevel)
+        {
+            var acc = new List<Array>();
+
+            while (numArrayEntriesToRead == -1 || acc.Count < numArrayEntriesToRead)
+            {
+                var defn = valueReader.GetCurrentDefinition();
+
+                Array newItem = null;
+
+                if (defn.DefLevel >= nullDefinitionLevel + 2)
+                {
+                    newItem = readNestedLevel();
+                }
+                else
+                {
+                    if (defn.DefLevel == nullDefinitionLevel + 1)
+                    {
+                        newItem = CreateEmptyArray(elementType);
+                    }
+                    valueReader.NextDefinition();
+                }
+
+                acc.Add(newItem);
+
+                if (valueReader.IsEofDefinition || valueReader.GetCurrentDefinition().RepLevel < repetitionLevel)
+                {
+                    break;
+                }
+            }
+
+            return ListToArray(acc, elementType);
+        }
+
+        private static Array ReadArrayLeafLevel(BufferedReader<TPhysical> valueReader, LogicalRead<TLogical, TPhysical>.Converter converter, bool optional, short repetitionLevel, short nullDefinitionLevel)
+        {
+            var defnLevel = new List<short>();
+            var values = new List<TPhysical>();
+            var firstValue = true;
+
+            while (!valueReader.IsEofDefinition)
+            {
+                var defn = valueReader.GetCurrentDefinition();
+
+                if (!firstValue && defn.RepLevel < repetitionLevel)
+                {
+                    break;
+                }
+
+                if (defn.DefLevel < nullDefinitionLevel)
+                {
+                    throw new Exception("Invalid input stream.");
+                }
+
+                if (defn.DefLevel > nullDefinitionLevel || !optional)
+                {
+                    values.Add(valueReader.ReadValue());
+                }
+
+                defnLevel.Add(defn.DefLevel);
+
+                valueReader.NextDefinition();
+                firstValue = false;
+            }
+
+            var dest = new TLogical[defnLevel.Count];
+            converter(values.ToArray(), defnLevel.ToArray(), dest, (short)nullDefinitionLevel);
+            return dest;
         }
 
         private static Array ListToArray(List<Array> list, Type elementType)
