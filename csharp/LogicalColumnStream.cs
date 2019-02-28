@@ -50,6 +50,6 @@ namespace ParquetSharp
         protected readonly short[] DefLevels;
         protected readonly short[] RepLevels;
 
-        protected Schema.Node[] ArraySchemaNodes;
+        protected readonly Schema.Node[] ArraySchemaNodes;
     }
 }
