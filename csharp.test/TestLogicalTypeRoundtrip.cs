@@ -150,7 +150,7 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestAwkwardArrayRoundtrip()
+        public static void TestArrayEdgeCasesRoundtrip()
         {
             /*
              * [None, [], [1.0, None, 2.0]]

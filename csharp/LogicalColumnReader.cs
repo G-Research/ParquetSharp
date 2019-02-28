@@ -276,7 +276,7 @@ namespace ParquetSharp
                 return Array.CreateInstance(elementType.GetElementType(), 0);
             }
 
-            throw new NotImplementedException();
+            throw new ArgumentException(nameof(elementType));
         }
 
         /// <summary>
