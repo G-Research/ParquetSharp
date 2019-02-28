@@ -109,7 +109,7 @@ namespace ParquetSharp
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
             {
                 var schemaNodes = GetSchemaNode(ColumnDescriptor.SchemaNode).ToArray();
-                WriteArray(values.ToArray(), schemaNodes, 0, typeof(TElement), converter, 0, 0, 0);
+                WriteArray(values.ToArray(), schemaNodes, typeof(TElement), converter, 0, 0, 0);
             }
             else
             {
@@ -129,20 +129,19 @@ namespace ParquetSharp
             return schemaNodes;
         }
 
-        private void WriteArray(Array array, Node[] schemaNodes, int schemaNodeIndex, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, short repetitionLevel, short nullDefinitionLevel, short firstLeafRepLevel)
+        private void WriteArray(Array array, ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, short repetitionLevel, short nullDefinitionLevel, short firstLeafRepLevel)
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                if (schemaNodes.Length >= 2 + schemaNodeIndex
-                    && (schemaNodes[schemaNodeIndex+0] is GroupNode g1) && g1.LogicalType == LogicalType.List && g1.Repetition == Repetition.Optional
-                    && (schemaNodes[schemaNodeIndex+1] is GroupNode g2) && g2.LogicalType == LogicalType.None && g2.Repetition == Repetition.Repeated)
+                if (schemaNodes.Length >= 2
+                    && (schemaNodes[0] is GroupNode g1) && g1.LogicalType == LogicalType.List && g1.Repetition == Repetition.Optional
+                    && (schemaNodes[1] is GroupNode g2) && g2.LogicalType == LogicalType.None && g2.Repetition == Repetition.Repeated)
                 {
                     var containedType = elementType.GetElementType();
 
                     WriteArrayIntermediateLevel(
                         array,
-                        schemaNodes,
-                        schemaNodeIndex+2,
+                        schemaNodes.Slice(2),
                         containedType,
                         converter,
                         nullDefinitionLevel,
@@ -156,9 +155,9 @@ namespace ParquetSharp
                 throw new Exception("elementType is an array but schema does not match the expected layout");
             }
 
-            if (schemaNodes.Length == 1 + schemaNodeIndex)
+            if (schemaNodes.Length == 1)
             {
-                bool isOptional = schemaNodes[schemaNodeIndex].Repetition == Repetition.Optional;
+                bool isOptional = schemaNodes[0].Repetition == Repetition.Optional;
 
                 if (isOptional)
                 {
@@ -175,7 +174,7 @@ namespace ParquetSharp
             throw new Exception("ParquetSharp does not understand the schema used");
         }
 
-        private void WriteArrayIntermediateLevel(Array values, Node[] schemaNodes, int schemaNodeIndex, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, short nullDefinitionLevel, short repetitionLevel, short firstLeafRepLevel)
+        private void WriteArrayIntermediateLevel(Array values, ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, short nullDefinitionLevel, short repetitionLevel, short firstLeafRepLevel)
         {
             var columnWriter = (ColumnWriter<TPhysical>)Source;
 
@@ -193,7 +192,7 @@ namespace ParquetSharp
                     }
                     if (a.Length > 0)
                     {
-                        WriteArray(a, schemaNodes, schemaNodeIndex, elementType, converter, (short)(repetitionLevel + 1), (short)(nullDefinitionLevel + 2), currentLeafRepLevel);
+                        WriteArray(a, schemaNodes, elementType, converter, (short)(repetitionLevel + 1), (short)(nullDefinitionLevel + 2), currentLeafRepLevel);
                     }
                     else
                     {
