@@ -159,14 +159,10 @@ namespace ParquetSharp
             {
                 bool isOptional = schemaNodes[0].Repetition == Repetition.Optional;
 
-                if (isOptional)
-                {
-                    WriteArrayFinalLevel(array, repetitionLevel, firstLeafRepLevel, (short)(nullDefinitionLevel + 1), converter, nullDefinitionLevel);
-                }
-                else
-                {
-                    WriteArrayFinalLevel(array, repetitionLevel, firstLeafRepLevel, nullDefinitionLevel, converter, -1);
-                }
+                short leafDefinitionLevel = isOptional ? (short)(nullDefinitionLevel + 1) : nullDefinitionLevel;
+                short leafNullDefinitionLevel = isOptional ? nullDefinitionLevel : (short)-1;
+
+                WriteArrayFinalLevel(array, repetitionLevel, firstLeafRepLevel, leafDefinitionLevel, converter, leafNullDefinitionLevel);
 
                 return;
             }
