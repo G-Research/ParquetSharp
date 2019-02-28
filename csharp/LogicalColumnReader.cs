@@ -137,25 +137,12 @@ namespace ParquetSharp
             return ReadBatchSimple(destination, converter as LogicalRead<TElement, TPhysical>.Converter);
         }
 
-        private static List<Node> GetSchemaNode(Node node)
-        {
-            var schemaNodes = new List<Node>();
-            for (; node != null; node = node.Parent)
-            {
-                schemaNodes.Add(node);
-            }
-            schemaNodes.RemoveAt(schemaNodes.Count - 1); // we don't need the schema root
-            schemaNodes.Reverse(); // root to leaf
-            return schemaNodes;
-        }
-
         private int ReadBatchArray(Span<TElement> destination, LogicalRead<TLogical, TPhysical>.Converter converter)
         {
-            var schemaNodes = GetSchemaNode(ColumnDescriptor.SchemaNode).ToArray();
-
-            var result = (Span<TElement>)ReadArray(schemaNodes, typeof(TElement), converter, _bufferedReader, destination.Length, 0, 0);
+            var result = (Span<TElement>)ReadArray(ArraySchemaNodes, typeof(TElement), converter, _bufferedReader, destination.Length, 0, 0);
 
             result.CopyTo(destination);
+
             return result.Length;
         }
 

@@ -108,25 +108,12 @@ namespace ParquetSharp
             // Handle arrays separately
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
             {
-                var schemaNodes = GetSchemaNode(ColumnDescriptor.SchemaNode).ToArray();
-                WriteArray(values.ToArray(), schemaNodes, typeof(TElement), converter, 0, 0, 0);
+                WriteArray(values.ToArray(), ArraySchemaNodes, typeof(TElement), converter, 0, 0, 0);
             }
             else
             {
                 WriteBatchSimple(values, converter as LogicalWrite<TElement, TPhysical>.Converter);
             }
-        }
-
-        private static List<Node> GetSchemaNode(Node node)
-        {
-            var schemaNodes = new List<Node>();
-            for (; node != null; node = node.Parent)
-            {
-                schemaNodes.Add(node);
-            }
-            schemaNodes.RemoveAt(schemaNodes.Count - 1); // we don't need the schema root
-            schemaNodes.Reverse(); // root to leaf
-            return schemaNodes;
         }
 
         private void WriteArray(Array array, ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, short repetitionLevel, short nullDefinitionLevel, short firstLeafRepLevel)
