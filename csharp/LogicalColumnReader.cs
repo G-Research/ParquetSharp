@@ -153,32 +153,32 @@ namespace ParquetSharp
         {
             var schemaNodes = GetSchemaNode(ColumnDescriptor.SchemaNode).ToArray();
 
-            var result = (Span<TElement>)ReadArray(schemaNodes, 0, typeof(TElement), converter, _bufferedReader, destination.Length, 0, 0);
+            var result = (Span<TElement>)ReadArray(schemaNodes, typeof(TElement), converter, _bufferedReader, destination.Length, 0, 0);
 
             result.CopyTo(destination);
             return result.Length;
         }
 
-        private static Array ReadArray(Node[] schemaNodes, int schemaNodeIndex, Type elementType, 
-            LogicalRead<TLogical, TPhysical>.Converter converter, BufferedReader<TPhysical> valueReader, int numArrayEntriesToRead, int repetitionLevel, int nullDefinitionLevel)
+        private static Array ReadArray(ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalRead<TLogical, TPhysical>.Converter converter, 
+            BufferedReader<TPhysical> valueReader, int numArrayEntriesToRead, int repetitionLevel, int nullDefinitionLevel)
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                if (schemaNodes.Length >= 2 + schemaNodeIndex && (schemaNodes[schemaNodeIndex+0] is GroupNode g1) && g1.LogicalType == LogicalType.List
-                    && g1.Repetition == Repetition.Optional && (schemaNodes[schemaNodeIndex+1] is GroupNode g2)
+                if (schemaNodes.Length >= 2 && (schemaNodes[0] is GroupNode g1) && g1.LogicalType == LogicalType.List
+                    && g1.Repetition == Repetition.Optional && (schemaNodes[1] is GroupNode g2)
                     && g2.LogicalType == LogicalType.None && g2.Repetition == Repetition.Repeated)
                 {
                     var containedType = elementType.GetElementType();
 
-                    return ReadArrayIntermediateLevel(schemaNodes, schemaNodeIndex, valueReader, elementType, converter, numArrayEntriesToRead, (short)repetitionLevel, (short)nullDefinitionLevel);
+                    return ReadArrayIntermediateLevel(schemaNodes, valueReader, elementType, converter, numArrayEntriesToRead, (short)repetitionLevel, (short)nullDefinitionLevel);
                 }
 
                 throw new Exception("elementType is an array but schema does not match the expected layout");
             }
 
-            if (schemaNodes.Length == schemaNodeIndex+1)
+            if (schemaNodes.Length == 1)
             {
-                bool optional = schemaNodes[schemaNodeIndex+0].Repetition == Repetition.Optional;
+                bool optional = schemaNodes[0].Repetition == Repetition.Optional;
 
                 return ReadArrayLeafLevel(valueReader, converter, optional, (short)repetitionLevel, (short)nullDefinitionLevel);
             }
@@ -186,7 +186,7 @@ namespace ParquetSharp
             throw new Exception("ParquetSharp does not understand the schema used");
         }
 
-        private static Array ReadArrayIntermediateLevel(Node[] schemaNodes, int schemaNodeIndex, BufferedReader<TPhysical> valueReader, Type elementType, 
+        private static Array ReadArrayIntermediateLevel(ReadOnlySpan<Node> schemaNodes, BufferedReader<TPhysical> valueReader, Type elementType, 
             LogicalRead<TLogical, TPhysical>.Converter converter, int numArrayEntriesToRead, short repetitionLevel, short nullDefinitionLevel)
         {
             var acc = new List<Array>();
@@ -199,7 +199,7 @@ namespace ParquetSharp
 
                 if (defn.DefLevel >= nullDefinitionLevel + 2)
                 {
-                    newItem = ReadArray(schemaNodes, schemaNodeIndex + 2, elementType.GetElementType(), converter, valueReader, -1, repetitionLevel + 1, nullDefinitionLevel + 2);
+                    newItem = ReadArray(schemaNodes.Slice(2), elementType.GetElementType(), converter, valueReader, -1, repetitionLevel + 1, nullDefinitionLevel + 2);
                 }
                 else
                 {
