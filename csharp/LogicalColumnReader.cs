@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using ParquetSharp.Schema;
 
 namespace ParquetSharp
 {
@@ -137,94 +139,109 @@ namespace ParquetSharp
 
         private int ReadBatchArray(Span<TElement> destination, LogicalRead<TLogical, TPhysical>.Converter converter)
         {
-            var result = (Span<TElement>) ReadArrayInternal(0, NestingDepth, NullDefinitionLevels, destination.Length, _bufferedReader, converter, typeof(TElement));
+            var result = (Span<TElement>)ReadArray(ArraySchemaNodes, typeof(TElement), converter, _bufferedReader, destination.Length, 0, 0);
+
             result.CopyTo(destination);
+
             return result.Length;
         }
 
-        private static Array ReadArrayInternal(
-            short repetitionLevel, short maxRepetitionLevel, short[] nullDefinitionLevels, int numArrayEntriesToRead, 
-            BufferedReader<TPhysical> valueReader, LogicalRead<TLogical, TPhysical>.Converter converter, Type elementType)
+        private static Array ReadArray(ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalRead<TLogical, TPhysical>.Converter converter, 
+            BufferedReader<TPhysical> valueReader, int numArrayEntriesToRead, int repetitionLevel, int nullDefinitionLevel)
         {
-            var nullDefinitionLevel = nullDefinitionLevels[repetitionLevel];
-
-            // Check if we are at the leaf schema node.
-            if (maxRepetitionLevel == repetitionLevel)
+            if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                var defnLevel = new List<short>();
-                var values = new List<TPhysical>();
-                var firstValue = true;
-
-                while (!valueReader.IsEofDefinition)
+                if (schemaNodes.Length >= 2 && (schemaNodes[0] is GroupNode g1) && g1.LogicalType == LogicalType.List
+                    && g1.Repetition == Repetition.Optional && (schemaNodes[1] is GroupNode g2)
+                    && g2.LogicalType == LogicalType.None && g2.Repetition == Repetition.Repeated)
                 {
-                    var defn = valueReader.GetCurrentDefinition();
+                    var containedType = elementType.GetElementType();
 
-                    if (!firstValue && defn.RepLevel < repetitionLevel)
+                    return ReadArrayIntermediateLevel(schemaNodes, valueReader, elementType, converter, numArrayEntriesToRead, (short)repetitionLevel, (short)nullDefinitionLevel);
+                }
+
+                throw new Exception("elementType is an array but schema does not match the expected layout");
+            }
+
+            if (schemaNodes.Length == 1)
+            {
+                bool optional = schemaNodes[0].Repetition == Repetition.Optional;
+
+                return ReadArrayLeafLevel(valueReader, converter, optional, (short)repetitionLevel, (short)nullDefinitionLevel);
+            }
+
+            throw new Exception("ParquetSharp does not understand the schema used");
+        }
+
+        private static Array ReadArrayIntermediateLevel(ReadOnlySpan<Node> schemaNodes, BufferedReader<TPhysical> valueReader, Type elementType, 
+            LogicalRead<TLogical, TPhysical>.Converter converter, int numArrayEntriesToRead, short repetitionLevel, short nullDefinitionLevel)
+        {
+            var acc = new List<Array>();
+
+            while (numArrayEntriesToRead == -1 || acc.Count < numArrayEntriesToRead)
+            {
+                var defn = valueReader.GetCurrentDefinition();
+
+                Array newItem = null;
+
+                if (defn.DefLevel >= nullDefinitionLevel + 2)
+                {
+                    newItem = ReadArray(schemaNodes.Slice(2), elementType.GetElementType(), converter, valueReader, -1, repetitionLevel + 1, nullDefinitionLevel + 2);
+                }
+                else
+                {
+                    if (defn.DefLevel == nullDefinitionLevel + 1)
                     {
-                        break;
+                        newItem = CreateEmptyArray(elementType);
                     }
-
-                    if (defn.DefLevel < nullDefinitionLevel)
-                    {
-                        throw new Exception("Invalid input stream.");
-                    }
-
-                    if (defn.DefLevel > nullDefinitionLevel)
-                    {
-                        values.Add(valueReader.ReadValue());
-                    }
-
-                    defnLevel.Add(defn.DefLevel);
-
                     valueReader.NextDefinition();
-                    firstValue = false;
                 }
 
-                var dest = new TLogical[defnLevel.Count];
-                converter(values.ToArray(), defnLevel.ToArray(), dest, nullDefinitionLevel);
-                return dest;
-            }
-            
-            // Else read the underlying levels.
-            {
-                var acc = new List<Array>();
+                acc.Add(newItem);
 
-                while (numArrayEntriesToRead == -1 || acc.Count < numArrayEntriesToRead)
+                if (valueReader.IsEofDefinition || valueReader.GetCurrentDefinition().RepLevel < repetitionLevel)
                 {
-                    var defn = valueReader.GetCurrentDefinition();
+                    break;
+                }
+            }
 
-                    if (defn.RepLevel > repetitionLevel)
-                    {
-                        throw new Exception("Invalid Parquet input - only homogenous jagged arrays supported.");
-                    }
+            return ListToArray(acc, elementType);
+        }
 
-                    if (defn.DefLevel > nullDefinitionLevel)
-                    {
-                        acc.Add(ReadArrayInternal(
-                            (short) (repetitionLevel + 1), maxRepetitionLevel, nullDefinitionLevels, -1,
-                            valueReader, converter, elementType.GetElementType()));
-                    }
-                    else
-                    {
-                        acc.Add(null);
-                        valueReader.NextDefinition();
-                    }
+        private static Array ReadArrayLeafLevel(BufferedReader<TPhysical> valueReader, LogicalRead<TLogical, TPhysical>.Converter converter, bool optional, short repetitionLevel, short nullDefinitionLevel)
+        {
+            var defnLevel = new List<short>();
+            var values = new List<TPhysical>();
+            var firstValue = true;
 
-                    if (valueReader.IsEofDefinition)
-                    {
-                        break;
-                    }
+            while (!valueReader.IsEofDefinition)
+            {
+                var defn = valueReader.GetCurrentDefinition();
 
-                    defn = valueReader.GetCurrentDefinition();
-
-                    if (defn.RepLevel < repetitionLevel)
-                    {
-                        break;
-                    }
+                if (!firstValue && defn.RepLevel < repetitionLevel)
+                {
+                    break;
                 }
 
-                return ListToArray(acc, elementType);
+                if (defn.DefLevel < nullDefinitionLevel)
+                {
+                    throw new Exception("Invalid input stream.");
+                }
+
+                if (defn.DefLevel > nullDefinitionLevel || !optional)
+                {
+                    values.Add(valueReader.ReadValue());
+                }
+
+                defnLevel.Add(defn.DefLevel);
+
+                valueReader.NextDefinition();
+                firstValue = false;
             }
+
+            var dest = new TLogical[defnLevel.Count];
+            converter(values.ToArray(), defnLevel.ToArray(), dest, (short)nullDefinitionLevel);
+            return dest;
         }
 
         private static Array ListToArray(List<Array> list, Type elementType)
@@ -237,6 +254,16 @@ namespace ParquetSharp
             }
 
             return result;
+        }
+
+        private static Array CreateEmptyArray(Type elementType)
+        {
+            if (elementType.IsArray)
+            {
+                return Array.CreateInstance(elementType.GetElementType(), 0);
+            }
+
+            throw new ArgumentException(nameof(elementType));
         }
 
         /// <summary>

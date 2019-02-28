@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using ParquetSharp.IO;
@@ -144,6 +144,76 @@ namespace ParquetSharp.Test
                 using (var columnReader = rowGroup.Column(0).LogicalReader<float[]>())
                 {
                     var allData = columnReader.ReadAll((int) rowGroup.MetaData.NumRows);
+                    Assert.AreEqual(expected, allData);
+                }
+            }
+        }
+
+        [Test]
+        public static void TestArrayEdgeCasesRoundtrip()
+        {
+            /*
+             * [None, [], [1.0, None, 2.0]]
+             * []
+             * None
+             * [[]]
+             */
+            var expected = new double?[][][] {
+                new double?[][] { null, new double?[] { }, new double?[] {1.0, null, 2.0} },
+                new double?[][] {},
+                null,
+                new double?[][] { new double?[] { } }
+            };
+
+            using (var buffer = new ResizableBuffer())
+            {
+                using (var outStream = new BufferOutputStream(buffer))
+                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column(typeof(double?[][]), "a") }))
+                using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[][]>())
+                {
+                    colWriter.WriteBatch(expected);
+                }
+
+                using (var inStream = new BufferReader(buffer))
+                using (var fileReader = new ParquetFileReader(inStream))
+                using (var rowGroup = fileReader.RowGroup(0))
+                using (var columnReader = rowGroup.Column(0).LogicalReader<double?[][]>())
+                {
+                    Assert.AreEqual(4, rowGroup.MetaData.NumRows);
+                    var allData = columnReader.ReadAll(4);
+                    Assert.AreEqual(expected, allData);
+                }
+            }
+        }
+
+        [Test]
+        public static void TestArrayOfEmptyStringArraysRoundtrip()
+        {
+            var expected = new string[][] {
+                new string[] {  },
+                new string[] {  },
+                new string[] {  },
+                new string[] {  }
+            };
+
+            using (var buffer = new ResizableBuffer())
+            {
+                using (var outStream = new BufferOutputStream(buffer))
+                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column(typeof(string[]), "a") }))
+                using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<string[]>())
+                {
+                    colWriter.WriteBatch(expected);
+                }
+
+                using (var inStream = new BufferReader(buffer))
+                using (var fileReader = new ParquetFileReader(inStream))
+                using (var rowGroup = fileReader.RowGroup(0))
+                using (var columnReader = rowGroup.Column(0).LogicalReader<string[]>())
+                {
+                    Assert.AreEqual(4, rowGroup.MetaData.NumRows);
+                    var allData = columnReader.ReadAll(4);
                     Assert.AreEqual(expected, allData);
                 }
             }

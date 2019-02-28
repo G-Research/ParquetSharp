@@ -16,7 +16,7 @@ namespace ParquetSharp
 
             if (elementType != typeof(byte[]) && elementType.IsArray)
             {
-                (NestingDepth, NullDefinitionLevels) = GetArraySchemaInfo(elementType, ColumnDescriptor.SchemaNode, ColumnDescriptor.MaxRepetitionLevel);
+                ArraySchemaNodes = GetSchemaNode(ColumnDescriptor.SchemaNode).ToArray();
             }
 
             Buffer = Array.CreateInstance(physicalType, bufferLength);
@@ -29,19 +29,7 @@ namespace ParquetSharp
             Source.Dispose();
         }
 
-        public TSource Source { get; }
-        public ColumnDescriptor ColumnDescriptor { get; }
-        public int BufferLength { get; }
-        public LogicalType LogicalType { get; }
-
-        protected readonly short NestingDepth;
-        protected readonly short[] NullDefinitionLevels;
-
-        protected readonly Array Buffer;
-        protected readonly short[] DefLevels;
-        protected readonly short[] RepLevels;
-
-        private static (short nestingDepth, short[] nullDefinitionLevels) GetArraySchemaInfo(Type elementType, Schema.Node node, int maxRepetitionLevel)
+        private static List<Schema.Node> GetSchemaNode(Schema.Node node)
         {
             var schemaNodes = new List<Schema.Node>();
             for (; node != null; node = node.Parent)
@@ -50,40 +38,18 @@ namespace ParquetSharp
             }
             schemaNodes.RemoveAt(schemaNodes.Count - 1); // we don't need the schema root
             schemaNodes.Reverse(); // root to leaf
-
-            var nestingDepth = schemaNodes.Count(n => n.LogicalType == LogicalType.List);
-            var nullDefinitionLevels = new short[nestingDepth + 1];
-            int nestingLevel = 0;
-
-            // By default mark every level as required.
-            for (int i = 0; i < nullDefinitionLevels.Length; i++)
-            {
-                nullDefinitionLevels[i] = -1;
-            }
-
-            for (int i = 0; i < schemaNodes.Count; i++)
-            {
-                if (schemaNodes[i].Repetition == Repetition.Optional)
-                {
-                    nullDefinitionLevels[nestingLevel++] = (short)i;
-                }
-            }
-
-            // Check the type matches
-            var maxRepLevel = maxRepetitionLevel;
-            var depth = 0;
-
-            for (var type = elementType; type != typeof(byte[]) && type.IsArray; type = type.GetElementType())
-            {
-                depth++;
-            }
-
-            if (nestingDepth != depth || depth != maxRepLevel)
-            {
-                throw new Exception("Schema does not match type we are trying to read into.");
-            }
-
-            return (checked((short) nestingDepth), nullDefinitionLevels);
+            return schemaNodes;
         }
+
+        public TSource Source { get; }
+        public ColumnDescriptor ColumnDescriptor { get; }
+        public int BufferLength { get; }
+        public LogicalType LogicalType { get; }
+
+        protected readonly Array Buffer;
+        protected readonly short[] DefLevels;
+        protected readonly short[] RepLevels;
+
+        protected readonly Schema.Node[] ArraySchemaNodes;
     }
 }
