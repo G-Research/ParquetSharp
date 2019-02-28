@@ -141,7 +141,10 @@ namespace ParquetSharp
 
                     WriteArrayIntermediateLevel(
                         array,
-                        (val, leafLevel) => WriteArray(val, schemaNodes, schemaNodeIndex+2, containedType, converter, (short)(repetitionLevel + 1), (short)(nullDefinitionLevel + 2), leafLevel),
+                        schemaNodes,
+                        schemaNodeIndex+2,
+                        containedType,
+                        converter,
                         nullDefinitionLevel,
                         repetitionLevel,
                         firstLeafRepLevel
@@ -172,13 +175,13 @@ namespace ParquetSharp
             throw new Exception("ParquetSharp does not understand the schema used");
         }
 
-        private void WriteArrayIntermediateLevel(Array values, Action<Array, short> writeNested, short nullDefinitionLevel, short repetitionLevel, short firstLeafRepLevel)
+        private void WriteArrayIntermediateLevel(Array values, Node[] schemaNodes, int schemaNodeIndex, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, short nullDefinitionLevel, short repetitionLevel, short firstLeafRepLevel)
         {
             var columnWriter = (ColumnWriter<TPhysical>)Source;
 
             for (var i = 0; i < values.Length; i++)
             {
-                var currentRepLevel = i > 0 ? repetitionLevel : firstLeafRepLevel;
+                var currentLeafRepLevel = i > 0 ? repetitionLevel : firstLeafRepLevel;
 
                 var item = values.GetValue(i);
 
@@ -190,16 +193,16 @@ namespace ParquetSharp
                     }
                     if (a.Length > 0)
                     {
-                        writeNested(a, currentRepLevel);
+                        WriteArray(a, schemaNodes, schemaNodeIndex, elementType, converter, (short)(repetitionLevel + 1), (short)(nullDefinitionLevel + 2), currentLeafRepLevel);
                     }
                     else
                     {
-                        columnWriter.WriteBatchSpaced(1, new[] { (short)(nullDefinitionLevel + 1) }, new[] { currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
+                        columnWriter.WriteBatchSpaced(1, new[] { (short)(nullDefinitionLevel + 1) }, new[] { currentLeafRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
                     }
                 }
                 else
                 {
-                    columnWriter.WriteBatchSpaced(1, new[] { nullDefinitionLevel }, new[] { currentRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
+                    columnWriter.WriteBatchSpaced(1, new[] { nullDefinitionLevel }, new[] { currentLeafRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
                 }
             }
         }
