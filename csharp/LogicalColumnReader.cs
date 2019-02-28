@@ -153,18 +153,13 @@ namespace ParquetSharp
         {
             var schemaNodes = GetSchemaNode(ColumnDescriptor.SchemaNode).ToArray();
 
-            var result = (Span<TElement>)GetArrayReaderFuncs(schemaNodes, 0, typeof(TElement), converter, _bufferedReader, destination.Length, 0, 0);
+            var result = (Span<TElement>)ReadArray(schemaNodes, 0, typeof(TElement), converter, _bufferedReader, destination.Length, 0, 0);
 
             result.CopyTo(destination);
             return result.Length;
         }
 
-        private static Array ReadArrayBetter(List<Func<Func<Array>, Array>> arrayReaderFuncs, int level, LogicalRead<TLogical, TPhysical>.Converter converter)
-        {
-            return arrayReaderFuncs[level](() => ReadArrayBetter(arrayReaderFuncs, level+1, converter));
-        }
-
-        private static Array GetArrayReaderFuncs(Node[] schemaNodes, int schemaNodeIndex, Type elementType, 
+        private static Array ReadArray(Node[] schemaNodes, int schemaNodeIndex, Type elementType, 
             LogicalRead<TLogical, TPhysical>.Converter converter, BufferedReader<TPhysical> valueReader, int numArrayEntriesToRead, int repetitionLevel, int nullDefinitionLevel)
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
@@ -175,9 +170,8 @@ namespace ParquetSharp
                 {
                     var containedType = elementType.GetElementType();
 
-                    return ReadArrayIntermediateLevel(valueReader, elementType, numArrayEntriesToRead, (short)repetitionLevel, (short)nullDefinitionLevel, () => {
-                        return GetArrayReaderFuncs(schemaNodes, schemaNodeIndex + 2, containedType, converter, valueReader, -1, repetitionLevel + 1, nullDefinitionLevel + 2);
-                    });
+                    return ReadArrayIntermediateLevel(valueReader, elementType, numArrayEntriesToRead, (short)repetitionLevel, (short)nullDefinitionLevel, 
+                        () => ReadArray(schemaNodes, schemaNodeIndex + 2, containedType, converter, valueReader, -1, repetitionLevel + 1, nullDefinitionLevel + 2));
                 }
 
                 throw new Exception("elementType is an array but schema does not match the expected layout");
