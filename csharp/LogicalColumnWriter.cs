@@ -192,15 +192,18 @@ namespace ParquetSharp
                     }
                     if (a.Length > 0)
                     {
+                        // We have a positive length array, call the top level array writer on its values
                         WriteArray(a, schemaNodes, elementType, converter, (short)(repetitionLevel + 1), (short)(nullDefinitionLevel + 2), currentLeafRepLevel);
                     }
                     else
                     {
+                        // Write that we have a zero length array
                         columnWriter.WriteBatchSpaced(1, new[] { (short)(nullDefinitionLevel + 1) }, new[] { currentLeafRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
                     }
                 }
                 else
                 {
+                    // Write that this item is null
                     columnWriter.WriteBatchSpaced(1, new[] { nullDefinitionLevel }, new[] { currentLeafRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
                 }
             }
