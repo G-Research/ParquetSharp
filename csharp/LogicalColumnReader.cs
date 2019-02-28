@@ -170,8 +170,7 @@ namespace ParquetSharp
                 {
                     var containedType = elementType.GetElementType();
 
-                    return ReadArrayIntermediateLevel(valueReader, elementType, numArrayEntriesToRead, (short)repetitionLevel, (short)nullDefinitionLevel, 
-                        () => ReadArray(schemaNodes, schemaNodeIndex + 2, containedType, converter, valueReader, -1, repetitionLevel + 1, nullDefinitionLevel + 2));
+                    return ReadArrayIntermediateLevel(schemaNodes, schemaNodeIndex, valueReader, elementType, converter, numArrayEntriesToRead, (short)repetitionLevel, (short)nullDefinitionLevel);
                 }
 
                 throw new Exception("elementType is an array but schema does not match the expected layout");
@@ -187,7 +186,8 @@ namespace ParquetSharp
             throw new Exception("ParquetSharp does not understand the schema used");
         }
 
-        private static Array ReadArrayIntermediateLevel(BufferedReader<TPhysical> valueReader, Type elementType, int numArrayEntriesToRead, short repetitionLevel, short nullDefinitionLevel, Func<Array> readNestedLevel)
+        private static Array ReadArrayIntermediateLevel(Node[] schemaNodes, int schemaNodeIndex, BufferedReader<TPhysical> valueReader, Type elementType, 
+            LogicalRead<TLogical, TPhysical>.Converter converter, int numArrayEntriesToRead, short repetitionLevel, short nullDefinitionLevel)
         {
             var acc = new List<Array>();
 
@@ -199,7 +199,7 @@ namespace ParquetSharp
 
                 if (defn.DefLevel >= nullDefinitionLevel + 2)
                 {
-                    newItem = readNestedLevel();
+                    newItem = ReadArray(schemaNodes, schemaNodeIndex + 2, elementType.GetElementType(), converter, valueReader, -1, repetitionLevel + 1, nullDefinitionLevel + 2);
                 }
                 else
                 {
