@@ -153,22 +153,23 @@ namespace ParquetSharp
         {
             var schemaNodes = GetSchemaNode(ColumnDescriptor.SchemaNode).ToArray();
 
-            var arrayReaderFuncs = GetArrayReaderFuncs(schemaNodes, typeof(TElement), converter, 0, 0);
+            var arrayReaderFuncs = GetArrayReaderFuncs(schemaNodes, typeof(TElement), converter, _bufferedReader, destination.Length, 0, 0);
 
-            var result = (Span<TElement>)ReadArrayBetter(arrayReaderFuncs, 0, _bufferedReader, converter, destination.Length);
+            var result = (Span<TElement>)ReadArrayBetter(arrayReaderFuncs, 0, converter);
 
             result.CopyTo(destination);
             return result.Length;
         }
 
-        private static Array ReadArrayBetter(List<Func<BufferedReader<TPhysical>, Func<Array>, int, Array>> arrayReaderFuncs, int level, BufferedReader<TPhysical> valueReader, LogicalRead<TLogical, TPhysical>.Converter converter, int numArrayEntriesToRead)
+        private static Array ReadArrayBetter(List<Func<Func<Array>, Array>> arrayReaderFuncs, int level, LogicalRead<TLogical, TPhysical>.Converter converter)
         {
-            return arrayReaderFuncs[level](valueReader, () => ReadArrayBetter(arrayReaderFuncs, level+1, valueReader, converter, -1), numArrayEntriesToRead);
+            return arrayReaderFuncs[level](() => ReadArrayBetter(arrayReaderFuncs, level+1, converter));
         }
 
-        private static List<Func<BufferedReader<TPhysical>, Func<Array>, int, Array>> GetArrayReaderFuncs(ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalRead<TLogical, TPhysical>.Converter converter, int repetitionLevel, int nullDefinitionLevel)
+        private static List<Func<Func<Array>, Array>> GetArrayReaderFuncs(ReadOnlySpan<Node> schemaNodes, Type elementType, 
+            LogicalRead<TLogical, TPhysical>.Converter converter, BufferedReader<TPhysical> valueReader, int numArrayEntriesToRead, int repetitionLevel, int nullDefinitionLevel)
         {
-            var ret = new List<Func<BufferedReader<TPhysical>, Func<Array>, int, Array>>();
+            var ret = new List<Func<Func<Array>, Array>>();
 
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
@@ -176,7 +177,7 @@ namespace ParquetSharp
                     && g1.Repetition == Repetition.Optional && (schemaNodes[1] is GroupNode g2)
                     && g2.LogicalType == LogicalType.None && g2.Repetition == Repetition.Repeated)
                 {
-                    ret.Add((valueReader, readNestedLevel, numArrayEntriesToRead) =>
+                    ret.Add((readNestedLevel) =>
                     {
                         var acc = new List<Array>();
 
@@ -213,7 +214,7 @@ namespace ParquetSharp
                     var containedSchemaNodes = schemaNodes.Slice(2);
                     var containedType = elementType.GetElementType();
 
-                    ret.AddRange(GetArrayReaderFuncs(containedSchemaNodes, containedType, converter, repetitionLevel + 1, nullDefinitionLevel + 2));
+                    ret.AddRange(GetArrayReaderFuncs(containedSchemaNodes, containedType, converter, valueReader, -1, repetitionLevel + 1, nullDefinitionLevel + 2));
 
                     return ret;
                 }
@@ -225,7 +226,7 @@ namespace ParquetSharp
             {
                 bool optional = schemaNodes[0].Repetition == Repetition.Optional;
 
-                ret.Add((valueReader, readNestedLevel, numArrayEntriesToRead) =>
+                ret.Add((readNestedLevel) =>
                 {
                     var defnLevel = new List<short>();
                     var values = new List<TPhysical>();
