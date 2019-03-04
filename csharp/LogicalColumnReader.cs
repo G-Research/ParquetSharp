@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using ParquetSharp.Schema;
 
 namespace ParquetSharp
@@ -155,8 +154,6 @@ namespace ParquetSharp
                     && g1.Repetition == Repetition.Optional && (schemaNodes[1] is GroupNode g2)
                     && g2.LogicalType == LogicalType.None && g2.Repetition == Repetition.Repeated)
                 {
-                    var containedType = elementType.GetElementType();
-
                     return ReadArrayIntermediateLevel(schemaNodes, valueReader, elementType, converter, numArrayEntriesToRead, (short)repetitionLevel, (short)nullDefinitionLevel);
                 }
 
@@ -240,7 +237,7 @@ namespace ParquetSharp
             }
 
             var dest = new TLogical[defnLevel.Count];
-            converter(values.ToArray(), defnLevel.ToArray(), dest, (short)nullDefinitionLevel);
+            converter(values.ToArray(), defnLevel.ToArray(), dest, nullDefinitionLevel);
             return dest;
         }
 
