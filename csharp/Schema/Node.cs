@@ -8,7 +8,7 @@ namespace ParquetSharp.Schema
     /// Base class for logical schema types. A type has a name, repetition level, and optionally a logical type.
     /// </summary>
     [DebuggerDisplay("{NodeType}Node: ({Id}), {Name}, LogicalType: {LogicalType}")]
-    public abstract class Node : IDisposable
+    public abstract class Node : IDisposable, IEquatable<Node>
     {
         protected Node(IntPtr handle)
         {
@@ -25,7 +25,14 @@ namespace ParquetSharp.Schema
         public string Name => ExceptionInfo.ReturnString(Handle, Node_Name);
         public NodeType NodeType => ExceptionInfo.Return<NodeType>(Handle, Node_Node_Type);
         public Node Parent => Create(ExceptionInfo.Return<IntPtr>(Handle, Node_Parent));
+        public ColumnPath Path => new ColumnPath(ExceptionInfo.Return<IntPtr>(Handle, Node_Path));
         public Repetition Repetition => ExceptionInfo.Return<Repetition>(Handle, Node_Repetition);
+
+        /// <summary>
+        /// Deep cloning of the node. If the node is a group node, its children will be deep cloned as well.
+        /// </summary>
+        public abstract Node DeepClone();
+        public abstract bool Equals(Node other);
 
         internal static Node Create(IntPtr handle)
         {
@@ -64,6 +71,9 @@ namespace ParquetSharp.Schema
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Node_Parent(IntPtr node, out IntPtr parent);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr Node_Path(IntPtr node, out IntPtr parent);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Node_Repetition(IntPtr node, out Repetition repetition);

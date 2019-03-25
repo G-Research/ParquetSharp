@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)'=='Windows_NT'">netstandard2.0;net461</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)'=='Unix'">netstandard2.0</TargetFrameworks>
     <LangVersion>7.3</LangVersion>
     <AssemblyName>ParquetSharp</AssemblyName>
     <RootNamespace>ParquetSharp</RootNamespace>
@@ -10,7 +11,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NoWarn>1591;</NoWarn>
-    <Version>1.4.0.3</Version>
+    <Version>1.5.1.1-beta5</Version>
     <Company>G-Research</Company>
     <Authors>G-Research</Authors>
     <Product>ParquetSharp</Product>
@@ -26,13 +27,16 @@
   </ItemGroup>
 
   <ItemGroup Label="Native Library">
-    <Content Include="..\bin\Debug\ParquetSharpNatived.dll" Link="ParquetSharpNatived.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug'">
+    <Content Include="..\bin\Debug\ParquetSharpNatived.dll" Link="ParquetSharpNatived.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug' AND '$(OS)'=='Windows_NT'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup Label="Native Library">
-    <Content Include="..\bin\Release\ParquetSharpNative.dll" Link="ParquetSharpNative.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Release'">
+    <Content Include="..\bin\Release\ParquetSharpNative.dll" Link="ParquetSharpNative.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Release' AND '$(OS)'=='Windows_NT'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\bin\ParquetSharpNatived.so" Link="ParquetSharpNatived.so" PackagePath="runtimes/linux-x64/native" Condition="'$(Configuration)'=='Debug' AND ('$(OS)'=='Unix' OR Exists('..\bin\ParquetSharpNatived.so'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\bin\ParquetSharpNative.so" Link="ParquetSharpNative.so" PackagePath="runtimes/linux-x64/native" Condition="'$(Configuration)'=='Release' AND ('$(OS)'=='Unix' OR Exists('..\bin\ParquetSharpNative.so'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

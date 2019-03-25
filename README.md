@@ -1,15 +1,19 @@
 # ParquetSharp 
 
-[![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp)
-[![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp)
-
 ParquetSharp is a .NET library for reading and writing Apache [Parquet][1] files.
 
 It is implemented in C# as a [PInvoke][2] wrapper around [apache-parquet-cpp][3] to provide high performance and compatibility.
 
 [1]: https://parquet.apache.org
 [2]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
-[3]: https://github.com/apache/parquet-cpp
+[3]: https://github.com/apache/arrow
+
+|     | Status |
+| ---: | --- |
+| **Release Nuget** | [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
+| **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
+| **Windows Build** | [![Build status](https://ci.appveyor.com/api/projects/status/wac4f57a46ecg3gi?svg=true)](https://ci.appveyor.com/project/G-Research/parquetsharp) |
+| **Linux Build** | [![Build status](https://ci.appveyor.com/api/projects/status/a551k0wrf5r6afj0?svg=true)](https://ci.appveyor.com/project/G-Research/parquetsharp-w98lm) |
 
 ## Examples
 
@@ -104,35 +108,23 @@ Typically this can arise when attempting to access an instance whose owner has b
 Building ParquetSharp for Windows requires the following dependencies:
 - CMake (3.8 or higher)
 - Visual Studio 2017 (15.7 or higher)
-- Apache Parquet C++ (apache-parquet-cpp 1.4.0)
+- Apache Arrow (0.11.1)
 
-For building apache-parquet-cpp and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). The following build steps will compile apache-parquet-cpp and generate a Windows x64 Visual Studio solution.
+For building arrow (including parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). Note that the Windows build needs to be done in a Visual Studio x64 Native Tools Command Prompt for the build script to succeed.
 
-**Initial directory**
+**Windows (Visual Studio 2017 Win64 solution)**
 ```
-> mkdir workdir
-> cd workdir
+> vcpkg_windows.bat
+> build_windows.bat
 ```
-**Apache-parquet-cpp & dependencies (static libraries)**
+**Linux**
 ```
-> git clone https://github.com/Microsoft/vcpkg.git
-> cd vcpkg
-> bootstrap-vcpkg.bat
-> vcpkg install parquet:x64-windows-static
-```
-**ParquetSharp (Visual Studio 2017 Win64)**
-```
-> cd ..
-> git clone https://github.com/G-Research/ParquetSharp.git
-> cd ParquetSharp
-> mkdir build
-> cd build
-> cmake -D CMAKE_PREFIX_PATH=../../vcpkg/installed/x64-windows-static/ -G "Visual Studio 15 2017 Win64" ..
+> ./vcpkg_linux.sh
+> ./build_linux.sh
+> dotnet build csharp.test --configuration=Release
 ```
 
 We have had to write our own `FindPackage` macros for most of the dependencies to get us going - it clearly needs more love and attention and is likely to be redundant with some vcpkg helper tools. The build step aboves will lead to CMake not finding the right debug library paths for several dependencies, you can manually fix these paths using CMake-GUI or equivalent (otherwise the build will fail in Debug).
-
-Building on Linux is a work in progress: in theory it is possible, but we have yet to try it. We wanted to share this library with the open-source community as soon as possible, even if not everything is quite ready for prime time.
 
 ## Contributing
 

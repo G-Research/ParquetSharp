@@ -23,7 +23,7 @@ extern "C"
 		TRYCATCH(*output_stream = new std::shared_ptr<arrow::io::BufferOutputStream>(new arrow::io::BufferOutputStream(*resizableBuffer));)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* BufferOutputStream_GetBuffer(const std::shared_ptr<arrow::io::BufferOutputStream>* output_stream, std::shared_ptr<arrow::Buffer>** buffer)
+	PARQUETSHARP_EXPORT ExceptionInfo* BufferOutputStream_Finish(const std::shared_ptr<arrow::io::BufferOutputStream>* output_stream, std::shared_ptr<arrow::Buffer>** buffer)
 	{
 		TRYCATCH
 		(

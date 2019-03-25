@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using ParquetSharp.Schema;
 
 namespace ParquetSharp
 {
@@ -18,33 +19,51 @@ namespace ParquetSharp
 
         public WriterProperties Build()
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Build(_handle, out var writerProperties));
-            return new WriterProperties(writerProperties);
+            return new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, WriterPropertiesBuilder_Build));
         }
 
-        // Dictonary enable/disable
+        // Dictionary enable/disable
 
         public WriterPropertiesBuilder DisableDictionary()
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Dictionary(_handle));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Dictionary(_handle.IntPtr));
+            GC.KeepAlive(_handle);
             return this;
         }
 
         public WriterPropertiesBuilder DisableDictionary(string path)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Dictionary_By_Path(_handle, path));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Dictionary_By_Path(_handle.IntPtr, path));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        public WriterPropertiesBuilder DisableDictionary(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Dictionary_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(path);
             return this;
         }
 
         public WriterPropertiesBuilder EnableDictionary()
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Dictionary(_handle));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Dictionary(_handle.IntPtr));
             return this;
         }
 
         public WriterPropertiesBuilder EnableDictionary(string path)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Dictionary_By_Path(_handle, path));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Dictionary_By_Path(_handle.IntPtr, path));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        public WriterPropertiesBuilder EnableDictionary(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Dictionary_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(path);
             return this;
         }
 
@@ -52,25 +71,45 @@ namespace ParquetSharp
 
         public WriterPropertiesBuilder DisableStatistics()
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Statistics(_handle));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Statistics(_handle.IntPtr));
+            GC.KeepAlive(_handle);
             return this;
         }
 
         public WriterPropertiesBuilder DisableStatistics(string path)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Statistics_By_Path(_handle, path));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Statistics_By_Path(_handle.IntPtr, path));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        public WriterPropertiesBuilder DisableStatistics(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Statistics_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(path);
             return this;
         }
 
         public WriterPropertiesBuilder EnableStatistics()
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Statistics(_handle));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Statistics(_handle.IntPtr));
+            GC.KeepAlive(_handle);
             return this;
         }
 
         public WriterPropertiesBuilder EnableStatistics(string path)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Statistics_By_Path(_handle, path));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Statistics_By_Path(_handle.IntPtr, path));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        public WriterPropertiesBuilder EnableStatistics(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Statistics_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(path);
             return this;
         }
 
@@ -78,61 +117,86 @@ namespace ParquetSharp
 
         public WriterPropertiesBuilder Compression(Compression codec)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Compression(_handle, codec));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Compression(_handle.IntPtr, codec));
+            GC.KeepAlive(_handle);
             return this;
         }
 
         public WriterPropertiesBuilder Compression(string path, Compression codec)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Compression_By_Path(_handle, path, codec));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Compression_By_Path(_handle.IntPtr, path, codec));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        public WriterPropertiesBuilder Compression(ColumnPath path, Compression codec)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Compression_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr, codec));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(path);
             return this;
         }
 
         public WriterPropertiesBuilder CreatedBy(string createdBy)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Created_By(_handle, createdBy));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Created_By(_handle.IntPtr, createdBy));
+            GC.KeepAlive(_handle);
             return this;
         }
 
         public WriterPropertiesBuilder DataPagesize(long pageSize)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Data_Pagesize(_handle, pageSize));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Data_Pagesize(_handle.IntPtr, pageSize));
+            GC.KeepAlive(_handle);
             return this;
         }
 
         public WriterPropertiesBuilder DictionaryPagesizeLimit(long dictionaryPagesizeLimit)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Dictionary_Pagesize_Limit(_handle, dictionaryPagesizeLimit));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Dictionary_Pagesize_Limit(_handle.IntPtr, dictionaryPagesizeLimit));
+            GC.KeepAlive(_handle);
             return this;
         }
 
         public WriterPropertiesBuilder Encoding(Encoding encoding)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Encoding(_handle, encoding));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Encoding(_handle.IntPtr, encoding));
+            GC.KeepAlive(_handle);
             return this;
         }
 
         public WriterPropertiesBuilder Encoding(string path, Encoding encoding)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Encoding_By_Path(_handle, path, encoding));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Encoding_By_Path(_handle.IntPtr, path, encoding));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        public WriterPropertiesBuilder Encoding(ColumnPath path, Encoding encoding)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Encoding_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr, encoding));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(path);
             return this;
         }
 
         public WriterPropertiesBuilder MaxRowGroupLength(long maxRowGroupLength)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Max_Row_Group_Length(_handle, maxRowGroupLength));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Max_Row_Group_Length(_handle.IntPtr, maxRowGroupLength));
             return this;
         }
 
         public WriterPropertiesBuilder Version(ParquetVersion version)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Version(_handle, version));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Version(_handle.IntPtr, version));
+            GC.KeepAlive(_handle);
             return this;
         }
 
         public WriterPropertiesBuilder WriteBatchSize(long writeBatchSize)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Write_Batch_Size(_handle, writeBatchSize));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Write_Batch_Size(_handle.IntPtr, writeBatchSize));
+            GC.KeepAlive(_handle);
             return this;
         }
 
@@ -145,7 +209,7 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Build(IntPtr builder, out IntPtr writerProperties);
 
-        // Dictonary enable/disable
+        // Dictionary enable/disable
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Disable_Dictionary(IntPtr builder);

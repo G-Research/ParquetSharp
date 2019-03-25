@@ -35,7 +35,7 @@ namespace ParquetSharp.Test
 
             var values = dates.Select(d => objectIds.Select(o => (float) rand.NextDouble()).ToArray()).ToArray();
 
-            Console.WriteLine("Generated {0:N0} rows in {1:N1} sec", values.Select(v => v.Length).Aggregate(0, (sum, l) => sum + l), timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", values.Select(v => v.Length).Aggregate(0, (sum, l) => sum + l), timer.Elapsed.TotalSeconds);
             Console.WriteLine();
             Console.WriteLine("Saving to CSV");
 
@@ -52,7 +52,7 @@ namespace ParquetSharp.Test
                 }
             }
 
-            Console.WriteLine("Saved to CSV ({0:N0} bytes) in {1:N1} sec", new FileInfo("float_timeseries.csv").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Saved to CSV ({0:N0} bytes) in {1:N2} sec", new FileInfo("float_timeseries.csv").Length, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
             Console.WriteLine("Saving to CSV.GZ");
 
@@ -71,7 +71,7 @@ namespace ParquetSharp.Test
                 }
             }
 
-            Console.WriteLine("Saved to CSV ({0:N0} bytes) in {1:N1} sec", new FileInfo("float_timeseries.csv.gz").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Saved to CSV ({0:N0} bytes) in {1:N2} sec", new FileInfo("float_timeseries.csv.gz").Length, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
             Console.WriteLine("Saving to Parquet");
 
@@ -105,7 +105,7 @@ namespace ParquetSharp.Test
                 }
             }
 
-            Console.WriteLine("Saved to Parquet ({0:N0} bytes) in {1:N1} sec", new FileInfo("float_timeseries.parquet").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Saved to Parquet ({0:N0} bytes) in {1:N2} sec", new FileInfo("float_timeseries.parquet").Length, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
             Console.WriteLine("Saving to Parquet.Chunked (by date)");
 
@@ -135,7 +135,7 @@ namespace ParquetSharp.Test
                 }
             }
 
-            Console.WriteLine("Saved to Parquet.Chunked ({0:N0} bytes) in {1:N1} sec", new FileInfo("float_timeseries.parquet.chunked").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Saved to Parquet.Chunked ({0:N0} bytes) in {1:N2} sec", new FileInfo("float_timeseries.parquet.chunked").Length, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
             Console.WriteLine("Saving to Parquet.RowOriented");
 
@@ -152,7 +152,7 @@ namespace ParquetSharp.Test
                 }
             }
 
-            Console.WriteLine("Saved to Parquet.RowOriented ({0:N0} bytes) in {1:N1} sec", new FileInfo("float_timeseries.parquet.roworiented").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Saved to Parquet.RowOriented ({0:N0} bytes) in {1:N2} sec", new FileInfo("float_timeseries.parquet.roworiented").Length, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
             Console.WriteLine("Saving to Parquet.NET");
 
@@ -183,7 +183,7 @@ namespace ParquetSharp.Test
                 }
             }
 
-            Console.WriteLine("Saved to Parquet.NET ({0:N0} bytes) in {1:N1} sec", new FileInfo("float_timeseries.parquet.net").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Saved to Parquet.NET ({0:N0} bytes) in {1:N2} sec", new FileInfo("float_timeseries.parquet.net").Length, timer.Elapsed.TotalSeconds);
         }
 
         [Test]
@@ -202,7 +202,7 @@ namespace ParquetSharp.Test
                 return sign * ((decimal) n * n * n) / 1000M;
             }).ToArray();
 
-            Console.WriteLine("Generated {0:N0} rows in {1:N1} sec", values.Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", values.Length, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
             Console.WriteLine("Saving to Parquet");
 
@@ -215,7 +215,7 @@ namespace ParquetSharp.Test
                 valueWriter.WriteBatch(values);
             }
 
-            Console.WriteLine("Saved to Parquet ({0:N0} bytes) in {1:N1} sec", new FileInfo("decimal_timeseries.parquet").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Saved to Parquet ({0:N0} bytes) in {1:N2} sec", new FileInfo("decimal_timeseries.parquet").Length, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
             Console.WriteLine("Saving to Parquet.NET");
 
@@ -233,7 +233,7 @@ namespace ParquetSharp.Test
                 }
             }
 
-            Console.WriteLine("Saved to Parquet.NET ({0:N0} bytes) in {1:N1} sec", new FileInfo("decimal_timeseries.parquet.net").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Saved to Parquet.NET ({0:N0} bytes) in {1:N2} sec", new FileInfo("decimal_timeseries.parquet.net").Length, timer.Elapsed.TotalSeconds);
         }
 
         private static Column[] CreateFloatColumns()

@@ -52,6 +52,28 @@ namespace ParquetSharp
         }
 
         /// <summary>
+        /// Create a schema node containing all the given columns.
+        /// </summary>
+        public static GroupNode CreateSchemaNode(Column[] columns, string nodeName = "schema")
+        {
+            if (columns == null) throw new ArgumentNullException(nameof(columns));
+
+            var fields = columns.Select(c => c.CreateSchemaNode()).ToArray();
+
+            try
+            {
+                return new GroupNode(nodeName, Repetition.Required, fields);
+            }
+            finally
+            {
+                foreach (var node in fields)
+                {
+                    node.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
         /// Query whether the given C# type is supported and a schema node can potentially be created.
         /// </summary>
         public static bool IsSupported(Type type)

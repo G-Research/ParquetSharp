@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using ParquetSharp.IO;
 using ParquetSharp.Schema;
@@ -14,7 +13,7 @@ namespace ParquetSharp
             Compression compression = Compression.Snappy, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            using (var schema = CreateSchema(columns))
+            using (var schema = Column.CreateSchemaNode(columns))
             using (var writerProperties = CreateWriterProperties(compression))
             {
                 _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
@@ -26,7 +25,7 @@ namespace ParquetSharp
             Compression compression = Compression.Snappy, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            using (var schema = CreateSchema(columns))
+            using (var schema = Column.CreateSchemaNode(columns))
             using (var writerProperties = CreateWriterProperties(compression))
             {
                 _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
@@ -54,8 +53,12 @@ namespace ParquetSharp
 
         public RowGroupWriter AppendRowGroup()
         {
-            ExceptionInfo.Check(ParquetFileWriter_AppendRowGroup(_handle, out var rowGroupWriter));
-            return new RowGroupWriter(rowGroupWriter);
+            return new RowGroupWriter(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendRowGroup));
+        }
+
+        public RowGroupWriter AppendBufferedRowGroup()
+        {
+            return new RowGroupWriter(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendBufferedRowGroup));
         }
 
         private static ParquetHandle CreateParquetFileWriter(
@@ -69,7 +72,7 @@ namespace ParquetSharp
             using (var kvm = keyValueMetadata == null ? null : new KeyValueMetadata(keyValueMetadata))
             {
                 ExceptionInfo.Check(ParquetFileWriter_OpenFile(
-                    path, schema.Handle, writerProperties.Handle, kvm?.Handle ?? IntPtr.Zero, out var writer));
+                    path, schema.Handle.IntPtr, writerProperties.Handle.IntPtr, kvm?.Handle?.IntPtr ?? IntPtr.Zero, out var writer));
 
                 // Keep alive schema and writerProperties until this point, otherwise the GC might kick in while we're in OpenFile().
                 GC.KeepAlive(schema);
@@ -90,32 +93,13 @@ namespace ParquetSharp
             using (var kvm = keyValueMetadata == null ? null : new KeyValueMetadata(keyValueMetadata))
             {
                 ExceptionInfo.Check(ParquetFileWriter_Open(
-                    outputStream.Handle, schema.Handle, writerProperties.Handle, kvm?.Handle ?? IntPtr.Zero, out var writer));
+                    outputStream.Handle.IntPtr, schema.Handle.IntPtr, writerProperties.Handle.IntPtr, kvm?.Handle?.IntPtr ?? IntPtr.Zero, out var writer));
 
                 // Keep alive schema and writerProperties until this point, otherwise the GC might kick in while we're in Open().
                 GC.KeepAlive(schema);
                 GC.KeepAlive(writerProperties);
 
                 return new ParquetHandle(writer, ParquetFileWriter_Free);
-            }
-        }
-
-        private static GroupNode CreateSchema(Column[] columns)
-        {
-            if (columns == null) throw new ArgumentNullException(nameof(columns));
-
-            var fields = columns.Select(c => c.CreateSchemaNode()).ToArray();
-
-            try
-            {
-                return new GroupNode("Schema", Repetition.Required, fields);
-            }
-            finally
-            {
-                foreach (var node in fields)
-                {
-                    node.Dispose();
-                }
             }
         }
 
@@ -139,6 +123,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ParquetFileWriter_AppendRowGroup(IntPtr writer, out IntPtr rowGroupWriter);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_AppendBufferedRowGroup(IntPtr writer, out IntPtr rowGroupWriter);
 
         private readonly ParquetHandle _handle;
     }

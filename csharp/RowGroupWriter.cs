@@ -31,15 +31,24 @@ namespace ParquetSharp
         public int CurrentColumn => ExceptionInfo.Return<int>(_handle, RowGroupWriter_Current_Column);
         public int NumColumns => ExceptionInfo.Return<int>(_handle, RowGroupWriter_Num_Columns);
         public long NumRows => ExceptionInfo.Return<long>(_handle, RowGroupWriter_Num_Rows);
+        public long TotalBytesWritten => ExceptionInfo.Return<long>(_handle, RowGroupWriter_Total_Bytes_Written);
+        public long TotalCompressedBytes => ExceptionInfo.Return<long>(_handle, RowGroupWriter_Total_Compressed_Bytes);
+
+        public ColumnWriter Column(int i)
+        {
+            return ColumnWriter.Create(ExceptionInfo.Return<int, IntPtr>(_handle, i, RowGroupWriter_Column));
+        }
 
         public ColumnWriter NextColumn()
         {
-            ExceptionInfo.Check(RowGroupWriter_NextColumn(_handle, out var columnWriter));
-            return ColumnWriter.Create(columnWriter);
+            return ColumnWriter.Create(ExceptionInfo.Return<IntPtr>(_handle, RowGroupWriter_NextColumn));
         }
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr RowGroupWriter_Close(IntPtr rowGroupWriter);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr RowGroupWriter_Column(IntPtr rowGroupWriter, int i, out IntPtr columnWriter);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr RowGroupWriter_Current_Column(IntPtr rowGroupWriter, out int currentColumn);
@@ -52,6 +61,12 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr RowGroupWriter_Num_Rows(IntPtr rowGroupWriter, out long numRows);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr RowGroupWriter_Total_Bytes_Written(IntPtr rowGroupWriter, out long totalBytesWritten);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr RowGroupWriter_Total_Compressed_Bytes(IntPtr rowGroupWriter, out long totalCompressedBytes);
 
         private readonly IntPtr _handle;
     }

@@ -8,15 +8,17 @@ namespace ParquetSharp
     {
         public ParquetFileReader(string path)
         {
+            if (path == null) throw new ArgumentNullException(nameof(path));
+
             ExceptionInfo.Check(ParquetFileReader_OpenFile(path, out var reader));
             _handle = new ParquetHandle(reader, ParquetFileReader_Free);
         }
 
         public ParquetFileReader(InputStream inputStream)
         {
-            ExceptionInfo.Check(ParquetFileReader_Open(inputStream.Handle, out var reader));
-            GC.KeepAlive(inputStream);
-            _handle = new ParquetHandle(reader, ParquetFileReader_Free);
+            if (inputStream == null) throw new ArgumentNullException(nameof(inputStream));
+
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr>(inputStream.Handle, ParquetFileReader_Open), ParquetFileReader_Free);
         }
 
         public void Dispose()
@@ -31,8 +33,7 @@ namespace ParquetSharp
 
         public RowGroupReader RowGroup(int i)
         {
-            ExceptionInfo.Check(ParquetFileReader_RowGroup(_handle, i, out var rowGroupReader));
-            return new RowGroupReader(rowGroupReader);
+            return new RowGroupReader(ExceptionInfo.Return<int, IntPtr>(_handle, i, ParquetFileReader_RowGroup));
         }
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
