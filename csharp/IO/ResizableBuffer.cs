@@ -10,11 +10,11 @@ namespace ParquetSharp.IO
     public sealed class ResizableBuffer : Buffer
     {
         public ResizableBuffer(long initialSize = 128L)
-            : base(ExceptionInfo.Return<IntPtr, long>(ResizableBuffer_Create, initialSize))
+            : base(ExceptionInfo.Return<long, IntPtr>(initialSize, ResizableBuffer_Create))
         {
         }
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ResizableBuffer_Create(out IntPtr resizableBuffer, long initialSize);
+        private static extern IntPtr ResizableBuffer_Create(long initialSize, out IntPtr resizableBuffer);
     }
 }

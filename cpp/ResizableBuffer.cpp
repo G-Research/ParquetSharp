@@ -6,7 +6,7 @@
 
 extern "C"
 {
-	PARQUETSHARP_EXPORT ExceptionInfo* ResizableBuffer_Create(std::shared_ptr<arrow::ResizableBuffer>** buffer, int64_t initialSize)
+	PARQUETSHARP_EXPORT ExceptionInfo* ResizableBuffer_Create(int64_t initialSize, std::shared_ptr<arrow::ResizableBuffer>** buffer)
 	{
 		TRYCATCH(
 			*buffer = new std::shared_ptr<arrow::ResizableBuffer>();

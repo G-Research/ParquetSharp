@@ -10,7 +10,7 @@ namespace ParquetSharp
     internal sealed class ExceptionInfo
     {
         public delegate IntPtr GetAction<TValue>(out TValue value);
-        public delegate IntPtr GetAction<TValue, TArg0>(out TValue value, TArg0 arg0);
+        public delegate IntPtr GetAction<TValue, TArg0>(TArg0 arg0, out TValue value);
         public delegate IntPtr GetFunction<TValue>(IntPtr handle, out TValue value);
         public delegate IntPtr GetFunction<in TArg0, TValue>(IntPtr handle, TArg0 arg0, out TValue value);
 
@@ -35,9 +35,9 @@ namespace ParquetSharp
             return value;
         }
 
-        public static TValue Return<TValue, TArg0>(GetAction<TValue, TArg0> getter, TArg0 arg0)
+        public static TValue Return<TArg0, TValue>(TArg0 arg0, GetAction<TValue, TArg0> getter)
         {
-            Check(getter(out var value, arg0));
+            Check(getter(arg0, out var value));
             return value;
         }
 
