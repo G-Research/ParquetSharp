@@ -6,7 +6,7 @@ find_package(Brotli REQUIRED)
 find_package(Lz4 REQUIRED)
 find_package(Snappy REQUIRED)
 find_package(Thrift REQUIRED)
-find_package(ZLIB REQUIRED)
+find_package(Zlib REQUIRED)
 find_package(Zstd REQUIRED)
 find_package(ParquetCpp REQUIRED)
 
@@ -62,7 +62,7 @@ include_directories(
 	${Lz4_INCLUDE_DIRS} 
 	${Snappy_INCLUDE_DIRS}
 	${Thrift_INCLUDE_DIRS}
-	${ZLIB_INCLUDE_DIRS}
+	${Zlib_INCLUDE_DIRS}
 	${Zstd_INCLUDE_DIRS} 
 	${ParquetCpp_INCLUDE_DIRS})
 
@@ -74,9 +74,10 @@ target_link_libraries(ParquetSharpNative
 	${Lz4_LIBRARIES}
 	${Snappy_LIBRARIES}
 	${Thrift_LIBRARIES}
-	${ZLIB_LIBRARIES}
+	${Zlib_LIBRARIES}
 	${Zstd_LIBRARIES} 
 	${Threads_LIBRARIES}
 )
 	
 add_definitions(-DARROW_STATIC)
+add_definitions(-DPARQUET_STATIC)

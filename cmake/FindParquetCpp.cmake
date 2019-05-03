@@ -5,8 +5,8 @@ include(FindPackageHandleStandardArgs)
 find_path(ParquetCpp_INCLUDE_DIR parquet/parquet_version.h)
 
 if (NOT ParquetCpp_LIBRARIES)
-	find_library(ParquetCpp_LIBRARY_RELEASE NAMES parquet parquet_static PATH_SUFFIXES lib)
-	find_library(ParquetCpp_LIBRARY_DEBUG NAMES parquetd parquet_staticd PATH_SUFFIXES debug debug/lib)	
+	find_library(ParquetCpp_LIBRARY_RELEASE NAMES parquet parquet_static PATHS ${CMAKE_PREFIX_PATH}/lib NO_DEFAULT_PATH)
+	find_library(ParquetCpp_LIBRARY_DEBUG NAMES parquet parquet_static PATHS ${CMAKE_PREFIX_PATH}/debug/lib NO_DEFAULT_PATH)
     SELECT_LIBRARY_CONFIGURATIONS(ParquetCpp)
 endif()
 
