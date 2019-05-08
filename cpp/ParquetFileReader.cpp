@@ -13,7 +13,7 @@ extern "C"
 		TRYCATCH(*reader = ParquetFileReader::OpenFile(path, false).release();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileReader_Open(std::shared_ptr<arrow::io::ReadableFileInterface>* readable_file_interface, ParquetFileReader** reader)
+	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileReader_Open(std::shared_ptr<arrow::io::RandomAccessFile>* readable_file_interface, ParquetFileReader** reader)
 	{
 		TRYCATCH(*reader = ParquetFileReader::Open(*readable_file_interface).release();)
 	}
