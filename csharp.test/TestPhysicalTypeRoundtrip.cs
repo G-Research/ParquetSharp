@@ -167,8 +167,8 @@ namespace ParquetSharp.Test
             public ColumnOrder ColumnOrder = ColumnOrder.TypeDefinedOrder;
             public SortOrder SortOrder = SortOrder.Signed;
             public int TypeLength = 0;
-            public int TypePrecision = 0;
-            public int TypeScale = 0;
+            public int TypePrecision = -1;
+            public int TypeScale = -1;
 
             public Encoding[] Encodings = {Encoding.Plain, Encoding.Rle};
             public Compression Compression = Compression.Snappy;

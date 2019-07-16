@@ -101,7 +101,7 @@ namespace ParquetSharp.Test
                 new PrimitiveNode(_primitiveName, Repetition.Required, LogicalType.Int(32, true), PhysicalType.Int32),
                 new PrimitiveNode("node_1", _primitiveRepetition, LogicalType.Int(32, true), PhysicalType.Int32),
                 new PrimitiveNode("node_2", Repetition.Required, _primitiveLogicalType, _physicalType),
-                new PrimitiveNode("node_3", Repetition.Required, _primitiveLogicalType, PhysicalType.Int64),
+                new PrimitiveNode("node_3", Repetition.Required, LogicalType.Int(64, true), PhysicalType.Int64),
                 new PrimitiveNode(
                     "node_4", Repetition.Repeated, LogicalType.Decimal(_precision, _scale), PhysicalType.FixedLenByteArray, _length),
             };
@@ -134,6 +134,7 @@ namespace ParquetSharp.Test
         public ExampleSchemaBuilder WithDifferentPrimitiveLogicalType()
         {
             _primitiveLogicalType = LogicalType.Timestamp(false, TimeUnit.Millis);
+            _physicalType = PhysicalType.Int64;
             return this;
         }
 
@@ -196,8 +197,8 @@ namespace ParquetSharp.Test
         private string _primitiveName = "node_0";
         private string _groupName = "root";
         private PhysicalType _physicalType = PhysicalType.Int32;
-        private LogicalType _primitiveLogicalType = LogicalType.Int(64, true);
-        private LogicalType _groupLogicalType = LogicalType.None();
+        private LogicalType _primitiveLogicalType = LogicalType.Int(32, true);
+        private LogicalType _groupLogicalType = null;
         private Repetition _primitiveRepetition = Repetition.Required;
         private Repetition _groupRepetition = Repetition.Required;
         private int _length = 16;

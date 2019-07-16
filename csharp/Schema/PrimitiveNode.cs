@@ -61,8 +61,8 @@ namespace ParquetSharp.Schema
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
 
-            ExceptionInfo.Check(PrimitiveNode_Make(name, repetition, logicalType.Handle.IntPtr, physicalType, primitiveLength, out var primitiveNode));
-            GC.KeepAlive(logicalType.Handle);
+            ExceptionInfo.Check(PrimitiveNode_Make(name, repetition, logicalType?.Handle.IntPtr ?? IntPtr.Zero, physicalType, primitiveLength, out var primitiveNode));
+            GC.KeepAlive(logicalType?.Handle);
             return primitiveNode;
         }
 

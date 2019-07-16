@@ -41,7 +41,7 @@ namespace ParquetSharp.Schema
                 Name,
                 Repetition,
                 Fields.Select(f => f.DeepClone()).ToArray(),
-                LogicalType);
+                LogicalType is NoneLogicalType ? null : LogicalType);
         }
 
         public override bool Equals(Node other)
