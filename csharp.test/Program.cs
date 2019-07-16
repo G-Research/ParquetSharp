@@ -20,11 +20,11 @@ namespace ParquetSharp.Test
 
                 //TestParquetFileWriter.TestReadWriteParquetMultipleTasks();
                 //TestColumnReader.TestHasNext();
-                //TestLogicalTypeRoundtrip.TestReaderWriteTypes();
+                TestLogicalTypeRoundtrip.TestReaderWriteTypes(128, 2401, 1331);
                 //TestPhysicalTypeRoundtrip.TestReaderWriteTypes();
                 //TestParquetFileReader.TestReadFileCreateByPython();
                 //TestParquetFileReader.TestFileHandleHasBeenReleased();
-                TestParquetFileWriter.TestWriteLongString();
+                //TestParquetFileWriter.TestWriteLongString();
 
                 // Ensure the finalizers are executed, so we can check whether they throw.
                 GC.Collect();

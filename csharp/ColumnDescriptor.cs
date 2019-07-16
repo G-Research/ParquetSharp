@@ -61,7 +61,7 @@ namespace ParquetSharp
 
             for (var node = SchemaNode; node != null; node = node.Parent)
             {
-                if (node.LogicalType == LogicalType.List)
+                if (node.LogicalType.Type == LogicalTypeEnum.List)
                 {
                     elementType = elementType.MakeArrayType();
                 }
@@ -76,68 +76,72 @@ namespace ParquetSharp
             var logicalType = LogicalType;
             var nullable = SchemaNode.Repetition == Repetition.Optional;
 
-            switch (logicalType)
+            if (logicalType is NoneLogicalType)
             {
-                case LogicalType.None:
+                switch (physicalType)
+                {
+                    case PhysicalType.Boolean:
+                        return (typeof(bool), nullable ? typeof(bool?) : typeof(bool));
+                    case PhysicalType.Int32:
+                        return (typeof(int), nullable ? typeof(int?) : typeof(int));
+                    case PhysicalType.Int64:
+                        return (typeof(long), nullable ? typeof(long?) : typeof(long));
+                    case PhysicalType.Int96:
+                        return (typeof(Int96), nullable ? typeof(Int96?) : typeof(Int96));
+                    case PhysicalType.Float:
+                        return (typeof(float), nullable ? typeof(float?) : typeof(float));
+                    case PhysicalType.Double:
+                        return (typeof(double), nullable ? typeof(double?) : typeof(double));
+                    case PhysicalType.ByteArray:
+                        return (typeof(ByteArray), typeof(byte[]));
+                }
+            }
 
-                    switch (physicalType)
-                    {
-                        case PhysicalType.Boolean:
-                            return (typeof(bool), nullable ? typeof(bool?) : typeof(bool));
-                        case PhysicalType.Int32:
-                            return (typeof(int), nullable ? typeof(int?) : typeof(int));
-                        case PhysicalType.Int64:
-                            return (typeof(long), nullable ? typeof(long?) : typeof(long));
-                        case PhysicalType.Int96:
-                            return (typeof(Int96), nullable ? typeof(Int96?) : typeof(Int96));
-                        case PhysicalType.Float:
-                            return (typeof(float), nullable ? typeof(float?) : typeof(float));
-                        case PhysicalType.Double:
-                            return (typeof(double), nullable ? typeof(double?) : typeof(double));
-                        case PhysicalType.ByteArray:
-                            return (typeof(ByteArray), typeof(byte[]));
-                    }
+            if (logicalType is IntLogicalType intLogicalType)
+            {
+                var bitWidth = intLogicalType.BitWidth;
+                var isSigned = intLogicalType.IsSigned;
 
-                    break;
+                if (bitWidth == 8 && isSigned) return (typeof(int), nullable ? typeof(byte?) : typeof(byte));
+                if (bitWidth == 8 && !isSigned) return (typeof(int), nullable ? typeof(byte?) : typeof(byte));
+                if (bitWidth == 16 && isSigned) return (typeof(int), nullable ? typeof(short?) : typeof(short));
+                if (bitWidth == 16 && !isSigned) return (typeof(int), nullable ? typeof(ushort?) : typeof(ushort));
+                if (bitWidth == 32 && isSigned) return (typeof(int), nullable ? typeof(int?) : typeof(int));
+                if (bitWidth == 32 && !isSigned) return (typeof(int), nullable ? typeof(uint?) : typeof(uint));
+                if (bitWidth == 64 && isSigned) return (typeof(long), nullable ? typeof(long?) : typeof(long));
+                if (bitWidth == 64 && !isSigned) return (typeof(long), nullable ? typeof(ulong?) : typeof(ulong));
+            }
 
-                case LogicalType.Int32:
-                    return (typeof(int), nullable ? typeof(int?) : typeof(int));
+            if (logicalType is DecimalLogicalType)
+            {
+                if (TypeLength != sizeof(Decimal128)) throw new NotSupportedException($"only {sizeof(Decimal128)} bytes of decimal length is supported");
+                if (TypePrecision > 29) throw new NotSupportedException("only max 29 digits of decimal precision is supported");
+                return (typeof(FixedLenByteArray), nullable ? typeof(decimal?) : typeof(decimal));
+            }
 
-                case LogicalType.UInt32:
-                    return (typeof(int), nullable ? typeof(uint?) : typeof(uint));
+            if (logicalType is DateLogicalType)
+            {
+                return (typeof(int), nullable ? typeof(Date?) : typeof(Date));
+            }
 
-                case LogicalType.Int64:
-                    return (typeof(long), nullable ? typeof(long?) : typeof(long));
+            if (logicalType is TimeLogicalType timeLogicalType)
+            {
+                return (timeLogicalType.TimeUnit == TimeUnit.Millis ? typeof(int) : typeof(long), nullable ? typeof(TimeSpan?) : typeof(TimeSpan)); 
+            }
 
-                case LogicalType.UInt64:
-                    return (typeof(long), nullable ? typeof(ulong?) : typeof(ulong));
+            if (logicalType is TimestampLogicalType)
+            {
+                return (typeof(long), nullable ? typeof(DateTime?) : typeof(DateTime));
+            }
 
-                case LogicalType.Decimal:
-                    if (TypeLength != sizeof(Decimal128)) throw new NotSupportedException($"only {sizeof(Decimal128)} bytes of decimal length is supported");
-                    if (TypePrecision > 29) throw new NotSupportedException("only max 29 digits of decimal precision is supported");
-                    return (typeof(FixedLenByteArray), nullable ? typeof(decimal?) : typeof(decimal));
+            if (logicalType.Type == LogicalTypeEnum.String || logicalType.Type == LogicalTypeEnum.Json)
+            {
+                return (typeof(ByteArray), typeof(string));
+            }
 
-                case LogicalType.Date:
-                    return (typeof(int), nullable ? typeof(Date?) : typeof(Date));
-
-                case LogicalType.TimestampMicros:
-                    return (typeof(long), nullable ? typeof(DateTime?) : typeof(DateTime));
-
-                case LogicalType.TimestampMillis:
-                    return (typeof(long), nullable ? typeof(DateTime?) : typeof(DateTime));
-
-                case LogicalType.TimeMicros:
-                    return (typeof(long), nullable ? typeof(TimeSpan?) : typeof(TimeSpan));
-
-                case LogicalType.TimeMillis:
-                    return (typeof(int), nullable ? typeof(TimeSpan?) : typeof(TimeSpan));
-
-                case LogicalType.Json:
-                case LogicalType.Utf8:
-                    return (typeof(ByteArray), typeof(string));
-
-                case LogicalType.Bson:
-                    return (typeof(ByteArray), typeof(byte[]));
+            if (logicalType.Type == LogicalTypeEnum.Bson)
+            {
+                return (typeof(ByteArray), typeof(byte[]));
             }
 
             throw new ArgumentOutOfRangeException(nameof(logicalType), $"unsupported logical type {logicalType} with physical type {physicalType}");

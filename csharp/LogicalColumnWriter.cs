@@ -120,8 +120,8 @@ namespace ParquetSharp
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
                 if (schemaNodes.Length >= 2
-                    && (schemaNodes[0] is GroupNode g1) && g1.LogicalType == LogicalType.List && g1.Repetition == Repetition.Optional
-                    && (schemaNodes[1] is GroupNode g2) && g2.LogicalType == LogicalType.None && g2.Repetition == Repetition.Repeated)
+                    && (schemaNodes[0] is GroupNode g1) && g1.LogicalType is ListLogicalType && g1.Repetition == Repetition.Optional
+                    && (schemaNodes[1] is GroupNode g2) && g2.LogicalType is NoneLogicalType && g2.Repetition == Repetition.Repeated)
                 {
                     var containedType = elementType.GetElementType();
 

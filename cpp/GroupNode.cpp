@@ -25,7 +25,7 @@ extern "C"
 				nodes.push_back(*fields[i]);
 			}
 
-			*groupNode = new std::shared_ptr<schema::Node>(schema::GroupNode::Make(name, repetition, nodes, *logical_type));
+			*groupNode = new std::shared_ptr<schema::Node>(schema::GroupNode::Make(name, repetition, nodes, logical_type == nullptr ? nullptr : *logical_type));
 		)
 	}
 

@@ -77,12 +77,17 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(DateTime))
             {
-                if (logicalType == LogicalType.TimestampMicros)
+                var timestampLogicalType = (TimestampLogicalType) logicalType;
+                var timeUnit = timestampLogicalType.TimeUnit;
+
+                // TODO Support nanoseconds
+
+                if (timeUnit == TimeUnit.Micros)
                 {
                     return (Converter) (Delegate) (LogicalWrite<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMicros(s, d));
                 }
 
-                if (logicalType == LogicalType.TimestampMillis)
+                if (timeUnit == TimeUnit.Millis)
                 {
                     return (Converter) (Delegate) (LogicalWrite<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMillis(s, d));
                 }
@@ -90,12 +95,17 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(DateTime?))
             {
-                if (logicalType == LogicalType.TimestampMicros)
+                var timestampLogicalType = (TimestampLogicalType) logicalType;
+                var timeUnit = timestampLogicalType.TimeUnit;
+
+                // TODO Support nanoseconds
+
+                if (timeUnit == TimeUnit.Micros)
                 {
                     return (Converter) (Delegate) (LogicalWrite<DateTime?, long>.Converter) ConvertDateTimeMicros;
                 }
 
-                if (logicalType == LogicalType.TimestampMillis)
+                if (timeUnit == TimeUnit.Millis)
                 {
                     return (Converter) (Delegate) (LogicalWrite<DateTime?, long>.Converter) ConvertDateTimeMillis;
                 }
@@ -103,12 +113,17 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(TimeSpan))
             {
-                if (logicalType == LogicalType.TimeMicros)
+                var timeLogicalType = (TimeLogicalType) logicalType;
+                var timeUnit = timeLogicalType.TimeUnit;
+
+                // TODO Support nanoseconds
+
+                if (timeUnit == TimeUnit.Micros)
                 {
                     return (Converter) (Delegate) (LogicalWrite<TimeSpan, long>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMicros(s, d));
                 }
 
-                if (logicalType == LogicalType.TimeMillis)
+                if (timeUnit == TimeUnit.Millis)
                 {
                     return (Converter) (Delegate) (LogicalWrite<TimeSpan, int>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMillis(s, d));
                 }
@@ -116,12 +131,17 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(TimeSpan?))
             {
-                if (logicalType == LogicalType.TimeMicros)
+                var timeLogicalType = (TimeLogicalType) logicalType;
+                var timeUnit = timeLogicalType.TimeUnit;
+
+                // TODO Support nanoseconds
+
+                if (timeUnit == TimeUnit.Micros)
                 {
                     return (Converter) (Delegate) (LogicalWrite<TimeSpan?, long>.Converter) ConvertTimeSpanMicros;
                 }
 
-                if (logicalType == LogicalType.TimeMillis)
+                if (timeUnit == TimeUnit.Millis)
                 {
                     return (Converter) (Delegate) (LogicalWrite<TimeSpan?, int>.Converter) ConvertTimeSpanMillis;
                 }

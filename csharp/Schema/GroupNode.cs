@@ -7,7 +7,7 @@ namespace ParquetSharp.Schema
 {
     public sealed class GroupNode : Node
     {
-        public GroupNode(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType logicalType = LogicalType.None)
+        public GroupNode(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType logicalType = null)
             : this(Make(name, repetition, fields, logicalType))
         {
         }
@@ -50,7 +50,7 @@ namespace ParquetSharp.Schema
                 other is GroupNode groupNode &&
                 Name == groupNode.Name &&
                 Repetition == groupNode.Repetition &&
-                LogicalType == groupNode.LogicalType &&
+                LogicalType.Equals(groupNode.LogicalType) &&
                 Fields.SequenceEqual(groupNode.Fields);
         }
 
@@ -60,15 +60,16 @@ namespace ParquetSharp.Schema
 
             fixed (IntPtr* pHandles = handles)
             {
-                ExceptionInfo.Check(GroupNode_Make(name, repetition, (IntPtr) pHandles, handles.Length, logicalType, out var groupNode));
+                ExceptionInfo.Check(GroupNode_Make(name, repetition, (IntPtr) pHandles, handles.Length, logicalType?.Handle.IntPtr ?? IntPtr.Zero, out var groupNode));
                 GC.KeepAlive(fields);
+                GC.KeepAlive(logicalType);
                 return groupNode;
             }
         }
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
         private static extern IntPtr GroupNode_Make(
-            string name, Repetition repetition, IntPtr fields, int numFields, LogicalType logicalType, out IntPtr groupNode);
+            string name, Repetition repetition, IntPtr fields, int numFields, IntPtr logicalType, out IntPtr groupNode);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr GroupNode_Field(IntPtr groupNode, int i, out IntPtr field);

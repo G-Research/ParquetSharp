@@ -18,13 +18,7 @@ namespace ParquetSharp.Test
         )
         {
             var expectedColumns = CreateExpectedColumns();
-            var schemaColumns = expectedColumns.Select(c =>
-            {
-                var type = c.Values.GetType().GetElementType();
-                return type == typeof(decimal) || type == typeof(decimal?)
-                    ? new ColumnDecimal(c.Name, c.Precision, c.Scale, type == typeof(decimal?))
-                    : new Column(c.Values.GetType().GetElementType(), c.Name, c.LogicalTypeOverride);
-            }).ToArray();
+            var schemaColumns = expectedColumns.Select(c => new Column(c.Values.GetType().GetElementType(), c.Name, c.LogicalTypeOverride)).ToArray();
 
             using (var buffer = new ResizableBuffer())
             {
@@ -74,8 +68,8 @@ namespace ParquetSharp.Test
                                 Assert.AreEqual(expected.LogicalType, descr.LogicalType);
                                 Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalValueGetter(checked((int) numRows), rowsPerBatch)));
                                 Assert.AreEqual(expected.Length, descr.TypeLength);
-                                Assert.AreEqual(expected.Precision, descr.TypePrecision);
-                                Assert.AreEqual(expected.Scale, descr.TypeScale);
+                                Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Precision ?? 0, descr.TypePrecision);
+                                Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Scale ?? 0, descr.TypeScale);
                                 Assert.AreEqual(expected.HasStatistics, chunkMetaData.IsStatsSet);
 
                                 if (expected.HasStatistics)
@@ -168,7 +162,7 @@ namespace ParquetSharp.Test
             using (var buffer = new ResizableBuffer())
             {
                 using (var outStream = new BufferOutputStream(buffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column(typeof(double?[][]), "a") }))
+                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<double?[][]>("a")}))
                 using (var rowGroupWriter = fileWriter.AppendRowGroup())
                 using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[][]>())
                 {
@@ -190,17 +184,18 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestArrayOfEmptyStringArraysRoundtrip()
         {
-            var expected = new string[][] {
-                new string[] {  },
-                new string[] {  },
-                new string[] {  },
-                new string[] {  }
+            var expected = new[]
+            {
+                new string[] { },
+                new string[] { },
+                new string[] { },
+                new string[] { }
             };
 
             using (var buffer = new ResizableBuffer())
             {
                 using (var outStream = new BufferOutputStream(buffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column(typeof(string[]), "a") }))
+                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string[]>("a")}))
                 using (var rowGroupWriter = fileWriter.AppendRowGroup())
                 using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<string[]>())
                 {
@@ -263,7 +258,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "uint32_field",
                     PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.UInt32,
+                    LogicalType = LogicalType.Int(32, isSigned: false),
                     Values = Enumerable.Range(0, NumRows).Select(i => (uint) i).ToArray(),
                     Min = 0,
                     Max = NumRows - 1
@@ -272,7 +267,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "uint32?_field",
                     PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.UInt32,
+                    LogicalType = LogicalType.Int(32, isSigned: false),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (uint?) null : (uint) i).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -301,7 +296,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "uint64_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.UInt64,
+                    LogicalType = LogicalType.Int(64, isSigned: false),
                     Values = Enumerable.Range(0, NumRows).Select(i => (ulong) (i * i)).ToArray(),
                     Min = 0,
                     Max = (NumRows - 1) * (NumRows - 1)
@@ -310,7 +305,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "uint64?_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.UInt64,
+                    LogicalType = LogicalType.Int(64, isSigned: false),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (ulong?) null : (ulong) (i * i)).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -321,7 +316,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "int96_field",
                     PhysicalType = PhysicalType.Int96,
-                    LogicalType = LogicalType.None,
+                    LogicalType = LogicalType.None(),
                     Values = Enumerable.Range(0, NumRows).Select(i => new Int96(i, i * i, i * i * i)).ToArray(),
                     HasStatistics = false
                 },
@@ -329,7 +324,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "int96?_field",
                     PhysicalType = PhysicalType.Int96,
-                    LogicalType = LogicalType.None,
+                    LogicalType = LogicalType.None(),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (Int96?) null : new Int96(i, i * i, i * i * i)).ToArray(),
                     HasStatistics = false
                 },
@@ -373,10 +368,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "decimal128_field",
                     PhysicalType = PhysicalType.FixedLenByteArray,
-                    LogicalType = LogicalType.Decimal,
+                    LogicalType = LogicalType.Decimal(29, 3),
                     Length = 16,
-                    Precision = 29,
-                    Scale = 3,
                     Values = Enumerable.Range(0, NumRows).Select(i => ((decimal) i * i * i) / 1000 - 10).ToArray(),
                     HasStatistics = false
                 },
@@ -384,10 +377,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "decimal128?_field",
                     PhysicalType = PhysicalType.FixedLenByteArray,
-                    LogicalType = LogicalType.Decimal,
+                    LogicalType = LogicalType.Decimal(29, 3),
                     Length = 16,
-                    Precision = 29,
-                    Scale = 3,
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? null : ((decimal?) i * i * i) / 1000 - 10).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -397,7 +388,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "date_field",
                     PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.Date,
+                    LogicalType = LogicalType.Date(),
                     Values = Enumerable.Range(0, NumRows).Select(i => new Date(2018, 01, 01).AddDays(i)).ToArray(),
                     Min = new Date(2018, 01, 01).Days,
                     Max = new Date(2018, 01, 01).AddDays(NumRows - 1).Days
@@ -406,7 +397,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "date?_field",
                     PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.Date,
+                    LogicalType = LogicalType.Date(),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (Date?) null : new Date(2018, 01, 01).AddDays(i)).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -417,7 +408,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "datetime_micros_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.TimestampMicros,
+                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Micros),
                     Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     Min = new DateTime(2018, 01, 01),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
@@ -427,7 +418,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "datetime?_micros_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.TimestampMicros,
+                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Micros),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (DateTime?) null : new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -439,8 +430,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "datetime_millis_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.TimestampMillis,
-                    LogicalTypeOverride = LogicalType.TimestampMillis,
+                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Millis),
                     Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     Min = new DateTime(2018, 01, 01),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
@@ -450,8 +441,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "datetime?_millis_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.TimestampMillis,
-                    LogicalTypeOverride = LogicalType.TimestampMillis,
+                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Millis),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (DateTime?) null : new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -463,7 +454,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "timespan_micros_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.TimeMicros,
+                    LogicalType = LogicalType.Time(false, TimeUnit.Micros),
                     Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     Min = TimeSpan.FromHours(-13),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
@@ -473,7 +464,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "timespan?_micros_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.TimeMicros,
+                    LogicalType = LogicalType.Time(false, TimeUnit.Micros),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (TimeSpan?) null : TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -485,8 +476,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "timespan_millis_field",
                     PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.TimeMillis,
-                    LogicalTypeOverride = LogicalType.TimeMillis,
+                    LogicalType = LogicalType.Time(false, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Millis),
                     Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     Min = TimeSpan.FromHours(-13),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
@@ -496,8 +487,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "timespan?_millis_field",
                     PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.TimeMillis,
-                    LogicalTypeOverride = LogicalType.TimeMillis,
+                    LogicalType = LogicalType.Time(false, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Millis),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (TimeSpan?) null : TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -509,7 +500,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "string_field",
                     PhysicalType = PhysicalType.ByteArray,
-                    LogicalType = LogicalType.Utf8,
+                    LogicalType = LogicalType.String(),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 9 == 0 ? i % 18 == 0 ? null : "" : $"Hello, {i}!").ToArray(),
                     NullCount = (NumRows + 17) / 18,
                     NumValues = NumRows - (NumRows + 17) / 18,
@@ -521,8 +512,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "json_field",
                     PhysicalType = PhysicalType.ByteArray,
-                    LogicalType = LogicalType.Json,
-                    LogicalTypeOverride = LogicalType.Json,
+                    LogicalType = LogicalType.Json(),
+                    LogicalTypeOverride = LogicalType.Json(),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 9 == 0 ? null : $"{{ \"id\", {i} }}").ToArray(),
                     NullCount = (NumRows + 8) / 9,
                     NumValues = NumRows - (NumRows + 8) / 9,
@@ -545,8 +536,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "bson_field",
                     PhysicalType = PhysicalType.ByteArray,
-                    LogicalType = LogicalType.Bson,
-                    LogicalTypeOverride = LogicalType.Bson,
+                    LogicalType = LogicalType.Bson(),
+                    LogicalTypeOverride = LogicalType.Bson(),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 3 == 0 ? null : BitConverter.GetBytes(i)).ToArray(),
                     NullCount = (NumRows + 2) / 3,
                     NumValues = NumRows - (NumRows + 2) / 3,
@@ -712,11 +703,9 @@ namespace ParquetSharp.Test
             public string Name;
             public Array Values;
             public PhysicalType PhysicalType;
-            public LogicalType LogicalType = LogicalType.None;
-            public LogicalType LogicalTypeOverride = LogicalType.None;
+            public LogicalType LogicalType = LogicalType.None();
+            public LogicalType LogicalTypeOverride = LogicalType.None();
             public int Length;
-            public int Precision;
-            public int Scale;
 
             public bool HasStatistics = true;
             public bool HasMinMax = true;

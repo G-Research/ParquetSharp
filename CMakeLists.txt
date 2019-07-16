@@ -45,10 +45,10 @@ if (UNIX)
 endif ()
 
 if (MSVC)
-	include_external_msproject(ParquetSharp ${CMAKE_SOURCE_DIR}/csharp/ParquetSharp.csproj TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC)
+	include_external_msproject(ParquetSharp ${CMAKE_SOURCE_DIR}/csharp/ParquetSharp.csproj TYPE 9A19103F-16F7-4668-BE54-9A1E7A4F7556)
 	add_dependencies(ParquetSharp ParquetSharpNative)
 
-	include_external_msproject(ParquetSharp.Test ${CMAKE_SOURCE_DIR}/csharp.test/ParquetSharp.Test.csproj TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC)
+	include_external_msproject(ParquetSharp.Test ${CMAKE_SOURCE_DIR}/csharp.test/ParquetSharp.Test.csproj TYPE 9A19103F-16F7-4668-BE54-9A1E7A4F7556)
 	add_dependencies(ParquetSharp.Test ParquetSharp)
 endif ()
 

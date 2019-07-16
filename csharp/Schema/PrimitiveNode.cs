@@ -11,9 +11,12 @@ namespace ParquetSharp.Schema
     public sealed class PrimitiveNode : Node
     {
         public PrimitiveNode(
-            string name, Repetition repetition, PhysicalType type, LogicalType logicalType = LogicalType.None, 
-            int length = -1, int precision = -1, int scale = -1)
-            : this(Make(name, repetition, type, logicalType, length, precision, scale))
+            string name, 
+            Repetition repetition, 
+            LogicalType logicalType, 
+            PhysicalType physicalType,
+            int primitiveLength = -1)
+            : this(Make(name, repetition, logicalType, physicalType, primitiveLength))
         {
         }
 
@@ -29,16 +32,12 @@ namespace ParquetSharp.Schema
 
         public override Node DeepClone()
         {
-            var decimalMetadata = DecimalMetadata;
-
             return new PrimitiveNode(
                 Name,
                 Repetition,
-                PhysicalType,
                 LogicalType,
-                TypeLength,
-                decimalMetadata.Precision,
-                decimalMetadata.Scale);
+                PhysicalType,
+                TypeLength);
         }
 
         public override bool Equals(Node other)
@@ -48,23 +47,28 @@ namespace ParquetSharp.Schema
                 Name == primitiveNode.Name &&
                 Repetition == primitiveNode.Repetition &&
                 PhysicalType == primitiveNode.PhysicalType &&
-                LogicalType == primitiveNode.LogicalType &&
+                LogicalType.Equals(primitiveNode.LogicalType) &&
                 TypeLength == primitiveNode.TypeLength &&
                 DecimalMetadata.Equals(primitiveNode.DecimalMetadata);
         }
 
         private static IntPtr Make(
-            string name, Repetition repetition, PhysicalType type, LogicalType logicalType,
-            int length, int precision, int scale)
+            string name,
+            Repetition repetition,
+            LogicalType logicalType,
+            PhysicalType physicalType,
+            int primitiveLength)
         {
-            ExceptionInfo.Check(PrimitiveNode_Make(name, repetition, type, logicalType, length, precision, scale, out var primitiveNode));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+
+            ExceptionInfo.Check(PrimitiveNode_Make(name, repetition, logicalType.Handle.IntPtr, physicalType, primitiveLength, out var primitiveNode));
+            GC.KeepAlive(logicalType.Handle);
             return primitiveNode;
         }
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
         private static extern IntPtr PrimitiveNode_Make(
-            string name, Repetition repetition, PhysicalType type, LogicalType logicalType, 
-            int length, int precision, int scale, out IntPtr primitiveNode);
+            string name, Repetition repetition, IntPtr logicalType, PhysicalType type, int primitiveLength, out IntPtr primitiveNode);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr PrimitiveNode_Column_Order(IntPtr node, out ColumnOrder columnOrder);
