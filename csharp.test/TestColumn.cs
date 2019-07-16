@@ -36,7 +36,7 @@ namespace ParquetSharp.Test
                     Assert.AreEqual(expected.ColumnOrder, primitive.ColumnOrder);
                     Assert.AreEqual(expected.PhysicalType, primitive.PhysicalType);
                     Assert.AreEqual(expected.Length, primitive.TypeLength);
-                    Assert.AreEqual(/*isDecimal*/true, primitive.DecimalMetadata.IsSet); // BUG should only be set for decimal type. Raise issue with ARROW
+                    Assert.AreEqual(isDecimal, primitive.DecimalMetadata.IsSet);
                     Assert.AreEqual(isDecimal ? ((DecimalLogicalType) expected.LogicalType).Precision : -1, primitive.DecimalMetadata.Precision);
                     Assert.AreEqual(isDecimal ? ((DecimalLogicalType) expected.LogicalType).Scale : -1, primitive.DecimalMetadata.Scale);
                 }

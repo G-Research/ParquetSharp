@@ -74,7 +74,7 @@ namespace ParquetSharp
         private static extern IntPtr Statistics_Distinct_Count(IntPtr statistics, out long distinctCount);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr Statistics_HasMinMax(IntPtr statistics, out bool hasMinMax);
+        private static extern IntPtr Statistics_HasMinMax(IntPtr statistics, [MarshalAs(UnmanagedType.I1)] out bool hasMinMax);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Statistics_Null_Count(IntPtr statistics, out long nullCount);
@@ -86,7 +86,7 @@ namespace ParquetSharp
         private static extern IntPtr Statistics_Physical_Type(IntPtr statistics, out PhysicalType physicalType);
 
         [DllImport(ParquetDll.Name)]
-        protected static extern IntPtr TypedStatistics_Min_Bool(IntPtr statistics, out bool min);
+        protected static extern IntPtr TypedStatistics_Min_Bool(IntPtr statistics, [MarshalAs(UnmanagedType.I1)] out bool min);
 
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Min_Int32(IntPtr statistics, out int min);
@@ -110,7 +110,7 @@ namespace ParquetSharp
         protected static extern IntPtr TypedStatistics_Min_FLBA(IntPtr statistics, out FixedLenByteArray min);
 
         [DllImport(ParquetDll.Name)]
-        protected static extern IntPtr TypedStatistics_Max_Bool(IntPtr statistics, out bool max);
+        protected static extern IntPtr TypedStatistics_Max_Bool(IntPtr statistics, [MarshalAs(UnmanagedType.I1)] out bool max);
 
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Max_Int32(IntPtr statistics, out int max);

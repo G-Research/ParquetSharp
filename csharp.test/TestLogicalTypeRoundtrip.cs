@@ -79,7 +79,7 @@ namespace ParquetSharp.Test
                                     //Assert.AreEqual(expected.NumValues, statistics.NumValues);
                                     Assert.AreEqual(expected.PhysicalType, statistics.PhysicalType);
 
-                                    // BUG must report this to ARROW, decimal statistics are set but are non-sensical.
+                                    // BUG must report this to ARROW, decimal statistics are set but are nonsensical.
                                     var buggy = expected.LogicalType is DecimalLogicalType;
 
                                     if (expected.HasMinMax && !buggy)
