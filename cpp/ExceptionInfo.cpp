@@ -2,6 +2,8 @@
 #include "cpp/ParquetSharpExport.h"
 #include "ExceptionInfo.h"
 
+#include <typeinfo>
+
 ExceptionInfo::ExceptionInfo(const char* const type, const char* const message)
 	: Type(type), Message(message)
 {

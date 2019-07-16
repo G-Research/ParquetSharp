@@ -3,6 +3,7 @@
 #include "ExceptionInfo.h"
 
 #include <parquet/metadata.h>
+#include <parquet/statistics.h>
 
 using namespace parquet;
 
@@ -52,12 +53,12 @@ extern "C"
 		TRYCATCH(*num_values = column_chunk_meta_data->num_values();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnChunkMetaData_Statistics(const ColumnChunkMetaData* column_chunk_meta_data, std::shared_ptr<RowGroupStatistics>** statistics)
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnChunkMetaData_Statistics(const ColumnChunkMetaData* column_chunk_meta_data, std::shared_ptr<Statistics>** statistics)
 	{
 		TRYCATCH
 		(
 			const auto s = column_chunk_meta_data->statistics();
-			*statistics = s ? new std::shared_ptr<RowGroupStatistics>(s) : nullptr;
+			*statistics = s ? new std::shared_ptr<Statistics>(s) : nullptr;
 		)
 	}
 
