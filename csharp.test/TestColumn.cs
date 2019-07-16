@@ -137,13 +137,13 @@ namespace ParquetSharp.Test
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Date()
                 },
-                new ExpectedPrimitive
-                {
-                    Type = typeof(DateTime),
-                    PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Nanos),
-                    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Nanos)
-                },
+                //new ExpectedPrimitive
+                //{
+                //    Type = typeof(DateTime),
+                //    PhysicalType = PhysicalType.Int64,
+                //    LogicalType = LogicalType.Timestamp(false, TimeUnit.Nanos),
+                //    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Nanos)
+                //},
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime),
@@ -157,13 +157,13 @@ namespace ParquetSharp.Test
                     LogicalType = LogicalType.Timestamp(false, TimeUnit.Millis),
                     LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Millis)
                 },
-                new ExpectedPrimitive
-                {
-                    Type = typeof(TimeSpan),
-                    PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.Time(false, TimeUnit.Nanos),
-                    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Nanos)
-                },
+                //new ExpectedPrimitive
+                //{
+                //    Type = typeof(TimeSpan),
+                //    PhysicalType = PhysicalType.Int32,
+                //    LogicalType = LogicalType.Time(false, TimeUnit.Nanos),
+                //    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Nanos)
+                //},
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan),
@@ -288,14 +288,14 @@ namespace ParquetSharp.Test
                     LogicalType = LogicalType.Date(),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
-                {
-                    Type = typeof(DateTime?),
-                    PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Nanos),
-                    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Nanos),
-                    Repetition = Repetition.Optional
-                },
+                //new ExpectedPrimitive
+                //{
+                //    Type = typeof(DateTime?),
+                //    PhysicalType = PhysicalType.Int64,
+                //    LogicalType = LogicalType.Timestamp(false, TimeUnit.Nanos),
+                //    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Nanos),
+                //    Repetition = Repetition.Optional
+                //},
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime?),
@@ -310,14 +310,14 @@ namespace ParquetSharp.Test
                     LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Millis),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
-                {
-                    Type = typeof(TimeSpan?),
-                    PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.Time(false, TimeUnit.Nanos),
-                    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Nanos),
-                    Repetition = Repetition.Optional
-                },
+                //new ExpectedPrimitive
+                //{
+                //    Type = typeof(TimeSpan?),
+                //    PhysicalType = PhysicalType.Int32,
+                //    LogicalType = LogicalType.Time(false, TimeUnit.Nanos),
+                //    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Nanos),
+                //    Repetition = Repetition.Optional
+                //},
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan?),

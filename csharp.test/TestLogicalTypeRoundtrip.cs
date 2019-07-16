@@ -68,8 +68,8 @@ namespace ParquetSharp.Test
                                 Assert.AreEqual(expected.LogicalType, descr.LogicalType);
                                 Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalValueGetter(checked((int) numRows), rowsPerBatch)));
                                 Assert.AreEqual(expected.Length, descr.TypeLength);
-                                Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Precision ?? 0, descr.TypePrecision);
-                                Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Scale ?? 0, descr.TypeScale);
+                                Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Precision ?? -1, descr.TypePrecision);
+                                Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Scale ?? -1, descr.TypeScale);
                                 Assert.AreEqual(expected.HasStatistics, chunkMetaData.IsStatsSet);
 
                                 if (expected.HasStatistics)
@@ -79,7 +79,10 @@ namespace ParquetSharp.Test
                                     //Assert.AreEqual(expected.NumValues, statistics.NumValues);
                                     Assert.AreEqual(expected.PhysicalType, statistics.PhysicalType);
 
-                                    if (expected.HasMinMax)
+                                    // BUG must report this to ARROW, decimal statistics are set but are non-sensical.
+                                    var buggy = expected.LogicalType is DecimalLogicalType;
+
+                                    if (expected.HasMinMax && !buggy)
                                     {
                                         Assert.AreEqual(expected.Min, expected.Converter(statistics.MinUntyped));
                                         Assert.AreEqual(expected.Max, expected.Converter(statistics.MaxUntyped));
@@ -240,6 +243,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "int32_field",
                     PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(32, isSigned: true),
                     Values = Enumerable.Range(0, NumRows).ToArray(),
                     Min = 0,
                     Max = NumRows - 1
@@ -248,6 +252,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "int32?_field",
                     PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(32, isSigned: true),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (int?) null : i).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10)/11,
@@ -278,6 +283,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "int64_field",
                     PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Int(64, isSigned: true),
                     Values = Enumerable.Range(0, NumRows).Select(i => (long) i * i).ToArray(),
                     Min = 0,
                     Max = (NumRows - 1) * (NumRows - 1)
@@ -286,6 +292,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "int64?_field",
                     PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Int(64, isSigned: true),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (long?) null : (long) i * i).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -369,20 +376,23 @@ namespace ParquetSharp.Test
                     Name = "decimal128_field",
                     PhysicalType = PhysicalType.FixedLenByteArray,
                     LogicalType = LogicalType.Decimal(29, 3),
+                    LogicalTypeOverride = LogicalType.Decimal(29, 3),
                     Length = 16,
                     Values = Enumerable.Range(0, NumRows).Select(i => ((decimal) i * i * i) / 1000 - 10).ToArray(),
-                    HasStatistics = false
+                    Min = 0m,
+                    Max = ((decimal) NumRows * NumRows * NumRows) / 1000 - 10,
+                    Converter = v => DecimalConverter(v, 3)
                 },
                 new ExpectedColumn
                 {
                     Name = "decimal128?_field",
                     PhysicalType = PhysicalType.FixedLenByteArray,
                     LogicalType = LogicalType.Decimal(29, 3),
+                    LogicalTypeOverride = LogicalType.Decimal(29, 3),
                     Length = 16,
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? null : ((decimal?) i * i * i) / 1000 - 10).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
-                    HasStatistics = false
                 },
                 new ExpectedColumn
                 {
@@ -549,6 +559,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "nested_array_field",
                     PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Int(64, isSigned: true),
                     Values = Enumerable.Range(0, NumRows).Select(i =>
                     {
                         if (i % 3 == 0)
@@ -586,6 +597,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "nullable_nested_array_field",
                     PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Int(64, isSigned: true),
                     Values = Enumerable.Range(0, NumRows).Select(i =>
                     {
                         if (i % 3 == 0)
@@ -657,6 +669,11 @@ namespace ParquetSharp.Test
                     Converter = ByteArrayConverter
                 }
             };
+        }
+
+        private static unsafe object DecimalConverter(object v, int multiplier)
+        {
+            return (*(Decimal128*) ((FixedLenByteArray) v).Pointer).ToDecimal(multiplier);
         }
 
         private static object DateTimeMicrosConverter(object v)

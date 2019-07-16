@@ -21,21 +21,21 @@ namespace ParquetSharp
                 switch (type)
                 {
                     case PhysicalType.Boolean:
-                        return new RowGroupStatistics<bool>(parquetHandle);
+                        return new Statistics<bool>(parquetHandle);
                     case PhysicalType.Int32:
-                        return new RowGroupStatistics<int>(parquetHandle);
+                        return new Statistics<int>(parquetHandle);
                     case PhysicalType.Int64:
-                        return new RowGroupStatistics<long>(parquetHandle);
+                        return new Statistics<long>(parquetHandle);
                     case PhysicalType.Int96:
-                        return new RowGroupStatistics<Int96>(parquetHandle);
+                        return new Statistics<Int96>(parquetHandle);
                     case PhysicalType.Float:
-                        return new RowGroupStatistics<float>(parquetHandle);
+                        return new Statistics<float>(parquetHandle);
                     case PhysicalType.Double:
-                        return new RowGroupStatistics<double>(parquetHandle);
+                        return new Statistics<double>(parquetHandle);
                     case PhysicalType.ByteArray:
-                        return new RowGroupStatistics<ByteArray>(parquetHandle);
+                        return new Statistics<ByteArray>(parquetHandle);
                     case PhysicalType.FixedLenByteArray:
-                        return new RowGroupStatistics<FixedLenByteArray>(parquetHandle);
+                        return new Statistics<FixedLenByteArray>(parquetHandle);
                     default:
                         throw new NotSupportedException($"Physical type {type} is not supported");
                 }
@@ -136,9 +136,9 @@ namespace ParquetSharp
         internal readonly ParquetHandle Handle;
     }
 
-    public sealed class RowGroupStatistics<TValue> : Statistics where TValue : unmanaged
+    public sealed class Statistics<TValue> : Statistics where TValue : unmanaged
     {
-        internal RowGroupStatistics(ParquetHandle handle)
+        internal Statistics(ParquetHandle handle)
             : base(handle)
         {
         }

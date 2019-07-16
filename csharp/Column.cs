@@ -11,25 +11,24 @@ namespace ParquetSharp
     /// </summary>
     public class Column
     {
-        public Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride = null)
-            : this(logicalSystemType, name, logicalTypeOverride, -1)
+        public unsafe Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride = null)
+            : this(logicalSystemType, name, logicalTypeOverride, logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?) ? sizeof(Decimal128) : -1)
         {
             LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
             Name = name ?? throw new ArgumentNullException(nameof(name));
             LogicalTypeOverride = logicalTypeOverride;
         }
 
-        public Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride, int length)
+        public unsafe Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride, int length)
         {
-            if (length != -1 && 
-                logicalSystemType != typeof(decimal) &&
-                logicalSystemType != typeof(decimal?))
+            var isDecimal = logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?);
+
+            if (length != -1 && !isDecimal)
             {
                 throw new ArgumentException("length can only be set with the decimal type");
             }
 
-            if (!(logicalTypeOverride is DecimalLogicalType) && 
-                (logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?)))
+            if (isDecimal && !(logicalTypeOverride is DecimalLogicalType))
             {
                 throw new ArgumentException("decimal type requires a DecimalLogicalType override");
             }
@@ -41,7 +40,12 @@ namespace ParquetSharp
                 // Will implement 32-bits, 64-bits and other precision later.
                 if (decimalLogicalType.Precision != 29)
                 {
-                    throw new NotSupportedException("only 29 digits of precision is currently supported");
+                    throw new NotSupportedException("only 29 digits of precision is currently supported for decimal type");
+                }
+
+                if (length != sizeof(Decimal128))
+                {
+                    throw new NotSupportedException("only 16 bytes of length is currently supported for decimal type ");
                 }
             }
 
@@ -114,7 +118,7 @@ namespace ParquetSharp
         {
             if (Primitives.TryGetValue(type, out var p))
             {
-                var entry = GetEntry(type, logicalTypeOverride, p.LogicalType, p.PhysicalType);
+                var entry = GetEntry(logicalTypeOverride, p.LogicalType, p.PhysicalType);
                 return new PrimitiveNode(name, p.Repetition, entry.LogicalType, entry.PhysicalType, length);
             }
 
@@ -138,12 +142,10 @@ namespace ParquetSharp
         }
 
         private static (LogicalType LogicalType, PhysicalType PhysicalType) GetEntry(
-            Type type, LogicalType logicalTypeOverride, LogicalType logicalType, PhysicalType physicalType)
+            LogicalType logicalTypeOverride, LogicalType logicalType, PhysicalType physicalType)
         {
-            // TODO a decimal override type must be provided
-
             // By default, return the first listed logical type.
-            if (logicalTypeOverride == null)
+            if (logicalTypeOverride == null || logicalTypeOverride is NoneLogicalType)
             {
                 return (logicalType, physicalType);
             }
@@ -201,15 +203,6 @@ namespace ParquetSharp
     {
         public Column(string name, LogicalType logicalTypeOverride = null) 
             : base(typeof(TLogicalType), name, logicalTypeOverride)
-        {
-        }
-    }
-
-    // TODO Obsolete this
-    public sealed class ColumnDecimal : Column
-    {
-        public unsafe ColumnDecimal(string name, int precision, int scale, bool isNullable = false) 
-            : base(isNullable ? typeof(decimal?) : typeof(decimal), name, LogicalType.Decimal(precision, scale), sizeof(Decimal128))
         {
         }
     }
