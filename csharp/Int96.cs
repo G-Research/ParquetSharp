@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace ParquetSharp
 {
@@ -7,7 +8,7 @@ namespace ParquetSharp
     /// This is obsolete (see https://issues.apache.org/jira/browse/PARQUET-323).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public struct Int96
+    public struct Int96 : IEquatable<Int96>
     {
         public Int96(int a, int b, int c)
         {
@@ -19,6 +20,11 @@ namespace ParquetSharp
         public readonly int A;
         public readonly int B;
         public readonly int C;
+
+        public bool Equals(Int96 other)
+        {
+            return A == other.A && B == other.B && C == other.C;
+        }
 
         public override string ToString()
         {

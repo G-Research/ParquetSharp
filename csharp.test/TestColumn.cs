@@ -138,13 +138,6 @@ namespace ParquetSharp.Test
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Date()
                 },
-                //new ExpectedPrimitive
-                //{
-                //    Type = typeof(DateTime),
-                //    PhysicalType = PhysicalType.Int64,
-                //    LogicalType = LogicalType.Timestamp(false, TimeUnit.Nanos),
-                //    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Nanos)
-                //},
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime),
@@ -158,13 +151,12 @@ namespace ParquetSharp.Test
                     LogicalType = LogicalType.Timestamp(true, TimeUnit.Millis),
                     LogicalTypeOverride = LogicalType.Timestamp(true, TimeUnit.Millis)
                 },
-                //new ExpectedPrimitive
-                //{
-                //    Type = typeof(TimeSpan),
-                //    PhysicalType = PhysicalType.Int32,
-                //    LogicalType = LogicalType.Time(false, TimeUnit.Nanos),
-                //    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Nanos)
-                //},
+                new ExpectedPrimitive
+                {
+                    Type = typeof(DateTimeNanos),
+                    PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Nanos)
+                },
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan),
@@ -177,6 +169,12 @@ namespace ParquetSharp.Test
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Time(true, TimeUnit.Millis),
                     LogicalTypeOverride = LogicalType.Time(true, TimeUnit.Millis)
+                },
+                new ExpectedPrimitive
+                {
+                    Type = typeof(TimeSpanNanos),
+                    PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Time(true, TimeUnit.Nanos)
                 },
                 new ExpectedPrimitive
                 {
@@ -290,14 +288,6 @@ namespace ParquetSharp.Test
                     LogicalType = LogicalType.Date(),
                     Repetition = Repetition.Optional
                 },
-                //new ExpectedPrimitive
-                //{
-                //    Type = typeof(DateTime?),
-                //    PhysicalType = PhysicalType.Int64,
-                //    LogicalType = LogicalType.Timestamp(false, TimeUnit.Nanos),
-                //    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Nanos),
-                //    Repetition = Repetition.Optional
-                //},
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime?),
@@ -313,14 +303,13 @@ namespace ParquetSharp.Test
                     LogicalTypeOverride = LogicalType.Timestamp(true, TimeUnit.Millis),
                     Repetition = Repetition.Optional
                 },
-                //new ExpectedPrimitive
-                //{
-                //    Type = typeof(TimeSpan?),
-                //    PhysicalType = PhysicalType.Int32,
-                //    LogicalType = LogicalType.Time(false, TimeUnit.Nanos),
-                //    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Nanos),
-                //    Repetition = Repetition.Optional
-                //},
+                new ExpectedPrimitive
+                {
+                    Type = typeof(DateTimeNanos?),
+                    PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Nanos),
+                    Repetition = Repetition.Optional
+                },
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan?),
@@ -334,6 +323,13 @@ namespace ParquetSharp.Test
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Time(true, TimeUnit.Millis),
                     LogicalTypeOverride = LogicalType.Time(true, TimeUnit.Millis),
+                    Repetition = Repetition.Optional
+                },
+                new ExpectedPrimitive
+                {
+                    Type = typeof(TimeSpanNanos?),
+                    PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Time(true, TimeUnit.Nanos),
                     Repetition = Repetition.Optional
                 },
             };

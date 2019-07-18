@@ -126,12 +126,27 @@ namespace ParquetSharp
 
             if (logicalType is TimeLogicalType timeLogicalType)
             {
-                return (timeLogicalType.TimeUnit == TimeUnit.Millis ? typeof(int) : typeof(long), nullable ? typeof(TimeSpan?) : typeof(TimeSpan)); 
+                switch (timeLogicalType.TimeUnit)
+                {
+                    case TimeUnit.Millis:
+                        return (typeof(int), nullable ? typeof(TimeSpan?) : typeof(TimeSpan));
+                    case TimeUnit.Micros:
+                        return (typeof(long), nullable ? typeof(TimeSpan?) : typeof(TimeSpan));
+                    case TimeUnit.Nanos:
+                        return (typeof(long), nullable ? typeof(TimeSpanNanos?) : typeof(TimeSpanNanos));
+                }
             }
 
-            if (logicalType is TimestampLogicalType)
+            if (logicalType is TimestampLogicalType timestampLogicalType)
             {
-                return (typeof(long), nullable ? typeof(DateTime?) : typeof(DateTime));
+                switch (timestampLogicalType.TimeUnit)
+                {
+                    case TimeUnit.Millis:
+                    case TimeUnit.Micros:
+                        return (typeof(long), nullable ? typeof(DateTime?) : typeof(DateTime));
+                    case TimeUnit.Nanos:
+                        return (typeof(long), nullable ? typeof(DateTimeNanos?) : typeof(DateTimeNanos));
+                }
             }
 
             if (logicalType.Type == LogicalTypeEnum.String || logicalType.Type == LogicalTypeEnum.Json)

@@ -462,6 +462,28 @@ namespace ParquetSharp.Test
                 },
                 new ExpectedColumn
                 {
+                    Name = "datetime_nanos_field",
+                    PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Nanos),
+                    Values = Enumerable.Range(0, NumRows).Select(i => new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(i))).ToArray(),
+                    Min = new DateTimeNanos(new DateTime(2018, 01, 01)),
+                    Max = new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1)),
+                    Converter = DateTimeNanosConverter
+                },
+                new ExpectedColumn
+                {
+                    Name = "datetime?_nanos_field",
+                    PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Nanos),
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (DateTimeNanos?) null : new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(i))).ToArray(),
+                    NullCount = (NumRows + 10) / 11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
+                    Min = new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(1)),
+                    Max = new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1)),
+                    Converter = DateTimeNanosConverter
+                },
+                new ExpectedColumn
+                {
                     Name = "timespan_micros_field",
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Time(true, TimeUnit.Micros),
@@ -505,6 +527,28 @@ namespace ParquetSharp.Test
                     Min = TimeSpan.FromHours(-13 + 1),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
                     Converter = TimeSpanMillisConverter
+                },
+                new ExpectedColumn
+                {
+                    Name = "timespan_millis_field",
+                    PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Time(true, TimeUnit.Nanos),
+                    Values = Enumerable.Range(0, NumRows).Select(i => new TimeSpanNanos(TimeSpan.FromHours(-13) + TimeSpan.FromHours(i))).ToArray(),
+                    Min = new TimeSpanNanos(TimeSpan.FromHours(-13)),
+                    Max = new TimeSpanNanos(TimeSpan.FromHours(-13 + NumRows - 1)),
+                    Converter = TimeSpanNanosConverter
+                },
+                new ExpectedColumn
+                {
+                    Name = "timespan?_millis_field",
+                    PhysicalType = PhysicalType.Int64,
+                    LogicalType = LogicalType.Time(true, TimeUnit.Nanos),
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (TimeSpanNanos?) null : new TimeSpanNanos(TimeSpan.FromHours(-13) + TimeSpan.FromHours(i))).ToArray(),
+                    NullCount = (NumRows + 10) / 11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
+                    Min = new TimeSpanNanos(TimeSpan.FromHours(-13 + 1)),
+                    Max = new TimeSpanNanos(TimeSpan.FromHours(-13 + NumRows - 1)),
+                    Converter = TimeSpanNanosConverter
                 },
                 new ExpectedColumn
                 {
@@ -686,6 +730,11 @@ namespace ParquetSharp.Test
             return new DateTime(1970, 01, 01).AddTicks((long) v * TimeSpan.TicksPerMillisecond);
         }
 
+        private static object DateTimeNanosConverter(object v)
+        {
+            return new DateTimeNanos((long) v);
+        }
+
         private static object TimeSpanMicrosConverter(object v)
         {
             return TimeSpan.FromTicks((long) v * (TimeSpan.TicksPerMillisecond / 1000));
@@ -694,6 +743,11 @@ namespace ParquetSharp.Test
         private static object TimeSpanMillisConverter(object v)
         {
             return TimeSpan.FromTicks((int) v * TimeSpan.TicksPerMillisecond);
+        }
+
+        private static object TimeSpanNanosConverter(object v)
+        {
+            return new TimeSpanNanos((long) v);
         }
 
         private static object ByteArrayConverter(object v)

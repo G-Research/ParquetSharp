@@ -79,56 +79,52 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(DateTime))
             {
-                var timestampLogicalType = (TimestampLogicalType) logicalType;
-                var timeUnit = timestampLogicalType.TimeUnit;
-
-                // TODO Support nanoseconds
-
-                if (timeUnit == TimeUnit.Micros)
+                switch (((TimestampLogicalType) logicalType).TimeUnit)
                 {
-                    return (Converter) (Delegate) (LogicalRead<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMicros(s, d));
+                    case TimeUnit.Millis:
+                        return (Converter) (Delegate) (LogicalRead<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMillis(s, d));
+                    case TimeUnit.Micros:
+                        return (Converter) (Delegate) (LogicalRead<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMicros(s, d));
                 }
+            }
 
-                if (timeUnit == TimeUnit.Millis)
-                {
-                    return (Converter) (Delegate) (LogicalRead<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMillis(s, d));
-                }
+            if (typeof(TLogical) == typeof(DateTimeNanos))
+            {
+                return (Converter) (Delegate) (LogicalRead<DateTimeNanos, long>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<long, DateTimeNanos>(s), d));
             }
 
             if (typeof(TLogical) == typeof(DateTime?))
             {
-                var timestampLogicalType = (TimestampLogicalType) logicalType;
-                var timeUnit = timestampLogicalType.TimeUnit;
-
-                // TODO Support nanoseconds
-
-                if (timeUnit == TimeUnit.Micros)
+                switch (((TimestampLogicalType) logicalType).TimeUnit)
                 {
-                    return (Converter) (Delegate) (LogicalRead<DateTime?, long>.Converter) ConvertDateTimeMicros;
+                    case TimeUnit.Millis:
+                        return (Converter) (Delegate) (LogicalRead<DateTime?, long>.Converter) ConvertDateTimeMillis;
+                    case TimeUnit.Micros:
+                        return (Converter) (Delegate) (LogicalRead<DateTime?, long>.Converter) ConvertDateTimeMicros;
+                    case TimeUnit.Nanos:
+                        return (Converter) (Delegate) (LogicalRead<TPhysical?, TPhysical>.Converter) ConvertNative;
                 }
+            }
 
-                if (timeUnit == TimeUnit.Millis)
-                {
-                    return (Converter) (Delegate) (LogicalRead<DateTime?, long>.Converter) ConvertDateTimeMillis;
-                }
+            if (typeof(TLogical) == typeof(DateTimeNanos?))
+            {
+                return (Converter) (Delegate) (LogicalRead<DateTimeNanos?, long>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<long, DateTimeNanos>(s), dl, d, nl));
             }
 
             if (typeof(TLogical) == typeof(TimeSpan))
             {
-                var timeLogicalType = (TimeLogicalType) logicalType;
-                var timeUnit = timeLogicalType.TimeUnit;
-
-                // TODO Support nanoseconds
-
-                if (timeUnit == TimeUnit.Micros)
+                switch (((TimeLogicalType) logicalType).TimeUnit)
                 {
-                    return (Converter) (Delegate) (LogicalRead<TimeSpan, long>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMicros(s, d));
+                    case TimeUnit.Millis:
+                        return (Converter) (Delegate) (LogicalRead<TimeSpan, int>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMillis(s, d));
+                    case TimeUnit.Micros:
+                        return (Converter) (Delegate) (LogicalRead<TimeSpan, long>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMicros(s, d));
                 }
+            }
 
-                if (timeUnit == TimeUnit.Millis)
-                {
-                    return (Converter) (Delegate) (LogicalRead<TimeSpan, int>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMillis(s, d));
-                }
+            if (typeof(TLogical) == typeof(TimeSpanNanos))
+            {
+                return (Converter) (Delegate) (LogicalRead<TimeSpanNanos, long>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<long, TimeSpanNanos>(s), d));
             }
 
             if (typeof(TLogical) == typeof(TimeSpan?))
@@ -136,17 +132,18 @@ namespace ParquetSharp
                 var timeLogicalType = (TimeLogicalType) logicalType;
                 var timeUnit = timeLogicalType.TimeUnit;
 
-                // TODO Support nanoseconds
-
-                if (timeUnit == TimeUnit.Micros)
+                switch (timeUnit)
                 {
-                    return (Converter) (Delegate) (LogicalRead<TimeSpan?, long>.Converter) ConvertTimeSpanMicros;
+                    case TimeUnit.Millis:
+                        return (Converter) (Delegate) (LogicalRead<TimeSpan?, int>.Converter) ConvertTimeSpanMillis;
+                    case TimeUnit.Micros:
+                        return (Converter) (Delegate) (LogicalRead<TimeSpan?, long>.Converter) ConvertTimeSpanMicros;
                 }
+            }
 
-                if (timeUnit == TimeUnit.Millis)
-                {
-                    return (Converter) (Delegate) (LogicalRead<TimeSpan?, int>.Converter) ConvertTimeSpanMillis;
-                }
+            if (typeof(TLogical) == typeof(TimeSpanNanos?))
+            {
+                return (Converter) (Delegate) (LogicalRead<TimeSpanNanos?, long>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<long, TimeSpanNanos>(s), dl, d, nl));
             }
 
             if (typeof(TLogical) == typeof(string))

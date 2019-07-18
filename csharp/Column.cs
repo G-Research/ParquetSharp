@@ -192,8 +192,12 @@ namespace ParquetSharp
                 {typeof(Date?), (Repetition.Optional, LogicalType.Date(), PhysicalType.Int32)},
                 {typeof(DateTime), (Repetition.Required, LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
                 {typeof(DateTime?), (Repetition.Optional, LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
+                {typeof(DateTimeNanos), (Repetition.Required, LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), PhysicalType.Int64)},
+                {typeof(DateTimeNanos?), (Repetition.Optional, LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), PhysicalType.Int64)},
                 {typeof(TimeSpan), (Repetition.Required, LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
                 {typeof(TimeSpan?), (Repetition.Optional, LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
+                {typeof(TimeSpanNanos), (Repetition.Required, LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), PhysicalType.Int64)},
+                {typeof(TimeSpanNanos?), (Repetition.Optional, LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), PhysicalType.Int64)},
                 {typeof(string), (Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray)},
                 {typeof(byte[]), (Repetition.Optional, LogicalType.None(), PhysicalType.ByteArray)}
             };
