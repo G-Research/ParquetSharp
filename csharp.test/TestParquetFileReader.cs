@@ -19,8 +19,8 @@ namespace ParquetSharp.Test
             Assert.AreEqual(
                 (isLinux ? "N7parquet16ParquetExceptionE" : "class parquet::ParquetException") +
                 " (message: 'Arrow error: IOError: Failed to open local file 'non_existent.parquet', error: " +
-                (isLinux ? "No such file or directory" : "The system cannot find the file specified.") +
-                Environment.NewLine + "')",
+                (isLinux ? "No such file or directory" : "The system cannot find the file specified." + Environment.NewLine) +
+                "')",
                 exception.Message);
         }
 
