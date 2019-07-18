@@ -149,14 +149,14 @@ namespace ParquetSharp.Test
                 {
                     Type = typeof(DateTime),
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Micros)
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Micros)
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime),
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Millis),
-                    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Millis)
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Timestamp(true, TimeUnit.Millis)
                 },
                 //new ExpectedPrimitive
                 //{
@@ -169,14 +169,14 @@ namespace ParquetSharp.Test
                 {
                     Type = typeof(TimeSpan),
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Time(false, TimeUnit.Micros)
+                    LogicalType = LogicalType.Time(true, TimeUnit.Micros)
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan),
                     PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.Time(false, TimeUnit.Millis),
-                    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Millis)
+                    LogicalType = LogicalType.Time(true, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Time(true, TimeUnit.Millis)
                 },
                 new ExpectedPrimitive
                 {
@@ -302,15 +302,15 @@ namespace ParquetSharp.Test
                 {
                     Type = typeof(DateTime?),
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Micros),
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Micros),
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(DateTime?),
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Millis),
-                    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Millis),
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Timestamp(true, TimeUnit.Millis),
                     Repetition = Repetition.Optional
                 },
                 //new ExpectedPrimitive
@@ -325,15 +325,15 @@ namespace ParquetSharp.Test
                 {
                     Type = typeof(TimeSpan?),
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Time(false, TimeUnit.Micros),
+                    LogicalType = LogicalType.Time(true, TimeUnit.Micros),
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
                 {
                     Type = typeof(TimeSpan?),
                     PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.Time(false, TimeUnit.Millis),
-                    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Millis),
+                    LogicalType = LogicalType.Time(true, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Time(true, TimeUnit.Millis),
                     Repetition = Repetition.Optional
                 },
             };

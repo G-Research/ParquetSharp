@@ -190,10 +190,10 @@ namespace ParquetSharp
                 {typeof(decimal?), (Repetition.Optional, null, PhysicalType.FixedLenByteArray)},
                 {typeof(Date), (Repetition.Required, LogicalType.Date(), PhysicalType.Int32)},
                 {typeof(Date?), (Repetition.Optional, LogicalType.Date(), PhysicalType.Int32)},
-                {typeof(DateTime), (Repetition.Required, LogicalType.Timestamp(isAdjustedToUtc: false, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
-                {typeof(DateTime?), (Repetition.Optional, LogicalType.Timestamp(isAdjustedToUtc: false, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
-                {typeof(TimeSpan), (Repetition.Required, LogicalType.Time(isAdjustedToUtc: false, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
-                {typeof(TimeSpan?), (Repetition.Optional, LogicalType.Time(isAdjustedToUtc: false, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
+                {typeof(DateTime), (Repetition.Required, LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
+                {typeof(DateTime?), (Repetition.Optional, LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
+                {typeof(TimeSpan), (Repetition.Required, LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
+                {typeof(TimeSpan?), (Repetition.Optional, LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},
                 {typeof(string), (Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray)},
                 {typeof(byte[]), (Repetition.Optional, LogicalType.None(), PhysicalType.ByteArray)}
             };

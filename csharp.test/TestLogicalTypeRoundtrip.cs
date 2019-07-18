@@ -418,7 +418,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "datetime_micros_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Micros),
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Micros),
                     Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     Min = new DateTime(2018, 01, 01),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
@@ -428,7 +428,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "datetime?_micros_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Micros),
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Micros),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (DateTime?) null : new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -440,8 +440,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "datetime_millis_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Millis),
-                    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Millis),
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Timestamp(true, TimeUnit.Millis),
                     Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     Min = new DateTime(2018, 01, 01),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
@@ -451,8 +451,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "datetime?_millis_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Timestamp(false, TimeUnit.Millis),
-                    LogicalTypeOverride = LogicalType.Timestamp(false, TimeUnit.Millis),
+                    LogicalType = LogicalType.Timestamp(true, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Timestamp(true, TimeUnit.Millis),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (DateTime?) null : new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -464,7 +464,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "timespan_micros_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Time(false, TimeUnit.Micros),
+                    LogicalType = LogicalType.Time(true, TimeUnit.Micros),
                     Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     Min = TimeSpan.FromHours(-13),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
@@ -474,7 +474,7 @@ namespace ParquetSharp.Test
                 {
                     Name = "timespan?_micros_field",
                     PhysicalType = PhysicalType.Int64,
-                    LogicalType = LogicalType.Time(false, TimeUnit.Micros),
+                    LogicalType = LogicalType.Time(true, TimeUnit.Micros),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (TimeSpan?) null : TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
@@ -486,8 +486,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "timespan_millis_field",
                     PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.Time(false, TimeUnit.Millis),
-                    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Millis),
+                    LogicalType = LogicalType.Time(true, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Time(true, TimeUnit.Millis),
                     Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     Min = TimeSpan.FromHours(-13),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
@@ -497,8 +497,8 @@ namespace ParquetSharp.Test
                 {
                     Name = "timespan?_millis_field",
                     PhysicalType = PhysicalType.Int32,
-                    LogicalType = LogicalType.Time(false, TimeUnit.Millis),
-                    LogicalTypeOverride = LogicalType.Time(false, TimeUnit.Millis),
+                    LogicalType = LogicalType.Time(true, TimeUnit.Millis),
+                    LogicalTypeOverride = LogicalType.Time(true, TimeUnit.Millis),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (TimeSpan?) null : TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
