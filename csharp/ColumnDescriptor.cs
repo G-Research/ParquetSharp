@@ -102,7 +102,7 @@ namespace ParquetSharp
                 var bitWidth = intLogicalType.BitWidth;
                 var isSigned = intLogicalType.IsSigned;
 
-                if (bitWidth == 8 && isSigned) return (typeof(int), nullable ? typeof(byte?) : typeof(byte));
+                if (bitWidth == 8 && isSigned) return (typeof(int), nullable ? typeof(sbyte?) : typeof(sbyte));
                 if (bitWidth == 8 && !isSigned) return (typeof(int), nullable ? typeof(byte?) : typeof(byte));
                 if (bitWidth == 16 && isSigned) return (typeof(int), nullable ? typeof(short?) : typeof(short));
                 if (bitWidth == 16 && !isSigned) return (typeof(int), nullable ? typeof(ushort?) : typeof(ushort));

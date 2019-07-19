@@ -166,6 +166,8 @@ namespace ParquetSharp
             {
                 {typeof(bool), (Repetition.Required, LogicalType.None(), PhysicalType.Boolean)},
                 {typeof(bool?), (Repetition.Optional, LogicalType.None(), PhysicalType.Boolean)},
+                {typeof(sbyte), (Repetition.Required, LogicalType.Int(8, isSigned: true), PhysicalType.Int32)},
+                {typeof(sbyte?), (Repetition.Optional, LogicalType.Int(8, isSigned: true), PhysicalType.Int32)},
                 {typeof(byte), (Repetition.Required, LogicalType.Int(8, isSigned: false), PhysicalType.Int32)},
                 {typeof(byte?), (Repetition.Optional, LogicalType.Int(8, isSigned: false), PhysicalType.Int32)},
                 {typeof(short), (Repetition.Required, LogicalType.Int(16, isSigned: true), PhysicalType.Int32)},
@@ -205,7 +207,7 @@ namespace ParquetSharp
 
     public sealed class Column<TLogicalType> : Column
     {
-        public Column(string name, LogicalType logicalTypeOverride = null) 
+        public Column(string name, LogicalType logicalTypeOverride = null)
             : base(typeof(TLogicalType), name, logicalTypeOverride)
         {
         }

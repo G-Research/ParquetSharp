@@ -33,6 +33,46 @@ namespace ParquetSharp
                 return (Converter) (Delegate) (LogicalWrite<TPhysical?, TPhysical>.Converter) ConvertNative;
             }
 
+            if (typeof(TLogical) == typeof(sbyte))
+            {
+                return (Converter) (Delegate) (LogicalWrite<sbyte, int>.Converter) ((s, dl, d, nl) => ConvertInt8(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(sbyte?))
+            {
+                return (Converter) (Delegate) (LogicalWrite<sbyte?, int>.Converter) ConvertInt8;
+            }
+
+            if (typeof(TLogical) == typeof(byte))
+            {
+                return (Converter) (Delegate) (LogicalWrite<byte, int>.Converter) ((s, dl, d, nl) => ConvertUInt8(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(byte?))
+            {
+                return (Converter) (Delegate) (LogicalWrite<byte?, int>.Converter) ConvertUInt8;
+            }
+
+            if (typeof(TLogical) == typeof(short))
+            {
+                return (Converter) (Delegate) (LogicalWrite<short, int>.Converter) ((s, dl, d, nl) => ConvertInt16(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(short?))
+            {
+                return (Converter) (Delegate) (LogicalWrite<short?, int>.Converter) ConvertInt16;
+            }
+
+            if (typeof(TLogical) == typeof(ushort))
+            {
+                return (Converter) (Delegate) (LogicalWrite<ushort, int>.Converter) ((s, dl, d, nl) => ConvertUInt16(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(ushort?))
+            {
+                return (Converter) (Delegate) (LogicalWrite<ushort?, int>.Converter) ConvertUInt16;
+            }
+
             if (typeof(TLogical) == typeof(uint))
             {
                 return (Converter) (Delegate) (LogicalWrite<uint, int>.Converter) ((s, dl, d, nl) => ConvertNative(s, MemoryMarshal.Cast<int, uint>(d)));
@@ -174,6 +214,106 @@ namespace ParquetSharp
             }
         }
 
+        private static void ConvertInt8(ReadOnlySpan<sbyte> source, Span<int> destination)
+        {
+            for (int i = 0; i != source.Length; ++i)
+            {
+                destination[i] = source[i];
+            }
+        }
+
+        private static void ConvertInt8(ReadOnlySpan<sbyte?> source, Span<short> defLevels, Span<int> destination, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i != source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = value.Value;
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        private static void ConvertUInt8(ReadOnlySpan<byte> source, Span<int> destination)
+        {
+            for (int i = 0; i != source.Length; ++i)
+            {
+                destination[i] = source[i];
+            }
+        }
+
+        private static void ConvertUInt8(ReadOnlySpan<byte?> source, Span<short> defLevels, Span<int> destination, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i != source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = value.Value;
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        private static void ConvertInt16(ReadOnlySpan<short> source, Span<int> destination)
+        {
+            for (int i = 0; i != source.Length; ++i)
+            {
+                destination[i] = source[i];
+            }
+        }
+
+        private static void ConvertInt16(ReadOnlySpan<short?> source, Span<short> defLevels, Span<int> destination, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i != source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = value.Value;
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        private static void ConvertUInt16(ReadOnlySpan<ushort> source, Span<int> destination)
+        {
+            for (int i = 0; i != source.Length; ++i)
+            {
+                destination[i] = source[i];
+            }
+        }
+
+        private static void ConvertUInt16(ReadOnlySpan<ushort?> source, Span<short> defLevels, Span<int> destination, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i != source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = value.Value;
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
         private static void ConvertDecimal128(ReadOnlySpan<decimal> source, Span<FixedLenByteArray> destination, decimal multiplier, ByteBuffer byteBuffer)
         {
             for (int i = 0; i != source.Length; ++i)
@@ -246,7 +386,7 @@ namespace ParquetSharp
                 else
                 {
                     destination[dst++] = (value.Value.Ticks - DateTimeOffset) / TimeSpan.TicksPerMillisecond;
-                    defLevels[i] = (short)(nullLevel + 1);
+                    defLevels[i] = (short) (nullLevel + 1);
                 }
             }
         }
@@ -296,7 +436,7 @@ namespace ParquetSharp
                 else
                 {
                     destination[dst++] = (int) (value.Value.Ticks / TimeSpan.TicksPerMillisecond);
-                    defLevels[i] = (short)(nullLevel + 1);
+                    defLevels[i] = (short) (nullLevel + 1);
                 }
             }
         }

@@ -33,7 +33,45 @@ namespace ParquetSharp
                 return (Converter) (Delegate) (LogicalRead<TPhysical?, TPhysical>.Converter) ConvertNative;
             }
 
-            // TODO Support byte and short/ushort
+            if (typeof(TLogical) == typeof(sbyte))
+            {
+                return (Converter) (Delegate) (LogicalRead<sbyte, int>.Converter) ((s, dl, d, nl) => ConvertInt8(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(sbyte?))
+            {
+                return (Converter) (Delegate) (LogicalRead<sbyte?, int>.Converter) ConvertInt8;
+            }
+
+            if (typeof(TLogical) == typeof(byte))
+            {
+                return (Converter) (Delegate) (LogicalRead<byte, int>.Converter) ((s, dl, d, nl) => ConvertUInt8(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(byte?))
+            {
+                return (Converter) (Delegate) (LogicalRead<byte?, int>.Converter) ConvertUInt8;
+            }
+
+            if (typeof(TLogical) == typeof(short))
+            {
+                return (Converter) (Delegate) (LogicalRead<short, int>.Converter) ((s, dl, d, nl) => ConvertInt16(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(short?))
+            {
+                return (Converter) (Delegate) (LogicalRead<short?, int>.Converter) ConvertInt16;
+            }
+
+            if (typeof(TLogical) == typeof(ushort))
+            {
+                return (Converter) (Delegate) (LogicalRead<ushort, int>.Converter) ((s, dl, d, nl) => ConvertUInt16(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(ushort?))
+            {
+                return (Converter) (Delegate) (LogicalRead<ushort?, int>.Converter) ConvertUInt16;
+            }
 
             if (typeof(TLogical) == typeof(uint))
             {
@@ -172,6 +210,70 @@ namespace ParquetSharp
             }
         }
 
+        private static void ConvertInt8(ReadOnlySpan<int> source, Span<sbyte> destination)
+        {
+            for (int i = 0; i != destination.Length; ++i)
+            {
+                destination[i] = (sbyte) source[i];
+            }
+        }
+
+        private static void ConvertInt8(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<sbyte?> destination, short nullLevel)
+        {
+            for (int i = 0, src = 0; i != destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] == nullLevel ? default(sbyte?) : (sbyte) source[src++];
+            }
+        }
+
+        private static void ConvertUInt8(ReadOnlySpan<int> source, Span<byte> destination)
+        {
+            for (int i = 0; i != destination.Length; ++i)
+            {
+                destination[i] = (byte) source[i];
+            }
+        }
+
+        private static void ConvertUInt8(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<byte?> destination, short nullLevel)
+        {
+            for (int i = 0, src = 0; i != destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] == nullLevel ? default(byte?) : (byte) source[src++];
+            }
+        }
+
+        private static void ConvertInt16(ReadOnlySpan<int> source, Span<short> destination)
+        {
+            for (int i = 0; i != destination.Length; ++i)
+            {
+                destination[i] = (short) source[i];
+            }
+        }
+
+        private static void ConvertInt16(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<short?> destination, short nullLevel)
+        {
+            for (int i = 0, src = 0; i != destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] == nullLevel ? default(short?) : (short) source[src++];
+            }
+        }
+
+        private static void ConvertUInt16(ReadOnlySpan<int> source, Span<ushort> destination)
+        {
+            for (int i = 0; i != destination.Length; ++i)
+            {
+                destination[i] = (ushort) source[i];
+            }
+        }
+
+        private static void ConvertUInt16(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<ushort?> destination, short nullLevel)
+        {
+            for (int i = 0, src = 0; i != destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] == nullLevel ? default(ushort?) : (ushort) source[src++];
+            }
+        }
+
         private static unsafe void ConvertDecimal128(ReadOnlySpan<FixedLenByteArray> source, Span<decimal> destination, decimal multiplier)
         {
             for (int i = 0; i != destination.Length; ++i)
@@ -292,6 +394,7 @@ namespace ParquetSharp
             {
                 Marshal.Copy(byteArray.Pointer, array, 0, array.Length);
             }
+
             return array;
         }
 

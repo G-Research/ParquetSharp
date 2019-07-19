@@ -155,11 +155,12 @@ namespace ParquetSharp.Test
              * None
              * [[]]
              */
-            var expected = new double?[][][] {
-                new double?[][] { null, new double?[] { }, new double?[] {1.0, null, 2.0} },
-                new double?[][] {},
+            var expected = new double?[][][]
+            {
+                new double?[][] {null, new double?[] { }, new double?[] {1.0, null, 2.0}},
+                new double?[][] { },
                 null,
-                new double?[][] { new double?[] { } }
+                new double?[][] {new double?[] { }}
             };
 
             using (var buffer = new ResizableBuffer())
@@ -235,9 +236,89 @@ namespace ParquetSharp.Test
                     PhysicalType = PhysicalType.Boolean,
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (bool?) null : i % 3 == 0).ToArray(),
                     NullCount = (NumRows + 10) / 11,
-                    NumValues = NumRows - (NumRows + 10)/11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
                     Min = false,
                     Max = true
+                },
+                new ExpectedColumn
+                {
+                    Name = "int8_field",
+                    PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(8, isSigned: true),
+                    Values = Enumerable.Range(0, NumRows).Select(i => (sbyte) i).ToArray(),
+                    Min = 0,
+                    Max = NumRows - 1
+                },
+                new ExpectedColumn
+                {
+                    Name = "int8?_field",
+                    PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(8, isSigned: true),
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (sbyte?) null : (sbyte) i).ToArray(),
+                    NullCount = (NumRows + 10) / 11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
+                    Min = 1,
+                    Max = NumRows - 1
+                },
+                new ExpectedColumn
+                {
+                    Name = "uint8_field",
+                    PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(8, isSigned: false),
+                    Values = Enumerable.Range(0, NumRows).Select(i => (byte) i).ToArray(),
+                    Min = 0,
+                    Max = NumRows - 1
+                },
+                new ExpectedColumn
+                {
+                    Name = "uint8?_field",
+                    PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(8, isSigned: false),
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (byte?) null : (byte) i).ToArray(),
+                    NullCount = (NumRows + 10) / 11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
+                    Min = 1,
+                    Max = NumRows - 1
+                },
+                new ExpectedColumn
+                {
+                    Name = "int16_field",
+                    PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(16, isSigned: true),
+                    Values = Enumerable.Range(0, NumRows).Select(i => (short) i).ToArray(),
+                    Min = 0,
+                    Max = NumRows - 1
+                },
+                new ExpectedColumn
+                {
+                    Name = "int16?_field",
+                    PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(16, isSigned: true),
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (short?) null : (short) i).ToArray(),
+                    NullCount = (NumRows + 10) / 11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
+                    Min = 1,
+                    Max = NumRows - 1
+                },
+                new ExpectedColumn
+                {
+                    Name = "uint16_field",
+                    PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(16, isSigned: false),
+                    Values = Enumerable.Range(0, NumRows).Select(i => (ushort) i).ToArray(),
+                    Min = 0,
+                    Max = NumRows - 1
+                },
+                new ExpectedColumn
+                {
+                    Name = "uint16?_field",
+                    PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(16, isSigned: false),
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (ushort?) null : (ushort) i).ToArray(),
+                    NullCount = (NumRows + 10) / 11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
+                    Min = 1,
+                    Max = NumRows - 1
                 },
                 new ExpectedColumn
                 {
@@ -255,7 +336,7 @@ namespace ParquetSharp.Test
                     LogicalType = LogicalType.Int(32, isSigned: true),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (int?) null : i).ToArray(),
                     NullCount = (NumRows + 10) / 11,
-                    NumValues = NumRows - (NumRows + 10)/11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
                     Min = 1,
                     Max = NumRows - 1
                 },
@@ -758,6 +839,7 @@ namespace ParquetSharp.Test
             {
                 Marshal.Copy(byteArray.Pointer, array, 0, array.Length);
             }
+
             return array;
         }
 

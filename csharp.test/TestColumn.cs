@@ -74,6 +74,12 @@ namespace ParquetSharp.Test
                 },
                 new ExpectedPrimitive
                 {
+                    Type = typeof(sbyte),
+                    PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(8, isSigned: true)
+                },
+                new ExpectedPrimitive
+                {
                     Type = typeof(byte),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(8, isSigned: false)
@@ -209,6 +215,13 @@ namespace ParquetSharp.Test
                 {
                     Type = typeof(bool?),
                     PhysicalType = PhysicalType.Boolean,
+                    Repetition = Repetition.Optional
+                },
+                new ExpectedPrimitive
+                {
+                    Type = typeof(sbyte?),
+                    PhysicalType = PhysicalType.Int32,
+                    LogicalType = LogicalType.Int(8, isSigned: true),
                     Repetition = Repetition.Optional
                 },
                 new ExpectedPrimitive
