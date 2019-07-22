@@ -33,6 +33,46 @@ namespace ParquetSharp
                 return (Converter) (Delegate) (LogicalWrite<TPhysical?, TPhysical>.Converter) ConvertNative;
             }
 
+            if (typeof(TLogical) == typeof(sbyte))
+            {
+                return (Converter) (Delegate) (LogicalWrite<sbyte, int>.Converter) ((s, dl, d, nl) => ConvertInt8(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(sbyte?))
+            {
+                return (Converter) (Delegate) (LogicalWrite<sbyte?, int>.Converter) ConvertInt8;
+            }
+
+            if (typeof(TLogical) == typeof(byte))
+            {
+                return (Converter) (Delegate) (LogicalWrite<byte, int>.Converter) ((s, dl, d, nl) => ConvertUInt8(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(byte?))
+            {
+                return (Converter) (Delegate) (LogicalWrite<byte?, int>.Converter) ConvertUInt8;
+            }
+
+            if (typeof(TLogical) == typeof(short))
+            {
+                return (Converter) (Delegate) (LogicalWrite<short, int>.Converter) ((s, dl, d, nl) => ConvertInt16(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(short?))
+            {
+                return (Converter) (Delegate) (LogicalWrite<short?, int>.Converter) ConvertInt16;
+            }
+
+            if (typeof(TLogical) == typeof(ushort))
+            {
+                return (Converter) (Delegate) (LogicalWrite<ushort, int>.Converter) ((s, dl, d, nl) => ConvertUInt16(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(ushort?))
+            {
+                return (Converter) (Delegate) (LogicalWrite<ushort?, int>.Converter) ConvertUInt16;
+            }
+
             if (typeof(TLogical) == typeof(uint))
             {
                 return (Converter) (Delegate) (LogicalWrite<uint, int>.Converter) ((s, dl, d, nl) => ConvertNative(s, MemoryMarshal.Cast<int, uint>(d)));
@@ -77,54 +117,66 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(DateTime))
             {
-                if (logicalType == LogicalType.TimestampMicros)
+                switch (((TimestampLogicalType) logicalType).TimeUnit)
                 {
-                    return (Converter) (Delegate) (LogicalWrite<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMicros(s, d));
+                    case TimeUnit.Millis:
+                        return (Converter) (Delegate) (LogicalWrite<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMillis(s, d));
+                    case TimeUnit.Micros:
+                        return (Converter) (Delegate) (LogicalWrite<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMicros(s, d));
                 }
+            }
 
-                if (logicalType == LogicalType.TimestampMillis)
-                {
-                    return (Converter) (Delegate) (LogicalWrite<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMillis(s, d));
-                }
+            if (typeof(TLogical) == typeof(DateTimeNanos))
+            {
+                return (Converter) (Delegate) (LogicalWrite<DateTimeNanos, long>.Converter) ((s, dl, d, nl) => ConvertNative(s, MemoryMarshal.Cast<long, DateTimeNanos>(d)));
             }
 
             if (typeof(TLogical) == typeof(DateTime?))
             {
-                if (logicalType == LogicalType.TimestampMicros)
+                switch (((TimestampLogicalType) logicalType).TimeUnit)
                 {
-                    return (Converter) (Delegate) (LogicalWrite<DateTime?, long>.Converter) ConvertDateTimeMicros;
+                    case TimeUnit.Millis:
+                        return (Converter) (Delegate) (LogicalWrite<DateTime?, long>.Converter) ConvertDateTimeMillis;
+                    case TimeUnit.Micros:
+                        return (Converter) (Delegate) (LogicalWrite<DateTime?, long>.Converter) ConvertDateTimeMicros;
                 }
+            }
 
-                if (logicalType == LogicalType.TimestampMillis)
-                {
-                    return (Converter) (Delegate) (LogicalWrite<DateTime?, long>.Converter) ConvertDateTimeMillis;
-                }
+            if (typeof(TLogical) == typeof(DateTimeNanos?))
+            {
+                return (Converter) (Delegate) (LogicalWrite<DateTimeNanos?, long>.Converter) ((s, dl, d, nl) => ConvertNative(s, dl, MemoryMarshal.Cast<long, DateTimeNanos>(d), nl));
             }
 
             if (typeof(TLogical) == typeof(TimeSpan))
             {
-                if (logicalType == LogicalType.TimeMicros)
+                switch (((TimeLogicalType) logicalType).TimeUnit)
                 {
-                    return (Converter) (Delegate) (LogicalWrite<TimeSpan, long>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMicros(s, d));
+                    case TimeUnit.Millis:
+                        return (Converter) (Delegate) (LogicalWrite<TimeSpan, int>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMillis(s, d));
+                    case TimeUnit.Micros:
+                        return (Converter) (Delegate) (LogicalWrite<TimeSpan, long>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMicros(s, d));
                 }
+            }
 
-                if (logicalType == LogicalType.TimeMillis)
-                {
-                    return (Converter) (Delegate) (LogicalWrite<TimeSpan, int>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMillis(s, d));
-                }
+            if (typeof(TLogical) == typeof(TimeSpanNanos))
+            {
+                return (Converter) (Delegate) (LogicalWrite<TimeSpanNanos, long>.Converter) ((s, dl, d, nl) => ConvertNative(s, MemoryMarshal.Cast<long, TimeSpanNanos>(d)));
             }
 
             if (typeof(TLogical) == typeof(TimeSpan?))
             {
-                if (logicalType == LogicalType.TimeMicros)
+                switch (((TimeLogicalType) logicalType).TimeUnit)
                 {
-                    return (Converter) (Delegate) (LogicalWrite<TimeSpan?, long>.Converter) ConvertTimeSpanMicros;
+                    case TimeUnit.Millis:
+                        return (Converter) (Delegate) (LogicalWrite<TimeSpan?, int>.Converter) ConvertTimeSpanMillis;
+                    case TimeUnit.Micros:
+                        return (Converter) (Delegate) (LogicalWrite<TimeSpan?, long>.Converter) ConvertTimeSpanMicros;
                 }
+            }
 
-                if (logicalType == LogicalType.TimeMillis)
-                {
-                    return (Converter) (Delegate) (LogicalWrite<TimeSpan?, int>.Converter) ConvertTimeSpanMillis;
-                }
+            if (typeof(TLogical) == typeof(TimeSpanNanos?))
+            {
+                return (Converter) (Delegate) (LogicalWrite<TimeSpanNanos?, long>.Converter) ((s, dl, d, nl) => ConvertNative(s, dl, MemoryMarshal.Cast<long, TimeSpanNanos>(d), nl));
             }
 
             if (typeof(TLogical) == typeof(string))
@@ -146,6 +198,106 @@ namespace ParquetSharp
         }
 
         private static void ConvertNative<TValue>(ReadOnlySpan<TValue?> source, Span<short> defLevels, Span<TValue> destination, short nullLevel) where TValue : struct
+        {
+            for (int i = 0, dst = 0; i != source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = value.Value;
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        private static void ConvertInt8(ReadOnlySpan<sbyte> source, Span<int> destination)
+        {
+            for (int i = 0; i != source.Length; ++i)
+            {
+                destination[i] = source[i];
+            }
+        }
+
+        private static void ConvertInt8(ReadOnlySpan<sbyte?> source, Span<short> defLevels, Span<int> destination, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i != source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = value.Value;
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        private static void ConvertUInt8(ReadOnlySpan<byte> source, Span<int> destination)
+        {
+            for (int i = 0; i != source.Length; ++i)
+            {
+                destination[i] = source[i];
+            }
+        }
+
+        private static void ConvertUInt8(ReadOnlySpan<byte?> source, Span<short> defLevels, Span<int> destination, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i != source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = value.Value;
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        private static void ConvertInt16(ReadOnlySpan<short> source, Span<int> destination)
+        {
+            for (int i = 0; i != source.Length; ++i)
+            {
+                destination[i] = source[i];
+            }
+        }
+
+        private static void ConvertInt16(ReadOnlySpan<short?> source, Span<short> defLevels, Span<int> destination, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i != source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = value.Value;
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        private static void ConvertUInt16(ReadOnlySpan<ushort> source, Span<int> destination)
+        {
+            for (int i = 0; i != source.Length; ++i)
+            {
+                destination[i] = source[i];
+            }
+        }
+
+        private static void ConvertUInt16(ReadOnlySpan<ushort?> source, Span<short> defLevels, Span<int> destination, short nullLevel)
         {
             for (int i = 0, dst = 0; i != source.Length; ++i)
             {
@@ -234,7 +386,7 @@ namespace ParquetSharp
                 else
                 {
                     destination[dst++] = (value.Value.Ticks - DateTimeOffset) / TimeSpan.TicksPerMillisecond;
-                    defLevels[i] = (short)(nullLevel + 1);
+                    defLevels[i] = (short) (nullLevel + 1);
                 }
             }
         }
@@ -284,7 +436,7 @@ namespace ParquetSharp
                 else
                 {
                     destination[dst++] = (int) (value.Value.Ticks / TimeSpan.TicksPerMillisecond);
-                    defLevels[i] = (short)(nullLevel + 1);
+                    defLevels[i] = (short) (nullLevel + 1);
                 }
             }
         }

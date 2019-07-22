@@ -8,7 +8,13 @@ using namespace parquet;
 
 extern "C"
 {
-	PARQUETSHARP_EXPORT ExceptionInfo* GroupNode_Make(const char* name, Repetition::type repetition, std::shared_ptr<schema::Node>** fields, int numFields, LogicalType::type logical_type, std::shared_ptr<schema::Node>** groupNode)
+	PARQUETSHARP_EXPORT ExceptionInfo* GroupNode_Make(
+		const char* const name, 
+		const Repetition::type repetition, 
+		const std::shared_ptr<schema::Node>** fields, 
+		const int numFields, 
+		const std::shared_ptr<const LogicalType>* logical_type, 
+		std::shared_ptr<schema::Node>** groupNode)
 	{
 		TRYCATCH
 		(
@@ -19,7 +25,7 @@ extern "C"
 				nodes.push_back(*fields[i]);
 			}
 
-			*groupNode = new std::shared_ptr<schema::Node>(schema::GroupNode::Make(name, repetition, nodes, logical_type));
+			*groupNode = new std::shared_ptr<schema::Node>(schema::GroupNode::Make(name, repetition, nodes, logical_type == nullptr ? nullptr : *logical_type));
 		)
 	}
 
