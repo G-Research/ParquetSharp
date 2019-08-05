@@ -48,8 +48,7 @@ namespace ParquetSharp.Schema
                 Repetition == primitiveNode.Repetition &&
                 PhysicalType == primitiveNode.PhysicalType &&
                 LogicalType.Equals(primitiveNode.LogicalType) &&
-                TypeLength == primitiveNode.TypeLength &&
-                DecimalMetadata.Equals(primitiveNode.DecimalMetadata);
+                TypeLength == primitiveNode.TypeLength;
         }
 
         private static IntPtr Make(
