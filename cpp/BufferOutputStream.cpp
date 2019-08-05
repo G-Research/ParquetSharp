@@ -4,7 +4,6 @@
 
 #include <arrow/io/memory.h>
 #include <parquet/exception.h>
-#include <parquet/util/memory.h>
 
 extern "C"
 {
@@ -13,7 +12,7 @@ extern "C"
 		TRYCATCH
 		(
 			std::shared_ptr<arrow::io::BufferOutputStream> output;
-			PARQUET_THROW_NOT_OK(arrow::io::BufferOutputStream::Create(parquet::kInMemoryDefaultCapacity, arrow::default_memory_pool(), &output));
+			PARQUET_THROW_NOT_OK(arrow::io::BufferOutputStream::Create(1024, arrow::default_memory_pool(), &output));
 			*output_stream = new std::shared_ptr<arrow::io::BufferOutputStream>(output);
 		)
 	}

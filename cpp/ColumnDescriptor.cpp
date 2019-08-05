@@ -23,9 +23,9 @@ extern "C"
 		TRYCATCH(*physical_type = column_descriptor->physical_type();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnDescriptor_Logical_Type(const ColumnDescriptor* column_descriptor, LogicalType::type* logical_type)
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnDescriptor_Logical_Type(const ColumnDescriptor* column_descriptor, const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = column_descriptor->logical_type();)
+		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(column_descriptor->logical_type());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ColumnDescriptor_ColumnOrder(const ColumnDescriptor* column_descriptor, ColumnOrder::type* column_order)

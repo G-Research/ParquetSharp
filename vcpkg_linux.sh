@@ -3,7 +3,7 @@ set -e
 
 mkdir -p build
 cd build
-git clone https://github.com/Microsoft/vcpkg.git vcpkg.linux
+git clone https://github.com/microsoft/vcpkg.git vcpkg.linux
 cd vcpkg.linux
 ./bootstrap-vcpkg.sh
 

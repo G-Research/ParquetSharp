@@ -3,6 +3,8 @@ include(GenerateExportHeader)
 find_package(Arrow REQUIRED)
 find_package(Boost COMPONENTS filesystem regex system REQUIRED)
 find_package(Brotli REQUIRED)
+find_package(Gflags REQUIRED)
+find_package(Glog REQUIRED)
 find_package(Lz4 REQUIRED)
 find_package(Snappy REQUIRED)
 find_package(Thrift REQUIRED)
@@ -31,6 +33,7 @@ add_library(ParquetSharpNative SHARED
 	GroupNode.cpp
 	InputStream.cpp
 	KeyValueMetadata.cpp
+	LogicalType.cpp
 	Node.cpp
 	OutputStream.cpp
 	ParquetFileReader.cpp
@@ -39,12 +42,12 @@ add_library(ParquetSharpNative SHARED
 	ResizableBuffer.cpp
 	RowGroupMetaData.cpp
 	RowGroupReader.cpp
-	RowGroupStatistics.cpp
 	RowGroupWriter.cpp
 	SchemaDescriptor.cpp
+	Statistics.cpp
 	TypedColumnReader.cpp
 	TypedColumnWriter.cpp
-	TypedRowGroupStatistics.cpp
+	TypedStatistics.cpp
 	WriterProperties.cpp
 	WriterPropertiesBuilder.cpp
 )
@@ -59,6 +62,8 @@ include_directories(
 	${Arrow_INCLUDE_DIRS} 
 	${Boost_INCLUDE_DIRS} 
 	${Brotli_INCLUDE_DIRS} 
+	${Gflags_INCLUDE_DIRS}
+	${Glog_INCLUDE_DIRS}
 	${Lz4_INCLUDE_DIRS} 
 	${Snappy_INCLUDE_DIRS}
 	${Thrift_INCLUDE_DIRS}
@@ -71,6 +76,8 @@ target_link_libraries(ParquetSharpNative
 	${Arrow_LIBRARIES} 
 	${Boost_LIBRARIES}
 	${Brotli_LIBRARIES}
+	${Glog_LIBRARIES}
+	${Gflags_LIBRARIES}
 	${Lz4_LIBRARIES}
 	${Snappy_LIBRARIES}
 	${Thrift_LIBRARIES}
@@ -80,3 +87,5 @@ target_link_libraries(ParquetSharpNative
 )
 	
 add_definitions(-DARROW_STATIC)
+add_definitions(-DARROW_NO_DEPRECATED_API)
+add_definitions(-DPARQUET_STATIC)

@@ -64,7 +64,7 @@ namespace ParquetSharp.Test
         public static void TestEqualityWithDifferentNodeTypes()
         {
             var groupNode = new GroupNode("group", Repetition.Required, new Node[0]);
-            var primitiveNode = new PrimitiveNode("primitive", Repetition.Required, PhysicalType.Int32);
+            var primitiveNode = new PrimitiveNode("primitive", Repetition.Required, LogicalType.Int(32, true), PhysicalType.Int32);
 
             Assert.AreNotEqual(groupNode, primitiveNode);
             Assert.AreNotEqual(primitiveNode, groupNode);
@@ -76,7 +76,8 @@ namespace ParquetSharp.Test
         /// </summary>
         private static void DeepAssertNotReferenceEqual(Node left, Node right)
         {
-            Assert.IsFalse(object.ReferenceEquals(left, right));
+            Assert.IsFalse(ReferenceEquals(left, right));
+
             if (left is GroupNode leftGroup && right is GroupNode rightGroup)
             {
                 Assert.AreEqual(leftGroup.Fields.Length, rightGroup.Fields.Length);
@@ -97,20 +98,19 @@ namespace ParquetSharp.Test
         {
             var subGroupFields = new[]
             {
-                new PrimitiveNode(_primitiveName, Repetition.Required, PhysicalType.Int32),
-                new PrimitiveNode("node_1", _primitiveRepetition, PhysicalType.Int32),
-                new PrimitiveNode("node_2", Repetition.Required, _physicalType),
-                new PrimitiveNode("node_3", Repetition.Required, PhysicalType.Int64, _primitiveLogicalType),
+                new PrimitiveNode(_primitiveName, Repetition.Required, LogicalType.Int(32, true), PhysicalType.Int32),
+                new PrimitiveNode("node_1", _primitiveRepetition, LogicalType.Int(32, true), PhysicalType.Int32),
+                new PrimitiveNode("node_2", Repetition.Required, _primitiveLogicalType, _physicalType),
+                new PrimitiveNode("node_3", Repetition.Required, LogicalType.Int(64, true), PhysicalType.Int64),
                 new PrimitiveNode(
-                    "node_4", Repetition.Repeated, PhysicalType.FixedLenByteArray, LogicalType.Decimal,
-                    length: _length, precision: _precision, scale: _scale),
+                    "node_4", Repetition.Repeated, LogicalType.Decimal(_precision, _scale), PhysicalType.FixedLenByteArray, _length),
             };
 
             if (_includeAdditionalField)
             {
                 subGroupFields = subGroupFields.Concat(new[]
                 {
-                    new PrimitiveNode("extra_node", Repetition.Optional, PhysicalType.Int32),
+                    new PrimitiveNode("extra_node", Repetition.Optional, LogicalType.Int(32, true), PhysicalType.Int32),
                 }).ToArray();
             }
 
@@ -119,7 +119,7 @@ namespace ParquetSharp.Test
             var rootFields = new Node[]
             {
                 subGroup,
-                new PrimitiveNode("root_primitive", Repetition.Required, PhysicalType.Int32),
+                new PrimitiveNode("root_primitive", Repetition.Required, LogicalType.Int(32, true), PhysicalType.Int32),
             };
 
             return new GroupNode(_groupName, _groupRepetition, rootFields);
@@ -133,12 +133,14 @@ namespace ParquetSharp.Test
 
         public ExampleSchemaBuilder WithDifferentPrimitiveLogicalType()
         {
-            _primitiveLogicalType = LogicalType.TimestampMillis;
+            _primitiveLogicalType = LogicalType.Timestamp(false, TimeUnit.Millis);
+            _physicalType = PhysicalType.Int64;
             return this;
         }
 
         public ExampleSchemaBuilder WithDifferentPhysicalType()
         {
+            _primitiveLogicalType = LogicalType.Int(64, true);
             _physicalType = PhysicalType.Int64;
             return this;
         }
@@ -187,7 +189,7 @@ namespace ParquetSharp.Test
 
         public ExampleSchemaBuilder WithDifferentGroupLogicalType()
         {
-            _groupLogicalType = LogicalType.List;
+            _groupLogicalType = LogicalType.List();
             return this;
         }
 
@@ -195,8 +197,8 @@ namespace ParquetSharp.Test
         private string _primitiveName = "node_0";
         private string _groupName = "root";
         private PhysicalType _physicalType = PhysicalType.Int32;
-        private LogicalType _primitiveLogicalType = LogicalType.Int64;
-        private LogicalType _groupLogicalType = LogicalType.None;
+        private LogicalType _primitiveLogicalType = LogicalType.Int(32, true);
+        private LogicalType _groupLogicalType = null;
         private Repetition _primitiveRepetition = Repetition.Required;
         private Repetition _groupRepetition = Repetition.Required;
         private int _length = 16;

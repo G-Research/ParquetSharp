@@ -1,31 +1,302 @@
 
+using System;
+using System.Runtime.InteropServices;
+
 namespace ParquetSharp
 {
-    public enum LogicalType
+    public enum LogicalTypeEnum
     {
-        None = 0,
-        Utf8 = 1,
+        Unknown = 0,
+        String = 1,
         Map = 2,
-        MapKeyValue = 3,
-        List = 4,
-        Enum = 5,
-        Decimal = 6,
-        Date = 7,
-        TimeMillis = 8,
-        TimeMicros = 9,
-        TimestampMillis = 10,
-        TimestampMicros = 11,
-        UInt8 = 12,
-        UInt16 = 13,
-        UInt32 = 14,
-        UInt64 = 15,
-        Int8 = 16,
-        Int16 = 17,
-        Int32 = 18,
-        Int64 = 19,
-        Json = 20,
-        Bson = 21,
-        Interval = 22,
-        NA = 25
-    };
+        List = 3,
+        Enum = 4,
+        Decimal = 5,
+        Date = 6,
+        Time = 7,
+        Timestamp = 8,
+        Interval = 9,
+        Int = 10,
+        Nil = 11,
+        Json = 12,
+        Bson = 13,
+        Uuid = 14,
+        None = 15
+    }
+
+    public abstract class LogicalType : IDisposable, IEquatable<LogicalType>
+    {
+        protected LogicalType(IntPtr handle)
+        {
+            Handle = new ParquetHandle(handle, LogicalType_Free);
+        }
+
+        public void Dispose()
+        {
+            Handle.Dispose();
+        }
+
+        public LogicalTypeEnum Type => ExceptionInfo.Return<LogicalTypeEnum>(Handle, LogicalType_Type);
+
+        public bool Equals(LogicalType other)
+        {
+            if (other == null) return false;
+            if (Handle.IntPtr == IntPtr.Zero || other.Handle.IntPtr == IntPtr.Zero) return false;
+
+            var equals = ExceptionInfo.Return<IntPtr, bool>(Handle, other.Handle.IntPtr, LogicalType_Equals);
+            GC.KeepAlive(other.Handle);
+            return equals;
+        }
+
+        public override string ToString()
+        {
+            return ExceptionInfo.ReturnString(Handle, LogicalType_ToString, LogicalType_ToString_Free);
+        }
+
+        public static LogicalType String() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_String));
+        public static LogicalType Map() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Map));
+        public static LogicalType List() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_List));
+        public static LogicalType Enum() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Enum));
+        public static LogicalType Decimal(int precision, int scale = 0) => Create(ExceptionInfo.Return<int, int, IntPtr>(precision, scale, LogicalType_Decimal));
+        public static LogicalType Date() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Date));
+        public static LogicalType Time(bool isAdjustedToUtc, TimeUnit timeUnit) => Create(ExceptionInfo.Return<bool, TimeUnit, IntPtr>(isAdjustedToUtc, timeUnit, LogicalType_Time));
+        public static LogicalType Timestamp(bool isAdjustedToUtc, TimeUnit timeUnit) => Create(ExceptionInfo.Return<bool, TimeUnit, IntPtr>(isAdjustedToUtc, timeUnit, LogicalType_Timestamp));
+        public static LogicalType Interval() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Interval));
+        public static LogicalType Int(int bitWidth, bool isSigned) => Create(ExceptionInfo.Return<int, bool, IntPtr>(bitWidth, isSigned, LogicalType_Int));
+        public static LogicalType Null() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Null));
+        public static LogicalType Json() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_JSON));
+        public static LogicalType Bson() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_BSON));
+        public static LogicalType Uuid() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_UUID));
+        public static LogicalType None() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_None));
+        public static LogicalType Unknown() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Unknown));
+
+        internal static LogicalType Create(IntPtr handle)
+        {
+            if (handle == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            var type = ExceptionInfo.Return<LogicalTypeEnum>(handle, LogicalType_Type);
+
+            switch (type)
+            {
+                case LogicalTypeEnum.String:
+                    return new StringLogicalType(handle);
+                case LogicalTypeEnum.Map:
+                    return new MapLogicalType(handle);
+                case LogicalTypeEnum.List:
+                    return new ListLogicalType(handle);
+                case LogicalTypeEnum.Enum:
+                    return new EnumLogicalType(handle);
+                case LogicalTypeEnum.Decimal:
+                    return new DecimalLogicalType(handle);
+                case LogicalTypeEnum.Date:
+                    return new DateLogicalType(handle);
+                case LogicalTypeEnum.Time:
+                    return new TimeLogicalType(handle);
+                case LogicalTypeEnum.Timestamp:
+                    return new TimestampLogicalType(handle);
+                case LogicalTypeEnum.Interval:
+                    return new IntervalLogicalType(handle);
+                case LogicalTypeEnum.Int:
+                    return new IntLogicalType(handle);
+                case LogicalTypeEnum.Nil:
+                    return new NullLogicalType(handle);
+                case LogicalTypeEnum.Json:
+                    return new JsonLogicalType(handle);
+                case LogicalTypeEnum.Bson:
+                    return new BsonLogicalType(handle);
+                case LogicalTypeEnum.Uuid:
+                    return new UuidLogicalType(handle);
+                case LogicalTypeEnum.None:
+                    return new NoneLogicalType(handle);
+                case LogicalTypeEnum.Unknown:
+                    return new UnknownLogicalType(handle);
+                default:
+                    throw new ArgumentOutOfRangeException($"unknown logical type {type}");
+            }
+        }
+
+        [DllImport(ParquetDll.Name)]
+        private static extern void LogicalType_Free(IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Type(IntPtr logicalType, out LogicalTypeEnum type);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Equals(IntPtr left, IntPtr right, [MarshalAs(UnmanagedType.I1)] out bool equals);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_ToString(IntPtr logicalType, out IntPtr toString);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern void LogicalType_ToString_Free(IntPtr toString);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_String(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Map(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_List(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Enum(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Decimal(int precision, int scale, out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Date(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Time([MarshalAs(UnmanagedType.I1)] bool isAdjustedToUtc, TimeUnit timeUnit, out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Timestamp([MarshalAs(UnmanagedType.I1)] bool isAdjustedToUtc, TimeUnit timeUnit, out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Interval(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Int(int bitWidth, [MarshalAs(UnmanagedType.I1)] bool isSigned, out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Null(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_JSON(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_BSON(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_UUID(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_None(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Unknown(out IntPtr logicalType);
+
+        internal readonly ParquetHandle Handle;
+    }
+
+    public sealed class StringLogicalType : LogicalType
+    {
+        internal StringLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class MapLogicalType : LogicalType
+    {
+        internal MapLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class ListLogicalType : LogicalType
+    {
+        internal ListLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class EnumLogicalType : LogicalType
+    {
+        internal EnumLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class DecimalLogicalType : LogicalType
+    {
+        internal DecimalLogicalType(IntPtr handle) : base(handle) { }
+
+        public int Precision => ExceptionInfo.Return<int>(Handle, DecimalLogicalType_Precision);
+        public int Scale => ExceptionInfo.Return<int>(Handle, DecimalLogicalType_Scale);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr DecimalLogicalType_Precision(IntPtr logicalType, out int precision);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr DecimalLogicalType_Scale(IntPtr logicalType, out int scale);
+    }
+
+    public sealed class DateLogicalType : LogicalType
+    {
+        internal DateLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class TimeLogicalType : LogicalType
+    {
+        internal TimeLogicalType(IntPtr handle) : base(handle) { }
+
+        public bool IsAdjustedToUtc => ExceptionInfo.Return<bool>(Handle, TimeLogicalType_IsAdjustedToUtc);
+        public TimeUnit TimeUnit => ExceptionInfo.Return<TimeUnit>(Handle, TimeLogicalType_TimeUnit);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr TimeLogicalType_IsAdjustedToUtc(IntPtr logicalType, [MarshalAs(UnmanagedType.I1)] out bool isAdjustedToUtc);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr TimeLogicalType_TimeUnit(IntPtr logicalType, out TimeUnit timeUnit);
+    }
+
+    public sealed class TimestampLogicalType : LogicalType
+    {
+        internal TimestampLogicalType(IntPtr handle) : base(handle) { }
+
+        public bool IsAdjustedToUtc => ExceptionInfo.Return<bool>(Handle, TimestampLogicalType_IsAdjustedToUtc);
+        public TimeUnit TimeUnit => ExceptionInfo.Return<TimeUnit>(Handle, TimestampLogicalType_TimeUnit);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr TimestampLogicalType_IsAdjustedToUtc(IntPtr logicalType, [MarshalAs(UnmanagedType.I1)] out bool isAdjustedToUtc);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr TimestampLogicalType_TimeUnit(IntPtr logicalType, out TimeUnit timeUnit);
+    }
+
+    public sealed class IntervalLogicalType : LogicalType
+    {
+        internal IntervalLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class IntLogicalType : LogicalType
+    {
+        internal IntLogicalType(IntPtr handle) : base(handle) { }
+
+        public int BitWidth => ExceptionInfo.Return<int>(Handle, IntLogicalType_BitWidth);
+        public bool IsSigned => ExceptionInfo.Return<bool>(Handle, IntLogicalType_IsSigned);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr IntLogicalType_BitWidth(IntPtr logicalType, out int bitWidth);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr IntLogicalType_IsSigned(IntPtr logicalType, [MarshalAs(UnmanagedType.I1)] out bool isSigned);
+    }
+
+    public sealed class NullLogicalType : LogicalType
+    {
+        internal NullLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class JsonLogicalType : LogicalType
+    {
+        internal JsonLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class BsonLogicalType : LogicalType
+    {
+        internal BsonLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class UuidLogicalType : LogicalType
+    {
+        internal UuidLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class NoneLogicalType : LogicalType
+    {
+        internal NoneLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class UnknownLogicalType : LogicalType
+    {
+        internal UnknownLogicalType(IntPtr handle) : base(handle) { }
+    }
 }

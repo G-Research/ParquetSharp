@@ -5,8 +5,8 @@ include(FindPackageHandleStandardArgs)
 find_path(Arrow_INCLUDE_DIR arrow/api.h)
 
 if (NOT Arrow_LIBRARIES)
-	find_library(Arrow_LIBRARY_RELEASE NAMES arrow PATH_SUFFIXES lib)
-	find_library(Arrow_LIBRARY_DEBUG NAMES arrowd PATH_SUFFIXES debug debug/lib)	
+	find_library(Arrow_LIBRARY_RELEASE NAMES arrow arrow_static PATHS ${CMAKE_PREFIX_PATH}/lib NO_DEFAULT_PATH)
+	find_library(Arrow_LIBRARY_DEBUG NAMES arrow arrow_static PATHS ${CMAKE_PREFIX_PATH}/debug/lib NO_DEFAULT_PATH)
     SELECT_LIBRARY_CONFIGURATIONS(Arrow)
 endif()
 

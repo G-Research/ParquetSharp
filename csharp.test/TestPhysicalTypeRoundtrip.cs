@@ -91,12 +91,12 @@ namespace ParquetSharp.Test
         {
             var fields = new Node[]
             {
-                new PrimitiveNode("boolean_field", Repetition.Required, PhysicalType.Boolean), 
-                new PrimitiveNode("int32_field", Repetition.Required, PhysicalType.Int32), 
-                new PrimitiveNode("int64_field", Repetition.Required, PhysicalType.Int64),
-                new PrimitiveNode("int96_field", Repetition.Required, PhysicalType.Int96), 
-                new PrimitiveNode("float_field", Repetition.Required, PhysicalType.Float), 
-                new PrimitiveNode("double_field", Repetition.Required, PhysicalType.Double),
+                new PrimitiveNode("boolean_field", Repetition.Required, null, PhysicalType.Boolean), 
+                new PrimitiveNode("int32_field", Repetition.Required, null, PhysicalType.Int32), 
+                new PrimitiveNode("int64_field", Repetition.Required, null, PhysicalType.Int64),
+                new PrimitiveNode("int96_field", Repetition.Required, null, PhysicalType.Int96), 
+                new PrimitiveNode("float_field", Repetition.Required, null, PhysicalType.Float), 
+                new PrimitiveNode("double_field", Repetition.Required, null, PhysicalType.Double),
             };
 
             return new GroupNode("schema", Repetition.Required, fields);
@@ -163,12 +163,12 @@ namespace ParquetSharp.Test
             public int MaxDefinitionlevel = 0;
             public int MaxRepetitionLevel = 0;
             public PhysicalType PhysicalType;
-            public LogicalType LogicalType = LogicalType.None;
+            public LogicalType LogicalType = LogicalType.None();
             public ColumnOrder ColumnOrder = ColumnOrder.TypeDefinedOrder;
             public SortOrder SortOrder = SortOrder.Signed;
             public int TypeLength = 0;
-            public int TypePrecision = 0;
-            public int TypeScale = 0;
+            public int TypePrecision = -1;
+            public int TypeScale = -1;
 
             public Encoding[] Encodings = {Encoding.Plain, Encoding.Rle};
             public Compression Compression = Compression.Snappy;

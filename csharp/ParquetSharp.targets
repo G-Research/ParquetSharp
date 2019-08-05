@@ -2,14 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Inspired by https://stackoverflow.com/questions/40104838/automatic-native-and-managed-dlls-extracting-from-nuget-package -->
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)..\runtimes\win-x64\native\ParquetSharpNative.dll" Condition="'$(OS)'=='Windows_NT'">
+    <Content Include="$(MSBuildThisFileDirectory)..\runtimes\win-x64\native\ParquetSharpNative.dll" Condition="'$(TargetFrameworkIdentifier)'=='.NETFramework'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>ParquetSharpNative.dll</Link>
-      <Visible>False</Visible>
-    </Content>
-	<Content Include="$(MSBuildThisFileDirectory)..\runtimes\linux-x64\native\ParquetSharpNative.so" Condition="'$(OS)'=='Unix'">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>ParquetSharpNative.so</Link>
       <Visible>False</Visible>
     </Content>
   </ItemGroup>

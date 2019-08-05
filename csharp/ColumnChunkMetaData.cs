@@ -38,7 +38,7 @@ namespace ParquetSharp
         public long NumValues => ExceptionInfo.Return<long>(_handle, ColumnChunkMetaData_Num_Values);
         public long TotalCompressedSize => ExceptionInfo.Return<long>(_handle, ColumnChunkMetaData_Total_Compressed_Size);
         public long TotalUncompressedSize => ExceptionInfo.Return<long>(_handle, ColumnChunkMetaData_Total_Uncompressed_Size);
-        public RowGroupStatistics Statistics => RowGroupStatistics.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnChunkMetaData_Statistics));
+        public Statistics Statistics => Statistics.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnChunkMetaData_Statistics));
         public PhysicalType Type => ExceptionInfo.Return<PhysicalType>(_handle, ColumnChunkMetaData_Type);
         
         [DllImport(ParquetDll.Name)]
@@ -57,7 +57,7 @@ namespace ParquetSharp
         private static extern IntPtr ColumnChunkMetaData_File_Offset(IntPtr columnChunkMetaData, out long fileOffset);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ColumnChunkMetaData_Is_Stats_Set(IntPtr columnChunkMetaData, out bool isStatsSet);
+        private static extern IntPtr ColumnChunkMetaData_Is_Stats_Set(IntPtr columnChunkMetaData, [MarshalAs(UnmanagedType.I1)] out bool isStatsSet);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnChunkMetaData_Num_Values(IntPtr columnChunkMetaData, out long numValues);

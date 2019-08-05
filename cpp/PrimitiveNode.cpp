@@ -8,9 +8,15 @@ using namespace parquet;
 
 extern "C"
 {
-	PARQUETSHARP_EXPORT ExceptionInfo* PrimitiveNode_Make(const char* name, Repetition::type repetition, Type::type type, LogicalType::type logical_type, int length, int precision, int scale, std::shared_ptr<schema::Node>** primitive_node)
+	PARQUETSHARP_EXPORT ExceptionInfo* PrimitiveNode_Make(
+		const char* const name, 
+		const Repetition::type repetition, 
+		const std::shared_ptr<const LogicalType>* logical_type, 
+		const Type::type primitive_type, 
+		const int primitive_length, 
+		std::shared_ptr<schema::Node>** primitive_node)
 	{
-		TRYCATCH(*primitive_node = new std::shared_ptr<schema::Node>(schema::PrimitiveNode::Make(name, repetition, type, logical_type, length, precision, scale));)
+		TRYCATCH(*primitive_node = new std::shared_ptr<schema::Node>(schema::PrimitiveNode::Make(name, repetition, logical_type == nullptr ? nullptr : *logical_type, primitive_type, primitive_length));)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* PrimitiveNode_Column_Order(const std::shared_ptr<schema::PrimitiveNode>* node, ColumnOrder::type* column_order)

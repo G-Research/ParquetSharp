@@ -39,7 +39,8 @@ namespace ParquetSharp.RowOriented
                 _pos = 0;
             }
 
-            _rowGroupWriter.Dispose();
+            _rowGroupWriter?.Dispose();
+            _rowGroupWriter = null;
             _parquetFileWriter.Dispose();
         }
 
