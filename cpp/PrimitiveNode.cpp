@@ -24,11 +24,6 @@ extern "C"
 		TRYCATCH(*column_order = (*node)->column_order().get_order();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* PrimitiveNode_Decimal_Metadata(const std::shared_ptr<schema::PrimitiveNode>* node, schema::DecimalMetadata *decimalMetaData)
-	{
-		TRYCATCH(*decimalMetaData = (*node)->decimal_metadata();)
-	}
-
 	PARQUETSHARP_EXPORT ExceptionInfo* PrimitiveNode_Physical_Type(const std::shared_ptr<schema::PrimitiveNode>* node, Type::type* physical_type)
 	{
 		TRYCATCH(*physical_type = (*node)->physical_type();)
