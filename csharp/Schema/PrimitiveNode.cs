@@ -26,7 +26,6 @@ namespace ParquetSharp.Schema
         }
 
         public ColumnOrder ColumnOrder => ExceptionInfo.Return<ColumnOrder>(Handle, PrimitiveNode_Column_Order);
-        public DecimalMetadata DecimalMetadata => ExceptionInfo.Return<DecimalMetadata>(Handle, PrimitiveNode_Decimal_Metadata);
         public PhysicalType PhysicalType => ExceptionInfo.Return<PhysicalType>(Handle, PrimitiveNode_Physical_Type);
         public int TypeLength => ExceptionInfo.Return<int>(Handle, PrimitiveNode_Type_Length);
 
@@ -71,9 +70,6 @@ namespace ParquetSharp.Schema
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr PrimitiveNode_Column_Order(IntPtr node, out ColumnOrder columnOrder);
-
-        [DllImport(ParquetDll.Name)]
-        private static extern IntPtr PrimitiveNode_Decimal_Metadata(IntPtr node, out DecimalMetadata decimalMetaData);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr PrimitiveNode_Physical_Type(IntPtr node, out PhysicalType physicalType);
