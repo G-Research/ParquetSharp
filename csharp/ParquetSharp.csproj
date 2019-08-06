@@ -35,6 +35,9 @@
     <Content Include="..\bin\Debug\ParquetSharpNatived.dll" Link="ParquetSharpNatived.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug' AND '$(OS)'=='Windows_NT'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\bin\Debug\ParquetSharpNatived.pdb" Link="ParquetSharpNatived.pdb" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug' AND '$(OS)'=='Windows_NT'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\bin\Release\ParquetSharpNative.dll" Link="ParquetSharpNative.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Release' AND '$(OS)'=='Windows_NT'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
