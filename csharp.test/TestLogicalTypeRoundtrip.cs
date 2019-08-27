@@ -79,7 +79,7 @@ namespace ParquetSharp.Test
                                     //Assert.AreEqual(expected.NumValues, statistics.NumValues);
                                     Assert.AreEqual(expected.PhysicalType, statistics.PhysicalType);
 
-                                    // BUG must report this to ARROW, decimal statistics are set but are nonsensical.
+                                    // BUG Don't check for decimal until https://issues.apache.org/jira/browse/ARROW-6149 is fixed.
                                     var buggy = expected.LogicalType is DecimalLogicalType;
 
                                     if (expected.HasMinMax && !buggy)
@@ -460,8 +460,8 @@ namespace ParquetSharp.Test
                     LogicalTypeOverride = LogicalType.Decimal(29, 3),
                     Length = 16,
                     Values = Enumerable.Range(0, NumRows).Select(i => ((decimal) i * i * i) / 1000 - 10).ToArray(),
-                    Min = 0m,
-                    Max = ((decimal) NumRows * NumRows * NumRows) / 1000 - 10,
+                    Min = -10m,
+                    Max = ((NumRows-1m) * (NumRows-1m) * (NumRows-1m)) / 1000 - 10,
                     Converter = v => DecimalConverter(v, 3)
                 },
                 new ExpectedColumn
@@ -474,6 +474,9 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? null : ((decimal?) i * i * i) / 1000 - 10).ToArray(),
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
+                    Min = -9.999m,
+                    Max = ((NumRows-1m) * (NumRows-1m) * (NumRows-1m)) / 1000 - 10,
+                    Converter = v => DecimalConverter(v, 3)
                 },
                 new ExpectedColumn
                 {
@@ -796,8 +799,9 @@ namespace ParquetSharp.Test
             };
         }
 
-        private static unsafe object DecimalConverter(object v, int multiplier)
+        private static unsafe object DecimalConverter(object v, int scale)
         {
+            var multiplier = Decimal128.GetScaleMultiplier(scale);
             return (*(Decimal128*) ((FixedLenByteArray) v).Pointer).ToDecimal(multiplier);
         }
 
