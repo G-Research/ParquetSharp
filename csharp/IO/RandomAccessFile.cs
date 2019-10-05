@@ -13,19 +13,14 @@ namespace ParquetSharp.IO
             Handle = new ParquetHandle(handle, RandomAccessFile_Free);
         }
 
-        /// Unsafe constructor for allocating superclasses
-        internal RandomAccessFile() {
-            Handle = new ParquetHandle(IntPtr.Zero, null);
-        }
-
         public void Dispose()
         {
             Handle.Dispose();
         }
 
         [DllImport(ParquetDll.Name)]
-        internal static extern void RandomAccessFile_Free(IntPtr randomAccessFile);
+        private static extern void RandomAccessFile_Free(IntPtr outputStream);
 
-        internal ParquetHandle Handle;
+        internal readonly ParquetHandle Handle;
     }
 }
