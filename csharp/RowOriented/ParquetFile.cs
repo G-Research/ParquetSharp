@@ -29,10 +29,10 @@ namespace ParquetSharp.RowOriented
         /// <summary>
         /// Create a row-oriented reader from an input stream.
         /// </summary>
-        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(InputStream inputStream)
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile)
         {
             var readDelegate = GetOrCreateReadDelegate<TTuple>();
-            return new ParquetRowReader<TTuple>(inputStream, readDelegate);
+            return new ParquetRowReader<TTuple>(randomAccessFile, readDelegate);
         }
 
         /// <summary>

@@ -16,8 +16,8 @@ namespace ParquetSharp.RowOriented
         {
         }
 
-        internal ParquetRowReader(InputStream inputStream, ReadAction readAction)
-            : this(new ParquetFileReader(inputStream), readAction)
+        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReadAction readAction)
+            : this(new ParquetFileReader(randomAccessFile), readAction)
         {
         }
 

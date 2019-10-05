@@ -31,7 +31,6 @@ add_library(ParquetSharpNative SHARED
 	ExceptionInfo.cpp
 	FileMetaData.cpp
 	GroupNode.cpp
-	InputStream.cpp
 	KeyValueMetadata.cpp
 	LogicalType.cpp
 	Node.cpp
@@ -39,6 +38,7 @@ add_library(ParquetSharpNative SHARED
 	ParquetFileReader.cpp
 	ParquetFileWriter.cpp
 	PrimitiveNode.cpp
+	RandomAccessFile.cpp
 	ResizableBuffer.cpp
 	RowGroupMetaData.cpp
 	RowGroupReader.cpp
