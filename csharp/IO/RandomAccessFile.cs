@@ -19,7 +19,7 @@ namespace ParquetSharp.IO
         }
 
         [DllImport(ParquetDll.Name)]
-        private static extern void RandomAccessFile_Free(IntPtr outputStream);
+        private static extern void RandomAccessFile_Free(IntPtr randomAccessFile);
 
         internal readonly ParquetHandle Handle;
     }
