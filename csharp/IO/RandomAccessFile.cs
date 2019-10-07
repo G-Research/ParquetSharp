@@ -4,13 +4,13 @@ using System.Runtime.InteropServices;
 namespace ParquetSharp.IO
 {
     /// <summary>
-    /// Wrapper around arrow::io::InputStream.
+    /// Wrapper around arrow::io::RandomAccessFile.
     /// </summary>
-    public abstract class InputStream : IDisposable
+    public abstract class RandomAccessFile : IDisposable
     {
-        internal InputStream(IntPtr handle)
+        internal RandomAccessFile(IntPtr handle)
         {
-            Handle = new ParquetHandle(handle, InputStream_Free);
+            Handle = new ParquetHandle(handle, RandomAccessFile_Free);
         }
 
         public void Dispose()
@@ -19,7 +19,7 @@ namespace ParquetSharp.IO
         }
 
         [DllImport(ParquetDll.Name)]
-        private static extern void InputStream_Free(IntPtr inputStream);
+        private static extern void RandomAccessFile_Free(IntPtr randomAccessFile);
 
         internal readonly ParquetHandle Handle;
     }

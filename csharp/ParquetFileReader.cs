@@ -14,11 +14,11 @@ namespace ParquetSharp
             _handle = new ParquetHandle(reader, ParquetFileReader_Free);
         }
 
-        public ParquetFileReader(InputStream inputStream)
+        public ParquetFileReader(RandomAccessFile randomAccessFile)
         {
-            if (inputStream == null) throw new ArgumentNullException(nameof(inputStream));
+            if (randomAccessFile == null) throw new ArgumentNullException(nameof(randomAccessFile));
 
-            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr>(inputStream.Handle, ParquetFileReader_Open), ParquetFileReader_Free);
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr>(randomAccessFile.Handle, ParquetFileReader_Open), ParquetFileReader_Free);
         }
 
         public void Dispose()
