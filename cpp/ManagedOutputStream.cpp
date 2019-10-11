@@ -5,95 +5,90 @@
 #include <arrow/status.h>
 #include <arrow/io/interfaces.h>
 
-class ManagedOutputStream : public arrow::io::OutputStream
-{
-private:
-	arrow::StatusCode (*write)(const void*, int64_t, char**);
-	arrow::StatusCode (*tell)(int64_t*, char**);
-	arrow::StatusCode (*flush)(char**);
-	arrow::StatusCode (*close)(char**);
-	bool (*_closed)();
+using arrow::Status;
+using arrow::StatusCode;
 
+typedef StatusCode(*WriteFunc)(const void*, int64_t, const char**);
+typedef StatusCode(*TellFunc)(int64_t*, const char**);
+typedef StatusCode(*FlushFunc)(const char**);
+typedef StatusCode(*CloseFunc)(const char**);
+typedef bool (*ClosedFunc)();
+
+class ManagedOutputStream final : public arrow::io::OutputStream
+{
 public:
 
 	ManagedOutputStream(
-		arrow::StatusCode (*write)(const void*, int64_t, char**),
-		arrow::StatusCode (*tell)(int64_t*, char**),
-		arrow::StatusCode (*flush)(char**),
-		arrow::StatusCode (*close)(char**),
-		bool (*closed)())
+		const WriteFunc write,
+		const TellFunc tell,
+		const FlushFunc flush,
+		const CloseFunc close,
+		const ClosedFunc closed) :
+		write_(write),
+		tell_(tell),
+		flush_(flush),
+		close_(close),
+		closed_(closed)
 	{
-		this->write = write;
-		this->tell = tell;
-		this->flush = flush;
-		this->close = close;
-		this->_closed = closed;
 	}
 
-	~ManagedOutputStream() {}
-
-	arrow::Status Write(const void* data, int64_t nbytes)
+	~ManagedOutputStream()
 	{
-		char* exception = NULL;
-		arrow::StatusCode statusCode = this->write(data, nbytes, &exception);
-		if (statusCode == arrow::StatusCode::OK) {
-			return arrow::Status::OK();
-		} else {
-			return arrow::Status(statusCode, exception);
-			delete exception;
-		}
 	}
 
-	arrow::Status Flush()
+	Status Write(const void* data, int64_t nbytes) override
 	{
-		char* exception = NULL;
-		arrow::StatusCode statusCode = this->flush(&exception);
-		if (statusCode == arrow::StatusCode::OK) {
-			return arrow::Status::OK();
-		} else {
-			return arrow::Status(statusCode, exception);
-			delete exception;
-		}
+		const char* exception = nullptr;
+		return GetStatus(write_(data, nbytes, &exception), exception);
 	}
 
-	arrow::Status Close()
+	Status Flush() override
 	{
-		char* exception = NULL;
-		arrow::StatusCode statusCode = this->close(&exception);
-		if (statusCode == arrow::StatusCode::OK) {
-			return arrow::Status::OK();
-		} else {
-			return arrow::Status(statusCode, exception);
-			delete exception;
-		}
+		const char* exception = nullptr;
+		return GetStatus(flush_(&exception), exception);
 	}
 
-	arrow::Status Tell(int64_t* position) const
+	Status Close() override
 	{
-		char* exception = NULL;
-		arrow::StatusCode statusCode = this->tell(position, &exception);
-		if (statusCode == arrow::StatusCode::OK) {
-			return arrow::Status::OK();
-		} else {
-			return arrow::Status(statusCode, exception);
-			delete exception;
-		}
+		const char* exception = nullptr;
+		return GetStatus(close_(&exception), exception);
 	}
 
-	bool closed() const
+	Status Tell(int64_t* position) const override
 	{
-		return this->_closed();
+		const char* exception = nullptr;
+		return GetStatus(tell_(position, &exception), exception);
 	}
+
+	bool closed() const override
+	{
+		return this->closed_();
+	}
+
+private:
+
+	static Status GetStatus(const StatusCode statusCode, const char* const exception)
+	{
+		return statusCode == StatusCode::OK
+			? Status::OK()
+			: Status(statusCode, exception);
+	}
+
+	const WriteFunc write_;
+	const TellFunc tell_;
+	const FlushFunc flush_;
+	const CloseFunc close_;
+	const ClosedFunc closed_;
 };
 
 extern "C"
 {
 	PARQUETSHARP_EXPORT ExceptionInfo* ManagedOutputStream_Create(
-		arrow::StatusCode (*write)(const void*, int64_t, char**),
-		arrow::StatusCode (*tell)(int64_t*, char**),
-		arrow::StatusCode (*flush)(char**),
-		arrow::StatusCode (*close)(char**),
-		bool (*closed)(),
+		const WriteFunc write,
+		const TellFunc tell,
+		const FlushFunc flush,
+		const CloseFunc close,
+		const ClosedFunc closed,
 		std::shared_ptr<ManagedOutputStream>** stream)
 	{
 		TRYCATCH(*stream = new std::shared_ptr<ManagedOutputStream>(new ManagedOutputStream(write, tell, flush, close, closed));)

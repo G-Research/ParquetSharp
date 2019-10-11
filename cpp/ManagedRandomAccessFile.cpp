@@ -6,126 +6,118 @@
 #include <arrow/buffer.h>
 #include <arrow/io/interfaces.h>
 
-class ManagedRandomAccessFile : public arrow::io::RandomAccessFile
-{
-private:
-	arrow::StatusCode (*read)(int64_t, int64_t*, void*, char**);
-	arrow::StatusCode (*close)(char**);
-	arrow::StatusCode (*getSize)(int64_t*, char**);
-	arrow::StatusCode (*tell)(int64_t*, char**);
-	arrow::StatusCode (*seek)(int64_t, char**);
-	bool (*_closed)();
+using arrow::Status;
+using arrow::StatusCode;
 
+typedef StatusCode(*ReadFunc)(int64_t, int64_t*, void*, const char**);
+typedef StatusCode(*CloseFunc)(const char**);
+typedef StatusCode(*GetSizeFunc)(int64_t*, const char**);
+typedef StatusCode(*TellFunc)(int64_t*, const char**);
+typedef StatusCode(*SeekFunc)(int64_t, const char**);
+typedef bool (*ClosedFunc)();
+
+class ManagedRandomAccessFile final : public arrow::io::RandomAccessFile
+{
 public:
 
 	ManagedRandomAccessFile(
-		arrow::StatusCode (*read)(int64_t, int64_t*, void*, char**),
-		arrow::StatusCode (*close)(char**),
-		arrow::StatusCode (*getSize)(int64_t*, char**),
-		arrow::StatusCode (*tell)(int64_t*, char**),
-		arrow::StatusCode (*seek)(int64_t, char**),
-		bool (*closed)())
+		const ReadFunc read,
+		const CloseFunc close,
+		const GetSizeFunc getSize,
+		const TellFunc tell,
+		const SeekFunc seek,
+		const ClosedFunc closed) :
+		read_(read),
+		close_(close),
+		getSize_(getSize),
+		tell_(tell),
+		seek_(seek),
+		closed_(closed)
 	{
-		this->read = read;
-		this->close = close;
-		this->getSize = getSize;
-		this->tell = tell;
-		this->seek = seek;
-		this->_closed = closed;
 	}
 
-	~ManagedRandomAccessFile() {}
-
-	arrow::Status Read(int64_t nbytes, int64_t* bytes_read, void* out)
+	~ManagedRandomAccessFile()
 	{
-		char* exception = NULL;
-		arrow::StatusCode statusCode = this->read(nbytes, bytes_read, out, &exception);
-		if (statusCode == arrow::StatusCode::OK) {
-			return arrow::Status::OK();
-		} else {
-			return arrow::Status(statusCode, exception);
-			delete exception;
-		}
 	}
 
-	arrow::Status Read(int64_t nbytes, std::shared_ptr<arrow::Buffer>* out)
+	Status Read(int64_t nbytes, int64_t* bytes_read, void* out) override
+	{
+		const char* exception = nullptr;
+		return GetStatus(read_(nbytes, bytes_read, out, &exception), exception);
+	}
+
+	Status Read(int64_t nbytes, std::shared_ptr<arrow::Buffer>* out) override
 	{
 		std::shared_ptr<arrow::ResizableBuffer> buffer;
 		RETURN_NOT_OK(arrow::AllocateResizableBuffer(nbytes, &buffer));
 
 		int64_t bytes_read = 0;
 		RETURN_NOT_OK(Read(nbytes, &bytes_read, buffer->mutable_data()));
-		if (bytes_read < nbytes) {
+		if (bytes_read < nbytes)
+		{
 			RETURN_NOT_OK(buffer->Resize(bytes_read));
 			buffer->ZeroPadding();
 		}
+
 		*out = buffer;
-		return arrow::Status::OK();
+		return Status::OK();
 	}
 
-	arrow::Status Close()
+	Status Close() override
 	{
-		char* exception = NULL;
-		arrow::StatusCode statusCode = this->close(&exception);
-		if (statusCode == arrow::StatusCode::OK) {
-			return arrow::Status::OK();
-		} else {
-			return arrow::Status(statusCode, exception);
-			delete exception;
-		}
+		const char* exception = nullptr;
+		return GetStatus(close_(&exception), exception);
 	}
 
-	arrow::Status Tell(int64_t* position) const
+	Status Tell(int64_t* position) const override
 	{
-		char* exception = NULL;
-		arrow::StatusCode statusCode = this->tell(position, &exception);
-		if (statusCode == arrow::StatusCode::OK) {
-			return arrow::Status::OK();
-		} else {
-			return arrow::Status(statusCode, exception);
-			delete exception;
-		}
+		const char* exception = nullptr;
+		return GetStatus(tell_(position, &exception), exception);
 	}
 
-	arrow::Status Seek(int64_t position)
+	Status Seek(int64_t position) override
 	{
-		char* exception = NULL;
-		arrow::StatusCode statusCode = this->seek(position, &exception);
-		if (statusCode == arrow::StatusCode::OK) {
-			return arrow::Status::OK();
-		} else {
-			return arrow::Status(statusCode, exception);
-			delete exception;
-		}
+		const char* exception = nullptr;
+		return GetStatus(seek_(position, &exception), exception);
 	}
 
-	arrow::Status GetSize(int64_t* size)
+	Status GetSize(int64_t* size) override
 	{
-		char* exception = NULL;
-		arrow::StatusCode statusCode = this->getSize(size, &exception);
-		if (statusCode == arrow::StatusCode::OK) {
-			return arrow::Status::OK();
-		} else {
-			return arrow::Status(statusCode, exception);
-			delete exception;
-		}
+		const char* exception = nullptr;
+		return GetStatus(getSize_(size, &exception), exception);
 	}
 
-	bool closed() const
+	bool closed() const override
 	{
-		return this->_closed();
+		return closed_();
 	}
+
+private:
+
+	static Status GetStatus(const StatusCode statusCode, const char* const exception)
+	{
+		return statusCode == StatusCode::OK
+			? Status::OK()
+			: Status(statusCode, exception);
+	}
+
+	const ReadFunc read_;
+	const CloseFunc close_;
+	const GetSizeFunc getSize_;
+	const TellFunc tell_;
+	const SeekFunc seek_;
+	const ClosedFunc closed_;
 };
 
 extern "C"
 {
 	PARQUETSHARP_EXPORT ExceptionInfo* ManagedRandomAccessFile_Create(
-		arrow::StatusCode (*read)(int64_t, int64_t*, void*, char**),
-		arrow::StatusCode (*close)(char**),
-		arrow::StatusCode (*getSize)(int64_t*, char**),
-		arrow::StatusCode (*tell)(int64_t*, char**),
-		arrow::StatusCode (*seek)(int64_t, char**),
-		bool (*closed)(),
+		const ReadFunc read,
+		const CloseFunc close,
+		const GetSizeFunc getSize,
+		const TellFunc tell,
+		const SeekFunc seek,
+		const ClosedFunc closed,
 		std::shared_ptr<ManagedRandomAccessFile>** stream)
 	{
 		TRYCATCH(*stream = new std::shared_ptr<ManagedRandomAccessFile>(new ManagedRandomAccessFile(read, close, getSize, tell, seek, closed));)

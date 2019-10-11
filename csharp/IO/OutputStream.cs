@@ -8,19 +8,20 @@ namespace ParquetSharp.IO
     /// </summary>
     public abstract class OutputStream : IDisposable
     {
-        internal OutputStream(IntPtr handle)
+        protected OutputStream()
+        {
+            Handle = null;
+        }
+
+        protected OutputStream(IntPtr handle)
         {
             Handle = new ParquetHandle(handle, OutputStream_Free);
         }
 
-        /// Unsafe constructor for allocating superclasses
-        internal OutputStream() {
-            Handle = new ParquetHandle(IntPtr.Zero, null);
-        }
-
         public void Dispose()
         {
-            Handle.Dispose();
+            Handle?.Dispose();
+            Handle = null;
         }
 
         [DllImport(ParquetDll.Name)]

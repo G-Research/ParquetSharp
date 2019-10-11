@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
-using ParquetSharp.IO;
 
 namespace ParquetSharp.Test
 {
@@ -157,57 +156,6 @@ namespace ParquetSharp.Test
             }
 
             return value.ToString();
-        }
-
-        [Test]
-        public static void TestFileRoundTrip()
-        {
-            try
-            {
-                using (var writer = new ParquetFileWriter("file.parquet", new Column[] {new Column<int>("ids")}))
-                using (var group = writer.AppendRowGroup())
-                using (var column = group.NextColumn().LogicalWriter<int>())
-                {
-                    column.WriteBatch(new[] {1, 2, 3});
-                }
-
-                using (var reader = new ParquetFileReader("file.parquet"))
-                using (var group = reader.RowGroup(0))
-                using (var column = group.Column(0).LogicalReader<int>())
-                {
-                    Assert.AreEqual(new[] {1, 2, 3}, column.ReadAll(3));
-                }
-            }
-            finally
-            {
-                File.Delete("file.parquet");
-            }
-        }
-
-        [Test]
-        public static void TestInMemmoryRoundTrip()
-        {
-            using (var buffer = new System.IO.MemoryStream())
-            {
-                using (var output = new ManagedOutputStream(buffer))
-                using (var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")}))
-                using (var group = writer.AppendRowGroup())
-                using (var column = group.NextColumn().LogicalWriter<int>())
-                {
-                    column.WriteBatch(new[] {1, 2, 3});
-                }
-
-                // Seek back to start
-                buffer.Seek(0, SeekOrigin.Begin);
-
-                using (var input = new ManagedRandomAccessFile(buffer))
-                using (var reader = new ParquetFileReader(input))
-                using (var group = reader.RowGroup(0))
-                using (var column = group.Column(0).LogicalReader<int>())
-                {
-                    Assert.AreEqual(new[] {1, 2, 3}, column.ReadAll(3));
-                }
-            }
         }
     }
 }

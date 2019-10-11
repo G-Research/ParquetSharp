@@ -1,130 +1,141 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace ParquetSharp.IO
 {
     /// <summary>
-    /// Wrapper around arrow::io::OutputStream, implemented in C#
+    /// Managed wrapper around arrow::io::OutputStream that takes in a .NET Stream instance.
     /// </summary>
     public sealed class ManagedOutputStream : OutputStream
     {
-        private System.IO.Stream Stream;
-
-        private delegate byte WriteDelegate(IntPtr buffer, long nbyte, [MarshalAs(UnmanagedType.LPStr)] out string exception);
-        private WriteDelegate _write;
-        private delegate byte TellDelegate(IntPtr position, [MarshalAs(UnmanagedType.LPStr)] out string exception);
-        private TellDelegate _tell;
-        private delegate byte FlushDelegate([MarshalAs(UnmanagedType.LPStr)] out string exception);
-        private FlushDelegate _flush;
-        private delegate byte CloseDelegate([MarshalAs(UnmanagedType.LPStr)] out string exception);
-        private CloseDelegate _close;
-        private delegate bool ClosedDelegate();
-        private ClosedDelegate _closed;
-
-        public ManagedOutputStream(System.IO.Stream stream)
+        public ManagedOutputStream(Stream stream)
         {
-            this.Stream = stream;
+            _stream = stream;
+            _write = Write;
+            _tell = Tell;
+            _flush = Flush;
+            _close = Close;
+            _closed = Closed;
 
-            this._write = (WriteDelegate)this.Write;
-            this._tell = (TellDelegate)this.Tell;
-            this._flush = (FlushDelegate)this.Flush;
-            this._close = (CloseDelegate)this.Close;
-            this._closed = (ClosedDelegate)this.Closed;
+            Handle = Create(_write, _tell, _flush, _close, _closed);
+        }
 
-            ExceptionInfo.Check(ManagedOutputStream_Create(
-                this._write, this._tell, this._flush, this._close, this._closed, out var handle));
-
-            this.Handle = new ParquetHandle(handle, OutputStream.OutputStream_Free);
+        private static ParquetHandle Create(
+            WriteDelegate write,
+            TellDelegate tell,
+            FlushDelegate flush,
+            CloseDelegate close,
+            ClosedDelegate closed)
+        {
+            ExceptionInfo.Check(ManagedOutputStream_Create(write, tell, flush, close, closed, out var handle));
+            return new ParquetHandle(handle, OutputStream_Free);
         }
 
         private byte Write(IntPtr src, long nbytes, out string exception)
         {
-            try {
-                #if !NETSTANDARD20
-                byte[] buffer = new byte[(int)nbytes];
-                #endif
+            try
+            {
+#if !NETSTANDARD20
+                var buffer = new byte[(int) nbytes];
+#endif
 
                 while (nbytes > 0)
                 {
-                    int ibytes = (int)nbytes;
+                    var ibytes = (int) nbytes;
 
-                    #if NETSTANDARD20
+#if NETSTANDARD20
                     unsafe
                     {
-                        Stream.Write(new Span<byte>(src.ToPointer(), ibytes));
+                        _stream.Write(new Span<byte>(src.ToPointer(), ibytes));
                     }
-                    #else
+#else
                     Marshal.Copy(src, buffer, 0, ibytes);
-                    Stream.Write(buffer, 0, ibytes);
-                    #endif
+                    _stream.Write(buffer, 0, ibytes);
+#endif
 
                     nbytes -= ibytes;
                     src = IntPtr.Add(src, ibytes);
                 }
 
-                exception = null;
+                exception = _exceptionMessage = null;
                 return 0;
-            } catch (OutOfMemoryException) {
-                exception = null;
-                return 1;
-            } catch (Exception exc) {
-                exception = exc.ToString();
-                return 9;
+            }
+            catch (Exception error)
+            {
+                return HandleException(error, out exception);
             }
         }
 
         private byte Tell(IntPtr position, out string exception)
         {
-            try {
-                Marshal.WriteInt64(position, Stream.Position);
-                exception = null;
+            try
+            {
+                Marshal.WriteInt64(position, _stream.Position);
+                exception = _exceptionMessage = null;
                 return 0;
-            } catch (OutOfMemoryException) {
-                exception = null;
-                return 1;
-            } catch (Exception exc) {
-                exception = exc.ToString();
-                return 9;
+            }
+            catch (Exception error)
+            {
+                return HandleException(error, out exception);
             }
         }
 
         private byte Flush(out string exception)
         {
-            try {
-                Stream.Flush();
-                exception = null;
+            try
+            {
+                _stream.Flush();
+                exception = _exceptionMessage = null;
                 return 0;
-            } catch (OutOfMemoryException) {
-                exception = null;
-                return 1;
-            } catch (Exception exc) {
-                exception = exc.ToString();
-                return 9;
+            }
+            catch (Exception error)
+            {
+                return HandleException(error, out exception);
             }
         }
 
         private byte Close(out string exception)
         {
-            try {
-                Stream.Close();
+            try
+            {
+                _stream.Close();
                 exception = null;
                 return 0;
-            } catch (OutOfMemoryException) {
-                exception = null;
-                return 1;
-            } catch (Exception exc) {
-                exception = exc.ToString();
-                return 9;
+            }
+            catch (Exception error)
+            {
+                return HandleException(error, out exception);
             }
         }
 
         private bool Closed()
         {
-            try {
-                return !Stream.CanWrite;
-            } catch {
+            try
+            {
+                return !_stream.CanWrite;
+            }
+            catch
+            {
                 return true;
             }
+        }
+
+        private byte HandleException(Exception error, out string exception)
+        {
+            if (error is OutOfMemoryException)
+            {
+                exception = _exceptionMessage = null;
+                return 1;
+            }
+            if (error is IOException)
+            {
+                exception = _exceptionMessage = error.ToString();
+                return 5;
+            }
+            
+            exception = _exceptionMessage = error.ToString();
+            return 9;
         }
 
         [DllImport(ParquetDll.Name)]
@@ -134,6 +145,29 @@ namespace ParquetSharp.IO
             FlushDelegate flush,
             CloseDelegate close,
             ClosedDelegate closed,
-             out IntPtr outputStream);
+            out IntPtr outputStream);
+
+
+        private delegate byte WriteDelegate(IntPtr buffer, long nbyte, [MarshalAs(UnmanagedType.LPStr)] out string exception);
+        private delegate byte TellDelegate(IntPtr position, [MarshalAs(UnmanagedType.LPStr)] out string exception);
+        private delegate byte FlushDelegate([MarshalAs(UnmanagedType.LPStr)] out string exception);
+        private delegate byte CloseDelegate([MarshalAs(UnmanagedType.LPStr)] out string exception);
+        private delegate bool ClosedDelegate();
+
+        private readonly Stream _stream;
+
+        // The lifetime of the delegates must match the lifetime of this class.
+        // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
+        private readonly WriteDelegate _write;
+        private readonly TellDelegate _tell;
+        private readonly FlushDelegate _flush;
+        private readonly CloseDelegate _close;
+        private readonly ClosedDelegate _closed;
+        // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
+
+        // The lifetime of the exception message must match the lifetime of this class.
+        // ReSharper disable NotAccessedField.Local
+        private string _exceptionMessage;
+        // ReSharper restore NotAccessedField.Local
     }
 }
