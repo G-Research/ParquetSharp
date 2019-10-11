@@ -39,25 +39,29 @@ public:
 	Status Write(const void* data, int64_t nbytes) override
 	{
 		const char* exception = nullptr;
-		return GetStatus(write_(data, nbytes, &exception), exception);
+		const auto statusCode = write_(data, nbytes, &exception);
+		return GetStatus(statusCode, exception);
 	}
 
 	Status Flush() override
 	{
 		const char* exception = nullptr;
-		return GetStatus(flush_(&exception), exception);
+		const auto statusCode = flush_(&exception);
+		return GetStatus(statusCode, exception);
 	}
 
 	Status Close() override
 	{
 		const char* exception = nullptr;
-		return GetStatus(close_(&exception), exception);
+		const auto statusCode = close_(&exception);
+		return GetStatus(statusCode, exception);
 	}
 
 	Status Tell(int64_t* position) const override
 	{
 		const char* exception = nullptr;
-		return GetStatus(tell_(position, &exception), exception);
+		const auto statusCode = tell_(position, &exception);
+		return GetStatus(statusCode, exception);
 	}
 
 	bool closed() const override

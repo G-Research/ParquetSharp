@@ -43,7 +43,8 @@ public:
 	Status Read(int64_t nbytes, int64_t* bytes_read, void* out) override
 	{
 		const char* exception = nullptr;
-		return GetStatus(read_(nbytes, bytes_read, out, &exception), exception);
+		const auto statusCode = read_(nbytes, bytes_read, out, &exception);
+		return GetStatus(statusCode, exception);
 	}
 
 	Status Read(int64_t nbytes, std::shared_ptr<arrow::Buffer>* out) override
@@ -66,25 +67,29 @@ public:
 	Status Close() override
 	{
 		const char* exception = nullptr;
-		return GetStatus(close_(&exception), exception);
+		const auto statusCode = close_(&exception);
+		return GetStatus(statusCode, exception);
 	}
 
 	Status Tell(int64_t* position) const override
 	{
 		const char* exception = nullptr;
-		return GetStatus(tell_(position, &exception), exception);
+		const auto statusCode = tell_(position, &exception);
+		return GetStatus(statusCode, exception);
 	}
 
 	Status Seek(int64_t position) override
 	{
 		const char* exception = nullptr;
-		return GetStatus(seek_(position, &exception), exception);
+		const auto statusCode = seek_(position, &exception);
+		return GetStatus(statusCode, exception);
 	}
 
 	Status GetSize(int64_t* size) override
 	{
 		const char* exception = nullptr;
-		return GetStatus(getSize_(size, &exception), exception);
+		const auto statusCode = getSize_(size, &exception);
+		return GetStatus(statusCode, exception);
 	}
 
 	bool closed() const override
