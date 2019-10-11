@@ -14,6 +14,6 @@ namespace ParquetSharp.IO
         }
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr BufferReader_Create(IntPtr buffer, out IntPtr inputStream);
+        private static extern IntPtr BufferReader_Create(IntPtr buffer, out IntPtr bufferReader);
     }
 }

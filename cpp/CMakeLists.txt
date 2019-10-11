@@ -33,6 +33,8 @@ add_library(ParquetSharpNative SHARED
 	GroupNode.cpp
 	KeyValueMetadata.cpp
 	LogicalType.cpp
+	ManagedRandomAccessFile.cpp
+	ManagedOutputStream.cpp
 	Node.cpp
 	OutputStream.cpp
 	ParquetFileReader.cpp

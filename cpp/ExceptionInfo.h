@@ -3,7 +3,7 @@
 #include <exception>
 #include <string>
 
-struct ExceptionInfo
+struct ExceptionInfo final
 {
 	ExceptionInfo(const char* type, const char* message);
 	ExceptionInfo(const std::exception& exception);
