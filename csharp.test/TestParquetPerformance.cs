@@ -154,6 +154,90 @@ namespace ParquetSharp.Test
 
             Console.WriteLine("Saved to Parquet.RowOriented ({0:N0} bytes) in {1:N2} sec", new FileInfo("float_timeseries.parquet.roworiented").Length, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
+            Console.WriteLine("Saving to Parquet.FileStream");
+
+            timer.Restart();
+
+            using (var writer = new ParquetSharp.IO.ManagedOutputStream(File.Create("float_timeseries.parquet.filestream")))
+            using (var fileWriter = new ParquetFileWriter(writer, CreateFloatColumns()))
+            using (var rowGroupWriter = fileWriter.AppendRowGroup())
+            {
+                using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
+                    {
+                        dateTimeWriter.WriteBatch(Enumerable.Repeat(dates[i], objectIds.Length).ToArray());
+                    }
+                }
+
+                using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
+                    {
+                        objectIdWriter.WriteBatch(objectIds);
+                    }
+                }
+
+                using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
+                    {
+                        valueWriter.WriteBatch(values[i]);
+                    }
+                }
+            }
+
+            Console.WriteLine("Saved to Parquet.FileStream ({0:N0} bytes) in {1:N2} sec", new FileInfo("float_timeseries.parquet.filestream").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine();
+            Console.WriteLine("Saving to Parquet.Chunked.FileStream (by date)");
+
+            timer.Restart();
+
+            using (var writer = new ParquetSharp.IO.ManagedOutputStream(File.Create("float_timeseries.parquet.chunked.filestream")))
+            using (var fileWriter = new ParquetFileWriter(writer, CreateFloatColumns()))
+            {
+                for (int i = 0; i != dates.Length; ++i)
+                {
+                    using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                    {
+                        using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
+                        {
+                            dateTimeWriter.WriteBatch(Enumerable.Repeat(dates[i], objectIds.Length).ToArray());
+                        }
+
+                        using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                        {
+                            objectIdWriter.WriteBatch(objectIds);
+                        }
+
+                        using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
+                        {
+                            valueWriter.WriteBatch(values[i]);
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine("Saved to Parquet.Chunked.FileStream ({0:N0} bytes) in {1:N2} sec", new FileInfo("float_timeseries.parquet.chunked.filestream").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine();
+            Console.WriteLine("Saving to Parquet.RowOriented.FileStream");
+
+            timer.Restart();
+
+            using (var writer = new ParquetSharp.IO.ManagedOutputStream(File.Create("float_timeseries.parquet.roworiented.filestream")))
+            using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>(writer, new[] {"DateTime", "ObjectId", "Value"}))
+            {
+                for (int i = 0; i != dates.Length; ++i)
+                {
+                    for (int j = 0; j != objectIds.Length; ++j)
+                    {
+                        rowWriter.WriteRow((dates[i], objectIds[j], values[i][j]));
+                    }
+                }
+            }
+
+            Console.WriteLine("Saved to Parquet.RowOriented.FileStream ({0:N0} bytes) in {1:N2} sec", new FileInfo("float_timeseries.parquet.roworiented.filestream").Length, timer.Elapsed.TotalSeconds);
+            Console.WriteLine();
             Console.WriteLine("Saving to Parquet.NET");
 
             timer.Restart();
