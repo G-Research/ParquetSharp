@@ -9,9 +9,15 @@ namespace ParquetSharp.IO
     /// </summary>
     public sealed class ManagedOutputStream : OutputStream
     {
-        public ManagedOutputStream(Stream stream)
+        public ManagedOutputStream(System.IO.Stream stream)
+            : this(stream, false)
+        {
+        }
+
+        public ManagedOutputStream(System.IO.Stream stream, bool leaveOpen)
         {
             _stream = stream;
+            _leaveOpen = leaveOpen;
             _write = Write;
             _tell = Tell;
             _flush = Flush;
@@ -99,7 +105,10 @@ namespace ParquetSharp.IO
         {
             try
             {
-                _stream.Close();
+                if (!this._leaveOpen)
+                {
+                    _stream.Close();
+                }
                 exception = null;
                 return 0;
             }
@@ -133,7 +142,7 @@ namespace ParquetSharp.IO
                 exception = _exceptionMessage = error.ToString();
                 return 5;
             }
-            
+
             exception = _exceptionMessage = error.ToString();
             return 9;
         }
@@ -155,6 +164,7 @@ namespace ParquetSharp.IO
         private delegate bool ClosedDelegate();
 
         private readonly Stream _stream;
+        private readonly bool _leaveOpen;
 
         // The lifetime of the delegates must match the lifetime of this class.
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable

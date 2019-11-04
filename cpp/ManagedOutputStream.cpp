@@ -4,6 +4,7 @@
 
 #include <arrow/status.h>
 #include <arrow/io/interfaces.h>
+#include <arrow/util/logging.h>
 
 using arrow::Status;
 using arrow::StatusCode;
@@ -34,6 +35,10 @@ public:
 
 	~ManagedOutputStream()
 	{
+		arrow::Status st = this->Close();
+		if (!st.ok()) {
+			ARROW_LOG(FATAL) << "Error ignored when destroying ManagedOutputStream: " << st;
+		}
 	}
 
 	Status Write(const void* data, int64_t nbytes) override
