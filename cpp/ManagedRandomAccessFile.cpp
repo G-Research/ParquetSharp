@@ -41,7 +41,7 @@ public:
 	{
 		arrow::Status st = this->Close();
 		if (!st.ok()) {
-			ARROW_LOG(FATAL) << "Error ignored when destroying ManagedRandomAccessFile: " << st;
+			ARROW_LOG(ERROR) << "Error ignored when destroying ManagedRandomAccessFile: " << st;
 		}
 	}
 
