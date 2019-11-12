@@ -107,7 +107,7 @@ Typically this can arise when attempting to access an instance whose owner has b
 
 Building ParquetSharp for Windows requires the following dependencies:
 - Visual Studio 2019 (16.1 or higher)
-- Apache Arrow (0.14.0)
+- Apache Arrow (0.15.0)
 
 For building arrow (including parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). Note that the Windows build needs to be done in a Visual Studio x64 Native Tools Command Prompt for the build script to succeed.
 
