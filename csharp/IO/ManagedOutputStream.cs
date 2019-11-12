@@ -9,12 +9,12 @@ namespace ParquetSharp.IO
     /// </summary>
     public sealed class ManagedOutputStream : OutputStream
     {
-        public ManagedOutputStream(System.IO.Stream stream)
+        public ManagedOutputStream(Stream stream)
             : this(stream, false)
         {
         }
 
-        public ManagedOutputStream(System.IO.Stream stream, bool leaveOpen)
+        public ManagedOutputStream(Stream stream, bool leaveOpen)
         {
             _stream = stream;
             _leaveOpen = leaveOpen;
@@ -105,10 +105,11 @@ namespace ParquetSharp.IO
         {
             try
             {
-                if (!this._leaveOpen)
+                if (!_leaveOpen)
                 {
                     _stream.Close();
                 }
+
                 exception = null;
                 return 0;
             }

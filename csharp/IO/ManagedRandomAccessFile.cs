@@ -14,7 +14,7 @@ namespace ParquetSharp.IO
         {
         }
 
-        public ManagedRandomAccessFile(System.IO.Stream stream, bool leaveOpen)
+        public ManagedRandomAccessFile(Stream stream, bool leaveOpen)
         {
             _stream = stream;
             _leaveOpen = leaveOpen;
@@ -69,10 +69,11 @@ namespace ParquetSharp.IO
         {
             try
             {
-                if(!this._leaveOpen)
+                if(!_leaveOpen)
                 {
                     _stream.Close();
                 }
+
                 exception = null;
                 return 0;
             }
