@@ -10,7 +10,7 @@ namespace ParquetSharp
     {
         public ParquetFileWriter(
             string path, Column[] columns, 
-            Compression compression = Compression.Snappy, 
+            Compression compression = Compression.Lz4, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
             using (var schema = Column.CreateSchemaNode(columns))
@@ -22,7 +22,7 @@ namespace ParquetSharp
 
         public ParquetFileWriter(
             OutputStream outputStream, Column[] columns, 
-            Compression compression = Compression.Snappy, 
+            Compression compression = Compression.Lz4, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
             using (var schema = Column.CreateSchemaNode(columns))

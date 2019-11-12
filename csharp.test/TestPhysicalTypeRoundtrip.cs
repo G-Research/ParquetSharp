@@ -106,7 +106,7 @@ namespace ParquetSharp.Test
         {
             var builder = new WriterPropertiesBuilder();
 
-            builder.Compression(Compression.Snappy);
+            builder.Compression(Compression.Lz4);
 
             return builder.Build();
         }
@@ -171,7 +171,7 @@ namespace ParquetSharp.Test
             public int TypeScale = -1;
 
             public Encoding[] Encodings = {Encoding.Plain, Encoding.Rle};
-            public Compression Compression = Compression.Snappy;
+            public Compression Compression = Compression.Lz4;
         }
 
         private const int NumRows = 72;
