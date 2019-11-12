@@ -35,6 +35,11 @@ namespace ParquetSharp
             return ExceptionInfo.Return<Compression>(Handle, path.Handle, WriterProperties_Compression);
         }
 
+        public int CompressionLevel(ColumnPath path)
+        {
+            return ExceptionInfo.Return<int>(Handle, path.Handle, WriterProperties_Compression_Level);
+        }
+
         public bool DictionaryEnabled(ColumnPath path)
         {
             return ExceptionInfo.Return<bool>(Handle, path.Handle, WriterProperties_Dictionary_Enabled);
@@ -95,6 +100,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Compression(IntPtr writerProperties, IntPtr path, out Compression compression);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Compression_Level(IntPtr writerProperties, IntPtr path, out int compressionLevel);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Dictionary_Enabled(IntPtr writerProperties, IntPtr path, [MarshalAs(UnmanagedType.I1)] out bool enabled);
