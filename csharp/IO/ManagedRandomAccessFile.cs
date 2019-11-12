@@ -10,8 +10,14 @@ namespace ParquetSharp.IO
     public sealed class ManagedRandomAccessFile : RandomAccessFile
     {
         public ManagedRandomAccessFile(Stream stream)
+            : this(stream, false)
+        {
+        }
+
+        public ManagedRandomAccessFile(Stream stream, bool leaveOpen)
         {
             _stream = stream;
+            _leaveOpen = leaveOpen;
             _read = Read;
             _close = Close;
             _getSize = GetSize;
@@ -63,7 +69,11 @@ namespace ParquetSharp.IO
         {
             try
             {
-                _stream.Close();
+                if(!_leaveOpen)
+                {
+                    _stream.Close();
+                }
+
                 exception = null;
                 return 0;
             }
@@ -162,6 +172,7 @@ namespace ParquetSharp.IO
         private delegate bool ClosedDelegate();
 
         private readonly Stream _stream;
+        private readonly bool _leaveOpen;
 
         // The lifetime of the delegates must match the lifetime of this class.
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable

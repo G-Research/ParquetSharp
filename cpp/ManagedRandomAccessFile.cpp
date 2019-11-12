@@ -5,6 +5,7 @@
 #include <arrow/status.h>
 #include <arrow/buffer.h>
 #include <arrow/io/interfaces.h>
+#include <arrow/util/logging.h>
 
 using arrow::Status;
 using arrow::StatusCode;
@@ -19,6 +20,11 @@ typedef bool (*ClosedFunc)();
 class ManagedRandomAccessFile final : public arrow::io::RandomAccessFile
 {
 public:
+
+	ManagedRandomAccessFile(const ManagedRandomAccessFile&) = delete;
+	ManagedRandomAccessFile(ManagedRandomAccessFile&&) = delete;
+	ManagedRandomAccessFile& operator = (const ManagedRandomAccessFile&) = delete;
+	ManagedRandomAccessFile& operator = (ManagedRandomAccessFile&&) = delete;
 
 	ManagedRandomAccessFile(
 		const ReadFunc read,
@@ -36,18 +42,23 @@ public:
 	{
 	}
 
-	~ManagedRandomAccessFile()
+	~ManagedRandomAccessFile() override
 	{
+		const Status st = this->Close();
+		if (!st.ok()) 
+		{
+			ARROW_LOG(ERROR) << "Error ignored when destroying ManagedRandomAccessFile: " << st;
+		}
 	}
 
-	Status Read(int64_t nbytes, int64_t* bytes_read, void* out) override
+	Status Read(const int64_t nbytes, int64_t* bytes_read, void* out) override
 	{
 		const char* exception = nullptr;
 		const auto statusCode = read_(nbytes, bytes_read, out, &exception);
 		return GetStatus(statusCode, exception);
 	}
 
-	Status Read(int64_t nbytes, std::shared_ptr<arrow::Buffer>* out) override
+	Status Read(const int64_t nbytes, std::shared_ptr<arrow::Buffer>* out) override
 	{
 		std::shared_ptr<arrow::ResizableBuffer> buffer;
 		RETURN_NOT_OK(arrow::AllocateResizableBuffer(nbytes, &buffer));

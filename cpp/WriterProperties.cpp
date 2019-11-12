@@ -77,6 +77,11 @@ extern "C"
 		TRYCATCH(*compression = (*writerProperties)->compression(*path);)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Compression_Level(const std::shared_ptr<WriterProperties>* writerProperties, const std::shared_ptr<schema::ColumnPath>* path, int32_t* compression_level)
+	{
+		TRYCATCH(*compression_level = (*writerProperties)->compression_level(*path);)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Dictionary_Enabled(const std::shared_ptr<WriterProperties>* writerProperties, const std::shared_ptr<schema::ColumnPath>* path, bool* enabled)
 	{
 		TRYCATCH(*enabled = (*writerProperties)->dictionary_enabled(*path);)

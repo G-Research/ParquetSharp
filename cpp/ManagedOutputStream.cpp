@@ -4,6 +4,7 @@
 
 #include <arrow/status.h>
 #include <arrow/io/interfaces.h>
+#include <arrow/util/logging.h>
 
 using arrow::Status;
 using arrow::StatusCode;
@@ -17,6 +18,11 @@ typedef bool (*ClosedFunc)();
 class ManagedOutputStream final : public arrow::io::OutputStream
 {
 public:
+
+	ManagedOutputStream(const ManagedOutputStream&) = delete;
+	ManagedOutputStream(ManagedOutputStream&&) = delete;
+	ManagedOutputStream& operator = (const ManagedOutputStream&) = delete;
+	ManagedOutputStream& operator = (ManagedOutputStream&&) = delete;
 
 	ManagedOutputStream(
 		const WriteFunc write,
@@ -32,11 +38,16 @@ public:
 	{
 	}
 
-	~ManagedOutputStream()
+	~ManagedOutputStream() override
 	{
+		const Status st = this->Close();
+		if (!st.ok()) 
+		{
+			ARROW_LOG(ERROR) << "Error ignored when destroying ManagedOutputStream: " << st;
+		}
 	}
 
-	Status Write(const void* data, int64_t nbytes) override
+	Status Write(const void* const data, const int64_t nbytes) override
 	{
 		const char* exception = nullptr;
 		const auto statusCode = write_(data, nbytes, &exception);
@@ -57,7 +68,7 @@ public:
 		return GetStatus(statusCode, exception);
 	}
 
-	Status Tell(int64_t* position) const override
+	Status Tell(int64_t* const position) const override
 	{
 		const char* exception = nullptr;
 		const auto statusCode = tell_(position, &exception);

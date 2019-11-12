@@ -137,6 +137,28 @@ namespace ParquetSharp
             return this;
         }
 
+        public WriterPropertiesBuilder CompressionLevel(int compressionLevel)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Compression_Level(_handle.IntPtr, compressionLevel));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        public WriterPropertiesBuilder CompressionLevel(string path, int compressionLevel)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Compression_Level_By_Path(_handle.IntPtr, path, compressionLevel));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        public WriterPropertiesBuilder CompressionLevel(ColumnPath path, int compressionLevel)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Compression_Level_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr, compressionLevel));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(path);
+            return this;
+        }
+
         public WriterPropertiesBuilder CreatedBy(string createdBy)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Created_By(_handle.IntPtr, createdBy));
@@ -259,6 +281,15 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Compression_By_ColumnPath(IntPtr builder, IntPtr path, Compression codec);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Compression_Level(IntPtr builder, int compressionLevel);
+
+        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
+        private static extern IntPtr WriterPropertiesBuilder_Compression_Level_By_Path(IntPtr builder, string path, int compressionLevel);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Compression_Level_By_ColumnPath(IntPtr builder, IntPtr path, int compressionLevel);
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
         private static extern IntPtr WriterPropertiesBuilder_Created_By(IntPtr builder, string createdBy);

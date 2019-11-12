@@ -105,6 +105,21 @@ extern "C"
 		TRYCATCH(builder->compression(*path, codec);)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Compression_Level(WriterProperties::Builder* builder, int32_t compression_level)
+	{
+		TRYCATCH(builder->compression_level(compression_level);)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Compression_Level_By_Path(WriterProperties::Builder* builder, const char* path, int32_t compression_level)
+	{
+		TRYCATCH(builder->compression_level(path, compression_level);)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Compression_Level_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<schema::ColumnPath>* path, int32_t compression_level)
+	{
+		TRYCATCH(builder->compression_level(*path, compression_level);)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Created_By(WriterProperties::Builder* builder, const char* created_by)
 	{
 		TRYCATCH(builder->created_by(created_by);)
