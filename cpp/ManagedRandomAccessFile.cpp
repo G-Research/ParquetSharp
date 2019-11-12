@@ -5,6 +5,7 @@
 #include <arrow/status.h>
 #include <arrow/buffer.h>
 #include <arrow/io/interfaces.h>
+#include <arrow/util/logging.h>
 
 using arrow::Status;
 using arrow::StatusCode;
@@ -38,6 +39,10 @@ public:
 
 	~ManagedRandomAccessFile()
 	{
+		arrow::Status st = this->Close();
+		if (!st.ok()) {
+			ARROW_LOG(ERROR) << "Error ignored when destroying ManagedRandomAccessFile: " << st;
+		}
 	}
 
 	Status Read(int64_t nbytes, int64_t* bytes_read, void* out) override
