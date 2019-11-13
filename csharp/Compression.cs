@@ -6,9 +6,10 @@ namespace ParquetSharp
         Uncompressed = 0,
         Snappy = 1,
         Gzip = 2,
-        Lzo = 3,
-        Brotli = 4,
+        Brotli = 3,
+        Zstd = 4,
         Lz4 = 5,
-        Zstd = 6
+        Lzo = 6,
+        Bz2 = 7
     };
 }
