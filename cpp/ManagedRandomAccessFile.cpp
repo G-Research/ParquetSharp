@@ -16,6 +16,7 @@ typedef StatusCode(*GetSizeFunc)(int64_t*, const char**);
 typedef StatusCode(*TellFunc)(int64_t*, const char**);
 typedef StatusCode(*SeekFunc)(int64_t, const char**);
 typedef bool (*ClosedFunc)();
+typedef void (*FreeFunc)();
 
 class ManagedRandomAccessFile final : public arrow::io::RandomAccessFile
 {
@@ -32,13 +33,15 @@ public:
 		const GetSizeFunc getSize,
 		const TellFunc tell,
 		const SeekFunc seek,
-		const ClosedFunc closed) :
+		const ClosedFunc closed,
+		const FreeFunc free) :
 		read_(read),
 		close_(close),
 		getSize_(getSize),
 		tell_(tell),
 		seek_(seek),
-		closed_(closed)
+		closed_(closed),
+		free_(free)
 	{
 	}
 
@@ -49,6 +52,8 @@ public:
 		{
 			ARROW_LOG(ERROR) << "Error ignored when destroying ManagedRandomAccessFile: " << st;
 		}
+
+		this->free_();
 	}
 
 	Status Read(const int64_t nbytes, int64_t* bytes_read, void* out) override
@@ -123,6 +128,7 @@ private:
 	const TellFunc tell_;
 	const SeekFunc seek_;
 	const ClosedFunc closed_;
+	const FreeFunc free_;
 };
 
 extern "C"
@@ -134,8 +140,9 @@ extern "C"
 		const TellFunc tell,
 		const SeekFunc seek,
 		const ClosedFunc closed,
+		const FreeFunc free,
 		std::shared_ptr<ManagedRandomAccessFile>** stream)
 	{
-		TRYCATCH(*stream = new std::shared_ptr<ManagedRandomAccessFile>(new ManagedRandomAccessFile(read, close, getSize, tell, seek, closed));)
+		TRYCATCH(*stream = new std::shared_ptr<ManagedRandomAccessFile>(new ManagedRandomAccessFile(read, close, getSize, tell, seek, closed, free));)
 	}
 }

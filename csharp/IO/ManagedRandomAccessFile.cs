@@ -24,8 +24,10 @@ namespace ParquetSharp.IO
             _tell = Tell;
             _seek = Seek;
             _closed = Closed;
+            _free = Free;
+            _handle = GCHandle.Alloc(this, GCHandleType.Normal);
 
-            Handle = Create(_read, _close, _getSize, _tell, _seek, _closed);
+            Handle = Create(_read, _close, _getSize, _tell, _seek, _closed, _free);
         }
 
         private static ParquetHandle Create(
@@ -34,9 +36,10 @@ namespace ParquetSharp.IO
             GetSizeDelegate getSize,
             TellDelegate tell,
             SeekDelegate seek,
-            ClosedDelegate closed)
+            ClosedDelegate closed,
+            FreeDelegate free)
         {
-            ExceptionInfo.Check(ManagedRandomAccessFile_Create(read, close, getSize, tell, seek, closed, out var handle));
+            ExceptionInfo.Check(ManagedRandomAccessFile_Create(read, close, getSize, tell, seek, closed, free, out var handle));
             return new ParquetHandle(handle, RandomAccessFile_Free);
         }
 
@@ -137,6 +140,11 @@ namespace ParquetSharp.IO
             }
         }
 
+        private void Free()
+        {
+            _handle.Free();
+        }
+
         private byte HandleException(Exception error, out string exception)
         {
             if (error is OutOfMemoryException)
@@ -162,6 +170,7 @@ namespace ParquetSharp.IO
             TellDelegate tell,
             SeekDelegate seek,
             ClosedDelegate closed,
+            FreeDelegate free,
             out IntPtr randomAccessFile);
 
         private delegate byte ReadDelegate(long nbyte, IntPtr bytesRead, IntPtr dest, [MarshalAs(UnmanagedType.LPStr)] out string exception);
@@ -170,9 +179,11 @@ namespace ParquetSharp.IO
         private delegate byte TellDelegate(IntPtr position, [MarshalAs(UnmanagedType.LPStr)] out string exception);
         private delegate byte SeekDelegate(long position, [MarshalAs(UnmanagedType.LPStr)] out string exception);
         private delegate bool ClosedDelegate();
+        private delegate void FreeDelegate();
 
         private readonly Stream _stream;
         private readonly bool _leaveOpen;
+        private readonly GCHandle _handle;
 
         // The lifetime of the delegates must match the lifetime of this class.
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
@@ -182,6 +193,7 @@ namespace ParquetSharp.IO
         private readonly TellDelegate _tell;
         private readonly SeekDelegate _seek;
         private readonly ClosedDelegate _closed;
+        private readonly FreeDelegate _free;
         // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
 
         // The lifetime of the exception message must match the lifetime of this class.

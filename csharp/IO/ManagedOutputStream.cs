@@ -23,8 +23,10 @@ namespace ParquetSharp.IO
             _flush = Flush;
             _close = Close;
             _closed = Closed;
+            _free = Free;
+            _handle = GCHandle.Alloc(this, GCHandleType.Normal);
 
-            Handle = Create(_write, _tell, _flush, _close, _closed);
+            Handle = Create(_write, _tell, _flush, _close, _closed, _free);
         }
 
         private static ParquetHandle Create(
@@ -32,9 +34,10 @@ namespace ParquetSharp.IO
             TellDelegate tell,
             FlushDelegate flush,
             CloseDelegate close,
-            ClosedDelegate closed)
+            ClosedDelegate closed,
+            FreeDelegate free)
         {
-            ExceptionInfo.Check(ManagedOutputStream_Create(write, tell, flush, close, closed, out var handle));
+            ExceptionInfo.Check(ManagedOutputStream_Create(write, tell, flush, close, closed, free, out var handle));
             return new ParquetHandle(handle, OutputStream_Free);
         }
 
@@ -131,6 +134,11 @@ namespace ParquetSharp.IO
             }
         }
 
+        private void Free()
+        {
+            _handle.Free();
+        }
+
         private byte HandleException(Exception error, out string exception)
         {
             if (error is OutOfMemoryException)
@@ -155,6 +163,7 @@ namespace ParquetSharp.IO
             FlushDelegate flush,
             CloseDelegate close,
             ClosedDelegate closed,
+            FreeDelegate free,
             out IntPtr outputStream);
 
 
@@ -163,9 +172,11 @@ namespace ParquetSharp.IO
         private delegate byte FlushDelegate([MarshalAs(UnmanagedType.LPStr)] out string exception);
         private delegate byte CloseDelegate([MarshalAs(UnmanagedType.LPStr)] out string exception);
         private delegate bool ClosedDelegate();
+        private delegate void FreeDelegate();
 
         private readonly Stream _stream;
         private readonly bool _leaveOpen;
+        private readonly GCHandle _handle;
 
         // The lifetime of the delegates must match the lifetime of this class.
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
@@ -174,6 +185,7 @@ namespace ParquetSharp.IO
         private readonly FlushDelegate _flush;
         private readonly CloseDelegate _close;
         private readonly ClosedDelegate _closed;
+        private readonly FreeDelegate _free;
         // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
 
         // The lifetime of the exception message must match the lifetime of this class.
