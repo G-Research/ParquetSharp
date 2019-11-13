@@ -8,6 +8,56 @@ namespace ParquetSharp.Test
     [TestFixture]
     internal static class TestManagedRandomAccessFile
     {
+        private static ParquetFileWriter MakeWriter()
+        {
+            using (var input = new ManagedOutputStream(File.OpenWrite("file.parquet")))
+            {
+                return new ParquetFileWriter(input, new Column[] {new Column<int>("ids")});
+            }
+        }
+
+        private static ParquetFileReader MakeReader()
+        {
+            using (var input = new ManagedRandomAccessFile(File.OpenRead("file.parquet")))
+            {
+                return new ParquetFileReader(input);
+            }
+        }
+
+        [Test]
+        public static void TestGCRoundTrip()
+        {
+            try
+            {
+                using (var writer = MakeWriter())
+                {
+                    // Nothing has a reference to the ManagedOutputStream anymore, GC could delete it. Try to force that.
+                    System.GC.Collect(2, System.GCCollectionMode.Forced, true, true);
+
+                    using (var group = writer.AppendRowGroup())
+                    using (var column = group.NextColumn().LogicalWriter<int>())
+                    {
+                        column.WriteBatch(new[] {1, 2, 3});
+                    }
+                }
+
+                using (var reader = MakeReader())
+                {
+                    System.GC.Collect(2, System.GCCollectionMode.Forced, true, true);
+
+                    using (var group = reader.RowGroup(0))
+                    using (var column = group.Column(0).LogicalReader<int>())
+                    {
+                        Assert.AreEqual(new[] {1, 2, 3}, column.ReadAll(3));
+                    }
+                }
+            }
+            finally
+            {
+                File.Delete("file.parquet");
+            }
+        }
+
         [Test]
         public static void TestInMemoryRoundTrip()
         {
