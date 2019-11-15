@@ -14,6 +14,7 @@ typedef StatusCode(*TellFunc)(int64_t*, const char**);
 typedef StatusCode(*FlushFunc)(const char**);
 typedef StatusCode(*CloseFunc)(const char**);
 typedef bool (*ClosedFunc)();
+typedef void (*FreeFunc)();
 
 class ManagedOutputStream final : public arrow::io::OutputStream
 {
@@ -29,12 +30,14 @@ public:
 		const TellFunc tell,
 		const FlushFunc flush,
 		const CloseFunc close,
-		const ClosedFunc closed) :
+		const ClosedFunc closed,
+		const FreeFunc free) :
 		write_(write),
 		tell_(tell),
 		flush_(flush),
 		close_(close),
-		closed_(closed)
+		closed_(closed),
+		free_(free)
 	{
 	}
 
@@ -45,6 +48,8 @@ public:
 		{
 			ARROW_LOG(ERROR) << "Error ignored when destroying ManagedOutputStream: " << st;
 		}
+
+		this->free_();
 	}
 
 	Status Write(const void* const data, const int64_t nbytes) override
@@ -94,6 +99,7 @@ private:
 	const FlushFunc flush_;
 	const CloseFunc close_;
 	const ClosedFunc closed_;
+	const FreeFunc free_;
 };
 
 extern "C"
@@ -104,8 +110,9 @@ extern "C"
 		const FlushFunc flush,
 		const CloseFunc close,
 		const ClosedFunc closed,
+		const FreeFunc free,
 		std::shared_ptr<ManagedOutputStream>** stream)
 	{
-		TRYCATCH(*stream = new std::shared_ptr<ManagedOutputStream>(new ManagedOutputStream(write, tell, flush, close, closed));)
+		TRYCATCH(*stream = new std::shared_ptr<ManagedOutputStream>(new ManagedOutputStream(write, tell, flush, close, closed, free));)
 	}
 }
