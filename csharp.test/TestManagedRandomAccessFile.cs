@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using NUnit.Framework;
 using ParquetSharp.IO;
 
@@ -8,28 +9,13 @@ namespace ParquetSharp.Test
     [TestFixture]
     internal static class TestManagedRandomAccessFile
     {
-        private static ParquetFileWriter MakeWriter()
-        {
-            using (var input = new ManagedOutputStream(File.OpenWrite("file.parquet")))
-            {
-                return new ParquetFileWriter(input, new Column[] {new Column<int>("ids")});
-            }
-        }
-
-        private static ParquetFileReader MakeReader()
-        {
-            using (var input = new ManagedRandomAccessFile(File.OpenRead("file.parquet")))
-            {
-                return new ParquetFileReader(input);
-            }
-        }
-
         [Test]
         public static void TestGCRoundTrip()
         {
             try
             {
-                using (var writer = MakeWriter())
+                using (var file = File.OpenWrite("file.parquet"))
+                using (var writer = CreateCollectibleWriter(file))
                 {
                     // Nothing has a reference to the ManagedOutputStream anymore, GC could delete it. Try to force that.
                     System.GC.Collect(2, System.GCCollectionMode.Forced, true, true);
@@ -41,7 +27,8 @@ namespace ParquetSharp.Test
                     }
                 }
 
-                using (var reader = MakeReader())
+                using (var file = File.OpenRead("file.parquet"))
+                using (var reader = CreateCollectibleReader(file))
                 {
                     System.GC.Collect(2, System.GCCollectionMode.Forced, true, true);
 
@@ -56,6 +43,18 @@ namespace ParquetSharp.Test
             {
                 File.Delete("file.parquet");
             }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static ParquetFileWriter CreateCollectibleWriter(FileStream file)
+        {
+            return new ParquetFileWriter(new ManagedOutputStream(file), new Column[] { new Column<int>("ids") });
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static ParquetFileReader CreateCollectibleReader(FileStream file)
+        {
+            return new ParquetFileReader(new ManagedRandomAccessFile(file));
         }
 
         [Test]

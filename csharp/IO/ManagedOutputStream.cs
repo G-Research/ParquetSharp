@@ -24,6 +24,9 @@ namespace ParquetSharp.IO
             _close = Close;
             _closed = Closed;
             _free = Free;
+
+            // Keep a circular reference to self so that GC won't collect 'this' until the unmanaged code does not need
+            // the current instance to exist anymore.
             _handle = GCHandle.Alloc(this, GCHandleType.Normal);
 
             Handle = Create(_write, _tell, _flush, _close, _closed, _free);
@@ -176,7 +179,7 @@ namespace ParquetSharp.IO
 
         private readonly Stream _stream;
         private readonly bool _leaveOpen;
-        private readonly GCHandle _handle;
+        private GCHandle _handle; // not readonly: _handle.Free() modifies the content of GCHandle.
 
         // The lifetime of the delegates must match the lifetime of this class.
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable

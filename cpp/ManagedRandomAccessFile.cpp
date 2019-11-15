@@ -53,7 +53,7 @@ public:
 			ARROW_LOG(ERROR) << "Error ignored when destroying ManagedRandomAccessFile: " << st;
 		}
 
-		this->free_();
+		free_();
 	}
 
 	Status Read(const int64_t nbytes, int64_t* bytes_read, void* out) override

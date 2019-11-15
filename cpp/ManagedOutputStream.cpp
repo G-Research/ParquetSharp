@@ -49,7 +49,7 @@ public:
 			ARROW_LOG(ERROR) << "Error ignored when destroying ManagedOutputStream: " << st;
 		}
 
-		this->free_();
+		free_();
 	}
 
 	Status Write(const void* const data, const int64_t nbytes) override
