@@ -8,19 +8,20 @@ namespace ParquetSharp.IO
     /// </summary>
     public abstract class RandomAccessFile : IDisposable
     {
-        internal RandomAccessFile(IntPtr handle)
+        protected RandomAccessFile()
+        {
+            Handle = null;
+        }
+
+        protected RandomAccessFile(IntPtr handle) 
         {
             Handle = new ParquetHandle(handle, RandomAccessFile_Free);
         }
 
-        /// Unsafe constructor for allocating superclasses
-        internal RandomAccessFile() {
-            Handle = new ParquetHandle(IntPtr.Zero, null);
-        }
-
         public void Dispose()
         {
-            Handle.Dispose();
+            Handle?.Dispose();
+            Handle = null;
         }
 
         [DllImport(ParquetDll.Name)]
