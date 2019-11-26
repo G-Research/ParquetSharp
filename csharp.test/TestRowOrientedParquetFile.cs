@@ -80,6 +80,28 @@ namespace ParquetSharp.Test
             }
         }
 
+        [Test]
+        public static void TestCompressionArgument([Values(Compression.Uncompressed, Compression.Brotli)] Compression compression)
+        {
+            using (var buffer = new ResizableBuffer())
+            {
+                using (var outputStream = new BufferOutputStream(buffer))
+                using (var writer = ParquetFile.CreateRowWriter<(int, float)>(outputStream, compression: compression))
+                {
+                    writer.WriteRows(new[] {(42, 3.14f)});
+                }
+
+                using (var inputStream = new BufferReader(buffer))
+                using (var reader = new ParquetFileReader(inputStream))
+                using (var group = reader.RowGroup(0))
+                {
+                    Assert.AreEqual(2, group.MetaData.NumColumns);
+                    Assert.AreEqual(compression, group.MetaData.GetColumnChunkMetaData(0).Compression);
+                    Assert.AreEqual(compression, group.MetaData.GetColumnChunkMetaData(1).Compression);
+                }
+            }
+        }
+
         private static void TestRoundtrip<TTuple>(TTuple[] rows)
         {
             using (var buffer = new ResizableBuffer())
