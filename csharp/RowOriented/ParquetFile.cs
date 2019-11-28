@@ -45,7 +45,7 @@ namespace ParquetSharp.RowOriented
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
-            return new ParquetRowWriter<TTuple>(path, columns, writeDelegate);
+            return new ParquetRowWriter<TTuple>(path, columns, compression, keyValueMetadata, writeDelegate);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace ParquetSharp.RowOriented
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
-            return new ParquetRowWriter<TTuple>(outputStream, columns, writeDelegate);
+            return new ParquetRowWriter<TTuple>(outputStream, columns, compression, keyValueMetadata, writeDelegate);
         }
 
         private static ParquetRowReader<TTuple>.ReadAction GetOrCreateReadDelegate<TTuple>()
