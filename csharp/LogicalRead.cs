@@ -296,7 +296,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i != destination.Length; ++i)
             {
-                destination[i] = DateTime.FromBinary(DateTimeOffset + source[i] * (TimeSpan.TicksPerMillisecond / 1000));
+                destination[i] = new DateTime(DateTimeOffset + source[i] * (TimeSpan.TicksPerMillisecond / 1000));
             }
         }
 
@@ -306,7 +306,7 @@ namespace ParquetSharp
             {
                 destination[i] = defLevels[i] == nullLevel
                     ? default(DateTime?)
-                    : DateTime.FromBinary(DateTimeOffset + source[src++] * (TimeSpan.TicksPerMillisecond / 1000));
+                    : new DateTime(DateTimeOffset + source[src++] * (TimeSpan.TicksPerMillisecond / 1000));
             }
         }
 
@@ -314,7 +314,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i != destination.Length; ++i)
             {
-                destination[i] = DateTime.FromBinary(DateTimeOffset + source[i] * TimeSpan.TicksPerMillisecond);
+                destination[i] = new DateTime(DateTimeOffset + source[i] * TimeSpan.TicksPerMillisecond);
             }
         }
 
@@ -324,7 +324,7 @@ namespace ParquetSharp
             {
                 destination[i] = defLevels[i] == nullLevel
                     ? default(DateTime?)
-                    : DateTime.FromBinary(DateTimeOffset + source[src++] * TimeSpan.TicksPerMillisecond);
+                    : new DateTime(DateTimeOffset + source[src++] * TimeSpan.TicksPerMillisecond);
             }
         }
 
