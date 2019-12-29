@@ -120,20 +120,23 @@ namespace ParquetSharp
             : base(columnReader, bufferLength)
         {
             _bufferedReader = new BufferedReader<TPhysical>(Source, (TPhysical[]) Buffer, DefLevels, RepLevels);
+            _directReader = LogicalRead<TLogical, TPhysical>.GetDirectReader();
+            _converter = LogicalRead<TLogical, TPhysical>.GetConverter(LogicalType, ColumnDescriptor.TypeScale);
         }
 
         public override int ReadBatch(Span<TElement> destination)
         {
-            var converter = LogicalRead<TLogical, TPhysical>.GetConverter(LogicalType, ColumnDescriptor.TypeScale);
-
             // Handle arrays separately as they are nested structures.
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
             {
-                return ReadBatchArray(destination, converter);
+                return ReadBatchArray(destination, _converter);
             }
 
             // Otherwise deal with flat values.
-            return ReadBatchSimple(destination, converter as LogicalRead<TElement, TPhysical>.Converter);
+            return ReadBatchSimple(
+                destination, 
+                _directReader as LogicalRead<TElement, TPhysical>.DirectReader, 
+                _converter as LogicalRead<TElement, TPhysical>.Converter);
         }
 
         private int ReadBatchArray(Span<TElement> destination, LogicalRead<TLogical, TPhysical>.Converter converter)
@@ -266,15 +269,33 @@ namespace ParquetSharp
         /// <summary>
         /// Fast implementation when a column contains only flat primitive values.
         /// </summary>
-        private int ReadBatchSimple<TTLogical>(Span<TTLogical> destination, LogicalRead<TTLogical, TPhysical>.Converter converter)
+        private int ReadBatchSimple<TTLogical>(
+            Span<TTLogical> destination, 
+            LogicalRead<TTLogical, TPhysical>.DirectReader directReader,
+            LogicalRead<TTLogical, TPhysical>.Converter converter)
         {
             if (typeof(TTLogical) != typeof(TLogical)) throw new ArgumentException("generic logical type should never be different");
+            if (directReader != null && DefLevels != null) throw new ArgumentException("direct reader cannot be provided if type is optional");
             if (converter == null) throw new ArgumentNullException(nameof(converter));
 
+            var columnReader = (ColumnReader<TPhysical>)Source;
             var rowsRead = 0;
-            var nullLevel = DefLevels == null ? (short) -1 : (short) 0;
-            var columnReader = (ColumnReader<TPhysical>) Source;
 
+            // Fast path for logical types that directly map to the physical type in memory.
+            if (directReader != null && HasNext)
+            {
+                while (rowsRead < destination.Length && HasNext)
+                {
+                    var toRead = destination.Length - rowsRead;
+                    var read = checked((int) directReader(columnReader, destination.Slice(rowsRead, toRead)));
+                    rowsRead += read;
+                }
+
+                return rowsRead;
+            }
+
+            // Normal path for logical types that need to be converted from the physical types.
+            var nullLevel = DefLevels == null ? (short) -1 : (short) 0;
             var buffer = (TPhysical[]) Buffer;
 
             while (rowsRead < destination.Length && HasNext)
@@ -289,5 +310,7 @@ namespace ParquetSharp
         }
 
         private readonly BufferedReader<TPhysical> _bufferedReader;
+        private readonly LogicalRead<TLogical, TPhysical>.DirectReader _directReader;
+        private readonly LogicalRead<TLogical, TPhysical>.Converter _converter;
     }
 }
