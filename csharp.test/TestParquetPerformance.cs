@@ -15,27 +15,15 @@ namespace ParquetSharp.Test
     {
         [Test]
         [Explicit("Benchmark")]
-        public static void TestFloatTimeSeries()
+        public static void TestWriteFloatTimeSeries([Values(0, 1)] int warmup)
         {
             var timer = Stopwatch.StartNew();
-            var rand = new Random(123);
 
             Console.WriteLine("Generating data...");
 
-            var dates = Enumerable.Range(0, 360)//*24*12)
-                .Select(i => new DateTime(2001, 01, 01) + TimeSpan.FromHours(i))
-                .Where(d => d.DayOfWeek != DayOfWeek.Saturday && d.DayOfWeek != DayOfWeek.Sunday)
-                .ToArray();
+            var (dates, objectIds, values, numRows) = CreateFloatDataFrame();
 
-            var objectIds = Enumerable.Range(0, 10000)
-                .Select(i => rand.Next())
-                .Distinct()
-                .OrderBy(i => i)
-                .ToArray();
-
-            var values = dates.Select(d => objectIds.Select(o => (float) rand.NextDouble()).ToArray()).ToArray();
-
-            Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", values.Select(v => v.Length).Aggregate(0, (sum, l) => sum + l), timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", numRows, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
             Console.WriteLine("Saving to CSV");
 
@@ -275,7 +263,96 @@ namespace ParquetSharp.Test
 
         [Test]
         [Explicit("Benchmark")]
-        public static void TestDecimalSeries()
+        public static void TestReadFloatTimeSeries([Values(0, 1, 2, 3, 5)] int warmup)
+        {
+            var timer = Stopwatch.StartNew();
+
+            Console.WriteLine("Generating data...");
+
+            var (dates, objectIds, values, numRows) = CreateFloatDataFrame(3600);
+
+            Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", numRows, timer.Elapsed.TotalSeconds);
+            Console.WriteLine();
+            Console.WriteLine("Saving to Parquet");
+
+            timer.Restart();
+
+            const string filename = "float_timeseries.parquet";
+
+            using (var fileWriter = new ParquetFileWriter(filename, CreateFloatColumns(), Compression.Snappy))
+            using (var rowGroupWriter = fileWriter.AppendRowGroup())
+            {
+                using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
+                    {
+                        dateTimeWriter.WriteBatch(Enumerable.Repeat(dates[i], objectIds.Length).ToArray());
+                    }
+                }
+
+                using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
+                    {
+                        objectIdWriter.WriteBatch(objectIds);
+                    }
+                }
+
+                using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
+                    {
+                        valueWriter.WriteBatch(values[i]);
+                    }
+                }
+            }
+
+            var fileLength = new FileInfo(filename).Length;
+            
+            Console.WriteLine("Saved to Parquet ({0:N0} bytes) in {1:N2} sec", fileLength, timer.Elapsed.TotalSeconds);
+            Console.WriteLine();
+            Console.WriteLine("Reading from Parquet");
+
+            timer.Restart();
+
+            using (var fileReader = new ParquetFileReader(filename))
+            using (var groupReader = fileReader.RowGroup(0))
+            {
+                using (var dateTimeReader = groupReader.Column(0).LogicalReader<DateTime>())
+                {
+                    dateTimeReader.ReadAll(numRows);
+                }
+
+                using (var objectIdReader = groupReader.Column(1).LogicalReader<int>())
+                {
+                    objectIdReader.ReadAll(numRows);
+                }
+
+                using (var valueReader = groupReader.Column(2).LogicalReader<float>())
+                {
+                    valueReader.ReadAll(numRows);
+                }
+            }
+
+            Console.WriteLine("Read Parquet ({0:N0} bytes) in {1:N3} sec", fileLength, timer.Elapsed.TotalSeconds);
+            Console.WriteLine();
+            Console.WriteLine("Reading from Parquet (Parquet.NET)");
+
+            timer.Restart();
+
+            using (var stream = File.OpenRead(filename))
+            using (var parquetReader = new ParquetReader(stream))
+            {
+                parquetReader.ReadEntireRowGroup();
+            }
+
+            Console.WriteLine("Read Parquet (Parquet.NET {0:N0} bytes) in {1:N3} sec", fileLength, timer.Elapsed.TotalSeconds);
+            Console.WriteLine();
+        }
+
+        [Test]
+        [Explicit("Benchmark")]
+        public static void TestDecimalSeries([Values(0, 1)] int warmup)
         {
             var timer = Stopwatch.StartNew();
             var rand = new Random(123);
@@ -331,6 +408,27 @@ namespace ParquetSharp.Test
                 new Column<int>("ObjectId"),
                 new Column<float>("Value")
             };
+        }
+
+        private static (DateTime[] dates, int[] objectIds, float[][] values, int numRows) CreateFloatDataFrame(int numDates = 360)
+        {
+            var rand = new Random(123);
+
+            var dates = Enumerable.Range(0, numDates)
+                .Select(i => new DateTime(2001, 01, 01) + TimeSpan.FromHours(i))
+                .Where(d => d.DayOfWeek != DayOfWeek.Saturday && d.DayOfWeek != DayOfWeek.Sunday)
+                .ToArray();
+
+            var objectIds = Enumerable.Range(0, 10000)
+                .Select(i => rand.Next())
+                .Distinct()
+                .OrderBy(i => i)
+                .ToArray();
+
+            var values = dates.Select(d => objectIds.Select(o => (float)rand.NextDouble()).ToArray()).ToArray();
+            var numRows = values.Select(v => v.Length).Aggregate(0, (sum, l) => sum + l);
+
+            return (dates, objectIds, values, numRows);
         }
     }
 }

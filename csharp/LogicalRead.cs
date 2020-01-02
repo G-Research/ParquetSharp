@@ -9,7 +9,44 @@ namespace ParquetSharp
     internal static class LogicalRead<TLogical, TPhysical>
         where TPhysical : unmanaged
     {
+        public delegate long DirectReader(ColumnReader<TPhysical> columnReader, Span<TLogical> destination);
         public delegate void Converter(ReadOnlySpan<TPhysical> source, ReadOnlySpan<short> defLevels, Span<TLogical> destination, short nullLevel);
+
+        public static DirectReader GetDirectReader()
+        {
+            long Read<TPhys>(ColumnReader<TPhys> r, Span<TPhys> d) where TPhys : unmanaged
+            {
+                var read = r.ReadBatch(d.Length, d, out var valuesRead);
+                if (read != valuesRead)
+                {
+                    throw new Exception($"returned values do not match ({read} != {valuesRead}");
+                }
+
+                return read;
+            }
+
+            if (typeof(TLogical) == typeof(bool) ||
+                typeof(TLogical) == typeof(int) ||
+                typeof(TLogical) == typeof(long) ||
+                typeof(TLogical) == typeof(Int96) ||
+                typeof(TLogical) == typeof(float) ||
+                typeof(TLogical) == typeof(double))
+            {
+                return (DirectReader) (Delegate) (LogicalRead<TPhysical, TPhysical>.DirectReader) Read;
+            }
+
+            if (typeof(TLogical) == typeof(uint))
+            {
+                return (DirectReader) (Delegate) (LogicalRead<uint, int>.DirectReader) ((r, d) => Read(r, MemoryMarshal.Cast<uint, int>(d)));
+            }
+
+            if (typeof(TLogical) == typeof(ulong))
+            {
+                return (DirectReader) (Delegate) (LogicalRead<ulong, long>.DirectReader) ((r, d) => Read(r, MemoryMarshal.Cast<ulong, long>(d)));
+            }
+
+            return null;
+        }
 
         public static Converter GetConverter(LogicalType logicalType, int scale)
         {
@@ -296,7 +333,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i != destination.Length; ++i)
             {
-                destination[i] = DateTime.FromBinary(DateTimeOffset + source[i] * (TimeSpan.TicksPerMillisecond / 1000));
+                destination[i] = new DateTime(DateTimeOffset + source[i] * (TimeSpan.TicksPerMillisecond / 1000));
             }
         }
 
@@ -306,7 +343,7 @@ namespace ParquetSharp
             {
                 destination[i] = defLevels[i] == nullLevel
                     ? default(DateTime?)
-                    : DateTime.FromBinary(DateTimeOffset + source[src++] * (TimeSpan.TicksPerMillisecond / 1000));
+                    : new DateTime(DateTimeOffset + source[src++] * (TimeSpan.TicksPerMillisecond / 1000));
             }
         }
 
@@ -314,7 +351,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i != destination.Length; ++i)
             {
-                destination[i] = DateTime.FromBinary(DateTimeOffset + source[i] * TimeSpan.TicksPerMillisecond);
+                destination[i] = new DateTime(DateTimeOffset + source[i] * TimeSpan.TicksPerMillisecond);
             }
         }
 
@@ -324,7 +361,7 @@ namespace ParquetSharp
             {
                 destination[i] = defLevels[i] == nullLevel
                     ? default(DateTime?)
-                    : DateTime.FromBinary(DateTimeOffset + source[src++] * TimeSpan.TicksPerMillisecond);
+                    : new DateTime(DateTimeOffset + source[src++] * TimeSpan.TicksPerMillisecond);
             }
         }
 
