@@ -12,12 +12,12 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NoWarn>1591;</NoWarn>
-    <Version>2.0.2-beta4</Version>
+    <Version>2.0.2-beta5</Version>
     <Company>G-Research</Company>
     <Authors>G-Research</Authors>
     <Product>ParquetSharp</Product>
     <Description>ParquetSharp is a .NET library for reading and writing Parquet files. It's implemented in C# as a PInvoke wrapper around apache-parquet-cpp to provide high performance and compatibility.</Description>
-    <Copyright>Copyright G-Research 2019</Copyright>
+    <Copyright>Copyright G-Research 2020</Copyright>
     <PackageProjectUrl>https://github.com/G-Research/ParquetSharp</PackageProjectUrl>
     <PackageTags>apache parquet gresearch g-research .net c#</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
