@@ -123,7 +123,9 @@ namespace ParquetSharp.RowOriented
                     else
                     {
                         throw new ParquetException(
-                        "TupleAttributes", $"{typeof(RowTuple)} maps field '{fields[fieldIndex].name}' to parquet column '{fields[fieldIndex].mappedColumn}' but the target column does not exist in the parquet data.");
+                            "TupleAttributes", $"{typeof(RowTuple)} maps field '{fields[fieldIndex].name}' to parquet " +
+                            "column '{fields[fieldIndex].mappedColumn}' but the target column does not exist in the parquet data."
+                        );
                     }
                 }
             }
