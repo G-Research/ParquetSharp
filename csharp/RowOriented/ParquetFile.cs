@@ -256,7 +256,7 @@ namespace ParquetSharp.RowOriented
                 throw new ArgumentException($"field '{field.name}' has no {nameof(ParquetDecimalScaleAttribute)} despite being a decimal type");
             }
 
-            return new Column(field.type, field.name, isDecimal ? LogicalType.Decimal(29, decimalScale?.Scale ?? -1) : null);
+            return new Column(field.type, field.mappedColumn??field.name, isDecimal ? LogicalType.Decimal(29, decimalScale?.Scale ?? -1) : null);
         }
 
         private static readonly ConcurrentDictionary<Type, Delegate> ReadDelegatesCache =

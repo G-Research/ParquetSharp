@@ -195,6 +195,13 @@ namespace ParquetSharp.Test
                 D = r.D;
             }
 
+            public MappedRow1 (MappedRow2 r) {
+                A = r.Q;
+                B = r.R;
+                C = r.S;
+                D = r.T;
+            }
+
             [MapToColumnAttribute("B")]
             public float B;
 
