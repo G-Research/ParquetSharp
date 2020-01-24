@@ -1,4 +1,4 @@
-# ParquetSharp 
+# ParquetSharp
 
 ParquetSharp is a .NET library for reading and writing Apache [Parquet][1] files.
 
@@ -36,6 +36,31 @@ using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("floa
         for (int j = 0; j != objectIds.Length; ++j)
         {
             rowWriter.WriteRow((timestamps[i], objectIds[j], values[i][j]));
+        }
+    }
+}
+```
+
+The row-oriented API allows for specifying your own name-independent/order-independent column mapping using the optional `MapToColumn` attribute:
+
+```csharp
+struct MyRow
+{
+    [MapToColumn("ColumnA")]
+    public long MyKey;
+
+    [MapToColumn("ColumnB")]
+    public string MyValue;
+}
+
+using (var rowReader = ParquetFile.CreateRowReader<MyRow>("example.parquet"))
+{
+    for (int i = 0; i < rowReader.FileMetaData.NumRowGroups; ++i)
+    {
+        var values = rowReader.ReadRows(i);
+        foreach (MyRow r in values)
+        {
+            Console.WriteLine(r.MyKey + "/" + r.MyValue);
         }
     }
 }
