@@ -11,8 +11,10 @@ extern "C"
 	{
 		TRYCATCH
 		(
-			std::shared_ptr<arrow::io::BufferOutputStream> output;
-			PARQUET_THROW_NOT_OK(arrow::io::BufferOutputStream::Create(1024, arrow::default_memory_pool(), &output));
+			PARQUET_ASSIGN_OR_THROW(
+				std::shared_ptr<arrow::io::BufferOutputStream> output,
+				arrow::io::BufferOutputStream::Create(1024, arrow::default_memory_pool()));
+
 			*output_stream = new std::shared_ptr<arrow::io::BufferOutputStream>(output);
 		)
 	}
@@ -26,8 +28,10 @@ extern "C"
 	{
 		TRYCATCH
 		(
-			std::shared_ptr<arrow::Buffer> buf;
-			PARQUET_THROW_NOT_OK((*output_stream)->Finish(&buf));
+			PARQUET_ASSIGN_OR_THROW(
+				std::shared_ptr<arrow::Buffer> buf,
+				(*output_stream)->Finish());
+
 			*buffer = new std::shared_ptr<arrow::Buffer>(buf);
 		)
 	}

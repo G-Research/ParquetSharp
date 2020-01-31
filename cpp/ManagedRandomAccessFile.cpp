@@ -5,8 +5,10 @@
 #include <arrow/status.h>
 #include <arrow/buffer.h>
 #include <arrow/io/interfaces.h>
+#include <arrow/result.h>
 #include <arrow/util/logging.h>
 
+using arrow::Result;
 using arrow::Status;
 using arrow::StatusCode;
 
@@ -51,28 +53,27 @@ public:
 		}
 	}
 
-	Status Read(const int64_t nbytes, int64_t* bytes_read, void* out) override
+	Result<int64_t> Read(const int64_t nbytes, void* const out) override
 	{
+		int64_t bytes_read;
 		const char* exception = nullptr;
-		const auto statusCode = read_(nbytes, bytes_read, out, &exception);
-		return GetStatus(statusCode, exception);
+		const auto statusCode = read_(nbytes, &bytes_read, out, &exception);
+		return GetResult(bytes_read, statusCode, exception);
 	}
 
-	Status Read(const int64_t nbytes, std::shared_ptr<arrow::Buffer>* out) override
+	Result<std::shared_ptr<arrow::Buffer>> Read(const int64_t nbytes) override
 	{
 		std::shared_ptr<arrow::ResizableBuffer> buffer;
 		RETURN_NOT_OK(arrow::AllocateResizableBuffer(nbytes, &buffer));
 
-		int64_t bytes_read = 0;
-		RETURN_NOT_OK(Read(nbytes, &bytes_read, buffer->mutable_data()));
+		ARROW_ASSIGN_OR_RAISE(int64_t bytes_read, Read(nbytes, buffer->mutable_data()));
 		if (bytes_read < nbytes)
 		{
 			RETURN_NOT_OK(buffer->Resize(bytes_read));
 			buffer->ZeroPadding();
 		}
 
-		*out = buffer;
-		return Status::OK();
+		return buffer;
 	}
 
 	Status Close() override
@@ -82,25 +83,27 @@ public:
 		return GetStatus(statusCode, exception);
 	}
 
-	Status Tell(int64_t* position) const override
+	Result<int64_t> Tell() const override
 	{
+		int64_t position;
 		const char* exception = nullptr;
-		const auto statusCode = tell_(position, &exception);
-		return GetStatus(statusCode, exception);
+		const auto statusCode = tell_(&position, &exception);
+		return GetResult(position, statusCode, exception);
 	}
 
-	Status Seek(int64_t position) override
+	Status Seek(const int64_t position) override
 	{
 		const char* exception = nullptr;
 		const auto statusCode = seek_(position, &exception);
 		return GetStatus(statusCode, exception);
 	}
 
-	Status GetSize(int64_t* size) override
+	Result<int64_t> GetSize() override
 	{
+		int64_t size;
 		const char* exception = nullptr;
-		const auto statusCode = getSize_(size, &exception);
-		return GetStatus(statusCode, exception);
+		const auto statusCode = getSize_(&size, &exception);
+		return GetResult(size, statusCode, exception);
 	}
 
 	bool closed() const override
@@ -109,6 +112,17 @@ public:
 	}
 
 private:
+
+	template <class T>
+	static arrow::Result<T> GetResult(const T& result, const StatusCode statusCode, const char* const exception)
+	{
+		if (statusCode == StatusCode::OK)
+		{
+			return Result<T>(result);
+		}
+
+		return Result<T>(Status(statusCode, exception));
+	}
 
 	static Status GetStatus(const StatusCode statusCode, const char* const exception)
 	{

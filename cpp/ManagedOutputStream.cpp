@@ -4,8 +4,10 @@
 
 #include <arrow/status.h>
 #include <arrow/io/interfaces.h>
+#include <arrow/result.h>
 #include <arrow/util/logging.h>
 
+using arrow::Result;
 using arrow::Status;
 using arrow::StatusCode;
 
@@ -68,11 +70,12 @@ public:
 		return GetStatus(statusCode, exception);
 	}
 
-	Status Tell(int64_t* const position) const override
+	Result<int64_t> Tell() const override
 	{
+		int64_t position;
 		const char* exception = nullptr;
-		const auto statusCode = tell_(position, &exception);
-		return GetStatus(statusCode, exception);
+		const auto statusCode = tell_(&position, &exception);
+		return GetResult(position, statusCode, exception);
 	}
 
 	bool closed() const override
@@ -81,6 +84,17 @@ public:
 	}
 
 private:
+
+	template <class T>
+	static arrow::Result<T> GetResult(const T& result, const StatusCode statusCode, const char* const exception)
+	{
+		if (statusCode == StatusCode::OK)
+		{
+			return Result<T>(result);
+		}
+
+		return Result<T>(Status(statusCode, exception));
+	}
 
 	static Status GetStatus(const StatusCode statusCode, const char* const exception)
 	{
