@@ -3,6 +3,7 @@ include(GenerateExportHeader)
 find_package(Arrow REQUIRED)
 find_package(Boost COMPONENTS filesystem regex system REQUIRED)
 find_package(Brotli REQUIRED)
+find_package(BZip2 REQUIRED)
 find_package(double-conversion REQUIRED)
 find_package(Gflags REQUIRED)
 find_package(Glog REQUIRED)
@@ -65,6 +66,7 @@ include_directories(
 	${Arrow_INCLUDE_DIRS} 
 	${Boost_INCLUDE_DIRS} 
 	${Brotli_INCLUDE_DIRS} 
+	${BZip2_INCLUDE_DIRS}
 	${Gflags_INCLUDE_DIRS}
 	${Glog_INCLUDE_DIRS}
 	${Lz4_INCLUDE_DIRS} 
@@ -79,6 +81,7 @@ target_link_libraries(ParquetSharpNative
 	${Arrow_LIBRARIES} 
 	${Boost_LIBRARIES}
 	${Brotli_LIBRARIES}
+	${BZip2_LIBRARIES}
 	double-conversion::double-conversion
 	${Glog_LIBRARIES}
 	${Gflags_LIBRARIES}
