@@ -21,9 +21,6 @@ jobs:
     - name: Compile native ParquetSharp library
       run: build_windows.bat
       shell: cmd
-    - name: Build with dotnet
-      run: dotnet build --configuration=Release
-      shell: cmd
-    - name: Run unit tests
+    - name: Build & Run .NET unit tests
       run: dotnet test csharp.test --configuration=Release
       shell: cmd

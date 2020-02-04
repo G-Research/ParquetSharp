@@ -21,7 +21,5 @@ jobs:
       run: ./vcpkg_linux.sh
     - name: Compile native ParquetSharp library
       run: ./build_linux.sh
-    - name: Build with dotnet
-      run: dotnet build --configuration=Release
-    - name: Run unit tests
+    - name: Build & Run .NET unit tests
       run: dotnet test csharp.test --configuration=Release
