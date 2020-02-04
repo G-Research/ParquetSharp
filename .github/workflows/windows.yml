@@ -4,9 +4,11 @@ on: [push, pull_request]
 
 jobs:
   build:
+  
     runs-on: windows-latest
+    
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Compile vcpkg dependencies
       run: vcpkg_windows.bat
       shell: cmd
@@ -16,6 +18,12 @@ jobs:
     # Comedy bonus: GitHub is now owned by Microsoft.
     - name: Setup MSBuild
       uses: warrenbuckley/Setup-MSBuild@v1
-    - name: Compile raytracer
+    - name: Compile native ParquetSharp library
       run: build_windows.bat
+      shell: cmd
+    - name: Build with dotnet
+      run: dotnet build --configuration=Release
+      shell: cmd
+    - name: Run unit tests
+      run: dotnet test csharp.test --configuration=Release
       shell: cmd
