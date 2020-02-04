@@ -5,8 +5,8 @@ include(FindPackageHandleStandardArgs)
 find_path(SSL_INCLUDE_DIR openssl/ssl.h)
 
 if (NOT SSL_LIBRARIES)
-	find_library(SSL_LIBRARY_RELEASE NAMES libcrypto PATHS ${CMAKE_PREFIX_PATH}/lib NO_DEFAULT_PATH)
-	find_library(SSL_LIBRARY_DEBUG NAMES libcrypto PATHS ${CMAKE_PREFIX_PATH}/debug/lib NO_DEFAULT_PATH)	
+	find_library(SSL_LIBRARY_RELEASE NAMES crypto libcrypto PATHS ${CMAKE_PREFIX_PATH}/lib NO_DEFAULT_PATH)
+	find_library(SSL_LIBRARY_DEBUG NAMES crypto libcrypto PATHS ${CMAKE_PREFIX_PATH}/debug/lib NO_DEFAULT_PATH)	
     SELECT_LIBRARY_CONFIGURATIONS(SSL)
 endif()
 
