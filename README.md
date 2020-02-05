@@ -12,8 +12,8 @@ It is implemented in C# as a [PInvoke][2] wrapper around [apache-parquet-cpp][3]
 | ---: | --- |
 | **Release Nuget** | [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
 | **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
-| **Windows Build** | [![Build status](https://ci.appveyor.com/api/projects/status/wac4f57a46ecg3gi?svg=true)](https://ci.appveyor.com/project/G-Research/parquetsharp) |
-| **Linux Build** | [![Build status](https://ci.appveyor.com/api/projects/status/a551k0wrf5r6afj0?svg=true)](https://ci.appveyor.com/project/G-Research/parquetsharp-w98lm) |
+| **Windows Build** | [![Windows CI Status](https://github.com/G-Research/ParquetSharp/workflows/Windows%20CI/badge.svg)](https://github.com/G-Research/ParquetSharp/actions?query=workflow%3A%22Windows+CI%22) |
+| **Linux Build** | [![Linux CI Status](https://github.com/G-Research/ParquetSharp/workflows/Linux%20CI/badge.svg)](https://github.com/G-Research/ParquetSharp/actions?query=workflow%3A%22Linux+CI%22) |
 
 ## Examples
 
