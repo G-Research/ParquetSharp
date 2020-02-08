@@ -17,9 +17,9 @@ namespace ParquetSharp.Test
             var isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
             Assert.AreEqual(
-                (isLinux ? "N7parquet16ParquetExceptionE" : "class parquet::ParquetStatusException") +
+                (isLinux ? "N7parquet22ParquetStatusExceptionE" : "class parquet::ParquetStatusException") +
                 " (message: 'IOError: Failed to open local file 'non_existent.parquet'. Detail: " +
-                (isLinux ? "No such file or directory" : "[Windows error 2] The system cannot find the file specified." + Environment.NewLine) +
+                (isLinux ? "[errno 2] No such file or directory" : "[Windows error 2] The system cannot find the file specified." + Environment.NewLine) +
                 "')",
                 exception.Message);
         }
