@@ -18,8 +18,10 @@ extern "C"
 	{
 		TRYCATCH
 		(
-			std::shared_ptr<::arrow::io::FileOutputStream> file;
-			PARQUET_THROW_NOT_OK(::arrow::io::FileOutputStream::Open(path, &file));
+			PARQUET_ASSIGN_OR_THROW(
+				std::shared_ptr<::arrow::io::FileOutputStream> file,
+				::arrow::io::FileOutputStream::Open(path));
+
 			*writer = ParquetFileWriter::Open(file, *schema, *writer_properties, key_value_metadata == nullptr ? nullptr : *key_value_metadata).release();
 		)
 	}

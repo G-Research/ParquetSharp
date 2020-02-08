@@ -3,9 +3,9 @@ set -e
 
 mkdir -p build
 cd build
-git clone https://github.com/microsoft/vcpkg.git vcpkg.linux
+git clone https://github.com/philjdf/vcpkg.git vcpkg.linux
 cd vcpkg.linux
-git checkout 2019.11
+git checkout Arrow016
 ./bootstrap-vcpkg.sh
 
 ./vcpkg install arrow:x64-linux
