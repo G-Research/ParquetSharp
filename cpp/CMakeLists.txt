@@ -99,6 +99,7 @@ target_link_libraries(ParquetSharpNative
 	${ZLIB_LIBRARIES}
 	${Zstd_LIBRARIES} 
 	${Threads_LIBRARIES}
+	${CMAKE_DL_LIBS}
 )
 	
 add_definitions(-DARROW_STATIC)
