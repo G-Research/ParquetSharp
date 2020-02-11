@@ -40,6 +40,8 @@ add_library(ParquetSharpNative SHARED
 	CString.h
 	ExceptionInfo.h
 	ExceptionInfo.cpp
+	FileDecryptionProperties.cpp
+	FileDecryptionPropertiesBuilder.cpp
 	FileEncryptionProperties.cpp
 	FileEncryptionPropertiesBuilder.cpp
 	FileMetaData.cpp

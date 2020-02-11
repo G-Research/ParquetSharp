@@ -10,18 +10,18 @@ namespace ParquetSharp
     {
         internal ColumnDecryptionProperties(IntPtr handle)
         {
-            _handle = new ParquetHandle(handle, ColumnDecryptionProperties_Free);
+            Handle = new ParquetHandle(handle, ColumnDecryptionProperties_Free);
         }
 
         public void Dispose()
         {
-            _handle.Dispose();
+            Handle.Dispose();
         }
 
-        public string ColumnPath => ExceptionInfo.ReturnString(_handle, ColumnDecryptionProperties_Column_Path, ColumnDecryptionProperties_Column_Path_Free);
-        public string Key => ExceptionInfo.ReturnString(_handle, ColumnDecryptionProperties_Key, ColumnDecryptionProperties_Key_Free);
+        public string ColumnPath => ExceptionInfo.ReturnString(Handle, ColumnDecryptionProperties_Column_Path, ColumnDecryptionProperties_Column_Path_Free);
+        public string Key => ExceptionInfo.ReturnString(Handle, ColumnDecryptionProperties_Key, ColumnDecryptionProperties_Key_Free);
 
-        public ColumnDecryptionProperties DeepClone() => new ColumnDecryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, ColumnDecryptionProperties_Deep_Clone));
+        public ColumnDecryptionProperties DeepClone() => new ColumnDecryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, ColumnDecryptionProperties_Deep_Clone));
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnDecryptionProperties_Deep_Clone(IntPtr properties, out IntPtr clone);
@@ -41,6 +41,6 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern void ColumnDecryptionProperties_Key_Free(IntPtr key);
 
-        private readonly ParquetHandle _handle;
+        internal readonly ParquetHandle Handle;
     }
 }

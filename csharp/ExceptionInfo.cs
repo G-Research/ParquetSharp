@@ -84,6 +84,17 @@ namespace ParquetSharp
         public static string ReturnString(ParquetHandle handle, GetFunction<IntPtr> getter, Action<IntPtr> deleter = null)
         {
             Check(getter(handle.IntPtr, out var value));
+            return ConvertPtrToString(handle, deleter, value);
+        }
+        
+        public static string ReturnString<TArg0>(ParquetHandle handle, TArg0 arg0, GetFunction<TArg0, IntPtr> getter, Action<IntPtr> deleter = null)
+        {
+            Check(getter(handle.IntPtr, arg0, out var value));
+            return ConvertPtrToString(handle, deleter, value);
+        }
+
+        private static string ConvertPtrToString(ParquetHandle handle, Action<IntPtr> deleter, IntPtr value)
+        {
             var str = Marshal.PtrToStringAnsi(value);
             deleter?.Invoke(value);
             GC.KeepAlive(handle);
