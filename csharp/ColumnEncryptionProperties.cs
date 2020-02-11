@@ -10,21 +10,21 @@ namespace ParquetSharp
     {
         internal ColumnEncryptionProperties(IntPtr handle)
         {
-            _handle = new ParquetHandle(handle, ColumnEncryptionProperties_Free);
+            Handle = new ParquetHandle(handle, ColumnEncryptionProperties_Free);
         }
 
         public void Dispose()
         {
-            _handle.Dispose();
+            Handle.Dispose();
         }
 
-        public string ColumnPath => ExceptionInfo.ReturnString(_handle, ColumnEncryptionProperties_Column_Path, ColumnEncryptionProperties_Column_Path_Free);
-        public bool IsEncrypted => ExceptionInfo.Return<bool>(_handle, ColumnEncryptionProperties_Is_Encrypted);
-        public bool IsEncryptedWithFooterKey => ExceptionInfo.Return<bool>(_handle, ColumnEncryptionProperties_Is_Encrypted_With_Footer_Key);
-        public string Key => ExceptionInfo.ReturnString(_handle, ColumnEncryptionProperties_Key, ColumnEncryptionProperties_Key_Free);
-        public string KeyMetadata => ExceptionInfo.ReturnString(_handle, ColumnEncryptionProperties_Key_Metadata, ColumnEncryptionProperties_Key_Metadata_Free);
+        public string ColumnPath => ExceptionInfo.ReturnString(Handle, ColumnEncryptionProperties_Column_Path, ColumnEncryptionProperties_Column_Path_Free);
+        public bool IsEncrypted => ExceptionInfo.Return<bool>(Handle, ColumnEncryptionProperties_Is_Encrypted);
+        public bool IsEncryptedWithFooterKey => ExceptionInfo.Return<bool>(Handle, ColumnEncryptionProperties_Is_Encrypted_With_Footer_Key);
+        public string Key => ExceptionInfo.ReturnString(Handle, ColumnEncryptionProperties_Key, ColumnEncryptionProperties_Key_Free);
+        public string KeyMetadata => ExceptionInfo.ReturnString(Handle, ColumnEncryptionProperties_Key_Metadata, ColumnEncryptionProperties_Key_Metadata_Free);
 
-        public ColumnEncryptionProperties DeepClone() => new ColumnEncryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, ColumnEncryptionProperties_Deep_Clone));
+        public ColumnEncryptionProperties DeepClone() => new ColumnEncryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, ColumnEncryptionProperties_Deep_Clone));
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnEncryptionProperties_Deep_Clone(IntPtr properties, out IntPtr clone);
@@ -56,6 +56,6 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern void ColumnEncryptionProperties_Key_Metadata_Free(IntPtr keyMetadata);
 
-        private readonly ParquetHandle _handle;
+        internal readonly ParquetHandle Handle;
     }
 }

@@ -3,7 +3,6 @@
 #include "CString.h"
 #include "ExceptionInfo.h"
 
-#include <arrow/io/file.h>
 #include <parquet/properties.h>
 
 using namespace parquet;
