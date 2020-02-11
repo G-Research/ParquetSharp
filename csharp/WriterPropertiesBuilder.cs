@@ -4,6 +4,9 @@ using ParquetSharp.Schema;
 
 namespace ParquetSharp
 {
+    /// <summary>
+    /// Builder pattern for WriterProperties.
+    /// </summary>
     public sealed class WriterPropertiesBuilder : IDisposable
     {
         public WriterPropertiesBuilder()
