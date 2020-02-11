@@ -5,10 +5,9 @@
 
 using namespace parquet;
 
-typedef const char* key_t;
 typedef void (*FreeGcHandleFunc) (void* handle);
-typedef key_t (*GetKeyFunc) (void* handle, const char* key_metadata);
-typedef void (*FreeKeyFunc) (key_t key);
+typedef const char* (*GetKeyFunc) (void* handle, const char* key_metadata);
+typedef void (*FreeKeyFunc) (const char* key);
 
 // Derived DecryptionKeyRetriever that can callback into managed code.
 // This class maintains a GC reference, such that the managed instance cannot get collected if this class is still alive.
@@ -40,7 +39,7 @@ public:
 
 	std::string GetKey(const std::string& key_metadata) const override
 	{
-		const key_t key = get_key_(Handle, key_metadata.c_str());
+		const char* const key = get_key_(Handle, key_metadata.c_str());
 		const std::string key_str(key);
 
 		free_key_(key);
