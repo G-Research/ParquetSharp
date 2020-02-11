@@ -48,8 +48,9 @@ add_library(ParquetSharpNative SHARED
 	GroupNode.cpp
 	KeyValueMetadata.cpp
 	LogicalType.cpp
-	ManagedRandomAccessFile.cpp
+	ManagedDecryptionKeyRetriever.h
 	ManagedOutputStream.cpp
+	ManagedRandomAccessFile.cpp
 	Node.cpp
 	OutputStream.cpp
 	ParquetFileReader.cpp

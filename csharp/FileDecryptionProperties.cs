@@ -21,7 +21,7 @@ namespace ParquetSharp
         public string ColumnKey(string columPath) => ExceptionInfo.ReturnString(_handle, columPath, FileDecryptionProperties_Column_Key, FileDecryptionProperties_Column_Key_Free);
         public string FooterKey => ExceptionInfo.ReturnString(_handle, FileDecryptionProperties_Footer_Key, FileDecryptionProperties_Footer_Key_Free);
         public string AadPrefix => ExceptionInfo.ReturnString(_handle, FileDecryptionProperties_Aad_Prefix, FileDecryptionProperties_Aad_Prefix_Free);
-        //public KeyRetriever KeyRetriever => TODO
+        public DecryptionKeyRetriever KeyRetriever => DecryptionKeyRetriever.GetGcHandleTarget(ExceptionInfo.Return<IntPtr>(_handle, FileDecryptionProperties_Key_Retriever));
         public bool CheckPlaintextFooterIntegrity => ExceptionInfo.Return<bool>(_handle, FileDecryptionProperties_Check_Plaintext_Footer_Integrity);
         public bool PlaintextFilesAllowed => ExceptionInfo.Return<bool>(_handle, FileDecryptionProperties_Plaintext_Files_Allowed);
         //public AadPrefixVerifier AadPrefixVerifier => TODO

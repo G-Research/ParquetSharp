@@ -36,14 +36,31 @@ namespace ParquetSharp
             return this;
         }
 
-        // TODO
-        //public FileDecryptionPropertiesBuilder KeyRetriever(KeyRetriever keyRetriever)
-        //{
-        //    ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Key_Retriever(_handle.IntPtr, keyRetriever.Handle.IntPtr));
-        //    GC.KeepAlive(_handle);
-        //    GC.KeepAlive(keyRetriever);
-        //    return this;
-        //}
+        public FileDecryptionPropertiesBuilder KeyRetriever(DecryptionKeyRetriever keyRetriever)
+        {
+            var gcHandle = keyRetriever.CreateGcHandle();
+
+            try
+            {
+                ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Key_Retriever(
+                    _handle.IntPtr,
+                    gcHandle,
+                    DecryptionKeyRetriever.FreeGcHandleCallback,
+                    DecryptionKeyRetriever.GetKeyFuncCallback,
+                    DecryptionKeyRetriever.FreeKeyCallback));
+            }
+
+            catch
+            {
+                DecryptionKeyRetriever.FreeGcHandleCallback(gcHandle);
+                throw;
+            }
+
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(keyRetriever);
+
+            return this;
+        }
 
         public FileDecryptionPropertiesBuilder DisableFooterSignatureVerification()
         {
@@ -90,7 +107,12 @@ namespace ParquetSharp
         private static extern IntPtr FileDecryptionPropertiesBuilder_Column_Keys(IntPtr builder, IntPtr[] columnDecryptionProperties, int numProperties);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileDecryptionPropertiesBuilder_Key_Retriever(IntPtr builder, IntPtr keyRetriever);
+        private static extern IntPtr FileDecryptionPropertiesBuilder_Key_Retriever(
+            IntPtr builder, 
+            IntPtr gcHandle,
+            DecryptionKeyRetriever.FreeGcHandleFunc freeGcHandle, 
+            DecryptionKeyRetriever.GetKeyFunc getKey,
+            DecryptionKeyRetriever.FreeKeyFunc freeKey);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileDecryptionPropertiesBuilder_Disable_Footer_Signature_Verification(IntPtr builder);

@@ -1,6 +1,7 @@
 #include "cpp/ParquetSharpExport.h"
 #include "CString.h"
 #include "ExceptionInfo.h"
+#include "ManagedDecryptionKeyRetriever.h"
 
 #include <parquet/encryption.h>
 
@@ -48,9 +49,9 @@ extern "C"
         FreeCString(aad_prefix);
     }
 
-	PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Key_Retriever(const std::shared_ptr<const FileDecryptionProperties>* properties, std::shared_ptr<DecryptionKeyRetriever>** key_retriever)
+	PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Key_Retriever(const std::shared_ptr<const FileDecryptionProperties>* properties, void** key_retriever)
     {
-        TRYCATCH(*key_retriever = new std::shared_ptr<DecryptionKeyRetriever>((*properties)->key_retriever());)
+        TRYCATCH(*key_retriever = dynamic_cast<ManagedDecryptionKeyRetriever&>(*(*properties)->key_retriever()).Handle;)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Check_Plaintext_Footer_Integrity(const std::shared_ptr<const FileDecryptionProperties>* properties, bool* check_plaintext_footer_integrity)

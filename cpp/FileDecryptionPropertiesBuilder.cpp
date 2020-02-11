@@ -1,6 +1,8 @@
 #include "cpp/ParquetSharpExport.h"
 #include "CString.h"
 #include "ExceptionInfo.h"
+#include "ManagedDecryptionKeyRetriever.h"
+
 
 #include <parquet/encryption.h>
 
@@ -38,9 +40,14 @@ extern "C"
         )
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Key_Retriever(FileDecryptionProperties::Builder* builder, const std::shared_ptr<DecryptionKeyRetriever>* key_retriever)
+    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Key_Retriever(
+        FileDecryptionProperties::Builder* builder, 
+        void* const handle,
+        const FreeGcHandleFunc free_gc_handle,
+        const GetKeyFunc get_key,
+        const FreeKeyFunc free_key)
     {
-        TRYCATCH(builder->key_retriever(*key_retriever);)
+        TRYCATCH(builder->key_retriever(std::make_shared<ManagedDecryptionKeyRetriever>(handle, free_gc_handle, get_key, free_key));)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Disable_Footer_Signature_Verification(FileDecryptionProperties::Builder* builder)
