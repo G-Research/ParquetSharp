@@ -9,7 +9,7 @@ namespace ParquetSharp
     /// </summary>
     public sealed class FileDecryptionPropertiesBuilder : IDisposable
     {
-        public FileDecryptionPropertiesBuilder(string footerKey)
+        public FileDecryptionPropertiesBuilder()
         {
             ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Create(out var handle));
             _handle = new ParquetHandle(handle, FileDecryptionPropertiesBuilder_Free);
@@ -33,6 +33,32 @@ namespace ParquetSharp
             ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Column_Keys(_handle.IntPtr, handles, handles.Length));
             GC.KeepAlive(_handle);
             GC.KeepAlive(columnDecryptionProperties);
+            return this;
+        }
+
+        public FileDecryptionPropertiesBuilder AadPrefixVerifier(AadPrefixVerifier aadPrefixVerifier)
+        {
+            var gcHandle = aadPrefixVerifier.CreateGcHandle();
+
+            try
+            {
+                ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Aad_Prefix_Verifier(
+                    _handle.IntPtr,
+                    gcHandle,
+                    ParquetSharp.AadPrefixVerifier.FreeGcHandleCallback,
+                    ParquetSharp.AadPrefixVerifier.VerifyFuncCallback,
+                    ParquetSharp.AadPrefixVerifier.FreeExceptionCallback));
+            }
+
+            catch
+            {
+                ParquetSharp.AadPrefixVerifier.FreeGcHandleCallback(gcHandle);
+                throw;
+            }
+
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(aadPrefixVerifier);
+
             return this;
         }
 
@@ -76,15 +102,6 @@ namespace ParquetSharp
             return this;
         }
 
-        // TODO
-        //public FileDecryptionPropertiesBuilder AadPrefixVerifier(AadPrefixVerifier aadPrefixVerifier)
-        //{
-        //    ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Aad_Prefix_Verifier(_handle.IntPtr, aadPrefixVerifier.Handle.IntPtr));
-        //    GC.KeepAlive(_handle);
-        //    GC.KeepAlive(aadPrefixVerifier);
-        //    return this;
-        //}
-
         public FileDecryptionPropertiesBuilder PlaintextFilesAllowed()
         {
             ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Plaintext_Files_Allowed(_handle.IntPtr));
@@ -121,7 +138,12 @@ namespace ParquetSharp
         private static extern IntPtr FileDecryptionPropertiesBuilder_Aad_Prefix(IntPtr builder, string aadPrefix);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileDecryptionPropertiesBuilder_Aad_Prefix_Verifier(IntPtr builder, IntPtr aadPrefixVerifier);
+        private static extern IntPtr FileDecryptionPropertiesBuilder_Aad_Prefix_Verifier(
+            IntPtr builder,
+            IntPtr gcHandle,
+            AadPrefixVerifier.FreeGcHandleFunc freeGcHandle,
+            AadPrefixVerifier.VerifyFunc getKey,
+            AadPrefixVerifier.FreeExceptionFunc freeKey);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileDecryptionPropertiesBuilder_Plaintext_Files_Allowed(IntPtr builder);

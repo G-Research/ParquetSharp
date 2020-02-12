@@ -48,6 +48,7 @@ add_library(ParquetSharpNative SHARED
 	GroupNode.cpp
 	KeyValueMetadata.cpp
 	LogicalType.cpp
+	ManagedAadPrefixVerifier.h
 	ManagedDecryptionKeyRetriever.h
 	ManagedOutputStream.cpp
 	ManagedRandomAccessFile.cpp

@@ -24,7 +24,7 @@ namespace ParquetSharp
         public DecryptionKeyRetriever KeyRetriever => DecryptionKeyRetriever.GetGcHandleTarget(ExceptionInfo.Return<IntPtr>(_handle, FileDecryptionProperties_Key_Retriever));
         public bool CheckPlaintextFooterIntegrity => ExceptionInfo.Return<bool>(_handle, FileDecryptionProperties_Check_Plaintext_Footer_Integrity);
         public bool PlaintextFilesAllowed => ExceptionInfo.Return<bool>(_handle, FileDecryptionProperties_Plaintext_Files_Allowed);
-        //public AadPrefixVerifier AadPrefixVerifier => TODO
+        public AadPrefixVerifier AadPrefixVerifier => AadPrefixVerifier.GetGcHandleTarget(ExceptionInfo.Return<IntPtr>(_handle, FileDecryptionProperties_Aad_Prefix_Verifier));
 
         public FileDecryptionProperties DeepClone() => new FileDecryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, FileDecryptionProperties_Deep_Clone));
 

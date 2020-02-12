@@ -1,6 +1,7 @@
 #include "cpp/ParquetSharpExport.h"
 #include "CString.h"
 #include "ExceptionInfo.h"
+#include "ManagedAadPrefixVerifier.h"
 #include "ManagedDecryptionKeyRetriever.h"
 
 #include <parquet/encryption.h>
@@ -64,8 +65,8 @@ extern "C"
         TRYCATCH(*plaintext_files_allowed = (*properties)->plaintext_files_allowed();)
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Aad_Prefix_Verifier(const std::shared_ptr<const FileDecryptionProperties>* properties, std::shared_ptr<AADPrefixVerifier>** aad_prefix_verifier)
+    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Aad_Prefix_Verifier(const std::shared_ptr<const FileDecryptionProperties>* properties, void** aad_prefix_verifier)
     {
-        TRYCATCH(*aad_prefix_verifier = new std::shared_ptr<AADPrefixVerifier>((*properties)->aad_prefix_verifier());)
+        TRYCATCH(*aad_prefix_verifier = dynamic_cast<ManagedAadPrefixVerifier&>(*(*properties)->aad_prefix_verifier()).Handle;)
     }
 }

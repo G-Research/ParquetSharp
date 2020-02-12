@@ -1,6 +1,7 @@
 #include "cpp/ParquetSharpExport.h"
 #include "CString.h"
 #include "ExceptionInfo.h"
+#include "ManagedAadPrefixVerifier.h"
 #include "ManagedDecryptionKeyRetriever.h"
 
 
@@ -43,9 +44,9 @@ extern "C"
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Key_Retriever(
         FileDecryptionProperties::Builder* builder, 
         void* const handle,
-        const FreeGcHandleFunc free_gc_handle,
-        const GetKeyFunc get_key,
-        const FreeKeyFunc free_key)
+        const ManagedDecryptionKeyRetriever::FreeGcHandleFunc free_gc_handle,
+        const ManagedDecryptionKeyRetriever::GetKeyFunc get_key,
+        const ManagedDecryptionKeyRetriever::FreeKeyFunc free_key)
     {
         TRYCATCH(builder->key_retriever(std::make_shared<ManagedDecryptionKeyRetriever>(handle, free_gc_handle, get_key, free_key));)
     }
@@ -60,9 +61,14 @@ extern "C"
         TRYCATCH(builder->aad_prefix(aad_prefix);)
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Aad_Prefix_Verifier(FileDecryptionProperties::Builder* builder, const std::shared_ptr<AADPrefixVerifier>* aad_prefix_verifier)
+    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Aad_Prefix_Verifier(
+        FileDecryptionProperties::Builder* builder,
+        void* const handle,
+        const ManagedAadPrefixVerifier::FreeGcHandleFunc free_gc_handle,
+        const ManagedAadPrefixVerifier::VerifyFunc verify,
+        const ManagedAadPrefixVerifier::FreeExceptionFunc free_exception)
     {
-        TRYCATCH(builder->aad_prefix_verifier(*aad_prefix_verifier);)
+        TRYCATCH(builder->aad_prefix_verifier(std::make_shared<ManagedAadPrefixVerifier>(handle, free_gc_handle, verify, free_exception));)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Plaintext_Files_Allowed(FileDecryptionProperties::Builder* builder)

@@ -37,7 +37,7 @@ namespace ParquetSharp.Test
 
         private static FileDecryptionProperties CreateProperties()
         {
-            using (var builder = new FileDecryptionPropertiesBuilder(""))
+            using (var builder = new FileDecryptionPropertiesBuilder())
             {
                 builder.KeyRetriever(new TestRetriever("HelloWorld Key!"));
                 return builder.Build();

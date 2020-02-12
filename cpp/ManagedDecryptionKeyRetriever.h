@@ -5,15 +5,15 @@
 
 using namespace parquet;
 
-typedef void (*FreeGcHandleFunc) (void* handle);
-typedef const char* (*GetKeyFunc) (void* handle, const char* key_metadata);
-typedef void (*FreeKeyFunc) (const char* key);
-
 // Derived DecryptionKeyRetriever that can callback into managed code.
 // This class maintains a GC reference, such that the managed instance cannot get collected if this class is still alive.
 class ManagedDecryptionKeyRetriever final : public DecryptionKeyRetriever
 {
 public:
+
+	typedef void (*FreeGcHandleFunc) (void* handle);
+	typedef const char* (*GetKeyFunc) (void* handle, const char* key_metadata);
+	typedef void (*FreeKeyFunc) (const char* key);
 
 	ManagedDecryptionKeyRetriever(const ManagedDecryptionKeyRetriever&) = delete;
 	ManagedDecryptionKeyRetriever(ManagedDecryptionKeyRetriever&&) = delete;
