@@ -46,7 +46,7 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ReaderProperties_Set_File_Decryption_Properties(ReaderProperties* reader_properties, const std::shared_ptr<FileDecryptionProperties>* file_decryption_properties)
 	{
-		TRYCATCH(reader_properties->file_decryption_properties(*file_decryption_properties);)
+		TRYCATCH(reader_properties->file_decryption_properties(file_decryption_properties ? *file_decryption_properties : nullptr);)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ReaderProperties_Get_File_Decryption_Properties(ReaderProperties* reader_properties, std::shared_ptr<FileDecryptionProperties>** file_decryption_properties)

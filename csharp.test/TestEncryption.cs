@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 using ParquetSharp.IO;
 
 namespace ParquetSharp.Test
@@ -7,26 +8,26 @@ namespace ParquetSharp.Test
     internal static class TestEncryption
     {
         [Test]
+        public static void TestNoDecryptionKey()
+        {
+            // Case where the parquet file is encrypted but no decryption properties have been provided.
+            var exception = Assert.Throws<ParquetException>(() => AssertEncryptionRoundtrip(CreateEncryptAllSameKeyProperties, () => null));
+            Assert.That(exception.Message, Contains.Substring("Could not read encrypted metadata, no decryption found in reader's properties"));
+        }
+
+        [Test]
+        public static void TestNoEncryptionKey()
+        {
+            // Case where the parquet file is encrypted but no decryption properties have been provided.
+            var exception = Assert.Throws<ParquetException>(() => AssertEncryptionRoundtrip(() => null, CreateDecryptAllSameKeyProperties));
+            Assert.That(exception.Message, Contains.Substring("Applying decryption properties on plaintext file"));
+        }
+
+        [Test]
         public static void TestEncryptAllSameKey()
         {
-            using (var buffer = new ResizableBuffer())
-            {
-                using (var output = new BufferOutputStream(buffer))
-                using (var fileEncryptionProperties = CreateEncryptAllSameKeyProperties())
-                {
-                    WriteParquetFile(output, fileEncryptionProperties);
-                }
-
-                using (var input = new BufferReader(buffer))
-                using (var fileDecryptionProperties = CreateDecryptAllSameKeyProperties())
-                {
-                    ReadParquetFile(fileDecryptionProperties, input);
-                }
-
-                // TODO ReaderProperties.FileDecProperties => null
-                // TODO FileDecProperties.AadPrefixVerifier => null
-                // TODO FileDecProperties.KeyRetriever => null
-            }
+            // Case where the footer and all columns are encrypted with the same key.
+            AssertEncryptionRoundtrip(CreateEncryptAllSameKeyProperties, CreateDecryptAllSameKeyProperties);
         }
 
         private static FileEncryptionProperties CreateEncryptAllSameKeyProperties()
@@ -44,6 +45,26 @@ namespace ParquetSharp.Test
                 return builder
                     .FooterKey(Key0)
                     .Build();
+            }
+        }
+
+        private static void AssertEncryptionRoundtrip(
+            Func<FileEncryptionProperties> createFileEncryptionProperties,
+            Func<FileDecryptionProperties> createFileDecryptionProperties)
+        {
+            using (var buffer = new ResizableBuffer())
+            {
+                using (var output = new BufferOutputStream(buffer))
+                using (var fileEncryptionProperties = createFileEncryptionProperties())
+                {
+                    WriteParquetFile(output, fileEncryptionProperties);
+                }
+
+                using (var input = new BufferReader(buffer))
+                using (var fileDecryptionProperties = createFileDecryptionProperties())
+                {
+                    ReadParquetFile(fileDecryptionProperties, input);
+                }
             }
         }
 

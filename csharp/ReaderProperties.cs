@@ -41,7 +41,7 @@ namespace ParquetSharp
             }
             set
             {
-                ExceptionInfo.Check(ReaderProperties_Set_File_Decryption_Properties(Handle.IntPtr, value.Handle.IntPtr));
+                ExceptionInfo.Check(ReaderProperties_Set_File_Decryption_Properties(Handle.IntPtr, value?.Handle.IntPtr ?? IntPtr.Zero));
                 GC.KeepAlive(Handle);
                 GC.KeepAlive(value);
             }

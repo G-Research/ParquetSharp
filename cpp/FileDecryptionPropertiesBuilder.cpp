@@ -47,7 +47,7 @@ extern "C"
         const ManagedDecryptionKeyRetriever::FreeGcHandleFunc free_gc_handle,
         const ManagedDecryptionKeyRetriever::GetKeyFunc get_key)
     {
-        TRYCATCH(builder->key_retriever(std::make_shared<ManagedDecryptionKeyRetriever>(handle, free_gc_handle, get_key));)
+        TRYCATCH(builder->key_retriever(handle ? std::make_shared<ManagedDecryptionKeyRetriever>(handle, free_gc_handle, get_key) : nullptr);)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Disable_Footer_Signature_Verification(FileDecryptionProperties::Builder* builder)
@@ -67,7 +67,7 @@ extern "C"
         const ManagedAadPrefixVerifier::VerifyFunc verify,
         const ManagedAadPrefixVerifier::FreeExceptionFunc free_exception)
     {
-        TRYCATCH(builder->aad_prefix_verifier(std::make_shared<ManagedAadPrefixVerifier>(handle, free_gc_handle, verify, free_exception));)
+        TRYCATCH(builder->aad_prefix_verifier(handle ? std::make_shared<ManagedAadPrefixVerifier>(handle, free_gc_handle, verify, free_exception) : nullptr);)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Plaintext_Files_Allowed(FileDecryptionProperties::Builder* builder)

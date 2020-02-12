@@ -39,7 +39,7 @@ namespace ParquetSharp
 
         public FileDecryptionPropertiesBuilder AadPrefixVerifier(AadPrefixVerifier aadPrefixVerifier)
         {
-            var gcHandle = aadPrefixVerifier.CreateGcHandle();
+            var gcHandle = aadPrefixVerifier?.CreateGcHandle() ?? IntPtr.Zero;
 
             try
             {
@@ -65,7 +65,7 @@ namespace ParquetSharp
 
         public FileDecryptionPropertiesBuilder KeyRetriever(DecryptionKeyRetriever keyRetriever)
         {
-            var gcHandle = keyRetriever.CreateGcHandle();
+            var gcHandle = keyRetriever?.CreateGcHandle() ?? IntPtr.Zero;
 
             try
             {
