@@ -14,6 +14,8 @@ namespace ParquetSharp
         /// <summary>
         /// The native code owns a GC handle on the given instance of DecryptionKeyRetriever.
         /// This is the reverse from the rest of ParquetSharp where C# owns a native handle into arrow::parquet.
+        ///
+        /// See https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.gchandle?view=netcore-3.1
         /// </summary>
         internal IntPtr CreateGcHandle()
         {
