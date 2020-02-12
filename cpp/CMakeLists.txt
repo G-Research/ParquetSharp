@@ -59,6 +59,7 @@ add_library(ParquetSharpNative SHARED
 	ParquetFileWriter.cpp
 	PrimitiveNode.cpp
 	RandomAccessFile.cpp
+	ReaderProperties.cpp
 	ResizableBuffer.cpp
 	RowGroupMetaData.cpp
 	RowGroupReader.cpp

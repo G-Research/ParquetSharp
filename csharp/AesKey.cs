@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace ParquetSharp
@@ -11,19 +12,24 @@ namespace ParquetSharp
     {
         public AesKey(byte[] key)
         {
-            if (key.Length != 16 && key.Length != 24 && key.Length != 32)
+            if (key == null) throw new ArgumentNullException(nameof(key));
+
+            if (key.Length != 0 && key.Length != 16 && key.Length != 24 && key.Length != 32)
             {
                 throw new ArgumentException("AES key can only be 128, 192, or 256-bit in length", nameof(key));
             }
 
-            fixed (byte* srcBytes = key)
+            if (key.Length != 0)
             {
-                var src = (ulong*) srcBytes;
+                fixed (byte* srcBytes = key)
+                {
+                    var src = (ulong*) srcBytes;
 
-                _key[0] = src[0];
-                _key[1] = src[1];
-                _key[2] = key.Length > 16 ? src[2] : 0;
-                _key[3] = key.Length > 24 ? src[3] : 0;
+                    _key[0] = src[0];
+                    _key[1] = src[1];
+                    _key[2] = key.Length > 16 ? src[2] : 0;
+                    _key[3] = key.Length > 24 ? src[3] : 0;
+                }
             }
 
             _size = (uint) key.Length;
@@ -31,21 +37,24 @@ namespace ParquetSharp
 
         public byte[] ToBytes()
         {
-            if (_size != 16 && _size != 24 && _size != 32)
+            if (_size != 0 && _size != 16 && _size != 24 && _size != 32)
             {
                 throw new ArgumentException("AES key can only be 128, 192, or 256-bit in length", nameof(_size));
             }
 
             var bytes = new byte[_size];
 
-            fixed (byte* dstBytes = bytes)
+            if (_size != 0)
             {
-                var dst = (ulong*) dstBytes;
+                fixed (byte* dstBytes = bytes)
+                {
+                    var dst = (ulong*) dstBytes;
 
-                dst[0] = _key[0];
-                dst[1] = _key[1];
-                if (_size > 16) dst[2] = _key[2];
-                if (_size > 24) dst[3] = _key[3];
+                    dst[0] = _key[0];
+                    dst[1] = _key[1];
+                    if (_size > 16) dst[2] = _key[2];
+                    if (_size > 24) dst[3] = _key[3];
+                }
             }
 
             return bytes;

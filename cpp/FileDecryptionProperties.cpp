@@ -43,7 +43,11 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Key_Retriever(const std::shared_ptr<const FileDecryptionProperties>* properties, void** key_retriever)
     {
-        TRYCATCH(*key_retriever = dynamic_cast<ManagedDecryptionKeyRetriever&>(*(*properties)->key_retriever()).Handle;)
+        TRYCATCH
+        (
+            const auto r = (*properties)->key_retriever();
+            *key_retriever = r ? dynamic_cast<ManagedDecryptionKeyRetriever&>(*r).Handle : nullptr;
+        )
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Check_Plaintext_Footer_Integrity(const std::shared_ptr<const FileDecryptionProperties>* properties, bool* check_plaintext_footer_integrity)
@@ -58,6 +62,10 @@ extern "C"
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Aad_Prefix_Verifier(const std::shared_ptr<const FileDecryptionProperties>* properties, void** aad_prefix_verifier)
     {
-        TRYCATCH(*aad_prefix_verifier = dynamic_cast<ManagedAadPrefixVerifier&>(*(*properties)->aad_prefix_verifier()).Handle;)
+        TRYCATCH
+        (
+            const auto v = (*properties)->aad_prefix_verifier();
+            *aad_prefix_verifier = v ? dynamic_cast<ManagedAadPrefixVerifier&>(*v).Handle : nullptr;
+        )
     }
 }
