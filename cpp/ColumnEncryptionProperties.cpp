@@ -1,4 +1,5 @@
 #include "cpp/ParquetSharpExport.h"
+#include "AesKey.h"
 #include "CString.h"
 #include "ExceptionInfo.h"
 
@@ -38,14 +39,9 @@ extern "C"
         TRYCATCH(*is_encrypted_with_footer_key = (*properties)->is_encrypted_with_footer_key();)
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionProperties_Key(const std::shared_ptr<const ColumnEncryptionProperties>* properties, const char** key)
+    PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionProperties_Key(const std::shared_ptr<const ColumnEncryptionProperties>* properties, AesKey* key)
     {
-        TRYCATCH(*key = AllocateCString((*properties)->key());)
-    }
-
-    PARQUETSHARP_EXPORT void ColumnEncryptionProperties_Key_Free(const char* key)
-    {
-        FreeCString(key);
+        TRYCATCH(*key = AesKey((*properties)->key());)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionProperties_Key_Metadata(const std::shared_ptr<const ColumnEncryptionProperties>* properties, const char** key_metadata)

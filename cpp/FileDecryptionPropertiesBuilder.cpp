@@ -1,9 +1,9 @@
 #include "cpp/ParquetSharpExport.h"
+#include "AesKey.h"
 #include "CString.h"
 #include "ExceptionInfo.h"
 #include "ManagedAadPrefixVerifier.h"
 #include "ManagedDecryptionKeyRetriever.h"
-
 
 #include <parquet/encryption.h>
 
@@ -21,9 +21,9 @@ extern "C"
         delete builder;
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Footer_Key(FileDecryptionProperties::Builder* builder, const char* footer_key)
+    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Footer_Key(FileDecryptionProperties::Builder* builder, const AesKey* footer_key)
     {
-        TRYCATCH(builder->footer_key(footer_key);)
+        TRYCATCH(builder->footer_key(footer_key->ToParquetKey());)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Column_Keys(FileDecryptionProperties::Builder* builder, const std::shared_ptr<ColumnDecryptionProperties>** column_decryption_properties, int32_t num_properties)
@@ -45,10 +45,9 @@ extern "C"
         FileDecryptionProperties::Builder* builder, 
         void* const handle,
         const ManagedDecryptionKeyRetriever::FreeGcHandleFunc free_gc_handle,
-        const ManagedDecryptionKeyRetriever::GetKeyFunc get_key,
-        const ManagedDecryptionKeyRetriever::FreeKeyFunc free_key)
+        const ManagedDecryptionKeyRetriever::GetKeyFunc get_key)
     {
-        TRYCATCH(builder->key_retriever(std::make_shared<ManagedDecryptionKeyRetriever>(handle, free_gc_handle, get_key, free_key));)
+        TRYCATCH(builder->key_retriever(std::make_shared<ManagedDecryptionKeyRetriever>(handle, free_gc_handle, get_key));)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Disable_Footer_Signature_Verification(FileDecryptionProperties::Builder* builder)

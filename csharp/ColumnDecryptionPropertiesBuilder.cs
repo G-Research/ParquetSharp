@@ -29,9 +29,10 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
-        public ColumnDecryptionPropertiesBuilder Key(string key)
+        public ColumnDecryptionPropertiesBuilder Key(byte[] key)
         {
-            ExceptionInfo.Check(ColumnDecryptionPropertiesBuilder_Key(_handle.IntPtr, key));
+            var aesKey = new AesKey(key);
+            ExceptionInfo.Check(ColumnDecryptionPropertiesBuilder_Key(_handle.IntPtr, in aesKey));
             GC.KeepAlive(_handle);
             return this;
         }
@@ -61,7 +62,7 @@ namespace ParquetSharp
         private static extern void ColumnDecryptionPropertiesBuilder_Free(IntPtr builder);
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr ColumnDecryptionPropertiesBuilder_Key(IntPtr builder, string key);
+        private static extern IntPtr ColumnDecryptionPropertiesBuilder_Key(IntPtr builder, in AesKey key);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnDecryptionPropertiesBuilder_Build(IntPtr builder, out IntPtr properties);

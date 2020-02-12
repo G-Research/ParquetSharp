@@ -25,6 +25,7 @@ if (UNIX)
 endif ()
 
 add_library(ParquetSharpNative SHARED 
+	AesKey.h
 	Buffer.cpp
 	BufferReader.cpp
 	BufferOutputStream.cpp

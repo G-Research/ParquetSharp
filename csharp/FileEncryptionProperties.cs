@@ -10,22 +10,22 @@ namespace ParquetSharp
     {
         internal FileEncryptionProperties(IntPtr handle)
         {
-            _handle = new ParquetHandle(handle, FileEncryptionProperties_Free);
+            Handle = new ParquetHandle(handle, FileEncryptionProperties_Free);
         }
 
         public void Dispose()
         {
-            _handle.Dispose();
+            Handle.Dispose();
         }
 
-        public bool EncryptedFooter => ExceptionInfo.Return<bool>(_handle, FileEncryptionProperties_Encrypted_Footer);
+        public bool EncryptedFooter => ExceptionInfo.Return<bool>(Handle, FileEncryptionProperties_Encrypted_Footer);
         //public EncryptionAlgorithm Algorithm => TODO
-        public string FooterKey => ExceptionInfo.ReturnString(_handle, FileEncryptionProperties_Footer_Key, FileEncryptionProperties_Footer_Key_Free);
-        public string FooterKeyMetadata => ExceptionInfo.ReturnString(_handle, FileEncryptionProperties_Footer_Key_Metadata, FileEncryptionProperties_Footer_Key_Metadata_Free);
-        public string FileAad => ExceptionInfo.ReturnString(_handle, FileEncryptionProperties_File_Aad, FileEncryptionProperties_File_Aad_Free);
+        public byte[] FooterKey => ExceptionInfo.Return<AesKey>(Handle, FileEncryptionProperties_Footer_Key).ToBytes();
+        public string FooterKeyMetadata => ExceptionInfo.ReturnString(Handle, FileEncryptionProperties_Footer_Key_Metadata, FileEncryptionProperties_Footer_Key_Metadata_Free);
+        public string FileAad => ExceptionInfo.ReturnString(Handle, FileEncryptionProperties_File_Aad, FileEncryptionProperties_File_Aad_Free);
 
-        public ColumnEncryptionProperties ColumnEncryptionProperties(string columnPath) => new ColumnEncryptionProperties(ExceptionInfo.Return<string, IntPtr>(_handle, columnPath, FileEncryptionProperties_Column_Encryption_Properties));
-        public FileEncryptionProperties DeepClone() => new FileEncryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, FileEncryptionProperties_Deep_Clone));
+        public ColumnEncryptionProperties ColumnEncryptionProperties(string columnPath) => new ColumnEncryptionProperties(ExceptionInfo.Return<string, IntPtr>(Handle, columnPath, FileEncryptionProperties_Column_Encryption_Properties));
+        public FileEncryptionProperties DeepClone() => new FileEncryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, FileEncryptionProperties_Deep_Clone));
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileEncryptionProperties_Deep_Clone(IntPtr properties, out IntPtr clone);
@@ -40,10 +40,7 @@ namespace ParquetSharp
         private static extern IntPtr FileEncryptionProperties_Algorithm(IntPtr properties, IntPtr algorithm);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileEncryptionProperties_Footer_Key(IntPtr properties, out IntPtr footerKey);
-
-        [DllImport(ParquetDll.Name)]
-        private static extern void FileEncryptionProperties_Footer_Key_Free(IntPtr footerKey);
+        private static extern IntPtr FileEncryptionProperties_Footer_Key(IntPtr properties, out AesKey footerKey);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileEncryptionProperties_Footer_Key_Metadata(IntPtr properties, out IntPtr footerKeyMetadata);
@@ -60,6 +57,6 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
         private static extern IntPtr FileEncryptionProperties_Column_Encryption_Properties(IntPtr properties,  string columnPath, out IntPtr columnEncryptionProperties);
 
-        private readonly ParquetHandle _handle;
+        internal readonly ParquetHandle Handle;
     }
 }

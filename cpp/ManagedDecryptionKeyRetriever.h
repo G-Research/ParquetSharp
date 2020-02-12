@@ -12,8 +12,7 @@ class ManagedDecryptionKeyRetriever final : public DecryptionKeyRetriever
 public:
 
 	typedef void (*FreeGcHandleFunc) (void* handle);
-	typedef const char* (*GetKeyFunc) (void* handle, const char* key_metadata);
-	typedef void (*FreeKeyFunc) (const char* key);
+	typedef void (*GetKeyFunc) (void* handle, const char* key_metadata, AesKey* key);
 
 	ManagedDecryptionKeyRetriever(const ManagedDecryptionKeyRetriever&) = delete;
 	ManagedDecryptionKeyRetriever(ManagedDecryptionKeyRetriever&&) = delete;
@@ -23,12 +22,10 @@ public:
 	ManagedDecryptionKeyRetriever(
 		void* const handle,
 		const FreeGcHandleFunc free_gc_handle,
-		const GetKeyFunc get_key,
-		const FreeKeyFunc free_key) :
+		const GetKeyFunc get_key) :
 		Handle(handle),
 		free_gc_handle_(free_gc_handle),
-		get_key_(get_key),
-		free_key_(free_key)
+		get_key_(get_key)
 	{
 	}
 
@@ -39,12 +36,9 @@ public:
 
 	std::string GetKey(const std::string& key_metadata) const override
 	{
-		const char* const key = get_key_(Handle, key_metadata.c_str());
-		const std::string key_str(key);
-
-		free_key_(key);
-
-		return key_str;
+		AesKey key;
+		get_key_(Handle, key_metadata.c_str(), &key);
+		return key.ToParquetKey();
 	}
 
 	void* const Handle;
@@ -53,5 +47,4 @@ private:
 
 	const FreeGcHandleFunc free_gc_handle_;
 	const GetKeyFunc get_key_;
-	const FreeKeyFunc free_key_;
 };

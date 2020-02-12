@@ -1,4 +1,5 @@
 #include "cpp/ParquetSharpExport.h"
+#include "AesKey.h"
 #include "CString.h"
 #include "ExceptionInfo.h"
 
@@ -28,14 +29,9 @@ extern "C"
         TRYCATCH(*algorithm = (*properties)->algorithm();)
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionProperties_Footer_Key(const std::shared_ptr<const FileEncryptionProperties>* properties, const char** footer_key)
+    PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionProperties_Footer_Key(const std::shared_ptr<const FileEncryptionProperties>* properties, AesKey* footer_key)
     {
-        TRYCATCH(*footer_key = AllocateCString((*properties)->footer_key());)
-    }
-	
-    PARQUETSHARP_EXPORT void FileEncryptionProperties_Footer_Key_Free(const char* footer_key)
-    {
-        FreeCString(footer_key);
+        TRYCATCH(*footer_key = AesKey((*properties)->footer_key());)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionProperties_Footer_Key_Metadata(const std::shared_ptr<const FileEncryptionProperties>* properties, const char** footer_key_metadata)

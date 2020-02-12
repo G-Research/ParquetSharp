@@ -20,9 +20,10 @@ namespace ParquetSharp
             _handle.Dispose();
         }
         
-        public FileDecryptionPropertiesBuilder FooterKey(string footerKeyId)
+        public FileDecryptionPropertiesBuilder FooterKey(byte[] footerKey)
         {
-            ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Footer_Key(_handle.IntPtr, footerKeyId));
+            var footerAesKey = new AesKey(footerKey);
+            ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Footer_Key(_handle.IntPtr, in footerAesKey));
             GC.KeepAlive(_handle);
             return this;
         }
@@ -72,8 +73,7 @@ namespace ParquetSharp
                     _handle.IntPtr,
                     gcHandle,
                     DecryptionKeyRetriever.FreeGcHandleCallback,
-                    DecryptionKeyRetriever.GetKeyFuncCallback,
-                    DecryptionKeyRetriever.FreeKeyCallback));
+                    DecryptionKeyRetriever.GetKeyFuncCallback));
             }
 
             catch
@@ -118,7 +118,7 @@ namespace ParquetSharp
         private static extern void FileDecryptionPropertiesBuilder_Free(IntPtr builder);
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr FileDecryptionPropertiesBuilder_Footer_Key(IntPtr builder, string footerKey);
+        private static extern IntPtr FileDecryptionPropertiesBuilder_Footer_Key(IntPtr builder, in AesKey footerKey);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileDecryptionPropertiesBuilder_Column_Keys(IntPtr builder, IntPtr[] columnDecryptionProperties, int numProperties);
@@ -128,8 +128,7 @@ namespace ParquetSharp
             IntPtr builder, 
             IntPtr gcHandle,
             DecryptionKeyRetriever.FreeGcHandleFunc freeGcHandle, 
-            DecryptionKeyRetriever.GetKeyFunc getKey,
-            DecryptionKeyRetriever.FreeKeyFunc freeKey);
+            DecryptionKeyRetriever.GetKeyFunc getKey);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileDecryptionPropertiesBuilder_Disable_Footer_Signature_Verification(IntPtr builder);

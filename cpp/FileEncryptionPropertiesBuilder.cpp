@@ -1,4 +1,5 @@
 #include "cpp/ParquetSharpExport.h"
+#include "AesKey.h"
 #include "CString.h"
 #include "ExceptionInfo.h"
 
@@ -8,9 +9,9 @@ using namespace parquet;
 
 extern "C"
 {
-    PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionPropertiesBuilder_Create(const char* footer_key, FileEncryptionProperties::Builder** builder)
+    PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionPropertiesBuilder_Create(const AesKey* footer_key, FileEncryptionProperties::Builder** builder)
     {
-        TRYCATCH(*builder = new FileEncryptionProperties::Builder(footer_key);)
+        TRYCATCH(*builder = new FileEncryptionProperties::Builder(footer_key->ToParquetKey());)
     }
 	
     PARQUETSHARP_EXPORT void FileEncryptionPropertiesBuilder_Free(FileEncryptionProperties::Builder* builder)

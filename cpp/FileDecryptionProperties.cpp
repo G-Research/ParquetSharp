@@ -1,4 +1,5 @@
 #include "cpp/ParquetSharpExport.h"
+#include "AesKey.h"
 #include "CString.h"
 #include "ExceptionInfo.h"
 #include "ManagedAadPrefixVerifier.h"
@@ -20,24 +21,14 @@ extern "C"
         delete properties;
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Column_Key(const std::shared_ptr<const FileDecryptionProperties>* properties, const char* column_path, const char** column_key)
+    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Column_Key(const std::shared_ptr<const FileDecryptionProperties>* properties, const char* column_path, AesKey* column_key)
     {
-        TRYCATCH(*column_key = AllocateCString((*properties)->column_key(column_path));)
+        TRYCATCH(*column_key = AesKey((*properties)->column_key(column_path));)
     }
 
-    PARQUETSHARP_EXPORT void FileDecryptionProperties_Column_Key_Free(const char* column_key)
+    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Footer_Key(const std::shared_ptr<const FileDecryptionProperties>* properties, AesKey* footer_key)
     {
-        FreeCString(column_key);
-    }
-
-    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Footer_Key(const std::shared_ptr<const FileDecryptionProperties>* properties, const char** footer_key)
-    {
-        TRYCATCH(*footer_key = AllocateCString((*properties)->footer_key());)
-    }
-
-    PARQUETSHARP_EXPORT void FileDecryptionProperties_Footer_Key_Free(const char* footer_key)
-    {
-        FreeCString(footer_key);
+        TRYCATCH(*footer_key = AesKey((*properties)->footer_key());)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Aad_Prefix(const std::shared_ptr<const FileDecryptionProperties>* properties, const char** aad_prefix)

@@ -205,6 +205,14 @@ namespace ParquetSharp
             return this;
         }
 
+        public WriterPropertiesBuilder Encryption(FileEncryptionProperties fileEncryptionProperties)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Encryption(_handle.IntPtr, fileEncryptionProperties.Handle.IntPtr));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(fileEncryptionProperties);
+            return this;
+        }
+
         public WriterPropertiesBuilder MaxRowGroupLength(long maxRowGroupLength)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Max_Row_Group_Length(_handle.IntPtr, maxRowGroupLength));
@@ -311,6 +319,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Encoding_By_ColumnPath(IntPtr builder, IntPtr path, Encoding encodingType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Encryption(IntPtr builder, IntPtr fileEncryptionProperties);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Max_Row_Group_Length(IntPtr builder, long maxRowGroupLength);

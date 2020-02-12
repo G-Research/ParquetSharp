@@ -1,4 +1,5 @@
 #include "cpp/ParquetSharpExport.h"
+#include "AesKey.h"
 #include "CString.h"
 #include "ExceptionInfo.h"
 
@@ -23,9 +24,9 @@ extern "C"
         delete builder;
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* ColumnDecryptionPropertiesBuilder_Key(ColumnDecryptionProperties::Builder* builder, const char* key)
+    PARQUETSHARP_EXPORT ExceptionInfo* ColumnDecryptionPropertiesBuilder_Key(ColumnDecryptionProperties::Builder* builder, const AesKey* key)
     {
-        TRYCATCH(builder->key(key);)
+        TRYCATCH(builder->key(key->ToParquetKey());)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* ColumnDecryptionPropertiesBuilder_Build(ColumnDecryptionProperties::Builder* builder, std::shared_ptr<ColumnDecryptionProperties>** properties)

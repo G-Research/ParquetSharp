@@ -9,9 +9,10 @@ namespace ParquetSharp
     /// </summary>
     public sealed class FileEncryptionPropertiesBuilder : IDisposable
     {
-        public FileEncryptionPropertiesBuilder(string footerKey)
+        public FileEncryptionPropertiesBuilder(byte[] footerKey)
         {
-            ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Create(footerKey, out var handle));
+            var footerAesKey = new AesKey(footerKey);
+            ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Create(in footerAesKey, out var handle));
             _handle = new ParquetHandle(handle, FileEncryptionPropertiesBuilder_Free);
         }
 
@@ -74,7 +75,7 @@ namespace ParquetSharp
         public FileEncryptionProperties Build() => new FileEncryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, FileEncryptionPropertiesBuilder_Build));
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr FileEncryptionPropertiesBuilder_Create(string footerKey, out IntPtr builder);
+        private static extern IntPtr FileEncryptionPropertiesBuilder_Create(in AesKey footerKey, out IntPtr builder);
 
         [DllImport(ParquetDll.Name)]
         private static extern void FileEncryptionPropertiesBuilder_Free(IntPtr builder);

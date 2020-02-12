@@ -91,6 +91,11 @@ extern "C"
 		TRYCATCH(*encoding = (*writerProperties)->encoding(*path);)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_File_Encryption_Properties(const std::shared_ptr<WriterProperties>* writerProperties, std::shared_ptr<FileEncryptionProperties>** file_encryption_properties)
+	{
+		TRYCATCH(*file_encryption_properties = new std::shared_ptr<FileEncryptionProperties>((*writerProperties)->file_encryption_properties());)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Statistics_Enabled(const std::shared_ptr<WriterProperties>* writerProperties, const std::shared_ptr<schema::ColumnPath>* path, bool* enabled)
 	{
 		TRYCATCH(*enabled = (*writerProperties)->statistics_enabled(*path);)

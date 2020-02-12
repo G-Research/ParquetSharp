@@ -18,8 +18,8 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
-        public string ColumnKey(string columPath) => ExceptionInfo.ReturnString(_handle, columPath, FileDecryptionProperties_Column_Key, FileDecryptionProperties_Column_Key_Free);
-        public string FooterKey => ExceptionInfo.ReturnString(_handle, FileDecryptionProperties_Footer_Key, FileDecryptionProperties_Footer_Key_Free);
+        public byte[] ColumnKey(string columPath) => ExceptionInfo.Return<string, AesKey>(_handle, columPath, FileDecryptionProperties_Column_Key).ToBytes();
+        public byte[] FooterKey => ExceptionInfo.Return<AesKey>(_handle, FileDecryptionProperties_Footer_Key).ToBytes();
         public string AadPrefix => ExceptionInfo.ReturnString(_handle, FileDecryptionProperties_Aad_Prefix, FileDecryptionProperties_Aad_Prefix_Free);
         public DecryptionKeyRetriever KeyRetriever => DecryptionKeyRetriever.GetGcHandleTarget(ExceptionInfo.Return<IntPtr>(_handle, FileDecryptionProperties_Key_Retriever));
         public bool CheckPlaintextFooterIntegrity => ExceptionInfo.Return<bool>(_handle, FileDecryptionProperties_Check_Plaintext_Footer_Integrity);
@@ -35,16 +35,10 @@ namespace ParquetSharp
         private static extern void FileDecryptionProperties_Free(IntPtr properties);
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr FileDecryptionProperties_Column_Key(IntPtr properties, string columnPath, out IntPtr columnKey);
+        private static extern IntPtr FileDecryptionProperties_Column_Key(IntPtr properties, string columnPath, out AesKey columnKey);
 
         [DllImport(ParquetDll.Name)]
-        private static extern void FileDecryptionProperties_Column_Key_Free(IntPtr columnKey);
-
-        [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileDecryptionProperties_Footer_Key(IntPtr properties, out IntPtr footerKey);
-
-        [DllImport(ParquetDll.Name)]
-        private static extern void FileDecryptionProperties_Footer_Key_Free(IntPtr footerKey);
+        private static extern IntPtr FileDecryptionProperties_Footer_Key(IntPtr properties, out AesKey footerKey);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileDecryptionProperties_Aad_Prefix(IntPtr properties, out IntPtr aadPrefix);

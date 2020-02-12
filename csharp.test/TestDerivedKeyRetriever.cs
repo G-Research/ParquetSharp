@@ -28,7 +28,7 @@ namespace ParquetSharp.Test
                 // At this point C# has no reference to the key-receiver. And yet we can still get it back from C++.
                 var keyReceiver = properties.KeyRetriever;
 
-                Assert.AreEqual("HelloWorld Key!", keyReceiver.GetKey("not-used"));
+                Assert.AreEqual("HelloWorld\0 Key!", System.Text.Encoding.ASCII.GetString(keyReceiver.GetKey("not-used")));
 
                 // But after we return, both C# and C++ will lose all references and the key-receiver should get GCed. 
                 return new WeakReference(keyReceiver);
@@ -39,7 +39,7 @@ namespace ParquetSharp.Test
         {
             using (var builder = new FileDecryptionPropertiesBuilder())
             {
-                builder.KeyRetriever(new TestRetriever("HelloWorld Key!"));
+                builder.KeyRetriever(new TestRetriever("HelloWorld\0 Key!"));
                 return builder.Build();
             }
         }
@@ -51,7 +51,7 @@ namespace ParquetSharp.Test
                 _key = key;
             }
 
-            public override string GetKey(string keyMetadata) => _key;
+            public override byte[] GetKey(string keyMetadata) => System.Text.Encoding.ASCII.GetBytes(_key);
 
             private readonly string _key;
         }

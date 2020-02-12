@@ -21,7 +21,7 @@ namespace ParquetSharp
         public string ColumnPath => ExceptionInfo.ReturnString(Handle, ColumnEncryptionProperties_Column_Path, ColumnEncryptionProperties_Column_Path_Free);
         public bool IsEncrypted => ExceptionInfo.Return<bool>(Handle, ColumnEncryptionProperties_Is_Encrypted);
         public bool IsEncryptedWithFooterKey => ExceptionInfo.Return<bool>(Handle, ColumnEncryptionProperties_Is_Encrypted_With_Footer_Key);
-        public string Key => ExceptionInfo.ReturnString(Handle, ColumnEncryptionProperties_Key, ColumnEncryptionProperties_Key_Free);
+        public byte[] Key => ExceptionInfo.Return<AesKey>(Handle, ColumnEncryptionProperties_Key).ToBytes();
         public string KeyMetadata => ExceptionInfo.ReturnString(Handle, ColumnEncryptionProperties_Key_Metadata, ColumnEncryptionProperties_Key_Metadata_Free);
 
         public ColumnEncryptionProperties DeepClone() => new ColumnEncryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, ColumnEncryptionProperties_Deep_Clone));
@@ -45,10 +45,7 @@ namespace ParquetSharp
         private static extern IntPtr ColumnEncryptionProperties_Is_Encrypted_With_Footer_Key(IntPtr properties, [MarshalAs(UnmanagedType.I1)] out bool isEncryptedWithFooterKey);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ColumnEncryptionProperties_Key(IntPtr properties, out IntPtr key);
-
-        [DllImport(ParquetDll.Name)]
-        private static extern void ColumnEncryptionProperties_Key_Free(IntPtr key);
+        private static extern IntPtr ColumnEncryptionProperties_Key(IntPtr properties, out AesKey key);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnEncryptionProperties_Key_Metadata(IntPtr properties, out IntPtr keyMetadata);

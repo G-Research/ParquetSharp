@@ -9,7 +9,7 @@ namespace ParquetSharp
     /// </summary>
     public abstract class DecryptionKeyRetriever
     {
-        public abstract string GetKey(string keyMetadata);
+        public abstract byte[] GetKey(string keyMetadata);
 
         /// <summary>
         /// The native code owns a GC handle on the given instance of DecryptionKeyRetriever.
@@ -29,30 +29,21 @@ namespace ParquetSharp
         }
 
         internal delegate void FreeGcHandleFunc(IntPtr handle);
-        internal delegate IntPtr GetKeyFunc(IntPtr handle, IntPtr keyMetadata);
-        internal delegate void FreeKeyFunc(IntPtr key);
+        internal delegate void GetKeyFunc(IntPtr handle, IntPtr keyMetadata, out AesKey key);
 
         internal static readonly FreeGcHandleFunc FreeGcHandleCallback = FreeGcHandle;
         internal static readonly GetKeyFunc GetKeyFuncCallback = GetKey;
-        internal static readonly FreeKeyFunc FreeKeyCallback = FreeKey;
 
         private static void FreeGcHandle(IntPtr handle)
         {
             GCHandle.FromIntPtr(handle).Free();
         }
 
-        private static IntPtr GetKey(IntPtr handle, IntPtr keyMetadata)
+        private static void GetKey(IntPtr handle, IntPtr keyMetadata, out AesKey key)
         {
             var obj = (DecryptionKeyRetriever) GCHandle.FromIntPtr(handle).Target;
             var keyMetadataStr = Marshal.PtrToStringAnsi(keyMetadata);
-            var key = obj.GetKey(keyMetadataStr);
-
-            return Marshal.StringToHGlobalAnsi(key);
-        }
-
-        private static void FreeKey(IntPtr key)
-        {
-            Marshal.FreeHGlobal(key);
+            key = new AesKey(obj.GetKey(keyMetadataStr));
         }
     }
 }

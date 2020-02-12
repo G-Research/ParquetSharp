@@ -19,7 +19,7 @@ namespace ParquetSharp
         }
 
         public string ColumnPath => ExceptionInfo.ReturnString(Handle, ColumnDecryptionProperties_Column_Path, ColumnDecryptionProperties_Column_Path_Free);
-        public string Key => ExceptionInfo.ReturnString(Handle, ColumnDecryptionProperties_Key, ColumnDecryptionProperties_Key_Free);
+        public byte[] Key => ExceptionInfo.Return<AesKey>(Handle, ColumnDecryptionProperties_Key).ToBytes();
 
         public ColumnDecryptionProperties DeepClone() => new ColumnDecryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, ColumnDecryptionProperties_Deep_Clone));
 
@@ -36,10 +36,7 @@ namespace ParquetSharp
         private static extern void ColumnDecryptionProperties_Column_Path_Free(IntPtr columnPath);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ColumnDecryptionProperties_Key(IntPtr properties, out IntPtr key);
-
-        [DllImport(ParquetDll.Name)]
-        private static extern void ColumnDecryptionProperties_Key_Free(IntPtr key);
+        private static extern IntPtr ColumnDecryptionProperties_Key(IntPtr properties, out AesKey key);
 
         internal readonly ParquetHandle Handle;
     }
