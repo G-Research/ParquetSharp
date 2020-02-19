@@ -28,7 +28,7 @@ namespace ParquetSharp.Test
                 //TestParquetFileWriter.TestWriteLongString();
                 //TestManagedRandomAccessFile.TestWriteException();
                 //TestAadPrefixVerifier.TestOwnership();
-                TestEncryption.TestEncryptAllSameKey();
+                TestEncryption.TestNoMatchingKeyMetadata();
 
                 // Ensure the finalizers are executed, so we can check whether they throw.
                 GC.Collect();

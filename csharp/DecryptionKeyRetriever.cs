@@ -29,7 +29,7 @@ namespace ParquetSharp
         }
 
         internal delegate void FreeGcHandleFunc(IntPtr handle);
-        internal delegate void GetKeyFunc(IntPtr handle, IntPtr keyMetadata, out AesKey key);
+        internal delegate void GetKeyFunc(IntPtr handle, IntPtr keyMetadata, out AesKey key, [MarshalAs(UnmanagedType.LPStr)] out string exception);
 
         internal static readonly FreeGcHandleFunc FreeGcHandleCallback = FreeGcHandle;
         internal static readonly GetKeyFunc GetKeyFuncCallback = GetKey;
@@ -39,11 +39,21 @@ namespace ParquetSharp
             GCHandle.FromIntPtr(handle).Free();
         }
 
-        private static void GetKey(IntPtr handle, IntPtr keyMetadata, out AesKey key)
+        private static void GetKey(IntPtr handle, IntPtr keyMetadata, out AesKey key, out string exception)
         {
-            var obj = (DecryptionKeyRetriever) GCHandle.FromIntPtr(handle).Target;
-            var keyMetadataStr = Marshal.PtrToStringAnsi(keyMetadata);
-            key = new AesKey(obj.GetKey(keyMetadataStr));
+            exception = null;
+
+            try
+            {
+                var obj = (DecryptionKeyRetriever) GCHandle.FromIntPtr(handle).Target;
+                var keyMetadataStr = Marshal.PtrToStringAnsi(keyMetadata);
+                key = new AesKey(obj.GetKey(keyMetadataStr));
+            }
+            catch (Exception ex)
+            {
+                key = default;
+                exception = ex.ToString();
+            }
         }
     }
 }

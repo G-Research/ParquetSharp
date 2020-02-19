@@ -2,6 +2,7 @@
 #pragma once
 
 #include <parquet/encryption.h>
+#include <stdexcept>
 
 using namespace parquet;
 
@@ -12,7 +13,7 @@ class ManagedDecryptionKeyRetriever final : public DecryptionKeyRetriever
 public:
 
 	typedef void (*FreeGcHandleFunc) (void* handle);
-	typedef void (*GetKeyFunc) (void* handle, const char* key_metadata, AesKey* key);
+	typedef void (*GetKeyFunc) (void* handle, const char* key_metadata, AesKey* key, const char** exception);
 
 	ManagedDecryptionKeyRetriever(const ManagedDecryptionKeyRetriever&) = delete;
 	ManagedDecryptionKeyRetriever(ManagedDecryptionKeyRetriever&&) = delete;
@@ -36,8 +37,15 @@ public:
 
 	std::string GetKey(const std::string& key_metadata) const override
 	{
+		const char* exception = nullptr;
 		AesKey key;
-		get_key_(Handle, key_metadata.c_str(), &key);
+		get_key_(Handle, key_metadata.c_str(), &key, &exception);
+
+		if (exception != nullptr)
+		{
+			throw std::runtime_error(exception);
+		}
+		
 		return key.ToParquetKey();
 	}
 

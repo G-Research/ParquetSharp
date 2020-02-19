@@ -64,10 +64,9 @@ extern "C"
         FileDecryptionProperties::Builder* builder,
         void* const handle,
         const ManagedAadPrefixVerifier::FreeGcHandleFunc free_gc_handle,
-        const ManagedAadPrefixVerifier::VerifyFunc verify,
-        const ManagedAadPrefixVerifier::FreeExceptionFunc free_exception)
+        const ManagedAadPrefixVerifier::VerifyFunc verify)
     {
-        TRYCATCH(builder->aad_prefix_verifier(handle ? std::make_shared<ManagedAadPrefixVerifier>(handle, free_gc_handle, verify, free_exception) : nullptr);)
+        TRYCATCH(builder->aad_prefix_verifier(handle ? std::make_shared<ManagedAadPrefixVerifier>(handle, free_gc_handle, verify) : nullptr);)
     }
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionPropertiesBuilder_Plaintext_Files_Allowed(FileDecryptionProperties::Builder* builder)

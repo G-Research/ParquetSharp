@@ -47,8 +47,7 @@ namespace ParquetSharp
                     _handle.IntPtr,
                     gcHandle,
                     ParquetSharp.AadPrefixVerifier.FreeGcHandleCallback,
-                    ParquetSharp.AadPrefixVerifier.VerifyFuncCallback,
-                    ParquetSharp.AadPrefixVerifier.FreeExceptionCallback));
+                    ParquetSharp.AadPrefixVerifier.VerifyFuncCallback));
             }
 
             catch
@@ -141,8 +140,7 @@ namespace ParquetSharp
             IntPtr builder,
             IntPtr gcHandle,
             AadPrefixVerifier.FreeGcHandleFunc freeGcHandle,
-            AadPrefixVerifier.VerifyFunc getKey,
-            AadPrefixVerifier.FreeExceptionFunc freeKey);
+            AadPrefixVerifier.VerifyFunc getKey);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileDecryptionPropertiesBuilder_Plaintext_Files_Allowed(IntPtr builder);

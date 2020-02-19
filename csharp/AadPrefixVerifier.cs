@@ -10,9 +10,9 @@ namespace ParquetSharp
     {
         /// <summary>
         /// Verify the AAD file prefix.
-        /// Return null if okay, return exception message otherwise.
+        /// Throw exception if the prefix is not okay.
         /// </summary>
-        public abstract string Verify(string aadPrefix);
+        public abstract void Verify(string aadPrefix);
 
         /// <summary>
         /// The native code owns a GC handle on the given instance of AadPrefixVerifier.
@@ -30,30 +30,30 @@ namespace ParquetSharp
         }
 
         internal delegate void FreeGcHandleFunc(IntPtr handle);
-        internal delegate IntPtr VerifyFunc(IntPtr handle, IntPtr aadPrefix);
-        internal delegate void FreeExceptionFunc(IntPtr exception);
+        internal delegate void VerifyFunc(IntPtr handle, IntPtr aadPrefix, out string exception);
 
         internal static readonly FreeGcHandleFunc FreeGcHandleCallback = FreeGcHandle;
         internal static readonly VerifyFunc VerifyFuncCallback = Verify;
-        internal static readonly FreeExceptionFunc FreeExceptionCallback = FreeException;
 
         private static void FreeGcHandle(IntPtr handle)
         {
             GCHandle.FromIntPtr(handle).Free();
         }
 
-        private static IntPtr Verify(IntPtr handle, IntPtr aadPrefix)
+        private static void Verify(IntPtr handle, IntPtr aadPrefix, out string exception)
         {
-            var obj = (AadPrefixVerifier) GCHandle.FromIntPtr(handle).Target;
-            var aadPrefixStr = Marshal.PtrToStringAnsi(aadPrefix);
-            var exception = obj.Verify(aadPrefixStr);
+            exception = null;
 
-            return exception == null ? IntPtr.Zero : Marshal.StringToHGlobalAnsi(exception);
-        }
-
-        private static void FreeException(IntPtr exception)
-        {
-            Marshal.FreeHGlobal(exception);
+            try
+            {
+                var obj = (AadPrefixVerifier)GCHandle.FromIntPtr(handle).Target;
+                var aadPrefixStr = Marshal.PtrToStringAnsi(aadPrefix);
+                obj.Verify(aadPrefixStr);
+            }
+            catch (Exception ex)
+            {
+                exception = ex.ToString();
+            }
         }
     }
 }

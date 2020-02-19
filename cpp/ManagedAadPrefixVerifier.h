@@ -12,8 +12,7 @@ class ManagedAadPrefixVerifier final : public AADPrefixVerifier
 public:
 
 	typedef void (*FreeGcHandleFunc) (void* handle);
-	typedef const char* (*VerifyFunc) (void* handle, const char* aad_prefix);
-	typedef void (*FreeExceptionFunc) (const char* exception);
+	typedef void (*VerifyFunc) (void* handle, const char* aad_prefix, const char** exception);
 
 	ManagedAadPrefixVerifier(const ManagedAadPrefixVerifier&) = delete;
 	ManagedAadPrefixVerifier(ManagedAadPrefixVerifier&&) = delete;
@@ -23,12 +22,10 @@ public:
 	ManagedAadPrefixVerifier(
 		void* const handle,
 		const FreeGcHandleFunc free_gc_handle,
-		const VerifyFunc verify,
-		const FreeExceptionFunc free_exception) :
+		const VerifyFunc verify) :
 		Handle(handle),
 		free_gc_handle_(free_gc_handle),
-		verify_(verify),
-		free_exception_(free_exception)
+		verify_(verify)
 	{
 	}
 
@@ -39,13 +36,12 @@ public:
 
 	void Verify(const std::string& aad_prefix) override
 	{
-		const char* const exception = verify_(Handle, aad_prefix.c_str());
-		if (exception)
+		const char* exception = nullptr;
+		verify_(Handle, aad_prefix.c_str(), &exception);
+		
+		if (exception != nullptr)
 		{
-			const std::string msg(exception);
-			free_exception_(exception);
-
-			throw ParquetException("AADPrefixVerifier: " + msg);
+			throw std::runtime_error(exception);
 		}
 	}
 
@@ -55,5 +51,4 @@ private:
 
 	const FreeGcHandleFunc free_gc_handle_;
 	const VerifyFunc verify_;
-	const FreeExceptionFunc free_exception_;
 };

@@ -12,7 +12,7 @@ public:
 	explicit AesKey(const std::string& parquet_key)
 	{
 		std::copy(parquet_key.begin(), parquet_key.end(), reinterpret_cast<char*>(key_));
-		size_ = parquet_key.size();
+		size_ = static_cast<uint32_t>(parquet_key.size());
 	}
 
 	std::string ToParquetKey() const

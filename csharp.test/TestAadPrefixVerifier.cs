@@ -26,9 +26,9 @@ namespace ParquetSharp.Test
                 GC.Collect();
 
                 // At this point C# has no reference to the key-receiver. And yet we can still get it back from C++.
-                var aadPrefixVerifier = properties.AadPrefixVerifier;
+                var aadPrefixVerifier = (TestVerifier) properties.AadPrefixVerifier;
 
-                Assert.AreEqual("HelloWorld Exception!", aadPrefixVerifier.Verify("not-used"));
+                Assert.AreEqual("HelloWorld Exception!", aadPrefixVerifier.ExceptionMessage);
 
                 // But after we return, both C# and C++ will lose all references and the aad-prefix-verifier should get GCed. 
                 return new WeakReference(aadPrefixVerifier);
@@ -47,14 +47,14 @@ namespace ParquetSharp.Test
 
         private sealed class TestVerifier : AadPrefixVerifier
         {
-            public TestVerifier(string exception)
+            public TestVerifier(string exceptionMessage)
             {
-                _exception = exception;
+                ExceptionMessage = exceptionMessage;
             }
 
-            public override string Verify(string aadPrefix) => _exception;
+            public readonly string ExceptionMessage;
 
-            private readonly string _exception;
+            public override void Verify(string aadPrefix) => throw new ArgumentException(ExceptionMessage);
         }
     }
 }
