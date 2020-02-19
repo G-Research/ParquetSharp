@@ -8,9 +8,6 @@ namespace ParquetSharp.Test
     [TestFixture]
     internal static class TestEncryption
     {
-        // TODO .NET exception from C# to C++ (callbacks). String serialisation looks dodgy.
-        // TODO Above for KeyRetriever
-        // TODO Above for AadVerifier
         // TODO ColumnCryptoMetadata (on ColumnChunkMetaData)
 
         [Test]
@@ -180,17 +177,6 @@ namespace ParquetSharp.Test
             using (var builder = new FileDecryptionPropertiesBuilder())
             {
                 return builder
-                    .KeyRetriever(new TestRetriever())
-                    .Build();
-            }
-        }
-
-        private static FileDecryptionProperties CreateDecryptWithKeyRetrieverAllowPlaintextProperties()
-        {
-            using (var builder = new FileDecryptionPropertiesBuilder())
-            {
-                return builder
-                    .PlaintextFilesAllowed()
                     .KeyRetriever(new TestRetriever())
                     .Build();
             }
