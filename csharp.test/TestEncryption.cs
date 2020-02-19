@@ -8,7 +8,11 @@ namespace ParquetSharp.Test
     [TestFixture]
     internal static class TestEncryption
     {
-        // TODO ColumnCryptoMetadata (on ColumnChunkMetaData)
+        // TODO Unit test ColumnCryptoMetadata (on ColumnChunkMetaData)
+        // TODO Unit test builder / properties for ColumnDecryption
+        // TODO Unit test builder / properties for ColumnEncryption
+        // TODO Unit test builder / properties for FileDecryption
+        // TODO Unit test builder / properties for FileEncryption
 
         [Test]
         public static void TestNoDecryptionKey()
