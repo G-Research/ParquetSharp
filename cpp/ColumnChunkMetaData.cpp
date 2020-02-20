@@ -28,6 +28,15 @@ extern "C"
 		TRYCATCH(*compression = column_chunk_meta_data->compression();)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnChunkMetaData_CryptoMetadata(const ColumnChunkMetaData* column_chunk_meta_data, std::shared_ptr<const ColumnCryptoMetaData>** column_crypto_meta_data)
+	{
+		TRYCATCH
+		(
+			auto crypto = column_chunk_meta_data->crypto_metadata();
+			*column_crypto_meta_data = crypto ? new std::shared_ptr<const ColumnCryptoMetaData>(std::move(crypto)) : nullptr;
+		)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* ColumnChunkMetaData_Encodings(const ColumnChunkMetaData* column_chunk_meta_data, const Encoding::type** encodings)
 	{
 		TRYCATCH(*encodings = column_chunk_meta_data->encodings().data();)
