@@ -11,7 +11,7 @@ namespace ParquetSharp
     /// This allows us to more efficiently pass byte-arrays to Parquet native API without having
     /// a pinning handle per byte[] (and indirectly, strings).
     /// </summary>
-    internal sealed class ByteBuffer : IDisposable
+    public sealed class ByteBuffer : IDisposable
     {
         public ByteBuffer(int blockSize)
         {
