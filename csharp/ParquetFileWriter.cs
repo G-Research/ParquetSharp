@@ -78,7 +78,24 @@ namespace ParquetSharp
 
         public void Dispose()
         {
+            // Unfortunately we cannot call Close() here as it can throw exceptions.
+            // The C++ destructor of ParquetFileWriter will automatically call Close(), but gobble any resulting exceptions.
+            // Therefore it is actually safer for the user to explicitly call Close() before the Dispose().
+            //
+            // See https://github.com/G-Research/ParquetSharp/issues/104.
+
             _handle.Dispose();
+        }
+
+        /// <summary>
+        /// Close the file writer as well any column or group writers that are still opened.
+        /// This is the recommended way of closing Parquet files, rather than relying on the Dispose() method,
+        /// as the latter will gobble exceptions.
+        /// </summary>
+        public void Close()
+        {
+            ExceptionInfo.Check(ParquetFileWriter_Close(_handle.IntPtr));
+            GC.KeepAlive(_handle);
         }
 
         public RowGroupWriter AppendRowGroup()
@@ -150,6 +167,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern void ParquetFileWriter_Free(IntPtr writer);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_Close(IntPtr writer);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ParquetFileWriter_AppendRowGroup(IntPtr writer, out IntPtr rowGroupWriter);

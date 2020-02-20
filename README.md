@@ -58,8 +58,9 @@ var columns = new Column[]
 };
 
 using (var file = new ParquetFileWriter("float_timeseries.parquet", columns))
-using (var rowGroup = file.AppendRowGroup())
 {
+    using var rowGroup = file.AppendRowGroup();
+
     using (var timestampWriter = rowGroup.NextColumn().LogicalWriter<DateTime>())
     {
         for (int i = 0; i != timestamps.Length; ++i)
@@ -83,6 +84,8 @@ using (var rowGroup = file.AppendRowGroup())
             valueWriter.WriteBatch(values[i]);
         }
     }
+
+    file.Close();
 }
 ```
 

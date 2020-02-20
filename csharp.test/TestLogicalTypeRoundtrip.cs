@@ -25,17 +25,21 @@ namespace ParquetSharp.Test
                 // Write our expected columns to the parquet in-memory file.
                 using (var outStream = new BufferOutputStream(buffer))
                 using (var fileWriter = new ParquetFileWriter(outStream, schemaColumns))
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
                 {
-                    foreach (var column in expectedColumns)
+                    using (var rowGroupWriter = fileWriter.AppendRowGroup())
                     {
-                        Console.WriteLine("Writing '{0}' ({1})", column.Name, column.Values.GetType().GetElementType());
-
-                        using (var columnWriter = rowGroupWriter.NextColumn().LogicalWriter(writeBufferLength))
+                        foreach (var column in expectedColumns)
                         {
-                            columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch));
+                            Console.WriteLine("Writing '{0}' ({1})", column.Name, column.Values.GetType().GetElementType());
+
+                            using (var columnWriter = rowGroupWriter.NextColumn().LogicalWriter(writeBufferLength))
+                            {
+                                columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch));
+                            }
                         }
                     }
+
+                    fileWriter.Close();
                 }
 
                 Console.WriteLine();
@@ -128,10 +132,14 @@ namespace ParquetSharp.Test
                 // Write out a single column
                 using (var outStream = new BufferOutputStream(buffer))
                 using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<float[]>("big_array_field")}))
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<float[]>())
                 {
-                    colWriter.WriteBatch(expected);
+                    using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                    using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<float[]>())
+                    {
+                        colWriter.WriteBatch(expected);
+                    }
+
+                    fileWriter.Close();
                 }
 
                 // Read it back.
@@ -167,10 +175,14 @@ namespace ParquetSharp.Test
             {
                 using (var outStream = new BufferOutputStream(buffer))
                 using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<double?[][]>("a")}))
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[][]>())
                 {
-                    colWriter.WriteBatch(expected);
+                    using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                    using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[][]>())
+                    {
+                        colWriter.WriteBatch(expected);
+                    }
+
+                    fileWriter.Close();
                 }
 
                 using (var inStream = new BufferReader(buffer))
@@ -200,10 +212,14 @@ namespace ParquetSharp.Test
             {
                 using (var outStream = new BufferOutputStream(buffer))
                 using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string[]>("a")}))
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<string[]>())
                 {
-                    colWriter.WriteBatch(expected);
+                    using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                    using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<string[]>())
+                    {
+                        colWriter.WriteBatch(expected);
+                    }
+
+                    fileWriter.Close();
                 }
 
                 using (var inStream = new BufferReader(buffer))

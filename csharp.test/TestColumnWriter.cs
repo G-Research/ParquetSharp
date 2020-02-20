@@ -14,13 +14,17 @@ namespace ParquetSharp.Test
             {
                 using (var outStream = new BufferOutputStream(buffer))
                 using (var writer = new ParquetFileWriter(outStream, new Column[] {new Column<int?>("int32?")}))
-                using (var rowGroupWriter = writer.AppendRowGroup())
-                using (var colWriter = (ColumnWriter<int>) rowGroupWriter.NextColumn())
                 {
-                    var defLevels = new short[] {1, 0, 1};
-                    var values = new[] {1, 2};
+                    using (var rowGroupWriter = writer.AppendRowGroup())
+                    using (var colWriter = (ColumnWriter<int>) rowGroupWriter.NextColumn())
+                    {
+                        var defLevels = new short[] {1, 0, 1};
+                        var values = new[] {1, 2};
 
-                    colWriter.WriteBatch(defLevels.Length, defLevels, null, values);
+                        colWriter.WriteBatch(defLevels.Length, defLevels, null, values);
+                    }
+
+                    writer.Close();
                 }
 
                 using (var inStream = new BufferReader(buffer))

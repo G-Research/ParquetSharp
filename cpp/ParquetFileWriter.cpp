@@ -41,6 +41,11 @@ extern "C"
 		delete writer;
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_Close(ParquetFileWriter* writer)
+	{
+		TRYCATCH(writer->Close();)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_AppendRowGroup(ParquetFileWriter* writer, RowGroupWriter** row_group_writer)
 	{
 		TRYCATCH(*row_group_writer = writer->AppendRowGroup();)

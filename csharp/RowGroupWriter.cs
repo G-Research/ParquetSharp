@@ -12,15 +12,8 @@ namespace ParquetSharp
 
         public void Dispose()
         {
-            try
-            {
-                Close();
-            }
-
-            catch
-            {
-                // Cannot throw in dispose.
-            }
+            // Do not close in dispose, leave that to ParquetFileWriter AppendRowGroup() and destructor.
+            // See https://github.com/G-Research/ParquetSharp/issues/104.
         }
 
         public void Close()
