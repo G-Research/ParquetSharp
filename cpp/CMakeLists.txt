@@ -30,6 +30,7 @@ add_library(ParquetSharpNative SHARED
 	BufferReader.cpp
 	BufferOutputStream.cpp
 	ColumnChunkMetaData.cpp
+	ColumnCryptoMetaData.cpp
 	ColumnDecryptionProperties.cpp
 	ColumnDecryptionPropertiesBuilder.cpp
 	ColumnDescriptor.cpp
