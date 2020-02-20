@@ -25,29 +25,41 @@ if (UNIX)
 endif ()
 
 add_library(ParquetSharpNative SHARED 
+	AesKey.h
 	Buffer.cpp
 	BufferReader.cpp
 	BufferOutputStream.cpp
 	ColumnChunkMetaData.cpp
+	ColumnDecryptionProperties.cpp
+	ColumnDecryptionPropertiesBuilder.cpp
 	ColumnDescriptor.cpp
+	ColumnEncryptionProperties.cpp
+	ColumnEncryptionPropertiesBuilder.cpp
 	ColumnPath.cpp
 	ColumnReader.cpp
 	ColumnWriter.cpp
 	CString.h
 	ExceptionInfo.h
 	ExceptionInfo.cpp
+	FileDecryptionProperties.cpp
+	FileDecryptionPropertiesBuilder.cpp
+	FileEncryptionProperties.cpp
+	FileEncryptionPropertiesBuilder.cpp
 	FileMetaData.cpp
 	GroupNode.cpp
 	KeyValueMetadata.cpp
 	LogicalType.cpp
-	ManagedRandomAccessFile.cpp
+	ManagedAadPrefixVerifier.h
+	ManagedDecryptionKeyRetriever.h
 	ManagedOutputStream.cpp
+	ManagedRandomAccessFile.cpp
 	Node.cpp
 	OutputStream.cpp
 	ParquetFileReader.cpp
 	ParquetFileWriter.cpp
 	PrimitiveNode.cpp
 	RandomAccessFile.cpp
+	ReaderProperties.cpp
 	ResizableBuffer.cpp
 	RowGroupMetaData.cpp
 	RowGroupReader.cpp

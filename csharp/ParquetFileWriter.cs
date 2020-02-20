@@ -9,7 +9,8 @@ namespace ParquetSharp
     public sealed class ParquetFileWriter : IDisposable
     {
         public ParquetFileWriter(
-            string path, Column[] columns, 
+            string path, 
+            Column[] columns, 
             Compression compression = Compression.Lz4, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
@@ -21,7 +22,8 @@ namespace ParquetSharp
         }
 
         public ParquetFileWriter(
-            OutputStream outputStream, Column[] columns, 
+            OutputStream outputStream, 
+            Column[] columns, 
             Compression compression = Compression.Lz4, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
@@ -33,14 +35,42 @@ namespace ParquetSharp
         }
 
         public ParquetFileWriter(
-            string path, GroupNode schema, WriterProperties writerProperties, 
+            string path, 
+            Column[] columns,
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+        {
+            using (var schema = Column.CreateSchemaNode(columns))
+            {
+                _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
+            }
+        }
+
+        public ParquetFileWriter(
+            OutputStream outputStream, 
+            Column[] columns,
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+        {
+            using (var schema = Column.CreateSchemaNode(columns))
+            {
+                _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
+            }
+        }
+
+        public ParquetFileWriter(
+            string path, 
+            GroupNode schema, 
+            WriterProperties writerProperties, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
             _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
         }
 
         public ParquetFileWriter(
-            OutputStream outputStream, GroupNode schema, WriterProperties writerProperties,
+            OutputStream outputStream, 
+            GroupNode schema, 
+            WriterProperties writerProperties,
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);

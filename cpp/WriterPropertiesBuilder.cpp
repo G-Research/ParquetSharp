@@ -150,6 +150,11 @@ extern "C"
 		TRYCATCH(builder->encoding(*path, encoding_type);)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Encryption(WriterProperties::Builder* builder, const std::shared_ptr<FileEncryptionProperties>* file_encryption_properties)
+	{
+		TRYCATCH(builder->encryption(file_encryption_properties ? *file_encryption_properties : nullptr);)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Max_Row_Group_Length(WriterProperties::Builder* builder, int64_t max_row_group_length)
 	{
 		TRYCATCH(builder->max_row_group_length(max_row_group_length);)
