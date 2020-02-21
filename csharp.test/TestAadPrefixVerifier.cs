@@ -21,28 +21,25 @@ namespace ParquetSharp.Test
 
         private static WeakReference AssertOwnership()
         {
-            using (var properties = CreateProperties())
-            {
-                GC.Collect();
+            using var properties = CreateProperties();
 
-                // At this point C# has no reference to the key-receiver. And yet we can still get it back from C++.
-                var aadPrefixVerifier = (TestVerifier) properties.AadPrefixVerifier;
+            GC.Collect();
 
-                Assert.AreEqual("HelloWorld Exception!", aadPrefixVerifier.ExceptionMessage);
+            // At this point C# has no reference to the key-receiver. And yet we can still get it back from C++.
+            var aadPrefixVerifier = (TestVerifier) properties.AadPrefixVerifier;
 
-                // But after we return, both C# and C++ will lose all references and the aad-prefix-verifier should get GCed. 
-                return new WeakReference(aadPrefixVerifier);
-            }
+            Assert.AreEqual("HelloWorld Exception!", aadPrefixVerifier.ExceptionMessage);
+
+            // But after we return, both C# and C++ will lose all references and the aad-prefix-verifier should get GCed. 
+            return new WeakReference(aadPrefixVerifier);
         }
 
         private static FileDecryptionProperties CreateProperties()
         {
-            using (var builder = new FileDecryptionPropertiesBuilder())
-            {
-                builder.FooterKey(new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16});
-                builder.AadPrefixVerifier(new TestVerifier("HelloWorld Exception!"));
-                return builder.Build();
-            }
+            using var builder = new FileDecryptionPropertiesBuilder();
+            builder.FooterKey(new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16});
+            builder.AadPrefixVerifier(new TestVerifier("HelloWorld Exception!"));
+            return builder.Build();
         }
 
         private sealed class TestVerifier : AadPrefixVerifier

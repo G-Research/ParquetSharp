@@ -43,6 +43,12 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
+        public void Close()
+        {
+            ExceptionInfo.Check(ParquetFileReader_Close(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+        }
+
         public FileMetaData FileMetaData =>
             _fileMetaData 
             ?? (_fileMetaData = new FileMetaData(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileReader_MetaData)));
@@ -60,6 +66,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern void ParquetFileReader_Free(IntPtr reader);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileReader_Close(IntPtr reader);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ParquetFileReader_MetaData(IntPtr reader, out IntPtr fileMetaData);

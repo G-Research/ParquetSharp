@@ -32,19 +32,22 @@ namespace ParquetSharp.Test
                 try
                 {
                     using (var writer = new ParquetFileWriter("file.parquet", new Column[] {new Column<int>("ids")}))
-                    using (var group = writer.AppendRowGroup())
-                    using (var column = group.NextColumn().LogicalWriter<int>())
                     {
-                        column.WriteBatch(new[] {1, 2, 3});
+                        using (var groupWriter = writer.AppendRowGroup())
+                        {
+                            using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
+                            columnWriter.WriteBatch(new[] {1, 2, 3});
+                        }
+
+                        writer.Close();
                     }
 
                     // Open with the wrong logical reader type on purpose.
-                    using (var reader = new ParquetFileReader("file.parquet"))
-                    using (var group = reader.RowGroup(0))
-                    using (var column = group.Column(0).LogicalReader<float>())
-                    {
-                        Assert.AreEqual(new[] {1, 2, 3}, column.ReadAll(3));
-                    }
+                    using var reader = new ParquetFileReader("file.parquet");
+                    using var groupReader = reader.RowGroup(0);
+                    using var columnReader = groupReader.Column(0).LogicalReader<float>();
+
+                    Assert.AreEqual(new[] {1, 2, 3}, columnReader.ReadAll(3));
                 }
                 finally
                 {
@@ -64,83 +67,81 @@ namespace ParquetSharp.Test
         [Explicit("Depends on a local file")]
         public static void TestReadFileCreateByPython()
         {
-            using (var reader = new ParquetFileReader("F:/Temporary/Parquet/example.parquet"))
-            using (var fileMetaData = reader.FileMetaData)
+            using var reader = new ParquetFileReader("F:/Temporary/Parquet/example.parquet");
+            using var fileMetaData = reader.FileMetaData;
+
+            Console.WriteLine("File meta data:");
+            Console.WriteLine("- created by: '{0}'", fileMetaData.CreatedBy);
+            Console.WriteLine("- key value metadata: {{{0}}}", string.Join(", ", fileMetaData.KeyValueMetadata.Select(e => $"{{{e.Key}, {e.Value}}}")));
+            Console.WriteLine("- num columns: {0}", fileMetaData.NumColumns);
+            Console.WriteLine("- num rows: {0}", fileMetaData.NumRows);
+            Console.WriteLine("- num row groups: {0}", fileMetaData.NumRowGroups);
+            Console.WriteLine("- num schema elements: {0}", fileMetaData.NumSchemaElements);
+            Console.WriteLine("- size: {0}", fileMetaData.Size);
+            Console.WriteLine("- version: {0}", fileMetaData.Version);
+            Console.WriteLine("- writer version: {0}", fileMetaData.WriterVersion);
+            Console.WriteLine();
+
+            var numRowGroups = fileMetaData.NumRowGroups;
+            var numColumns = fileMetaData.NumColumns;
+
+            for (int g = 0; g != numRowGroups; ++g)
             {
-                Console.WriteLine("File meta data:");
-                Console.WriteLine("- created by: '{0}'", fileMetaData.CreatedBy);
-                Console.WriteLine("- key value metadata: {{{0}}}", string.Join(", ", fileMetaData.KeyValueMetadata.Select(e => $"{{{e.Key}, {e.Value}}}")));
-                Console.WriteLine("- num columns: {0}", fileMetaData.NumColumns);
-                Console.WriteLine("- num rows: {0}", fileMetaData.NumRows);
-                Console.WriteLine("- num row groups: {0}", fileMetaData.NumRowGroups);
-                Console.WriteLine("- num schema elements: {0}", fileMetaData.NumSchemaElements);
-                Console.WriteLine("- size: {0}", fileMetaData.Size);
-                Console.WriteLine("- version: {0}", fileMetaData.Version);
-                Console.WriteLine("- writer version: {0}", fileMetaData.WriterVersion);
-                Console.WriteLine();
+                Console.WriteLine("Row Group #{0}", g);
 
-                var numRowGroups = fileMetaData.NumRowGroups;
-                var numColumns = fileMetaData.NumColumns;
+                using var rowGroupReader = reader.RowGroup(g);
 
-                for (int g = 0; g != numRowGroups; ++g)
+                var rowGroupMetaData = rowGroupReader.MetaData;
+                var numRows = rowGroupMetaData.NumRows;
+
+                for (int c = 0; c != numColumns; ++c)
                 {
-                    Console.WriteLine("Row Group #{0}", g);
+                    Console.WriteLine("- Column #{0}", c);
 
-                    using (var rowGroupReader = reader.RowGroup(g))
+                    using (var columnReader = rowGroupReader.Column(c))
                     {
-                        var rowGroupMetaData = rowGroupReader.MetaData;
-                        var numRows = rowGroupMetaData.NumRows;
+                        var descr = columnReader.ColumnDescriptor;
+                        var colChunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
 
-                        for (int c = 0; c != numColumns; ++c)
-                        {
-                            Console.WriteLine("- Column #{0}", c);
+                        Console.WriteLine("  - reader type: {0}", columnReader.Type);
+                        Console.WriteLine("  - max definition level: {0}", descr.MaxDefinitionLevel);
+                        Console.WriteLine("  - max repetition level: {0}", descr.MaxRepetitionLevel);
+                        Console.WriteLine("  - physical type: {0}", descr.PhysicalType);
+                        Console.WriteLine("  - logical type: {0}", descr.LogicalType);
+                        Console.WriteLine("  - column order: {0}", descr.ColumnOrder);
+                        Console.WriteLine("  - sort order: {0}", descr.SortOrder);
+                        Console.WriteLine("  - name: {0}", descr.Name);
+                        Console.WriteLine("  - type length: {0}", descr.TypeLength);
+                        Console.WriteLine("  - type precision: {0}", descr.TypePrecision);
+                        Console.WriteLine("  - type scale: {0}", descr.TypeScale);
 
-                            using (var columnReader = rowGroupReader.Column(c))
-                            {
-                                var descr = columnReader.ColumnDescriptor;
-                                var colChunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
+                        // ColumnChunkMetaData
+                        Console.WriteLine("  - encodings: [{0}]", String.Join(", ", colChunkMetaData.Encodings.Select(enc => enc.ToString())));
+                        Console.WriteLine("  - compression: {0}", colChunkMetaData.Compression);
+                        Console.WriteLine("  - total compressed size: {0}", colChunkMetaData.TotalCompressedSize);
+                        Console.WriteLine("  - total uncompressed size: {0}", colChunkMetaData.TotalUncompressedSize);
 
-                                Console.WriteLine("  - reader type: {0}", columnReader.Type);
-                                Console.WriteLine("  - max definition level: {0}", descr.MaxDefinitionLevel);
-                                Console.WriteLine("  - max repetition level: {0}", descr.MaxRepetitionLevel);
-                                Console.WriteLine("  - physical type: {0}", descr.PhysicalType);
-                                Console.WriteLine("  - logical type: {0}", descr.LogicalType);
-                                Console.WriteLine("  - column order: {0}", descr.ColumnOrder);
-                                Console.WriteLine("  - sort order: {0}", descr.SortOrder);
-                                Console.WriteLine("  - name: {0}", descr.Name);
-                                Console.WriteLine("  - type length: {0}", descr.TypeLength);
-                                Console.WriteLine("  - type precision: {0}", descr.TypePrecision);
-                                Console.WriteLine("  - type scale: {0}", descr.TypeScale);
+                        var physicalValueGetter = new PhysicalValueGetter(colChunkMetaData.NumValues);
+                        var (physicalValues, definitionLevels, repetitionLevels) = columnReader.Apply(physicalValueGetter);
 
-                                // ColumnChunkMetaData
-                                Console.WriteLine("  - encodings: [{0}]", String.Join(", ", colChunkMetaData.Encodings.Select(enc => enc.ToString())));
-                                Console.WriteLine("  - compression: {0}", colChunkMetaData.Compression);
-                                Console.WriteLine("  - total compressed size: {0}", colChunkMetaData.TotalCompressedSize);
-                                Console.WriteLine("  - total uncompressed size: {0}", colChunkMetaData.TotalUncompressedSize);
+                        Console.WriteLine("  - physical values length: {0}", physicalValues.Length);
+                        Console.WriteLine("  - physical values: {0}", ToString(physicalValues));
+                        Console.WriteLine("  - definition levels: {0}", ToString(definitionLevels));
+                        Console.WriteLine("  - repetition levels: {0}", ToString(repetitionLevels));
+                    }
 
-                                var physicalValueGetter = new PhysicalValueGetter(colChunkMetaData.NumValues);
-                                var (physicalValues, definitionLevels, repetitionLevels) = columnReader.Apply(physicalValueGetter);
+                    using (var columnReader = rowGroupReader.Column(c).LogicalReader())
+                    {
+                        var logicalValues = columnReader.Apply(new LogicalValueGetter(numRows));
 
-                                Console.WriteLine("  - physical values length: {0}", physicalValues.Length);
-                                Console.WriteLine("  - physical values: {0}", ToString(physicalValues));
-                                Console.WriteLine("  - definition levels: {0}", ToString(definitionLevels));
-                                Console.WriteLine("  - repetition levels: {0}", ToString(repetitionLevels));
-                            }
-
-                            using (var columnReader = rowGroupReader.Column(c).LogicalReader())
-                            {
-                                var logicalValues = columnReader.Apply(new LogicalValueGetter(numRows));
-
-                                Console.WriteLine("  - logical values length: {0}", logicalValues.Length);
-                                Console.WriteLine("  - logical values: {0}", ToString(logicalValues));
-                            }
-                        }
+                        Console.WriteLine("  - logical values length: {0}", logicalValues.Length);
+                        Console.WriteLine("  - logical values: {0}", ToString(logicalValues));
                     }
                 }
-
-                Console.WriteLine();
-                Console.WriteLine("FINISHED");
             }
+
+            Console.WriteLine();
+            Console.WriteLine("FINISHED");
         }
 
         private static string ToString(object value)

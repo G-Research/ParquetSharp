@@ -14,18 +14,71 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestDisposedAccess()
         {
-            using (var buffer = new ResizableBuffer())
-            {
-                // Write our expected columns to the parquet in-memory file.
-                using (var outStream = new BufferOutputStream(buffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("Index")}))
-                {
-                    fileWriter.Dispose();
+            using var buffer = new ResizableBuffer();
 
-                    var exception = Assert.Throws<NullReferenceException>(() => fileWriter.AppendRowGroup());
-                    Assert.AreEqual("null native handle", exception.Message);
+            // Write our expected columns to the parquet in-memory file.
+            using var outStream = new BufferOutputStream(buffer);
+            using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("Index")});
+
+            fileWriter.Dispose();
+
+            var exception = Assert.Throws<NullReferenceException>(() => fileWriter.AppendRowGroup());
+            Assert.AreEqual("null native handle", exception.Message);
+        }
+
+        [Test]
+        public static void TestDisposeExceptionSafety_ParquetFileWriter()
+        {
+            var exception = Assert.Throws<Exception>(() =>
+            {
+                using var buffer = new ResizableBuffer();
+                using var outStream = new BufferOutputStream(buffer);
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("Index"), new Column<float>("Value")});
+                
+                throw new Exception("this is the expected message");
+            });
+
+            Assert.That(exception.Message, Contains.Substring("this is the expected message"));
+        }
+
+        [Test]
+        public static void TestDisposeExceptionSafety_RowGroupWriter()
+        {
+            var exception = Assert.Throws<Exception>(() =>
+            {
+                using var buffer = new ResizableBuffer();
+                using var outStream = new BufferOutputStream(buffer);
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("Index"), new Column<float>("Value")});
+                using var groupWriter = fileWriter.AppendRowGroup();
+
+                throw new Exception("this is the expected message");
+            });
+
+            Assert.That(exception.Message, Contains.Substring("this is the expected message"));
+        }
+
+        [Test]
+        public static void TestDisposeExceptionSafety_ColumnWriter()
+        {
+            var exception = Assert.Throws<Exception>(() =>
+            {
+                using var buffer = new ResizableBuffer();
+                using var outStream = new BufferOutputStream(buffer);
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<int>("Index"), new Column<float>("Value") });
+                using var groupWriter = fileWriter.AppendRowGroup();
+
+                using (var writer = groupWriter.NextColumn().LogicalWriter<int>())
+                {
+                    writer.WriteBatch(new[] {1, 2, 3, 4, 5, 6});
                 }
-            }
+
+                using (var writer = groupWriter.NextColumn().LogicalWriter<float>())
+                {
+                    throw new Exception("this is the expected message");
+                }
+            });
+
+            Assert.That(exception.Message, Contains.Substring("this is the expected message"));
         }
 
         [Test]
@@ -49,24 +102,29 @@ namespace ParquetSharp.Test
             using (var buffer = new ResizableBuffer())
             {
                 using (var outStream = new BufferOutputStream(buffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string>("Name")}))
-                using (var group = fileWriter.AppendRowGroup())
-                using (var col = group.NextColumn().LogicalWriter<string>())
                 {
-                    // Strings to byte arrays memory pooling is done by the ByteBuffer class.
-                    // If something is fishy there (e.g. bad memory ownership wrt the GC),
-                    // we expect to see consequences here if we write enough strings.
-                    // It's not bullet proof, but it has found a few issues.
-                    col.WriteBatch(strings);
+                    using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string>("Name")});
+
+                    using (var groupWriter = fileWriter.AppendRowGroup())
+                    {
+                        using var columnWriter = groupWriter.NextColumn().LogicalWriter<string>();
+
+                        // Strings to byte arrays memory pooling is done by the ByteBuffer class.
+                        // If something is fishy there (e.g. bad memory ownership wrt the GC),
+                        // we expect to see consequences here if we write enough strings.
+                        // It's not bullet proof, but it has found a few issues.
+                        columnWriter.WriteBatch(strings);
+                    }
+
+                    fileWriter.Close();
                 }
 
-                using (var inStream = new BufferReader(buffer))
-                using (var fileReader = new ParquetFileReader(inStream))
-                using (var group = fileReader.RowGroup(0))
-                using (var col = group.Column(0).LogicalReader<string>())
-                {
-                    Assert.AreEqual(strings, col.ReadAll(numStrings));
-                }
+                using var inStream = new BufferReader(buffer);
+                using var fileReader = new ParquetFileReader(inStream);
+                using var groupReader = fileReader.RowGroup(0);
+                using var columnReader = groupReader.Column(0).LogicalReader<string>();
+
+                Assert.AreEqual(strings, columnReader.ReadAll(numStrings));
             }
 
             cancel.Cancel();
@@ -81,28 +139,32 @@ namespace ParquetSharp.Test
             // Generate lots of digits of 0.1234567891011121131415...
             var strings = Enumerable.Range(0, numStrings).Select(i => "0." + string.Join("", Enumerable.Range(1, 3500).Select(j => j.ToString())) + "...").ToArray();
 
-            using (var buffer = new ResizableBuffer())
+            using var buffer = new ResizableBuffer();
+
+            using (var outStream = new BufferOutputStream(buffer))
             {
-                using (var outStream = new BufferOutputStream(buffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<string>("Name") }))
-                using (var group = fileWriter.AppendRowGroup())
-                using (var col = group.NextColumn().LogicalWriter<string>())
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string>("Name")});
+
+                using (var groupWriter = fileWriter.AppendRowGroup())
                 {
+                    using var columnWriter = groupWriter.NextColumn().LogicalWriter<string>();
+
                     // Strings to byte arrays memory pooling is done by the ByteBuffer class.
                     // If something is fishy there (e.g. bad memory ownership wrt the GC),
                     // we expect to see consequences here if we write enough strings.
                     // It's not bullet proof, but it has found a few issues.
-                    col.WriteBatch(strings);
+                    columnWriter.WriteBatch(strings);
                 }
 
-                using (var inStream = new BufferReader(buffer))
-                using (var fileReader = new ParquetFileReader(inStream))
-                using (var group = fileReader.RowGroup(0))
-                using (var col = group.Column(0).LogicalReader<string>())
-                {
-                    Assert.AreEqual(strings, col.ReadAll(numStrings));
-                }
+                fileWriter.Close();
             }
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var groupReader = fileReader.RowGroup(0);
+            using var columnReader = groupReader.Column(0).LogicalReader<string>();
+
+            Assert.AreEqual(strings, columnReader.ReadAll(numStrings));
         }
 
         [Test]
@@ -126,24 +188,25 @@ namespace ParquetSharp.Test
                 {
                     for (var i = 0; i < numRowGroups; i++)
                     {
-                        using (var rg1 = writer1.AppendRowGroup())
+                        using var rg1 = writer1.AppendRowGroup();
+
+                        using (var col1Rg1 = rg1.NextColumn().LogicalWriter<DateTime>())
                         {
-                            using (var col1Rg1 = rg1.NextColumn().LogicalWriter<DateTime>())
-                            {
-                                col1Rg1.WriteBatch(data.Select(n => new DateTime(2012, 1, 1).AddDays(n)).ToArray());
-                            }
+                            col1Rg1.WriteBatch(data.Select(n => new DateTime(2012, 1, 1).AddDays(n)).ToArray());
+                        }
 
-                            using (var col1Rg1 = rg1.NextColumn().LogicalWriter<int>())
-                            {
-                                col1Rg1.WriteBatch(data);
-                            }
+                        using (var col1Rg1 = rg1.NextColumn().LogicalWriter<int>())
+                        {
+                            col1Rg1.WriteBatch(data);
+                        }
 
-                            using (var col1Rg1 = rg1.NextColumn().LogicalWriter<float>())
-                            {
-                                col1Rg1.WriteBatch(data.Select(n => n + 0.1f).ToArray());
-                            }
+                        using (var col1Rg1 = rg1.NextColumn().LogicalWriter<float>())
+                        {
+                            col1Rg1.WriteBatch(data.Select(n => n + 0.1f).ToArray());
                         }
                     }
+
+                    writer1.Close();
                 }
 
                 File.Delete(Task.CurrentId + ".parquet");

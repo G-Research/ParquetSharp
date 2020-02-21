@@ -21,27 +21,24 @@ namespace ParquetSharp.Test
 
         private static WeakReference AssertOwnership()
         {
-            using (var properties = CreateProperties())
-            {
-                GC.Collect();
+            using var properties = CreateProperties();
 
-                // At this point C# has no reference to the key-receiver. And yet we can still get it back from C++.
-                var keyReceiver = properties.KeyRetriever;
+            GC.Collect();
 
-                Assert.AreEqual("HelloWorld\0 Key!", System.Text.Encoding.ASCII.GetString(keyReceiver.GetKey("not-used")));
+            // At this point C# has no reference to the key-receiver. And yet we can still get it back from C++.
+            var keyReceiver = properties.KeyRetriever;
 
-                // But after we return, both C# and C++ will lose all references and the key-receiver should get GCed. 
-                return new WeakReference(keyReceiver);
-            }
+            Assert.AreEqual("HelloWorld\0 Key!", System.Text.Encoding.ASCII.GetString(keyReceiver.GetKey("not-used")));
+
+            // But after we return, both C# and C++ will lose all references and the key-receiver should get GCed. 
+            return new WeakReference(keyReceiver);
         }
 
         private static FileDecryptionProperties CreateProperties()
         {
-            using (var builder = new FileDecryptionPropertiesBuilder())
-            {
-                builder.KeyRetriever(new TestRetriever("HelloWorld\0 Key!"));
-                return builder.Build();
-            }
+            using var builder = new FileDecryptionPropertiesBuilder();
+            builder.KeyRetriever(new TestRetriever("HelloWorld\0 Key!"));
+            return builder.Build();
         }
 
         private sealed class TestRetriever : DecryptionKeyRetriever
