@@ -40,7 +40,6 @@ for (int i = 0; i != timestamps.Length; ++i)
 }
 
 rowWriter.Close();
-}
 ```
 
 The column names can also be explicitly given, see [Row-oriented API (Advanced)](RowOriented.md) for more details.
