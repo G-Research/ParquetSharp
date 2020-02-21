@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using ParquetSharp;
 using ParquetSharp.IO;
 
 namespace ParquetSharp.RowOriented
@@ -215,24 +214,22 @@ namespace ParquetSharp.RowOriented
         private static (string name, string mappedColumn, Type type, MemberInfo info)[] GetFieldsAndProperties(Type type)
         {
             var list = new List<(string name, string mappedColumn, Type type, MemberInfo info)>();
-            BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
+            var flags = BindingFlags.Public | BindingFlags.Instance;
 
-            bool isRecursiveTupleType = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTuple<,,,,,,,>);
-
-            if (isRecursiveTupleType)
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTuple<,,,,,,,>))
             {
-                throw new ParquetException("TTuple type", "System.ValueTuple TTuple types beyond 7 in length are not supported");
+                throw new ArgumentException("System.ValueTuple TTuple types beyond 7 in length are not supported");
             }
 
             foreach (var field in type.GetFields(flags))
             {
-                string mappedColumn = field.GetCustomAttribute<MapToColumnAttribute>()?.ColumnName;
+                var mappedColumn = field.GetCustomAttribute<MapToColumnAttribute>()?.ColumnName;
                 list.Add((field.Name, mappedColumn, field.FieldType, field));
             }
 
             foreach (var property in type.GetProperties(flags))
             {
-                string mappedColumn = property.GetCustomAttribute<MapToColumnAttribute>()?.ColumnName;
+                var mappedColumn = property.GetCustomAttribute<MapToColumnAttribute>()?.ColumnName;
                 list.Add((property.Name, mappedColumn, property.PropertyType, property));
             }
 
@@ -256,7 +253,7 @@ namespace ParquetSharp.RowOriented
                 throw new ArgumentException($"field '{field.name}' has no {nameof(ParquetDecimalScaleAttribute)} despite being a decimal type");
             }
 
-            return new Column(field.type, field.mappedColumn??field.name, isDecimal ? LogicalType.Decimal(29, decimalScale?.Scale ?? -1) : null);
+            return new Column(field.type, field.mappedColumn ?? field.name, isDecimal ? LogicalType.Decimal(29, decimalScale.Scale) : null);
         }
 
         private static readonly ConcurrentDictionary<Type, Delegate> ReadDelegatesCache =

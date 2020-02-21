@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Linq;
 using ParquetSharp.IO;
 
-
 namespace ParquetSharp.RowOriented
 {
     /// <summary>
@@ -29,16 +28,7 @@ namespace ParquetSharp.RowOriented
         {
             _parquetFileReader = parquetFileReader;
             _readAction = readAction;
-            _useMapping = ValidateMapping(fields);
-
-            if (_useMapping)
-            {
-                _objectToFileColumnMapping = new CustomColumnMapping<TTuple>(this, fields);
-            }
-            else
-            {
-                _objectToFileColumnMapping = new ColumnMapping();
-            }
+            _columnMapping = HasExplicitColumndMapping(fields) ? new ExplicitColumnMapping(this, fields) : null;
         }
 
         public void Dispose()
@@ -60,7 +50,7 @@ namespace ParquetSharp.RowOriented
 
         internal void ReadColumn<TValue>(int column, TValue[] values, int length)
         {
-            using (var columnReader = _rowGroupReader.Column(_objectToFileColumnMapping.FileIndex(column)).LogicalReader<TValue>())
+            using (var columnReader = _rowGroupReader.Column(_columnMapping?.Get(column) ?? column).LogicalReader<TValue>())
             {
                 var read = columnReader.ReadBatch(values, 0, length);
                 if (read != length)
@@ -70,76 +60,62 @@ namespace ParquetSharp.RowOriented
             }
         }
 
-        private static bool ValidateMapping((string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+        private static bool HasExplicitColumndMapping((string name, string mappedColumn, Type type, MemberInfo info)[] fields)
         {
-            bool noneMapped = Array.TrueForAll(fields, f => f.mappedColumn == null);
-            bool allMapped = Array.TrueForAll(fields, f => f.mappedColumn != null);
-            if (!(allMapped || noneMapped))
+            var noneMapped = Array.TrueForAll(fields, f => f.mappedColumn == null);
+            var allMapped = Array.TrueForAll(fields, f => f.mappedColumn != null);
+
+            if (!allMapped && !noneMapped)
             {
-                throw new ParquetException("TupleAttributes", "When using MapToColumn attributes, all fields and properties must have the mapping specified.");
+                throw new ArgumentException("when using MapToColumnAttribute, all fields and properties must have the mapping specified.");
             }
 
             return allMapped;
         }
 
-        private interface IColumnMapper
+        /// <summary>
+        /// Glorified dictionary that helps us map a field to an explicitly given column name.
+        /// </summary>
+        private sealed class ExplicitColumnMapping
         {
-            int FileIndex(int columnIndex);
-        }
-
-        private class ColumnMapping : IColumnMapper
-        {
-            public int FileIndex(int columnIndex)
-            {
-                return columnIndex;
-            }
-        }
-
-        private class CustomColumnMapping<RowTuple> : IColumnMapper
-        {
-            Dictionary<int, int> _toFileColumnIndex = new Dictionary<int, int>();
-
-            public CustomColumnMapping(ParquetRowReader<RowTuple> parquetRowReader, (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+            public ExplicitColumnMapping(ParquetRowReader<TTuple> parquetRowReader, (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
             {
                 var allUnique = fields.GroupBy(x => x.mappedColumn).All(g => g.Count() == 1);
                 if (!allUnique)
                 {
-                    throw new ParquetException("TupleAttributes", "When using MapToColumn attributes, each field must map to a unique column");
+                    throw new ArgumentException("when using MapToColumnAttribute, each field must map to a unique column");
                 }
 
-                Dictionary<string, int> fileColumns = new Dictionary<string, int>();
-                for (int i = 0; i < parquetRowReader.FileMetaData.Schema.NumColumns; ++i)
+                var fileColumns = new Dictionary<string, int>();
+                var schemaDescriptor = parquetRowReader.FileMetaData.Schema;
+
+                for (var i = 0; i < schemaDescriptor.NumColumns; ++i)
                 {
-                    fileColumns[parquetRowReader.FileMetaData.Schema.Column(i).Name] = i;
+                    fileColumns[schemaDescriptor.Column(i).Name] = i;
                 }
 
-                for (int fieldIndex = 0; fieldIndex < fields.Length; ++fieldIndex)
+                for (var fieldIndex = 0; fieldIndex < fields.Length; ++fieldIndex)
                 {
-                    int mappedIndex = -1;
-                    if (fileColumns.TryGetValue(fields[fieldIndex].mappedColumn, out mappedIndex))
+                    if (!fileColumns.TryGetValue(fields[fieldIndex].mappedColumn, out _))
                     {
-                        _toFileColumnIndex[fieldIndex] = fileColumns[fields[fieldIndex].mappedColumn];
-                    }
-                    else
-                    {
-                        throw new ParquetException(
-                            "TupleAttributes", $"{typeof(RowTuple)} maps field '{fields[fieldIndex].name}' to parquet " +
-                            "column '{fields[fieldIndex].mappedColumn}' but the target column does not exist in the parquet data."
+                        throw new ArgumentException(
+                            $"{typeof(TTuple)} maps field '{fields[fieldIndex].name}' to parquet column " +
+                            $"'{fields[fieldIndex].mappedColumn}' but the target column does not exist in the input parquet file."
                         );
                     }
+
+                    _fileColumnIndex[fieldIndex] = fileColumns[fields[fieldIndex].mappedColumn];
                 }
             }
 
-            public int FileIndex(int columnIndex)
-            {
-                return _toFileColumnIndex[columnIndex];
-            }
+            public int Get(int columnIndex) => _fileColumnIndex[columnIndex];
+
+            readonly Dictionary<int, int> _fileColumnIndex = new Dictionary<int, int>();
         }
 
         private readonly ParquetFileReader _parquetFileReader;
         private readonly ReadAction _readAction;
+        private readonly ExplicitColumnMapping _columnMapping;
         private RowGroupReader _rowGroupReader;
-        private bool _useMapping = false;
-        private IColumnMapper _objectToFileColumnMapping;
     }
 }
