@@ -2,9 +2,9 @@
 
 ParquetSharp is a .NET library for reading and writing Apache [Parquet][1] files.
 
-It is implemented in C# as a [PInvoke][2] wrapper around [apache-parquet-cpp][3] to provide high performance and compatibility.
+It is implemented in C# as a [PInvoke][2] wrapper around [Apache Parquet C++][3] to provide high performance and compatibility.
 
-[1]: https://parquet.apache.org
+[1]: https://github.com/apache/parquet-format
 [2]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
 [3]: https://github.com/apache/arrow
 
@@ -21,7 +21,7 @@ Both examples below output a Parquet file with three columns representing a time
 
 ### Row-oriented API
 
-The row-oriented API offers a convenient way to abstract the column-oriented nature of Parquet files at the expense of memory, speed and flexibility. It lets one write a whole row in a single call, often resulting in more readable code:
+The row-oriented API offers a convenient way to abstract the column-oriented nature of Parquet files at the expense of memory, speed and flexibility. It lets one write a whole row in a single call, often resulting in more readable code.
 
 ```csharp
 var timestamps = new DateTime[] { /* ... */ };
@@ -43,34 +43,11 @@ rowWriter.Close();
 }
 ```
 
-The row-oriented API allows for specifying your own name-independent/order-independent column mapping using the optional `MapToColumn` attribute:
-
-```csharp
-struct MyRow
-{
-    [MapToColumn("ColumnA")]
-    public long MyKey;
-
-    [MapToColumn("ColumnB")]
-    public string MyValue;
-}
-
-using (var rowReader = ParquetFile.CreateRowReader<MyRow>("example.parquet"))
-{
-    for (int i = 0; i < rowReader.FileMetaData.NumRowGroups; ++i)
-    {
-        var values = rowReader.ReadRows(i);
-        foreach (MyRow r in values)
-        {
-            Console.WriteLine(r.MyKey + "/" + r.MyValue);
-        }
-    }
-}
-```
+The column names can also be explicitly given, see [Row-oriented API (Advanced)](RowOriented.md) for more details.
 
 ### Low-level API
 
-This closely maps to the API of apache-parquet-cpp. It also provides reader and writer abstractions (`LogicalColumnReader` and `LogicalColumnWriter` respectively) to convert between .NET types and Parquet representations.
+This closely maps to the API of Apache Parquet C++. It also provides reader and writer abstractions (`LogicalColumnReader` and `LogicalColumnWriter` respectively) to convert between .NET types and Parquet representations.
 
 ```csharp
 var timestamps = new DateTime[] { /* ... */ };
@@ -123,21 +100,21 @@ We desired a Parquet implementation with the following properties:
 - Well maintained.
 - Close to official Parquet reference implementations.
 
-Not finding an existing solution meeting these requirements, we decided to implement a .NET wrapper around apache-parquet-cpp starting at version 1.4.0. The library tries to stick closely to the existing C++ API, although it does provide higher level APIs to facilitate its usage from .NET. The user should always be able to access the lower-level API.
+Not finding an existing solution meeting these requirements, we decided to implement a .NET wrapper around apache-parquet-cpp (now part of Apache Arrow) starting at version 1.4.0. The library tries to stick closely to the existing C++ API, although it does provide higher level APIs to facilitate its usage from .NET. The user should always be able to access the lower-level API.
 
 ## Known Limitations
 
-Because this library is a thin wrapper around the C++ apache-parquet-cpp library, misuse can cause native memory access violations.
+Because this library is a thin wrapper around the Parquet C++ library, misuse can cause native memory access violations.
 
-Typically this can arise when attempting to access an instance whose owner has been disposed. Because some objects and properties are exposed by apache-parquet-cpp via regular pointers (instead of consistently using `std::shared_ptr`), dereferencing these after the owner class instance has been destructed will lead to an invalid pointer access.
+Typically this can arise when attempting to access an instance whose owner has been disposed. Because some objects and properties are exposed by Parquet C++ via regular pointers (instead of consistently using `std::shared_ptr`), dereferencing these after the owner class instance has been destructed will lead to an invalid pointer access.
 
 ## Building
 
 Building ParquetSharp for Windows requires the following dependencies:
-- Visual Studio 2019 (16.1 or higher)
+- Visual Studio 2019 (16.4 or higher)
 - Apache Arrow (0.16.0)
 
-For building arrow (including parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). Note that the Windows build needs to be done in a Visual Studio x64 Native Tools Command Prompt for the build script to succeed.
+For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). Note that the Windows build needs to be done in a Visual Studio x64 Native Tools Command Prompt for the build script to succeed.
 
 **Windows (Visual Studio 2019 Win64 solution)**
 ```
@@ -151,7 +128,7 @@ For building arrow (including parquet) and its dependencies, we recommend using 
 > dotnet build csharp.test --configuration=Release
 ```
 
-We have had to write our own `FindPackage` macros for most of the dependencies to get us going - it clearly needs more love and attention and is likely to be redundant with some vcpkg helper tools. The build step aboves will lead to CMake not finding the right debug library paths for several dependencies, you can manually fix these paths using CMake-GUI or equivalent (otherwise the build will fail in Debug).
+We have had to write our own `FindPackage` macros for most of the dependencies to get us going - it clearly needs more love and attention and is likely to be redundant with some vcpkg helper tools.
 
 ## Contributing
 
