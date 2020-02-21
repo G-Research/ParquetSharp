@@ -29,15 +29,17 @@ var objectIds = new int[] { /* ... */ };
 var values = timestamps.Select(t => objectIds.Select(o => (float) rand.NextDouble()).ToArray()).ToArray();
 var columns = new[] {"Timestamp", "ObjectId", "Value"};
 
-using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet", columns))
+var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet", columns);
+
+for (int i = 0; i != timestamps.Length; ++i)
 {
-    for (int i = 0; i != timestamps.Length; ++i)
+    for (int j = 0; j != objectIds.Length; ++j)
     {
-        for (int j = 0; j != objectIds.Length; ++j)
-        {
-            rowWriter.WriteRow((timestamps[i], objectIds[j], values[i][j]));
-        }
+        rowWriter.WriteRow((timestamps[i], objectIds[j], values[i][j]));
     }
+}
+
+rowWriter.Close();
 }
 ```
 
@@ -57,36 +59,34 @@ var columns = new Column[]
     new Column<float>("Value")
 };
 
-using (var file = new ParquetFileWriter("float_timeseries.parquet", columns))
+using var file = new ParquetFileWriter("float_timeseries.parquet", columns);
+using var rowGroup = file.AppendRowGroup();
+
+using (var timestampWriter = rowGroup.NextColumn().LogicalWriter<DateTime>())
 {
-    using var rowGroup = file.AppendRowGroup();
-
-    using (var timestampWriter = rowGroup.NextColumn().LogicalWriter<DateTime>())
+    for (int i = 0; i != timestamps.Length; ++i)
     {
-        for (int i = 0; i != timestamps.Length; ++i)
-        {
-            timestampWriter.WriteBatch(Enumerable.Repeat(timestamps[i], objectIds.Length).ToArray());
-        }
+        timestampWriter.WriteBatch(Enumerable.Repeat(timestamps[i], objectIds.Length).ToArray());
     }
-
-    using (var objectIdWriter = rowGroup.NextColumn().LogicalWriter<int>())
-    {
-        for (int i = 0; i != timestamps.Length; ++i)
-        {
-            objectIdWriter.WriteBatch(objectIds);
-        }
-    }
-
-    using (var valueWriter = rowGroup.NextColumn().LogicalWriter<float>())
-    {
-        for (int i = 0; i != timestamps.Length; ++i)
-        {
-            valueWriter.WriteBatch(values[i]);
-        }
-    }
-
-    file.Close();
 }
+
+using (var objectIdWriter = rowGroup.NextColumn().LogicalWriter<int>())
+{
+    for (int i = 0; i != timestamps.Length; ++i)
+    {
+        objectIdWriter.WriteBatch(objectIds);
+    }
+}
+
+using (var valueWriter = rowGroup.NextColumn().LogicalWriter<float>())
+{
+    for (int i = 0; i != timestamps.Length; ++i)
+    {
+        valueWriter.WriteBatch(values[i]);
+    }
+}
+
+file.Close();
 ```
 
 ## Rationale
@@ -134,12 +134,12 @@ We welcome new contributors! We will happily receive PRs for bug fixes or small 
 
 ## License
 
-Copyright 2018 G-Research
+Copyright 2018-2020 G-Research
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use these files except in compliance with the License.
 You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,

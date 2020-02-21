@@ -18,72 +18,69 @@ namespace ParquetSharp.Test
             var keyValueMetadata = new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}};
             var expectedColumns = CreateExpectedColumns();
 
-            using (var buffer = new ResizableBuffer())
+            using var buffer = new ResizableBuffer();
+
+            // Write our expected columns to the parquet in-memory file.
+            using (var outStream = new BufferOutputStream(buffer))
             {
-                // Write our expected columns to the parquet in-memory file.
-                using (var outStream = new BufferOutputStream(buffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, schema, writerProperties, keyValueMetadata))
+                using var fileWriter = new ParquetFileWriter(outStream, schema, writerProperties, keyValueMetadata);
+
                 using (var rowGroupWriter = fileWriter.AppendRowGroup())
                 {
                     foreach (var column in expectedColumns)
                     {
                         Console.WriteLine("Writing '{0}'", column.Name);
 
-                        using (var columnWriter = rowGroupWriter.NextColumn())
-                        {
-                            columnWriter.Apply(new ValueSetter(column.Values));
-                        }
+                        using var columnWriter = rowGroupWriter.NextColumn();
+                        columnWriter.Apply(new ValueSetter(column.Values));
                     }
                 }
 
-                // Read back the columns and make sure they match.
-                using (var inStream = new BufferReader(buffer))
-                using (var fileReader = new ParquetFileReader(inStream))
-                {
-                    var fileMetaData = fileReader.FileMetaData;
+                fileWriter.Close();
+            }
 
-                    Assert.AreEqual("parquet-cpp version 1.5.1-SNAPSHOT", fileMetaData.CreatedBy);
-                    Assert.AreEqual(new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}}, fileMetaData.KeyValueMetadata);
-                    Assert.AreEqual(expectedColumns.Length, fileMetaData.NumColumns);
-                    Assert.AreEqual(NumRows, fileMetaData.NumRows);
-                    Assert.AreEqual(1, fileMetaData.NumRowGroups);
-                    Assert.AreEqual(1 + expectedColumns.Length, fileMetaData.NumSchemaElements);
-                    Assert.AreEqual(ParquetVersion.PARQUET_1_0, fileMetaData.Version);
-                    Assert.AreEqual("parquet-cpp version 1.5.1", fileMetaData.WriterVersion.ToString());
+            // Read back the columns and make sure they match.
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var fileMetaData = fileReader.FileMetaData;
 
-                    using (var rowGroupReader = fileReader.RowGroup(0))
-                    {
-                        var rowGroupMetaData = rowGroupReader.MetaData;
+            Assert.AreEqual("parquet-cpp version 1.5.1-SNAPSHOT", fileMetaData.CreatedBy);
+            Assert.AreEqual(new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}}, fileMetaData.KeyValueMetadata);
+            Assert.AreEqual(expectedColumns.Length, fileMetaData.NumColumns);
+            Assert.AreEqual(NumRows, fileMetaData.NumRows);
+            Assert.AreEqual(1, fileMetaData.NumRowGroups);
+            Assert.AreEqual(1 + expectedColumns.Length, fileMetaData.NumSchemaElements);
+            Assert.AreEqual(ParquetVersion.PARQUET_1_0, fileMetaData.Version);
+            Assert.AreEqual("parquet-cpp version 1.5.1", fileMetaData.WriterVersion.ToString());
 
-                        for (int c = 0; c != fileMetaData.NumColumns; ++c)
-                        {
-                            using (var columnReader = rowGroupReader.Column(c))
-                            {
-                                var expected = expectedColumns[c];
+            using var rowGroupReader = fileReader.RowGroup(0);
+            var rowGroupMetaData = rowGroupReader.MetaData;
 
-                                Console.WriteLine("Reading '{0}'", expected.Name);
+            for (int c = 0; c != fileMetaData.NumColumns; ++c)
+            {
+                using var columnReader = rowGroupReader.Column(c);
 
-                                var descr = columnReader.ColumnDescriptor;
-                                var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(0);
+                var expected = expectedColumns[c];
 
-                                Assert.AreEqual(expected.MaxDefinitionlevel, descr.MaxDefinitionLevel);
-                                Assert.AreEqual(expected.MaxRepetitionLevel, descr.MaxRepetitionLevel);
-                                Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
-                                Assert.AreEqual(expected.LogicalType, descr.LogicalType);
-                                Assert.AreEqual(expected.ColumnOrder, descr.ColumnOrder);
-                                Assert.AreEqual(expected.SortOrder, descr.SortOrder);
-                                Assert.AreEqual(expected.Name, descr.Name);
-                                Assert.AreEqual(expected.TypeLength, descr.TypeLength);
-                                Assert.AreEqual(expected.TypePrecision, descr.TypePrecision);
-                                Assert.AreEqual(expected.TypeScale, descr.TypeScale);
+                Console.WriteLine("Reading '{0}'", expected.Name);
 
-                                Assert.AreEqual(expected.Encodings, chunkMetaData.Encodings);
-                                Assert.AreEqual(expected.Compression, chunkMetaData.Compression);
-                                Assert.AreEqual(expected.Values, columnReader.Apply(new PhysicalValueGetter(chunkMetaData.NumValues)).values);
-                            }
-                        }
-                    }
-                }
+                var descr = columnReader.ColumnDescriptor;
+                var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(0);
+
+                Assert.AreEqual(expected.MaxDefinitionlevel, descr.MaxDefinitionLevel);
+                Assert.AreEqual(expected.MaxRepetitionLevel, descr.MaxRepetitionLevel);
+                Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
+                Assert.AreEqual(expected.LogicalType, descr.LogicalType);
+                Assert.AreEqual(expected.ColumnOrder, descr.ColumnOrder);
+                Assert.AreEqual(expected.SortOrder, descr.SortOrder);
+                Assert.AreEqual(expected.Name, descr.Name);
+                Assert.AreEqual(expected.TypeLength, descr.TypeLength);
+                Assert.AreEqual(expected.TypePrecision, descr.TypePrecision);
+                Assert.AreEqual(expected.TypeScale, descr.TypeScale);
+
+                Assert.AreEqual(expected.Encodings, chunkMetaData.Encodings);
+                Assert.AreEqual(expected.Compression, chunkMetaData.Compression);
+                Assert.AreEqual(expected.Values, columnReader.Apply(new PhysicalValueGetter(chunkMetaData.NumValues)).values);
             }
         }
 

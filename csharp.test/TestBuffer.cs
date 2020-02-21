@@ -14,8 +14,8 @@ namespace ParquetSharp.Test
             var expected = Enumerable.Range(0, 100).Select(i => (byte) i).ToArray();
 
             fixed (byte* data = expected)
-            using (var buffer = new IO.Buffer(new IntPtr(data), expected.Length))
             {
+                using var buffer = new IO.Buffer(new IntPtr(data), expected.Length);
                 Assert.AreEqual(expected, buffer.ToArray());
             }
         }
@@ -30,11 +30,16 @@ namespace ParquetSharp.Test
             using (var outBuffer = new ResizableBuffer())
             {
                 using (var outStream = new BufferOutputStream(outBuffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("int_field")}))
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
                 {
-                    colWriter.WriteBatch(expected);
+                    using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("int_field")});
+
+                    using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                    {
+                        using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<int>();
+                        colWriter.WriteBatch(expected);
+                    }
+
+                    fileWriter.Close();
                 }
 
                 parquetFileBytes = outBuffer.ToArray();
@@ -42,12 +47,13 @@ namespace ParquetSharp.Test
 
             // Read it back
             fixed (byte* fixedBytes = parquetFileBytes)
-            using (var buffer = new IO.Buffer(new IntPtr(fixedBytes), parquetFileBytes.Length))
-            using (var inStream = new BufferReader(buffer))
-            using (var fileReader = new ParquetFileReader(inStream))
-            using (var rowGroup = fileReader.RowGroup(0))
-            using (var columnReader = rowGroup.Column(0).LogicalReader<int>())
             {
+                using var buffer = new IO.Buffer(new IntPtr(fixedBytes), parquetFileBytes.Length);
+                using var inStream = new BufferReader(buffer);
+                using var fileReader = new ParquetFileReader(inStream);
+                using var rowGroup = fileReader.RowGroup(0);
+                using var columnReader = rowGroup.Column(0).LogicalReader<int>();
+
                 var allData = columnReader.ReadAll((int) rowGroup.MetaData.NumRows);
                 Assert.AreEqual(expected, allData);
             }
@@ -57,30 +63,29 @@ namespace ParquetSharp.Test
         public static void TestBufferOutputStreamFinish()
         {
             var expected = Enumerable.Range(0, 100).ToArray();
-
-            using (var outStream = new BufferOutputStream())
+            using var outStream = new BufferOutputStream();
+            
+            // Write out a single column
+            using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("int_field")}))
             {
-                // Write out a single column
-                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("int_field")}))
                 using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
                 {
+                    using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<int>();
                     colWriter.WriteBatch(expected);
                 }
 
-                // Read it back
-                using (var buffer = outStream.Finish())
-                {
-                    using (var inStream = new BufferReader(buffer))
-                    using (var fileReader = new ParquetFileReader(inStream))
-                    using (var rowGroup = fileReader.RowGroup(0))
-                    using (var columnReader = rowGroup.Column(0).LogicalReader<int>())
-                    {
-                        var allData = columnReader.ReadAll((int) rowGroup.MetaData.NumRows);
-                        Assert.AreEqual(expected, allData);
-                    }
-                }
+                fileWriter.Close();
             }
+
+            // Read it back
+            using var buffer = outStream.Finish();
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var rowGroup = fileReader.RowGroup(0);
+            using var columnReader = rowGroup.Column(0).LogicalReader<int>();
+
+            var allData = columnReader.ReadAll((int) rowGroup.MetaData.NumRows);
+            Assert.AreEqual(expected, allData);
         }
     }
 }
