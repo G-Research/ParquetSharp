@@ -20,87 +20,85 @@ namespace ParquetSharp.Test
             var expectedColumns = CreateExpectedColumns();
             var schemaColumns = expectedColumns.Select(c => new Column(c.Values.GetType().GetElementType(), c.Name, c.LogicalTypeOverride)).ToArray();
 
-            using (var buffer = new ResizableBuffer())
+            using var buffer = new ResizableBuffer();
+
+            // Write our expected columns to the parquet in-memory file.
+            using (var outStream = new BufferOutputStream(buffer))
             {
-                // Write our expected columns to the parquet in-memory file.
-                using (var outStream = new BufferOutputStream(buffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, schemaColumns))
+                using var fileWriter = new ParquetFileWriter(outStream, schemaColumns);
+
                 using (var rowGroupWriter = fileWriter.AppendRowGroup())
                 {
                     foreach (var column in expectedColumns)
                     {
                         Console.WriteLine("Writing '{0}' ({1})", column.Name, column.Values.GetType().GetElementType());
 
-                        using (var columnWriter = rowGroupWriter.NextColumn().LogicalWriter(writeBufferLength))
-                        {
-                            columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch));
-                        }
+                        using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter(writeBufferLength);
+                        columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch));
                     }
                 }
 
-                Console.WriteLine();
+                fileWriter.Close();
+            }
 
-                // Read back the columns and make sure they match.
-                using (var inStream = new BufferReader(buffer))
-                using (var fileReader = new ParquetFileReader(inStream))
+            Console.WriteLine();
+
+            // Read back the columns and make sure they match.
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var fileMetaData = fileReader.FileMetaData;
+            using var rowGroupReader = fileReader.RowGroup(0);
+
+            var rowGroupMetaData = rowGroupReader.MetaData;
+            var numRows = rowGroupMetaData.NumRows;
+
+            for (int c = 0; c != fileMetaData.NumColumns; ++c)
+            {
+                var expected = expectedColumns[c];
+
+                // Test properties, and read methods.
+                using (var columnReader = rowGroupReader.Column(c).LogicalReader(readBufferLength))
                 {
-                    var fileMetaData = fileReader.FileMetaData;
+                    var descr = columnReader.ColumnDescriptor;
+                    var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
+                    var statistics = chunkMetaData.Statistics;
 
-                    using (var rowGroupReader = fileReader.RowGroup(0))
+                    Console.WriteLine("Reading '{0}'", expected.Name);
+
+                    Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
+                    Assert.AreEqual(expected.LogicalType, descr.LogicalType);
+                    Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalValueGetter(checked((int) numRows), rowsPerBatch)));
+                    Assert.AreEqual(expected.Length, descr.TypeLength);
+                    Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Precision ?? -1, descr.TypePrecision);
+                    Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Scale ?? -1, descr.TypeScale);
+                    Assert.AreEqual(expected.HasStatistics, chunkMetaData.IsStatsSet);
+
+                    if (expected.HasStatistics)
                     {
-                        var rowGroupMetaData = rowGroupReader.MetaData;
-                        var numRows = rowGroupMetaData.NumRows;
+                        Assert.AreEqual(expected.HasMinMax, statistics.HasMinMax);
+                        //Assert.AreEqual(expected.NullCount, statistics.NullCount);
+                        //Assert.AreEqual(expected.NumValues, statistics.NumValues);
+                        Assert.AreEqual(expected.PhysicalType, statistics.PhysicalType);
 
-                        for (int c = 0; c != fileMetaData.NumColumns; ++c)
+                        // BUG Don't check for decimal until https://issues.apache.org/jira/browse/ARROW-6149 is fixed.
+                        var buggy = expected.LogicalType is DecimalLogicalType;
+
+                        if (expected.HasMinMax && !buggy)
                         {
-                            var expected = expectedColumns[c];
-
-                            // Test properties, and read methods.
-                            using (var columnReader = rowGroupReader.Column(c).LogicalReader(readBufferLength))
-                            {
-                                var descr = columnReader.ColumnDescriptor;
-                                var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
-                                var statistics = chunkMetaData.Statistics;
-
-                                Console.WriteLine("Reading '{0}'", expected.Name);
-
-                                Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
-                                Assert.AreEqual(expected.LogicalType, descr.LogicalType);
-                                Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalValueGetter(checked((int) numRows), rowsPerBatch)));
-                                Assert.AreEqual(expected.Length, descr.TypeLength);
-                                Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Precision ?? -1, descr.TypePrecision);
-                                Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Scale ?? -1, descr.TypeScale);
-                                Assert.AreEqual(expected.HasStatistics, chunkMetaData.IsStatsSet);
-
-                                if (expected.HasStatistics)
-                                {
-                                    Assert.AreEqual(expected.HasMinMax, statistics.HasMinMax);
-                                    //Assert.AreEqual(expected.NullCount, statistics.NullCount);
-                                    //Assert.AreEqual(expected.NumValues, statistics.NumValues);
-                                    Assert.AreEqual(expected.PhysicalType, statistics.PhysicalType);
-
-                                    // BUG Don't check for decimal until https://issues.apache.org/jira/browse/ARROW-6149 is fixed.
-                                    var buggy = expected.LogicalType is DecimalLogicalType;
-
-                                    if (expected.HasMinMax && !buggy)
-                                    {
-                                        Assert.AreEqual(expected.Min, expected.Converter(statistics.MinUntyped));
-                                        Assert.AreEqual(expected.Max, expected.Converter(statistics.MaxUntyped));
-                                    }
-                                }
-                                else
-                                {
-                                    Assert.IsNull(statistics);
-                                }
-                            }
-
-                            // Test IEnumerable interface
-                            using (var columnReader = rowGroupReader.Column(c).LogicalReader(readBufferLength))
-                            {
-                                Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalColumnReaderToArray()));
-                            }
+                            Assert.AreEqual(expected.Min, expected.Converter(statistics.MinUntyped));
+                            Assert.AreEqual(expected.Max, expected.Converter(statistics.MaxUntyped));
                         }
                     }
+                    else
+                    {
+                        Assert.IsNull(statistics);
+                    }
+                }
+
+                // Test IEnumerable interface
+                using (var columnReader = rowGroupReader.Column(c).LogicalReader(readBufferLength))
+                {
+                    Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalColumnReaderToArray()));
                 }
             }
         }
@@ -123,27 +121,30 @@ namespace ParquetSharp.Test
                 expected[i] = ar;
             }
 
-            using (var buffer = new ResizableBuffer())
+            using var buffer = new ResizableBuffer();
+
+            // Write out a single column
+            using (var outStream = new BufferOutputStream(buffer))
             {
-                // Write out a single column
-                using (var outStream = new BufferOutputStream(buffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<float[]>("big_array_field")}))
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<float[]>("big_array_field")});
+
                 using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<float[]>())
                 {
+                    using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<float[]>();
                     colWriter.WriteBatch(expected);
                 }
 
-                // Read it back.
-                using (var inStream = new BufferReader(buffer))
-                using (var fileReader = new ParquetFileReader(inStream))
-                using (var rowGroup = fileReader.RowGroup(0))
-                using (var columnReader = rowGroup.Column(0).LogicalReader<float[]>())
-                {
-                    var allData = columnReader.ReadAll((int) rowGroup.MetaData.NumRows);
-                    Assert.AreEqual(expected, allData);
-                }
+                fileWriter.Close();
             }
+
+            // Read it back.
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var rowGroup = fileReader.RowGroup(0);
+            using var columnReader = rowGroup.Column(0).LogicalReader<float[]>();
+
+            var allData = columnReader.ReadAll((int) rowGroup.MetaData.NumRows);
+            Assert.AreEqual(expected, allData);
         }
 
         [Test]
@@ -163,26 +164,29 @@ namespace ParquetSharp.Test
                 new double?[][] {new double?[] { }}
             };
 
-            using (var buffer = new ResizableBuffer())
+            using var buffer = new ResizableBuffer();
+
+            using (var outStream = new BufferOutputStream(buffer))
             {
-                using (var outStream = new BufferOutputStream(buffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<double?[][]>("a")}))
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<double?[][]>("a")});
+
                 using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[][]>())
                 {
+                    using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[][]>();
                     colWriter.WriteBatch(expected);
                 }
 
-                using (var inStream = new BufferReader(buffer))
-                using (var fileReader = new ParquetFileReader(inStream))
-                using (var rowGroup = fileReader.RowGroup(0))
-                using (var columnReader = rowGroup.Column(0).LogicalReader<double?[][]>())
-                {
-                    Assert.AreEqual(4, rowGroup.MetaData.NumRows);
-                    var allData = columnReader.ReadAll(4);
-                    Assert.AreEqual(expected, allData);
-                }
+                fileWriter.Close();
             }
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var rowGroup = fileReader.RowGroup(0);
+            using var columnReader = rowGroup.Column(0).LogicalReader<double?[][]>();
+
+            Assert.AreEqual(4, rowGroup.MetaData.NumRows);
+            var allData = columnReader.ReadAll(4);
+            Assert.AreEqual(expected, allData);
         }
 
         [Test]
@@ -196,26 +200,29 @@ namespace ParquetSharp.Test
                 new string[] { }
             };
 
-            using (var buffer = new ResizableBuffer())
+            using var buffer = new ResizableBuffer();
+
+            using (var outStream = new BufferOutputStream(buffer))
             {
-                using (var outStream = new BufferOutputStream(buffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string[]>("a")}))
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string[]>("a")});
+
                 using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                using (var colWriter = rowGroupWriter.NextColumn().LogicalWriter<string[]>())
                 {
+                    using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<string[]>();
                     colWriter.WriteBatch(expected);
                 }
 
-                using (var inStream = new BufferReader(buffer))
-                using (var fileReader = new ParquetFileReader(inStream))
-                using (var rowGroup = fileReader.RowGroup(0))
-                using (var columnReader = rowGroup.Column(0).LogicalReader<string[]>())
-                {
-                    Assert.AreEqual(4, rowGroup.MetaData.NumRows);
-                    var allData = columnReader.ReadAll(4);
-                    Assert.AreEqual(expected, allData);
-                }
+                fileWriter.Close();
             }
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var rowGroup = fileReader.RowGroup(0);
+            using var columnReader = rowGroup.Column(0).LogicalReader<string[]>();
+
+            Assert.AreEqual(4, rowGroup.MetaData.NumRows);
+            var allData = columnReader.ReadAll(4);
+            Assert.AreEqual(expected, allData);
         }
 
         private static ExpectedColumn[] CreateExpectedColumns()

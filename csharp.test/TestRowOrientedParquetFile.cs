@@ -72,36 +72,33 @@ namespace ParquetSharp.Test
             // ParquetRowWriter is not double-Dispose safe (Issue 64)
             // https://github.com/G-Research/ParquetSharp/issues/64
 
-            using (var buffer = new ResizableBuffer())
-            {
-                using (var outputStream = new BufferOutputStream(buffer))
-                using (var writer = ParquetFile.CreateRowWriter<(int, double, DateTime)>(outputStream))
-                {
-                    writer.Dispose();
-                }
-            }
+            using var buffer = new ResizableBuffer();
+            using var outputStream = new BufferOutputStream(buffer);
+            using var writer = ParquetFile.CreateRowWriter<(int, double, DateTime)>(outputStream);
+
+            writer.Dispose();
         }
 
         [Test]
         public static void TestCompressionArgument([Values(Compression.Uncompressed, Compression.Brotli)] Compression compression)
         {
-            using (var buffer = new ResizableBuffer())
+            using var buffer = new ResizableBuffer();
+            
+            using (var outputStream = new BufferOutputStream(buffer))
             {
-                using (var outputStream = new BufferOutputStream(buffer))
-                using (var writer = ParquetFile.CreateRowWriter<(int, float)>(outputStream, compression: compression))
-                {
-                    writer.WriteRows(new[] {(42, 3.14f)});
-                }
-
-                using (var inputStream = new BufferReader(buffer))
-                using (var reader = new ParquetFileReader(inputStream))
-                using (var group = reader.RowGroup(0))
-                {
-                    Assert.AreEqual(2, group.MetaData.NumColumns);
-                    Assert.AreEqual(compression, group.MetaData.GetColumnChunkMetaData(0).Compression);
-                    Assert.AreEqual(compression, group.MetaData.GetColumnChunkMetaData(1).Compression);
-                }
+                using var writer = ParquetFile.CreateRowWriter<(int, float)>(outputStream, compression: compression);
+                
+                writer.WriteRows(new[] {(42, 3.14f)});
+                writer.Close();
             }
+
+            using var inputStream = new BufferReader(buffer);
+            using var reader = new ParquetFileReader(inputStream);
+            using var groupReader = reader.RowGroup(0);
+
+            Assert.AreEqual(2, groupReader.MetaData.NumColumns);
+            Assert.AreEqual(compression, groupReader.MetaData.GetColumnChunkMetaData(0).Compression);
+            Assert.AreEqual(compression, groupReader.MetaData.GetColumnChunkMetaData(1).Compression);
         }
 
         [Test]

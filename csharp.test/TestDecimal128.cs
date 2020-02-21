@@ -68,27 +68,29 @@ namespace ParquetSharp.Test
                 .Concat(new [] {decimal.MinValue / 1000, decimal.MaxValue / 1000})
                 .ToArray();
 
-            using (var buffer = new ResizableBuffer())
+            using var buffer = new ResizableBuffer();
+
+            // Write using ParquetSharp
+            using (var outStream = new BufferOutputStream(buffer))
             {
-                // Write using ParquetSharp
-                using (var outStream = new BufferOutputStream(buffer))
-                using (var fileWriter = new ParquetFileWriter(outStream, columns, Compression.Snappy))
+                using var fileWriter = new ParquetFileWriter(outStream, columns, Compression.Snappy);
+
                 using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                using (var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>())
                 {
+                    using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>();
                     columnWriter.WriteBatch(values);
                 }
 
-                // Read using Parquet.NET
-                using (var memoryStream = new MemoryStream(buffer.ToArray()))
-                using (var fileReader = new ParquetReader(memoryStream))
-                using (var rowGroupReader = fileReader.OpenRowGroupReader(0))
-                {
-                    var read = (decimal[]) rowGroupReader.ReadColumn(fileReader.Schema.GetDataFields()[0]).Data;
-
-                    Assert.AreEqual(values, read);
-                }
+                fileWriter.Close();
             }
+
+            // Read using Parquet.NET
+            using var memoryStream = new MemoryStream(buffer.ToArray());
+            using var fileReader = new ParquetReader(memoryStream);
+            using var rowGroupReader = fileReader.OpenRowGroupReader(0);
+
+            var read = (decimal[]) rowGroupReader.ReadColumn(fileReader.Schema.GetDataFields()[0]).Data;
+            Assert.AreEqual(values, read);
         }
     }
 }

@@ -12,30 +12,32 @@ namespace ParquetSharp.Test
         public static void TestInMemoryRoundTrip()
         {
             var expected = Enumerable.Range(0, 1024 * 1024).ToArray();
+            using var buffer = new MemoryStream();
 
-            using (var buffer = new MemoryStream())
+            // Write test data.
+            using (var output = new ManagedOutputStream(buffer, leaveOpen: true))
             {
-                // Write test data.
-                using (var output = new ManagedOutputStream(buffer, leaveOpen: true))
-                using (var writer = new ParquetFileWriter(output, new Column[] { new Column<int>("ids") }))
-                using (var group = writer.AppendRowGroup())
-                using (var column = group.NextColumn().LogicalWriter<int>())
+                using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+
+                using (var groupWriter = writer.AppendRowGroup())
                 {
-                    column.WriteBatch(expected);
+                    using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
+                    columnWriter.WriteBatch(expected);
                 }
 
-                // Seek back to start.
-                buffer.Seek(0, SeekOrigin.Begin);
-
-                // Read test data.
-                using (var input = new ManagedRandomAccessFile(buffer, leaveOpen: true))
-                using (var reader = new ParquetFileReader(input))
-                using (var group = reader.RowGroup(0))
-                using (var column = group.Column(0).LogicalReader<int>())
-                {
-                    Assert.AreEqual(expected, column.ReadAll(expected.Length));
-                }
+                writer.Close();
             }
+
+            // Seek back to start.
+            buffer.Seek(0, SeekOrigin.Begin);
+
+            // Read test data.
+            using var input = new ManagedRandomAccessFile(buffer, leaveOpen: true);
+            using var reader = new ParquetFileReader(input);
+            using var groupReader = reader.RowGroup(0);
+            using var columnReader = groupReader.Column(0).LogicalReader<int>();
+
+            Assert.AreEqual(expected, columnReader.ReadAll(expected.Length));
         }
 
         [Test]
@@ -43,21 +45,25 @@ namespace ParquetSharp.Test
         {
             try
             {
-                using (var input = new ManagedOutputStream(File.OpenWrite("file.parquet")))
-                using (var writer = new ParquetFileWriter(input, new Column[] {new Column<int>("ids")}))
-                using (var group = writer.AppendRowGroup())
-                using (var column = group.NextColumn().LogicalWriter<int>())
+                using (var output = new ManagedOutputStream(File.OpenWrite("file.parquet")))
                 {
-                    column.WriteBatch(new[] {1, 2, 3});
+                    using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+
+                    using (var groupWriter = writer.AppendRowGroup())
+                    {
+                        using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
+                        columnWriter.WriteBatch(new[] {1, 2, 3});
+                    }
+
+                    writer.Close();
                 }
 
-                using (var input = new ManagedRandomAccessFile(File.OpenRead("file.parquet")))
-                using (var reader = new ParquetFileReader(input))
-                using (var group = reader.RowGroup(0))
-                using (var column = group.Column(0).LogicalReader<int>())
-                {
-                    Assert.AreEqual(new[] {1, 2, 3}, column.ReadAll(3));
-                }
+                using var input = new ManagedRandomAccessFile(File.OpenRead("file.parquet"));
+                using var reader = new ParquetFileReader(input);
+                using var groupReader = reader.RowGroup(0);
+                using var columnReader = groupReader.Column(0).LogicalReader<int>();
+
+                Assert.AreEqual(new[] {1, 2, 3}, columnReader.ReadAll(3));
             }
             finally
             {
@@ -89,23 +95,27 @@ namespace ParquetSharp.Test
 
             var exception = Assert.Throws<ParquetException>(() =>
             {
-                using (var buffer = new ErroneousReaderStream())
+                using var buffer = new ErroneousReaderStream();
+
+                using (var output = new ManagedOutputStream(buffer, leaveOpen: true))
                 {
-                    using (var output = new ManagedOutputStream(buffer, leaveOpen: true))
-                    using (var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")}))
-                    using (var group = writer.AppendRowGroup())
-                    using (var column = group.NextColumn().LogicalWriter<int>())
+                    using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+
+                    using (var groupWriter = writer.AppendRowGroup())
                     {
-                        column.WriteBatch(expected);
+                        using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
+                        columnWriter.WriteBatch(expected);
                     }
 
-                    buffer.Seek(0, SeekOrigin.Begin);
+                    writer.Close();
+                }
 
-                    using (var input = new ManagedRandomAccessFile(buffer))
-                    using (new ParquetFileReader(input))
-                    {
+                buffer.Seek(0, SeekOrigin.Begin);
 
-                    }
+                using var input = new ManagedRandomAccessFile(buffer);
+                using (new ParquetFileReader(input))
+                {
+
                 }
             });
 

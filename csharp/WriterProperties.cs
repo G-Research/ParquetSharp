@@ -26,6 +26,7 @@ namespace ParquetSharp
         public Encoding DictionaryIndexEncoding => ExceptionInfo.Return<Encoding>(Handle, WriterProperties_Dictionary_Index_Encoding);
         public Encoding DictionaryPageEncoding => ExceptionInfo.Return<Encoding>(Handle, WriterProperties_Dictionary_Page_Encoding);
         public long DictionaryPagesizeLimit => ExceptionInfo.Return<long>(Handle, WriterProperties_Dictionary_Pagesize_Limit);
+        public FileEncryptionProperties FileEncryptionProperties => new FileEncryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, WriterProperties_File_Encryption_Properties));
         public long MaxRowGroupLength => ExceptionInfo.Return<long>(Handle, WriterProperties_Max_Row_Group_Length);
         public ParquetVersion Version => ExceptionInfo.Return<ParquetVersion>(Handle, WriterProperties_Version);
         public long WriteBatchSize => ExceptionInfo.Return<long>(Handle, WriterProperties_Write_Batch_Size);
@@ -109,6 +110,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Encoding(IntPtr writerProperties, IntPtr path, out Encoding encoding);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_File_Encryption_Properties(IntPtr writerProperties, out IntPtr fileEncryptionProperties);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Statistics_Enabled(IntPtr writerProperties, IntPtr path, [MarshalAs(UnmanagedType.I1)] out bool enabled);

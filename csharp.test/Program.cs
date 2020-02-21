@@ -26,7 +26,10 @@ namespace ParquetSharp.Test
                 //TestParquetFileReader.TestReadFileCreateByPython();
                 //TestParquetFileReader.TestFileHandleHasBeenReleased();
                 //TestParquetFileWriter.TestWriteLongString();
-                TestManagedRandomAccessFile.TestWriteException();
+                //TestManagedRandomAccessFile.TestWriteException();
+                //TestAadPrefixVerifier.TestOwnership();
+                TestEncryption.TestNoMatchingKeyMetadata();
+                TestParquetFileWriter.TestDisposeExceptionSafety_ColumnWriter();
 
                 // Ensure the finalizers are executed, so we can check whether they throw.
                 GC.Collect();

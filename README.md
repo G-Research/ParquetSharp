@@ -12,8 +12,8 @@ It is implemented in C# as a [PInvoke][2] wrapper around [apache-parquet-cpp][3]
 | ---: | --- |
 | **Release Nuget** | [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
 | **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
-| **Windows Build** | [![Build status](https://ci.appveyor.com/api/projects/status/wac4f57a46ecg3gi?svg=true)](https://ci.appveyor.com/project/G-Research/parquetsharp) |
-| **Linux Build** | [![Build status](https://ci.appveyor.com/api/projects/status/a551k0wrf5r6afj0?svg=true)](https://ci.appveyor.com/project/G-Research/parquetsharp-w98lm) |
+| **Windows Build** | [![Windows CI Status](https://github.com/G-Research/ParquetSharp/workflows/Windows%20CI/badge.svg)](https://github.com/G-Research/ParquetSharp/actions?query=workflow%3A%22Windows+CI%22) |
+| **Linux Build** | [![Linux CI Status](https://github.com/G-Research/ParquetSharp/workflows/Linux%20CI/badge.svg)](https://github.com/G-Research/ParquetSharp/actions?query=workflow%3A%22Linux+CI%22) |
 
 ## Examples
 
@@ -29,15 +29,17 @@ var objectIds = new int[] { /* ... */ };
 var values = timestamps.Select(t => objectIds.Select(o => (float) rand.NextDouble()).ToArray()).ToArray();
 var columns = new[] {"Timestamp", "ObjectId", "Value"};
 
-using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet", columns))
+var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet", columns);
+
+for (int i = 0; i != timestamps.Length; ++i)
 {
-    for (int i = 0; i != timestamps.Length; ++i)
+    for (int j = 0; j != objectIds.Length; ++j)
     {
-        for (int j = 0; j != objectIds.Length; ++j)
-        {
-            rowWriter.WriteRow((timestamps[i], objectIds[j], values[i][j]));
-        }
+        rowWriter.WriteRow((timestamps[i], objectIds[j], values[i][j]));
     }
+}
+
+rowWriter.Close();
 }
 ```
 
@@ -82,33 +84,34 @@ var columns = new Column[]
     new Column<float>("Value")
 };
 
-using (var file = new ParquetFileWriter("float_timeseries.parquet", columns))
-using (var rowGroup = file.AppendRowGroup())
+using var file = new ParquetFileWriter("float_timeseries.parquet", columns);
+using var rowGroup = file.AppendRowGroup();
+
+using (var timestampWriter = rowGroup.NextColumn().LogicalWriter<DateTime>())
 {
-    using (var timestampWriter = rowGroup.NextColumn().LogicalWriter<DateTime>())
+    for (int i = 0; i != timestamps.Length; ++i)
     {
-        for (int i = 0; i != timestamps.Length; ++i)
-        {
-            timestampWriter.WriteBatch(Enumerable.Repeat(timestamps[i], objectIds.Length).ToArray());
-        }
-    }
-
-    using (var objectIdWriter = rowGroup.NextColumn().LogicalWriter<int>())
-    {
-        for (int i = 0; i != timestamps.Length; ++i)
-        {
-            objectIdWriter.WriteBatch(objectIds);
-        }
-    }
-
-    using (var valueWriter = rowGroup.NextColumn().LogicalWriter<float>())
-    {
-        for (int i = 0; i != timestamps.Length; ++i)
-        {
-            valueWriter.WriteBatch(values[i]);
-        }
+        timestampWriter.WriteBatch(Enumerable.Repeat(timestamps[i], objectIds.Length).ToArray());
     }
 }
+
+using (var objectIdWriter = rowGroup.NextColumn().LogicalWriter<int>())
+{
+    for (int i = 0; i != timestamps.Length; ++i)
+    {
+        objectIdWriter.WriteBatch(objectIds);
+    }
+}
+
+using (var valueWriter = rowGroup.NextColumn().LogicalWriter<float>())
+{
+    for (int i = 0; i != timestamps.Length; ++i)
+    {
+        valueWriter.WriteBatch(values[i]);
+    }
+}
+
+file.Close();
 ```
 
 ## Rationale
@@ -132,7 +135,7 @@ Typically this can arise when attempting to access an instance whose owner has b
 
 Building ParquetSharp for Windows requires the following dependencies:
 - Visual Studio 2019 (16.1 or higher)
-- Apache Arrow (0.15.0)
+- Apache Arrow (0.16.0)
 
 For building arrow (including parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). Note that the Windows build needs to be done in a Visual Studio x64 Native Tools Command Prompt for the build script to succeed.
 
@@ -156,12 +159,12 @@ We welcome new contributors! We will happily receive PRs for bug fixes or small 
 
 ## License
 
-Copyright 2018 G-Research
+Copyright 2018-2020 G-Research
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use these files except in compliance with the License.
 You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,

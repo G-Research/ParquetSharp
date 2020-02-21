@@ -57,7 +57,12 @@ namespace ParquetSharp.Schema
 
             return strings;
         }
-        
+
+        public override string ToString()
+        {
+            return ToDotString();
+        }
+
         internal readonly ParquetHandle Handle;
 
         private static IntPtr Make(string[] dotVector)

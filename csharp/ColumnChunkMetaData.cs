@@ -16,6 +16,16 @@ namespace ParquetSharp
         }
 
         public Compression Compression => ExceptionInfo.Return<Compression>(_handle, ColumnChunkMetaData_Compression);
+
+        public ColumnCryptoMetaData CryptoMetadata
+        {
+            get
+            {
+                var handle = ExceptionInfo.Return<IntPtr>(_handle, ColumnChunkMetaData_CryptoMetadata);
+                return handle == IntPtr.Zero ? null : new ColumnCryptoMetaData(handle);
+            }
+        }
+
         public unsafe Encoding[] Encodings
         {
             get
@@ -46,6 +56,9 @@ namespace ParquetSharp
         
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnChunkMetaData_Compression(IntPtr columnChunkMetaData, out Compression compression);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ColumnChunkMetaData_CryptoMetadata(IntPtr columnChunkMetaData, out IntPtr columnCryptoMetaData);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnChunkMetaData_Encodings(IntPtr columnChunkMetaData, out IntPtr encodings);

@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks Condition="'$(OS)'=='Windows_NT'">netcoreapp3.0;net461</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)'=='Unix'">netcoreapp3.0</TargetFrameworks>
-    <LangVersion>7.3</LangVersion>
+    <TargetFrameworks Condition="'$(OS)'=='Windows_NT'">netcoreapp3.1;net461</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)'=='Unix'">netcoreapp3.1</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
     <AssemblyName>ParquetSharp.Test</AssemblyName>
     <RootNamespace>ParquetSharp.Test</RootNamespace>
     <Platforms>x64</Platforms>
@@ -13,10 +13,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
-    <PackageReference Include="Parquet.Net" Version="3.3.10" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
+    <PackageReference Include="Parquet.Net" Version="3.4.3" />
   </ItemGroup>
 
   <ItemGroup>
