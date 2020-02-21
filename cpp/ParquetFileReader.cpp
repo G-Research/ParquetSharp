@@ -29,6 +29,11 @@ extern "C"
 		delete reader;
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileReader_Close(ParquetFileReader* reader)
+	{
+		TRYCATCH(reader->Close();)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileReader_MetaData(const ParquetFileReader* reader, std::shared_ptr<FileMetaData>** fileMetaData)
 	{
 		TRYCATCH(*fileMetaData = new std::shared_ptr<FileMetaData>(reader->metadata());)
