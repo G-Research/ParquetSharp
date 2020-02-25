@@ -29,7 +29,7 @@ var objectIds = new int[] { /* ... */ };
 var values = timestamps.Select(t => objectIds.Select(o => (float) rand.NextDouble()).ToArray()).ToArray();
 var columns = new[] {"Timestamp", "ObjectId", "Value"};
 
-var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet", columns);
+using var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet", columns);
 
 for (int i = 0; i != timestamps.Length; ++i)
 {
