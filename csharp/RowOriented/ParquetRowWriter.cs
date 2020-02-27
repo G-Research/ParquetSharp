@@ -43,27 +43,13 @@ namespace ParquetSharp.RowOriented
 
         public void Dispose()
         {
-            if (_pos != 0)
-            {
-                _writeAction(this, _rows, _pos);
-                _pos = 0;
-            }
-
-            _rowGroupWriter?.Dispose();
-            _rowGroupWriter = null;
+            FlushAndDisposeRowGroup();
             _parquetFileWriter.Dispose();
         }
 
         public void Close()
         {
-            if (_pos != 0)
-            {
-                _writeAction(this, _rows, _pos);
-                _pos = 0;
-            }
-
-            _rowGroupWriter?.Dispose();
-            _rowGroupWriter = null;
+            FlushAndDisposeRowGroup();
             _parquetFileWriter.Close();
         }
 
@@ -103,6 +89,18 @@ namespace ParquetSharp.RowOriented
             {
                 columnWriter.WriteBatch(values, 0, length);
             }
+        }
+
+        private void FlushAndDisposeRowGroup()
+        {
+            if (_rowGroupWriter != null)
+            {
+                _writeAction(this, _rows, _pos);
+                _pos = 0;
+            }
+
+            _rowGroupWriter?.Dispose();
+            _rowGroupWriter = null;
         }
 
         private readonly ParquetFileWriter _parquetFileWriter;
