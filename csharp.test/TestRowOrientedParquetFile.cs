@@ -89,6 +89,29 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestEmptyRowGroup([Values(false, true)] bool closeBeforeDispose)
+        {
+            // Writing and reading an empty row group file.
+            // https://github.com/G-Research/ParquetSharp/issues/110
+
+            using var buffer = new ResizableBuffer();
+
+            using (var outputStream = new BufferOutputStream(buffer))
+            {
+                using var writer = ParquetFile.CreateRowWriter<(int, double, DateTime)>(outputStream);
+                if (closeBeforeDispose)
+                {
+                    writer.Close();
+                }
+            }
+
+            using var inputStream = new BufferReader(buffer);
+            using var reader = ParquetFile.CreateRowReader<(int, double, DateTime)>(inputStream);
+
+            Assert.AreEqual(new (int, double, DateTime)[0], reader.ReadRows(0));
+        }
+
+        [Test]
         public static void TestWriterDoubleDispose()
         {
             // ParquetRowWriter is not double-Dispose safe (Issue 64)
