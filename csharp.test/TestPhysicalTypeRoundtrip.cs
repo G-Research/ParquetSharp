@@ -13,51 +13,31 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestRoundTrip([Values(true, false)] bool useDictionaryEncoding)
         {
-            TestRoundTrip(CreateExpectedColumns(), useDictionaryEncoding);
+            TestRoundTrip(CreateExpectedColumns(72), useDictionaryEncoding);
         }
 
         [Test]
         public static void TestRoundTripBuffered([Values(true, false)] bool useDictionaryEncoding)
         {
-            TestRoundTripBuffered(CreateExpectedColumns(), useDictionaryEncoding);
+            TestRoundTripBuffered(CreateExpectedColumns(72), useDictionaryEncoding);
         }
 
         [Test]
-        public static void TestRoundTripManyDoubles([Values(true, false)] bool useDictionaryEncoding)
+        public static void TestRoundTripMany([Values(true, false)] bool useDictionaryEncoding)
         {
-            // BUG: Added tests that reproduce an issue when serialising a lot of doubles using buffered row groups.
+            // BUG: Added tests that reproduce an issue when serialising a lot of values using buffered row groups.
             // BUG: Also causes Encodings to return duplicated entries.
 
-            var expectedColumns = new[]
-            {
-                new ExpectedColumn
-                {
-                    Name = "double_field",
-                    PhysicalType = PhysicalType.Double,
-                    Values = Enumerable.Range(0, 720_000).Select(i => i * Math.PI).ToArray()
-                }
-            };
-
-            TestRoundTrip(expectedColumns, useDictionaryEncoding);
+            TestRoundTrip(CreateExpectedColumns(720_000), useDictionaryEncoding);
         }
 
         [Test]
-        public static void TestRoundTripBufferedManyDoubles([Values(true, false)] bool useDictionaryEncoding)
+        public static void TestRoundTripBufferedMany([Values(true, false)] bool useDictionaryEncoding)
         {
-            // BUG: Added tests that reproduce an issue when serialising a lot of doubles using buffered row groups.
+            // BUG: Added tests that reproduce an issue when serialising a lot of values using buffered row groups.
             // BUG: Also causes Encodings to return duplicated entries.
-                    
-            var expectedColumns = new[]
-            {
-                new ExpectedColumn
-                {
-                    Name = "double_field",
-                    PhysicalType = PhysicalType.Double,
-                    Values = Enumerable.Range(0, 720_000).Select(i => i * Math.PI).ToArray()
-                }
-            };
 
-            TestRoundTripBuffered(expectedColumns, useDictionaryEncoding);
+            TestRoundTripBuffered(CreateExpectedColumns(720_000), useDictionaryEncoding);
         }
 
         private static void TestRoundTrip(ExpectedColumn[] expectedColumns, bool useDictionaryEncoding)
@@ -115,7 +95,10 @@ namespace ParquetSharp.Test
                         var column = expectedColumns[i];
                         var range = (r, Math.Min(r + rangeLength, numRows));
 
-                        Console.WriteLine("Writing '{0}' (range: {1})", column.Name, range);
+                        if (range.Item1 == 0 || range.Item2 == numRows)
+                        {
+                            Console.WriteLine("Writing '{0}' (range: {1})", column.Name, range);
+                        }
 
                         using var columnWriter = rowGroupWriter.Column(i);
                         columnWriter.Apply(new ValueSetter(column.Values, range));
@@ -203,7 +186,7 @@ namespace ParquetSharp.Test
             return builder.Build();
         }
 
-        private static ExpectedColumn[] CreateExpectedColumns()
+        private static ExpectedColumn[] CreateExpectedColumns(int numRows)
         {
             return new[]
             {
@@ -212,38 +195,38 @@ namespace ParquetSharp.Test
                     Name = "boolean_field",
                     Encodings = new[] {Encoding.Plain, Encoding.Rle},
                     PhysicalType = PhysicalType.Boolean,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i % 3 == 0).ToArray()
+                    Values = Enumerable.Range(0, numRows).Select(i => i % 3 == 0).ToArray()
                 },
                 new ExpectedColumn
                 {
                     Name = "int32_field",
                     PhysicalType = PhysicalType.Int32,
-                    Values = Enumerable.Range(0, NumRows).ToArray()
+                    Values = Enumerable.Range(0, numRows).ToArray()
                 },
                 new ExpectedColumn
                 {
                     Name = "int64_field",
                     PhysicalType = PhysicalType.Int64,
-                    Values = Enumerable.Range(0, NumRows).Select(i => (long) i * i).ToArray()
+                    Values = Enumerable.Range(0, numRows).Select(i => (long) i * i).ToArray()
                 },
                 new ExpectedColumn
                 {
                     Name = "int96_field",
                     PhysicalType = PhysicalType.Int96,
                     SortOrder = SortOrder.Unknown,
-                    Values = Enumerable.Range(0, NumRows).Select(i => new Int96(i, i*2, i*3)).ToArray()
+                    Values = Enumerable.Range(0, numRows).Select(i => new Int96(i, i*2, i*3)).ToArray()
                 },
                 new ExpectedColumn
                 {
                     Name = "float_field",
                     PhysicalType = PhysicalType.Float,
-                    Values = Enumerable.Range(0, NumRows).Select(i => (float) Math.Sqrt(i)).ToArray()
+                    Values = Enumerable.Range(0, numRows).Select(i => (float) Math.Sqrt(i)).ToArray()
                 },
                 new ExpectedColumn
                 {
                     Name = "double_field",
                     PhysicalType = PhysicalType.Double,
-                    Values = Enumerable.Range(0, NumRows).Select(i => i * Math.PI).ToArray()
+                    Values = Enumerable.Range(0, numRows).Select(i => i * Math.PI).ToArray()
                 }
             };
         }
@@ -266,7 +249,5 @@ namespace ParquetSharp.Test
             public Encoding[] Encodings = {Encoding.PlainDictionary, Encoding.Plain, Encoding.Rle};
             public Compression Compression = Compression.Lz4;
         }
-
-        private const int NumRows = 72;
     }
 }
