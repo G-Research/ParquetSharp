@@ -14,7 +14,8 @@ namespace ParquetSharp.Test
             // 2^i, 7^j, 11^k are mutually co-prime for i,j,k>0
             [Values(2, 8, 32, 128)] int rowsPerBatch,
             [Values(7, 49, 343, 2401)] int writeBufferLength,
-            [Values(11, 121, 1331)] int readBufferLength
+            [Values(11, 121, 1331)] int readBufferLength,
+            [Values(true, false)] bool useDictionaryEncoding
         )
         {
             var expectedColumns = CreateExpectedColumns();
@@ -25,7 +26,8 @@ namespace ParquetSharp.Test
             // Write our expected columns to the parquet in-memory file.
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, schemaColumns);
+                using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
+                using var fileWriter = new ParquetFileWriter(outStream, schemaColumns, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
 
                 foreach (var column in expectedColumns)
@@ -50,7 +52,8 @@ namespace ParquetSharp.Test
             // 2^i, 7^j, 11^k are mutually co-prime for i,j,k>0
             [Values(2, 8, 32, 128)] int rowsPerBatch,
             [Values(7, 49, 343, 2401)] int writeBufferLength,
-            [Values(11, 121, 1331)] int readBufferLength
+            [Values(11, 121, 1331)] int readBufferLength,
+            [Values(true, false)] bool useDictionaryEncoding
         )
         {
             var expectedColumns = CreateExpectedColumns();
@@ -61,7 +64,8 @@ namespace ParquetSharp.Test
             // Write our expected columns to the parquet in-memory file.
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, schemaColumns);
+                using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
+                using var fileWriter = new ParquetFileWriter(outStream, schemaColumns, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
 
                 const int rangeLength = 9;
@@ -87,6 +91,23 @@ namespace ParquetSharp.Test
 
             // Read back the columns and make sure they match.
             AssertReadRoundtrip(rowsPerBatch, readBufferLength, buffer, expectedColumns);
+        }
+
+        private static WriterProperties CreateWriterProperties(ExpectedColumn[] expectedColumns, bool useDictionaryEncoding)
+        {
+            var builder = new WriterPropertiesBuilder();
+
+            builder.Compression(Compression.Lz4);
+
+            if (!useDictionaryEncoding)
+            {
+                foreach (var column in expectedColumns)
+                {
+                    builder.DisableDictionary(column.Name);
+                }
+            }
+
+            return builder.Build();
         }
 
         private static void AssertReadRoundtrip(int rowsPerBatch, int readBufferLength, ResizableBuffer buffer, ExpectedColumn[] expectedColumns)
