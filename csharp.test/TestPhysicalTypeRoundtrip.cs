@@ -11,7 +11,7 @@ namespace ParquetSharp.Test
     internal static class TestPhysicalTypeRoundtrip
     {
         [Test]
-        public static void TestReaderWriteTypes()
+        public static void TestRoundTrip()
         {
             var schema = CreateSchema();
             var writerProperties = CreateWriterProperties();
@@ -24,15 +24,54 @@ namespace ParquetSharp.Test
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var fileWriter = new ParquetFileWriter(outStream, schema, writerProperties, keyValueMetadata);
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
 
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                foreach (var column in expectedColumns)
                 {
-                    foreach (var column in expectedColumns)
-                    {
-                        Console.WriteLine("Writing '{0}'", column.Name);
+                    Console.WriteLine("Writing '{0}'", column.Name);
 
-                        using var columnWriter = rowGroupWriter.NextColumn();
-                        columnWriter.Apply(new ValueSetter(column.Values));
+                    using var columnWriter = rowGroupWriter.NextColumn();
+                    columnWriter.Apply(new ValueSetter(column.Values));
+                }
+
+                fileWriter.Close();
+            }
+
+            // Read back the columns and make sure they match.
+            AssertReadRoundtrip(buffer, expectedColumns);
+        }
+
+        [Test]
+        public static void TestRoundTripBuffered()
+        {
+            // Same as the default round-trip test, but use buffered row groups.
+
+            var schema = CreateSchema();
+            var writerProperties = CreateWriterProperties();
+            var keyValueMetadata = new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}};
+            var expectedColumns = CreateExpectedColumns();
+
+            using var buffer = new ResizableBuffer();
+
+            // Write our expected columns to the parquet in-memory file.
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var fileWriter = new ParquetFileWriter(outStream, schema, writerProperties, keyValueMetadata);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                const int rangeLength = 9;
+
+                for (int r = 0; r < NumRows; r += rangeLength)
+                {
+                    for (var i = 0; i < expectedColumns.Length; i++)
+                    {
+                        var column = expectedColumns[i];
+                        var range = (r, Math.Min(r + rangeLength, NumRows));
+
+                        Console.WriteLine("Writing '{0}' (range: {1})", column.Name, range);
+
+                        using var columnWriter = rowGroupWriter.Column(i);
+                        columnWriter.Apply(new ValueSetter(column.Values, range));
                     }
                 }
 
@@ -40,6 +79,11 @@ namespace ParquetSharp.Test
             }
 
             // Read back the columns and make sure they match.
+            AssertReadRoundtrip(buffer, expectedColumns);
+        }
+
+        private static void AssertReadRoundtrip(ResizableBuffer buffer, ExpectedColumn[] expectedColumns)
+        {
             using var inStream = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(inStream);
             using var fileMetaData = fileReader.FileMetaData;
@@ -83,7 +127,7 @@ namespace ParquetSharp.Test
                 Assert.AreEqual(expected.Values, columnReader.Apply(new PhysicalValueGetter(chunkMetaData.NumValues)).values);
             }
         }
-
+        
         private static GroupNode CreateSchema()
         {
             var fields = new Node[]

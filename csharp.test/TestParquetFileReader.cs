@@ -33,11 +33,10 @@ namespace ParquetSharp.Test
                 {
                     using (var writer = new ParquetFileWriter("file.parquet", new Column[] {new Column<int>("ids")}))
                     {
-                        using (var groupWriter = writer.AppendRowGroup())
-                        {
-                            using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
-                            columnWriter.WriteBatch(new[] {1, 2, 3});
-                        }
+                        using var groupWriter = writer.AppendRowGroup();
+                        using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
+
+                        columnWriter.WriteBatch(new[] {1, 2, 3});
 
                         writer.Close();
                     }

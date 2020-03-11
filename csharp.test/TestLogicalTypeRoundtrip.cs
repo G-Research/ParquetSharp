@@ -10,7 +10,7 @@ namespace ParquetSharp.Test
     internal static class TestLogicalTypeRoundtrip
     {
         [Test]
-        public static void TestReaderWriteTypes(
+        public static void TestRoundTrip(
             // 2^i, 7^j, 11^k are mutually co-prime for i,j,k>0
             [Values(2, 8, 32, 128)] int rowsPerBatch,
             [Values(7, 49, 343, 2401)] int writeBufferLength,
@@ -26,15 +26,57 @@ namespace ParquetSharp.Test
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var fileWriter = new ParquetFileWriter(outStream, schemaColumns);
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
 
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                foreach (var column in expectedColumns)
                 {
-                    foreach (var column in expectedColumns)
-                    {
-                        Console.WriteLine("Writing '{0}' ({1})", column.Name, column.Values.GetType().GetElementType());
+                    Console.WriteLine("Writing '{0}' ({1})", column.Name, column.Values.GetType().GetElementType());
 
-                        using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter(writeBufferLength);
-                        columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch));
+                    using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter(writeBufferLength);
+                    columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch));
+                }
+
+                fileWriter.Close();
+            }
+
+            Console.WriteLine();
+
+            // Read back the columns and make sure they match.
+            AssertReadRoundtrip(rowsPerBatch, readBufferLength, buffer, expectedColumns);
+        }
+
+        [Test]
+        public static void TestRoundTripBuffered(
+            // 2^i, 7^j, 11^k are mutually co-prime for i,j,k>0
+            [Values(2, 8, 32, 128)] int rowsPerBatch,
+            [Values(7, 49, 343, 2401)] int writeBufferLength,
+            [Values(11, 121, 1331)] int readBufferLength
+        )
+        {
+            var expectedColumns = CreateExpectedColumns();
+            var schemaColumns = expectedColumns.Select(c => new Column(c.Values.GetType().GetElementType(), c.Name, c.LogicalTypeOverride)).ToArray();
+
+            using var buffer = new ResizableBuffer();
+
+            // Write our expected columns to the parquet in-memory file.
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var fileWriter = new ParquetFileWriter(outStream, schemaColumns);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                const int rangeLength = 9;
+                
+                for (int r = 0; r < NumRows; r += rangeLength)
+                {
+                    for (var i = 0; i < expectedColumns.Length; i++)
+                    {
+                        var column = expectedColumns[i];
+                        var range = (r, Math.Min(r + rangeLength, NumRows));
+
+                        Console.WriteLine("Writing '{0}' (element type: {1}) (range: {2})", column.Name, column.Values.GetType().GetElementType(), range);
+
+                        using var columnWriter = rowGroupWriter.Column(i).LogicalWriter(writeBufferLength);
+                        columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch, range));
                     }
                 }
 
@@ -44,6 +86,11 @@ namespace ParquetSharp.Test
             Console.WriteLine();
 
             // Read back the columns and make sure they match.
+            AssertReadRoundtrip(rowsPerBatch, readBufferLength, buffer, expectedColumns);
+        }
+
+        private static void AssertReadRoundtrip(int rowsPerBatch, int readBufferLength, ResizableBuffer buffer, ExpectedColumn[] expectedColumns)
+        {
             using var inStream = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(inStream);
             using var fileMetaData = fileReader.FileMetaData;
@@ -127,12 +174,10 @@ namespace ParquetSharp.Test
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<float[]>("big_array_field")});
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<float[]>();
 
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                {
-                    using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<float[]>();
-                    colWriter.WriteBatch(expected);
-                }
+                colWriter.WriteBatch(expected);
 
                 fileWriter.Close();
             }
@@ -169,12 +214,10 @@ namespace ParquetSharp.Test
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<double?[][]>("a")});
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[][]>();
 
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                {
-                    using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[][]>();
-                    colWriter.WriteBatch(expected);
-                }
+                colWriter.WriteBatch(expected);
 
                 fileWriter.Close();
             }
@@ -205,12 +248,10 @@ namespace ParquetSharp.Test
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string[]>("a")});
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<string[]>();
 
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                {
-                    using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<string[]>();
-                    colWriter.WriteBatch(expected);
-                }
+                colWriter.WriteBatch(expected);
 
                 fileWriter.Close();
             }

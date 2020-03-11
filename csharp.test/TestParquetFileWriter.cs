@@ -104,17 +104,14 @@ namespace ParquetSharp.Test
                 using (var outStream = new BufferOutputStream(buffer))
                 {
                     using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string>("Name")});
+                    using var groupWriter = fileWriter.AppendRowGroup();
+                    using var columnWriter = groupWriter.NextColumn().LogicalWriter<string>();
 
-                    using (var groupWriter = fileWriter.AppendRowGroup())
-                    {
-                        using var columnWriter = groupWriter.NextColumn().LogicalWriter<string>();
-
-                        // Strings to byte arrays memory pooling is done by the ByteBuffer class.
-                        // If something is fishy there (e.g. bad memory ownership wrt the GC),
-                        // we expect to see consequences here if we write enough strings.
-                        // It's not bullet proof, but it has found a few issues.
-                        columnWriter.WriteBatch(strings);
-                    }
+                    // Strings to byte arrays memory pooling is done by the ByteBuffer class.
+                    // If something is fishy there (e.g. bad memory ownership wrt the GC),
+                    // we expect to see consequences here if we write enough strings.
+                    // It's not bullet proof, but it has found a few issues.
+                    columnWriter.WriteBatch(strings);
 
                     fileWriter.Close();
                 }
@@ -144,17 +141,14 @@ namespace ParquetSharp.Test
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string>("Name")});
+                using var groupWriter = fileWriter.AppendRowGroup();
+                using var columnWriter = groupWriter.NextColumn().LogicalWriter<string>();
 
-                using (var groupWriter = fileWriter.AppendRowGroup())
-                {
-                    using var columnWriter = groupWriter.NextColumn().LogicalWriter<string>();
-
-                    // Strings to byte arrays memory pooling is done by the ByteBuffer class.
-                    // If something is fishy there (e.g. bad memory ownership wrt the GC),
-                    // we expect to see consequences here if we write enough strings.
-                    // It's not bullet proof, but it has found a few issues.
-                    columnWriter.WriteBatch(strings);
-                }
+                // Strings to byte arrays memory pooling is done by the ByteBuffer class.
+                // If something is fishy there (e.g. bad memory ownership wrt the GC),
+                // we expect to see consequences here if we write enough strings.
+                // It's not bullet proof, but it has found a few issues.
+                columnWriter.WriteBatch(strings);
 
                 fileWriter.Close();
             }

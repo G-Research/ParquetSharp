@@ -18,12 +18,10 @@ namespace ParquetSharp.Test
             using (var output = new ManagedOutputStream(buffer, leaveOpen: true))
             {
                 using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+                using var groupWriter = writer.AppendRowGroup();
+                using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
 
-                using (var groupWriter = writer.AppendRowGroup())
-                {
-                    using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
-                    columnWriter.WriteBatch(expected);
-                }
+                columnWriter.WriteBatch(expected);
 
                 writer.Close();
             }
@@ -48,12 +46,10 @@ namespace ParquetSharp.Test
                 using (var output = new ManagedOutputStream(File.OpenWrite("file.parquet")))
                 {
                     using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+                    using var groupWriter = writer.AppendRowGroup();
+                    using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
 
-                    using (var groupWriter = writer.AppendRowGroup())
-                    {
-                        using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
-                        columnWriter.WriteBatch(new[] {1, 2, 3});
-                    }
+                    columnWriter.WriteBatch(new[] {1, 2, 3});
 
                     writer.Close();
                 }
@@ -100,12 +96,10 @@ namespace ParquetSharp.Test
                 using (var output = new ManagedOutputStream(buffer, leaveOpen: true))
                 {
                     using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+                    using var groupWriter = writer.AppendRowGroup();
+                    using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
 
-                    using (var groupWriter = writer.AppendRowGroup())
-                    {
-                        using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
-                        columnWriter.WriteBatch(expected);
-                    }
+                    columnWriter.WriteBatch(expected);
 
                     writer.Close();
                 }

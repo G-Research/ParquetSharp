@@ -74,12 +74,10 @@ namespace ParquetSharp.Test
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var fileWriter = new ParquetFileWriter(outStream, columns, Compression.Snappy);
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>();
 
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                {
-                    using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>();
-                    columnWriter.WriteBatch(values);
-                }
+                columnWriter.WriteBatch(values);
 
                 fileWriter.Close();
             }

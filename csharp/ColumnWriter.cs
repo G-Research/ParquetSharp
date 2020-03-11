@@ -166,8 +166,16 @@ namespace ParquetSharp
             return visitor.OnColumnWriter(this);
         }
 
-        public void WriteBatch(long numValues, ReadOnlySpan<TValue> values)
+        public void WriteBatch(ReadOnlySpan<TValue> values)
         {
+            WriteBatch(values.Length, null, null, values);
+        }
+
+        [Obsolete("Use the WriteBatch(ReadOnlySpan<TValue> values) overload. The numValues argument is redundant.")]
+        public void WriteBatch(int numValues, ReadOnlySpan<TValue> values)
+        {
+            if (numValues > values.Length) throw new ArgumentOutOfRangeException(nameof(numValues), "numValues is larger than length of values");
+
             WriteBatch(numValues, null, null, values);
         }
 
