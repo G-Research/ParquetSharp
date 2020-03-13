@@ -4,13 +4,13 @@ find_package(Arrow REQUIRED)
 find_package(Boost COMPONENTS filesystem regex system REQUIRED)
 find_package(Brotli REQUIRED)
 find_package(BZip2 REQUIRED)
-find_package(double-conversion REQUIRED)
-find_package(Gflags REQUIRED)
-find_package(Glog REQUIRED)
-find_package(Lz4 REQUIRED)
+find_package(double-conversion CONFIG REQUIRED)
+find_package(gflags CONFIG REQUIRED)
+find_package(glog CONFIG REQUIRED)
+find_package(lz4 CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
-find_package(Snappy REQUIRED)
-find_package(Thrift REQUIRED)
+find_package(Snappy CONFIG REQUIRED)
+find_package(Thrift CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Zstd REQUIRED)
 find_package(ParquetCpp REQUIRED)
@@ -81,35 +81,22 @@ generate_export_header(ParquetSharpNative
 
 include_directories(
 	${PROJECT_BINARY_DIR}
-	${Arrow_INCLUDE_DIRS} 
-	${Boost_INCLUDE_DIRS} 
-	${Brotli_INCLUDE_DIRS} 
-	${BZip2_INCLUDE_DIRS}
-	${Gflags_INCLUDE_DIRS}
-	${Glog_INCLUDE_DIRS}
-	${Lz4_INCLUDE_DIRS} 
-	${Snappy_INCLUDE_DIRS}
-	${SSL_INCLUDE_DIRS}
-	${Thrift_INCLUDE_DIRS}
-	${ZLIB_INCLUDE_DIRS}
-	${Zstd_INCLUDE_DIRS} 
 	${ParquetCpp_INCLUDE_DIRS})
 
 target_link_libraries(ParquetSharpNative 
 	${ParquetCpp_LIBRARIES}
-	${Arrow_LIBRARIES} 
+	${Arrow_LIBRARIES}
 	${Boost_LIBRARIES}
 	${Brotli_LIBRARIES}
-	${BZip2_LIBRARIES}
+	BZip2::BZip2
 	${Crypto_LIBRARIES}
 	double-conversion::double-conversion
-	${Glog_LIBRARIES}
-	${Gflags_LIBRARIES}
-	${Lz4_LIBRARIES}
-	${Snappy_LIBRARIES}
+	glog::glog
+	lz4::lz4
 	${SSL_LIBRARIES}
-	${Thrift_LIBRARIES}
-	${ZLIB_LIBRARIES}
+	Snappy::snappy
+	thrift::thrift
+	ZLIB::ZLIB
 	${Zstd_LIBRARIES} 
 	${Threads_LIBRARIES}
 	${CMAKE_DL_LIBS}

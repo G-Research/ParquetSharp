@@ -15,10 +15,6 @@ set(CMAKE_DEBUG_POSTFIX d)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-# set(CMAKE_PREFIX_PATH "F:/Temporary/Parquet/20180517/x64-windows-static" CACHE STRING "The default location for CMake to look libraries in.")
-
-set(BOOST_LIBRARYDIR "${CMAKE_PREFIX_PATH}/debug/lib")
-set(ZLIB_ROOT "${CMAKE_PREFIX_PATH}/debug")
 
 if (MSVC)
 
