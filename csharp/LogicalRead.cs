@@ -48,7 +48,7 @@ namespace ParquetSharp
             return null;
         }
 
-        public static Converter GetConverter(LogicalType logicalType, int scale)
+        public static Converter GetConverter(LogicalType logicalType, int scale, ByteArrayReaderCache<TPhysical, TLogical> byteArrayCache)
         {
             if (typeof(TLogical) == typeof(bool) ||
                 typeof(TLogical) == typeof(int) ||
@@ -223,11 +223,20 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(string))
             {
-                return (Converter) (Delegate) (LogicalRead<string, ByteArray>.Converter) ConvertString;
+                return byteArrayCache.IsUsable
+                    ? (Converter) (Delegate) (LogicalRead<string, ByteArray>.Converter) ((s, dl, d, nl) => ConvertString(s, dl, d, nl, (ByteArrayReaderCache<ByteArray, string>) (object) byteArrayCache)) 
+                    : (Converter) (Delegate) (LogicalRead<string, ByteArray>.Converter) ConvertString;
             }
 
             if (typeof(TLogical) == typeof(byte[]))
             {
+                // Do not reuse byte[] instances, as they are not immutable.
+                // Perhaps an optional optimisation if there is demand for it?
+
+                //return byteArrayCache.IsUsable
+                //    ? (Converter) (Delegate) (LogicalRead<byte[], ByteArray>.Converter) ((s, dl, d, nl) => ConvertByteArray(s, dl, d, nl, (ByteArrayReaderCache<ByteArray, byte[]>) (object) byteArrayCache))
+                //    : (Converter) (Delegate) (LogicalRead<byte[], ByteArray>.Converter) ConvertByteArray;
+                
                 return (Converter) (Delegate) (LogicalRead<byte[], ByteArray>.Converter) ConvertByteArray;
             }
 
@@ -401,6 +410,14 @@ namespace ParquetSharp
             }
         }
 
+        private static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string> destination, short nullLevel, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
+        {
+            for (int i = 0, src = 0; i != destination.Length; ++i)
+            {
+                destination[i] = !defLevels.IsEmpty && defLevels[i] == nullLevel ? null : ToString(source[src++], byteArrayCache);
+            }
+        }
+
         private static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i != destination.Length; ++i)
@@ -417,11 +434,18 @@ namespace ParquetSharp
             }
         }
 
+        private static string ToString(ByteArray byteArray, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
+        {
+            return byteArrayCache.TryGetValue(byteArray, out var value) 
+                ? value 
+                : byteArrayCache.Add(byteArray, ToString(byteArray));
+        }
+
         private static unsafe string ToString(ByteArray byteArray)
         {
             return byteArray.Length == 0
                 ? string.Empty
-                : System.Text.Encoding.UTF8.GetString((byte*) byteArray.Pointer, byteArray.Length);
+                : System.Text.Encoding.UTF8.GetString((byte*)byteArray.Pointer, byteArray.Length);
         }
 
         private static byte[] ToByteArray(ByteArray byteArray)
