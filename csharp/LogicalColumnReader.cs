@@ -119,9 +119,10 @@ namespace ParquetSharp
         internal LogicalColumnReader(ColumnReader columnReader, int bufferLength)
             : base(columnReader, bufferLength)
         {
+            _byteArrayCache = new ByteArrayReaderCache<TPhysical, TLogical>(columnReader.ColumnChunkMetaData);
             _bufferedReader = new BufferedReader<TPhysical>(Source, (TPhysical[]) Buffer, DefLevels, RepLevels);
             _directReader = LogicalRead<TLogical, TPhysical>.GetDirectReader();
-            _converter = LogicalRead<TLogical, TPhysical>.GetConverter(LogicalType, ColumnDescriptor.TypeScale);
+            _converter = LogicalRead<TLogical, TPhysical>.GetConverter(LogicalType, ColumnDescriptor.TypeScale, _byteArrayCache);
         }
 
         public override int ReadBatch(Span<TElement> destination)
@@ -309,6 +310,7 @@ namespace ParquetSharp
             return rowsRead;
         }
 
+        private readonly ByteArrayReaderCache<TPhysical, TLogical> _byteArrayCache;
         private readonly BufferedReader<TPhysical> _bufferedReader;
         private readonly LogicalRead<TLogical, TPhysical>.DirectReader _directReader;
         private readonly LogicalRead<TLogical, TPhysical>.Converter _converter;

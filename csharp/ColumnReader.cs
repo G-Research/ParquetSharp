@@ -8,7 +8,7 @@ namespace ParquetSharp
     /// </summary>
     public abstract class ColumnReader : IDisposable
     {
-        internal static ColumnReader Create(IntPtr handle)
+        internal static ColumnReader Create(IntPtr handle, ColumnChunkMetaData columnChunkMetaData)
         {
             var parquetHandle = new ParquetHandle(handle, ColumnReader_Free);
 
@@ -19,21 +19,21 @@ namespace ParquetSharp
                 switch (type)
                 {
                     case PhysicalType.Boolean:
-                        return new ColumnReader<bool>(parquetHandle);
+                        return new ColumnReader<bool>(parquetHandle, columnChunkMetaData);
                     case PhysicalType.Int32:
-                        return new ColumnReader<int>(parquetHandle);
+                        return new ColumnReader<int>(parquetHandle, columnChunkMetaData);
                     case PhysicalType.Int64:
-                        return new ColumnReader<long>(parquetHandle);
+                        return new ColumnReader<long>(parquetHandle, columnChunkMetaData);
                     case PhysicalType.Int96:
-                        return new ColumnReader<Int96>(parquetHandle);
+                        return new ColumnReader<Int96>(parquetHandle, columnChunkMetaData);
                     case PhysicalType.Float:
-                        return new ColumnReader<float>(parquetHandle);
+                        return new ColumnReader<float>(parquetHandle, columnChunkMetaData);
                     case PhysicalType.Double:
-                        return new ColumnReader<double>(parquetHandle);
+                        return new ColumnReader<double>(parquetHandle, columnChunkMetaData);
                     case PhysicalType.ByteArray:
-                        return new ColumnReader<ByteArray>(parquetHandle);
+                        return new ColumnReader<ByteArray>(parquetHandle, columnChunkMetaData);
                     case PhysicalType.FixedLenByteArray:
-                        return new ColumnReader<FixedLenByteArray>(parquetHandle);
+                        return new ColumnReader<FixedLenByteArray>(parquetHandle, columnChunkMetaData);
                     default:
                         throw new NotSupportedException($"Physical type {type} is not supported");
                 }
@@ -46,9 +46,10 @@ namespace ParquetSharp
             }
         }
 
-        internal ColumnReader(ParquetHandle handle)
+        internal ColumnReader(ParquetHandle handle, ColumnChunkMetaData columnChunkMetaData)
         {
             Handle = handle;
+            ColumnChunkMetaData = columnChunkMetaData;
         }
 
         public void Dispose()
@@ -190,13 +191,14 @@ namespace ParquetSharp
         protected static extern IntPtr TypedColumnReader_Skip_FixedLenByteArray(IntPtr columnReader, long numRowsToSkip, out long levelsSkipped);
 
         internal readonly ParquetHandle Handle;
+        internal readonly ColumnChunkMetaData ColumnChunkMetaData;
     }
 
     /// <inheritdoc />
     public sealed class ColumnReader<TValue> : ColumnReader where TValue : unmanaged
     {
-        internal ColumnReader(ParquetHandle handle) 
-            : base(handle)
+        internal ColumnReader(ParquetHandle handle, ColumnChunkMetaData columnChunkMetaData) 
+            : base(handle, columnChunkMetaData)
         {
         }
 
