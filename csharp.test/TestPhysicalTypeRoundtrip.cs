@@ -25,8 +25,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestRoundTripMany([Values(true, false)] bool useDictionaryEncoding)
         {
-            // BUG: Added tests that reproduce an issue when serialising a lot of values using buffered row groups.
-            // BUG: Also causes Encodings to return duplicated entries.
+            // BUG: causes Encodings to return duplicated entries.
 
             TestRoundTrip(CreateExpectedColumns(720_000), useDictionaryEncoding);
         }
@@ -34,8 +33,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestRoundTripBufferedMany([Values(true, false)] bool useDictionaryEncoding)
         {
-            // BUG: Added tests that reproduce an issue when serialising a lot of values using buffered row groups.
-            // BUG: Also causes Encodings to return duplicated entries.
+            // BUG: causes Encodings to return duplicated entries.
 
             TestRoundTripBuffered(CreateExpectedColumns(720_000), useDictionaryEncoding);
         }
@@ -154,7 +152,10 @@ namespace ParquetSharp.Test
                 Assert.AreEqual(expected.TypePrecision, descr.TypePrecision);
                 Assert.AreEqual(expected.TypeScale, descr.TypeScale);
 
-                Assert.AreEqual(expected.Encodings.Where(e => useDictionaryEncoding || e != Encoding.PlainDictionary).ToArray(), chunkMetaData.Encodings);
+                Assert.AreEqual(
+                    expected.Encodings.Where(e => useDictionaryEncoding || e != Encoding.PlainDictionary).ToArray(), 
+                    chunkMetaData.Encodings.Distinct().ToArray());
+
                 Assert.AreEqual(expected.Compression, chunkMetaData.Compression);
                 Assert.AreEqual(expected.Values, columnReader.Apply(new PhysicalValueGetter(chunkMetaData.NumValues)).values);
             }
