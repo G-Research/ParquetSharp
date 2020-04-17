@@ -7,7 +7,7 @@ namespace ParquetSharp.Schema
     /// <summary>
     /// Base class for logical schema types. A type has a name, repetition level, and optionally a logical type.
     /// </summary>
-    [DebuggerDisplay("{NodeType}Node: ({Id}), {Name}, LogicalType: {LogicalType}")]
+    [DebuggerDisplay("{NodeType}Node: ({FieldId}), {Name}, LogicalType: {LogicalType}")]
     public abstract class Node : IDisposable, IEquatable<Node>
     {
         protected Node(IntPtr handle)
@@ -20,7 +20,10 @@ namespace ParquetSharp.Schema
             Handle.Dispose();
         }
 
-        public int Id => ExceptionInfo.Return<int>(Handle, Node_Id);
+        [Obsolete("Use FieldId instead")]
+        public int Id => FieldId;
+
+        public int FieldId => ExceptionInfo.Return<int>(Handle, Node_Field_Id);
         public LogicalType LogicalType => LogicalType.Create(ExceptionInfo.Return<IntPtr>(Handle, Node_Logical_Type));
         public string Name => ExceptionInfo.ReturnString(Handle, Node_Name);
         public NodeType NodeType => ExceptionInfo.Return<NodeType>(Handle, Node_Node_Type);
@@ -58,7 +61,7 @@ namespace ParquetSharp.Schema
         private static extern void Node_Free(IntPtr node);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr Node_Id(IntPtr node, out int id);
+        private static extern IntPtr Node_Field_Id(IntPtr node, out int id);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Node_Logical_Type(IntPtr node, out IntPtr logicalType);

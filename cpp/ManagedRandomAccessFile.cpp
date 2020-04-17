@@ -63,10 +63,10 @@ public:
 
 	Result<std::shared_ptr<arrow::Buffer>> Read(const int64_t nbytes) override
 	{
-		std::shared_ptr<arrow::ResizableBuffer> buffer;
-		RETURN_NOT_OK(arrow::AllocateResizableBuffer(nbytes, &buffer));
+		ARROW_ASSIGN_OR_RAISE(auto pBuffer, arrow::AllocateResizableBuffer(nbytes));	
+		std::shared_ptr<arrow::ResizableBuffer> buffer(pBuffer.release());
 
-		ARROW_ASSIGN_OR_RAISE(int64_t bytes_read, Read(nbytes, buffer->mutable_data()));
+		ARROW_ASSIGN_OR_RAISE(const int64_t bytes_read, Read(nbytes, buffer->mutable_data()));
 		if (bytes_read < nbytes)
 		{
 			RETURN_NOT_OK(buffer->Resize(bytes_read));

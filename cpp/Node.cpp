@@ -13,9 +13,9 @@ extern "C"
 		delete node;
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* Node_Id(const std::shared_ptr<const schema::Node>* node, int* id)
+	PARQUETSHARP_EXPORT ExceptionInfo* Node_Field_Id(const std::shared_ptr<const schema::Node>* node, int* id)
 	{
-		TRYCATCH(*id = (*node)->id();)
+		TRYCATCH(*id = (*node)->field_id();)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* Node_Logical_Type(const std::shared_ptr<const schema::Node>* node, const std::shared_ptr<const LogicalType>** logical_type)

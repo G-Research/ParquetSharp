@@ -54,7 +54,7 @@ extern "C"
 		TRYCATCH
 		(
 			const auto p = reader_properties->file_decryption_properties();
-			*file_decryption_properties = p ? new std::shared_ptr<FileDecryptionProperties>(p, [](const FileDecryptionProperties* ptr) {}) : nullptr;
+			*file_decryption_properties = p ? new std::shared_ptr<FileDecryptionProperties>(p) : nullptr;
 		)
 	}
 }
