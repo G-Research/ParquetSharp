@@ -68,30 +68,29 @@ namespace ParquetSharp.Test
 
             using (var fileWriter = new ParquetFileWriter("float_timeseries.parquet", CreateFloatColumns()))
             {
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+
+                using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
                 {
-                    using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
+                    for (int i = 0; i != dates.Length; ++i)
                     {
-                        for (int i = 0; i != dates.Length; ++i)
-                        {
-                            dateTimeWriter.WriteBatch(Enumerable.Repeat(dates[i], objectIds.Length).ToArray());
-                        }
+                        dateTimeWriter.WriteBatch(Enumerable.Repeat(dates[i], objectIds.Length).ToArray());
                     }
+                }
 
-                    using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
                     {
-                        for (int i = 0; i != dates.Length; ++i)
-                        {
-                            objectIdWriter.WriteBatch(objectIds);
-                        }
+                        objectIdWriter.WriteBatch(objectIds);
                     }
+                }
 
-                    using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
+                using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
                     {
-                        for (int i = 0; i != dates.Length; ++i)
-                        {
-                            valueWriter.WriteBatch(values[i]);
-                        }
+                        valueWriter.WriteBatch(values[i]);
                     }
                 }
 
@@ -156,31 +155,29 @@ namespace ParquetSharp.Test
             {
                 using var writer = new IO.ManagedOutputStream(stream);
                 using var fileWriter = new ParquetFileWriter(writer, CreateFloatColumns());
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
 
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
                 {
-                    using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
+                    for (int i = 0; i != dates.Length; ++i)
                     {
-                        for (int i = 0; i != dates.Length; ++i)
-                        {
-                            dateTimeWriter.WriteBatch(Enumerable.Repeat(dates[i], objectIds.Length).ToArray());
-                        }
+                        dateTimeWriter.WriteBatch(Enumerable.Repeat(dates[i], objectIds.Length).ToArray());
                     }
+                }
 
-                    using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
                     {
-                        for (int i = 0; i != dates.Length; ++i)
-                        {
-                            objectIdWriter.WriteBatch(objectIds);
-                        }
+                        objectIdWriter.WriteBatch(objectIds);
                     }
+                }
 
-                    using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
+                using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
                     {
-                        for (int i = 0; i != dates.Length; ++i)
-                        {
-                            valueWriter.WriteBatch(values[i]);
-                        }
+                        valueWriter.WriteBatch(values[i]);
                     }
                 }
 
@@ -298,30 +295,29 @@ namespace ParquetSharp.Test
 
             using (var fileWriter = new ParquetFileWriter(filename, CreateFloatColumns(), Compression.Snappy))
             {
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+
+                using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
                 {
-                    using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
+                    for (int i = 0; i != dates.Length; ++i)
                     {
-                        for (int i = 0; i != dates.Length; ++i)
-                        {
-                            dateTimeWriter.WriteBatch(Enumerable.Repeat(dates[i], objectIds.Length).ToArray());
-                        }
+                        dateTimeWriter.WriteBatch(Enumerable.Repeat(dates[i], objectIds.Length).ToArray());
                     }
+                }
 
-                    using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
                     {
-                        for (int i = 0; i != dates.Length; ++i)
-                        {
-                            objectIdWriter.WriteBatch(objectIds);
-                        }
+                        objectIdWriter.WriteBatch(objectIds);
                     }
+                }
 
-                    using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
+                using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
+                {
+                    for (int i = 0; i != dates.Length; ++i)
                     {
-                        for (int i = 0; i != dates.Length; ++i)
-                        {
-                            valueWriter.WriteBatch(values[i]);
-                        }
+                        valueWriter.WriteBatch(values[i]);
                     }
                 }
 
@@ -397,11 +393,10 @@ namespace ParquetSharp.Test
 
             using (var fileWriter = new ParquetFileWriter("decimal_timeseries.parquet", new Column[] {new Column<decimal>("Value", LogicalType.Decimal(precision: 29, scale: 3))}))
             {
-                using (var rowGroupWriter = fileWriter.AppendRowGroup())
-                {
-                    using var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>();
-                    valueWriter.WriteBatch(values);
-                }
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>();
+
+                valueWriter.WriteBatch(values);
 
                 fileWriter.Close();
             }

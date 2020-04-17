@@ -20,12 +20,10 @@ namespace ParquetSharp.Test
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var writer = new ParquetFileWriter(outStream, schemaColumns);
+                using var rowGroupWriter = writer.AppendRowGroup();
+                using var colWriter = (ColumnWriter<int>) rowGroupWriter.NextColumn();
 
-                using (var rowGroupWriter = writer.AppendRowGroup())
-                {
-                    var colWriter = (ColumnWriter<int>) rowGroupWriter.NextColumn();
-                    colWriter.WriteBatch(numRows, values);
-                }
+                colWriter.WriteBatch(values);
 
                 writer.Close();
             }
@@ -57,12 +55,10 @@ namespace ParquetSharp.Test
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var writer = new ParquetFileWriter(outStream, schemaColumns);
+                using var rowGroupWriter = writer.AppendRowGroup();
+                using var colWriter = (ColumnWriter<int>) rowGroupWriter.NextColumn();
 
-                using (var rowGroupWriter = writer.AppendRowGroup())
-                {
-                    var colWriter = (ColumnWriter<int>)rowGroupWriter.NextColumn();
-                    colWriter.WriteBatch(numRows, values);
-                }
+                colWriter.WriteBatch(values);
 
                 writer.Close();
             }
