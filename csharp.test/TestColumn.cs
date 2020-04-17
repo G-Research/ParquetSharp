@@ -24,7 +24,7 @@ namespace ParquetSharp.Test
                 using var node = column.CreateSchemaNode();
 
                 Assert.AreEqual(expected.LogicalType, node.LogicalType);
-                Assert.AreEqual(-1, node.Id);
+                Assert.AreEqual(-1, node.FieldId);
                 Assert.AreEqual(expected.Name, node.Name);
                 Assert.AreEqual(NodeType.Primitive, node.NodeType);
                 Assert.AreEqual(null, node.Parent);

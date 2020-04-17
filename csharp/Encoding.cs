@@ -10,6 +10,8 @@ namespace ParquetSharp
         DeltaBinaryPacked = 5,
         DeltaLengthByteArray = 6,
         DeltaByteArray = 7,
-        RleDictionary = 8
+        RleDictionary = 8,
+        ByteStreamSplit = 9,
+        Undefined = 10
     };
 }
