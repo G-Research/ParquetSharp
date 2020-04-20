@@ -31,12 +31,13 @@ endif ()
 if (UNIX)
 	
 	set(CMAKE_SHARED_LIBRARY_PREFIX )
-	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -s -Wl,--no-undefined")
 
 	add_compile_options("-Wall")
 	add_compile_options("-fvisibility=hidden")
-
-	# TODO call strip --strip-unneeded on the generated shared library
+	add_compile_options("-fvisibility-inlines-hidden")
+	# add_link_options("-s")
+	# add_link_options("-Wl,--no-undefined")
 
 endif ()
 
