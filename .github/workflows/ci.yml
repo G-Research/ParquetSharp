@@ -1,4 +1,4 @@
-name: NuGet CI
+name: CI
 
 on:
   push:
@@ -59,6 +59,8 @@ jobs:
         
   # Download both native shared libraries,
   # Rebuild .NET projects (will automatically pick up both libraries and create a nuget package).
+  # Retest .NET unit tests to make sure the native library is fine.
+  # Upload nuget package as an artifact.
   build-nuget:
     runs-on: windows-latest    
     needs: [native-linux, native-windows]
@@ -76,6 +78,8 @@ jobs:
         path: bin
     - name: Build & Run .NET unit tests
       run: dotnet test csharp.test --configuration=Release
+    - name: Build NuGet package
+      run: dotnet pack csharp --configuration=Release
     - name: Upload NuGet artifact 
       uses: actions/upload-artifact@v1
       with:
