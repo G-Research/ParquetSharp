@@ -119,6 +119,7 @@ For building Arrow (including Parquet) and its dependencies, we recommend using 
 ```
 > vcpkg_windows.bat
 > build_windows.bat
+> dotnet build csharp.test --configuration=Release
 ```
 **Linux**
 ```
