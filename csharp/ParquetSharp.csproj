@@ -21,6 +21,7 @@
     <PackageProjectUrl>https://github.com/G-Research/ParquetSharp</PackageProjectUrl>
     <PackageTags>apache parquet gresearch g-research .net c#</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageOutputPath>..\nuget</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup Label="Additional nuget files">
@@ -32,13 +33,13 @@
   </ItemGroup>
 
   <ItemGroup Label="Native Library">
-    <Content Include="..\bin\Debug\ParquetSharpNatived.dll" Link="ParquetSharpNatived.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug' AND '$(OS)'=='Windows_NT'">
+    <Content Include="..\bin\ParquetSharpNatived.dll" Link="ParquetSharpNatived.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug' AND '$(OS)'=='Windows_NT'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\Debug\ParquetSharpNatived.pdb" Link="ParquetSharpNatived.pdb" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug' AND '$(OS)'=='Windows_NT'">
+    <Content Include="..\bin\ParquetSharpNatived.pdb" Link="ParquetSharpNatived.pdb" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug' AND '$(OS)'=='Windows_NT'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\Release\ParquetSharpNative.dll" Link="ParquetSharpNative.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Release' AND '$(OS)'=='Windows_NT'">
+    <Content Include="..\bin\ParquetSharpNative.dll" Link="ParquetSharpNative.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Release' AND '$(OS)'=='Windows_NT'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\bin\ParquetSharpNatived.so" Link="ParquetSharpNatived.so" PackagePath="runtimes/linux-x64/native" Condition="'$(Configuration)'=='Debug' AND ('$(OS)'=='Unix' OR Exists('..\bin\ParquetSharpNatived.so'))">

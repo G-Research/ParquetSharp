@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+
+  # Build and test everything on Linux.
+  # Upload the native shared library as an artifact.
+  native-linux:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.100
+    - name: Install Ubuntu dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get --yes install flex bison
+    - name: Compile vcpkg dependencies
+      run: ./vcpkg_linux.sh
+    - name: Compile native ParquetSharp library
+      run: ./build_linux.sh
+    - name: Build & Run .NET unit tests
+      run: dotnet test csharp.test --configuration=Release
+    - name: Upload native ParquetSharp library
+      uses: actions/upload-artifact@v1
+      with:
+        name: linux-native-library
+        path: bin/ParquetSharpNative.so
+         
+  # Build and test everything on Windows.
+  # Upload the native shared library as an artifact.
+  native-windows:  
+    runs-on: windows-latest    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Compile vcpkg dependencies
+      run: vcpkg_windows.bat
+      shell: cmd
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.0
+    - name: Compile native ParquetSharp library
+      run: build_windows.bat
+      shell: cmd
+    - name: Build & Run .NET unit tests
+      run: dotnet test csharp.test --configuration=Release
+      shell: cmd
+    - name: Upload native ParquetSharp library
+      uses: actions/upload-artifact@v1
+      with:
+        name: windows-native-library
+        path: bin/ParquetSharpNative.dll
+        
+  # Download both native shared libraries,
+  # Rebuild .NET projects (will automatically pick up both libraries and create a nuget package).
+  # Retest .NET unit tests to make sure the native library is fine.
+  # Upload nuget package as an artifact.
+  build-nuget:
+    runs-on: windows-latest    
+    needs: [native-linux, native-windows]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download native ParquetSharp library (Linux)
+      uses: actions/download-artifact@v1
+      with:
+        name: linux-native-library
+        path: bin
+    - name: Download native ParquetSharp library (Windows)
+      uses: actions/download-artifact@v1
+      with:
+        name: windows-native-library
+        path: bin
+    - name: Build & Run .NET unit tests
+      run: dotnet test csharp.test --configuration=Release
+    - name: Build NuGet package
+      run: dotnet pack csharp --configuration=Release
+    - name: Upload NuGet artifact 
+      uses: actions/upload-artifact@v1
+      with:
+        name: nuget-package
+        path: nuget
