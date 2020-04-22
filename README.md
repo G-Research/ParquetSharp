@@ -12,7 +12,7 @@ It is implemented in C# as a [PInvoke][2] wrapper around [Apache Parquet C++][3]
 | ---: | --- |
 | **Release Nuget** | [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
 | **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
-| **Build** | [![CI Status](https://github.com/G-Research/ParquetSharp/workflows/CI/badge.svg)](https://github.com/G-Research/ParquetSharp/actions?query=workflow%3A%22CI%22) |
+| **CI Build** | [![CI Status](https://github.com/G-Research/ParquetSharp/workflows/CI/badge.svg)](https://github.com/G-Research/ParquetSharp/actions?query=workflow%3A%22CI%22) |
 
 ## Examples
 
