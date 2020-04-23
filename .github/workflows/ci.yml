@@ -8,6 +8,9 @@ on:
 
 jobs:
 
+  # Note that vcpkg dependencies takes the majority of the build time.
+  # We cache them using GitHub Actions cache and export, making the scripts below a bit more complex.
+
   # Build and test everything on Linux.
   # Upload the native shared library as an artifact.
   native-linux:
@@ -22,8 +25,18 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get --yes install flex bison
+    - name: Get cached vcpkg dependencies
+      id: get-cached-vcpkg
+      uses: actions/cache@v1
+      with:
+        path: build/vcpkg.linux
+        key: vcpkg-linux-2-${{ hashFiles('vcpkg_version.txt') }}
     - name: Compile vcpkg dependencies
-      run: ./vcpkg_linux.sh
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: |
+        ./vcpkg_linux.sh
+        mv ./build/vcpkg.linux ./build/vcpkg.linux.full
+        ./build/vcpkg.linux.full/vcpkg export --raw --output=../vcpkg.linux arrow:x64-linux
     - name: Compile native ParquetSharp library
       run: ./build_linux.sh
     - name: Build & Run .NET unit tests
@@ -40,8 +53,18 @@ jobs:
     runs-on: windows-latest    
     steps:
     - uses: actions/checkout@v2
+    - name: Get cached vcpkg dependencies
+      id: get-cached-vcpkg
+      uses: actions/cache@v1
+      with:
+        path: build/vcpkg.windows
+        key: vcpkg-windows-2-${{ hashFiles('vcpkg_version.txt') }}
     - name: Compile vcpkg dependencies
-      run: vcpkg_windows.bat
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: |
+        vcpkg_windows.bat
+        move build/vcpkg.windows build/vcpkg.windows.full
+        build/vcpkg.windows.full/vcpkg export --7zip --output=../vcpkg.windows arrow:x64-windows-static
       shell: cmd
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.0
