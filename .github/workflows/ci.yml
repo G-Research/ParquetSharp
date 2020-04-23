@@ -64,7 +64,7 @@ jobs:
       run: |
         vcpkg_windows.bat
         move build/vcpkg.windows build/vcpkg.windows.full
-        build/vcpkg.windows.full/vcpkg export --7zip --output=../vcpkg.windows arrow:x64-windows-static
+        build\vcpkg.windows.full\vcpkg export --raw --output=../vcpkg.windows arrow:x64-windows-static
       shell: cmd
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.0
