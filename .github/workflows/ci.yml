@@ -29,14 +29,19 @@ jobs:
       id: get-cached-vcpkg
       uses: actions/cache@v1
       with:
-        path: build/vcpkg.linux
+        path: cache/vcpkg
         key: vcpkg-linux-2-${{ hashFiles('vcpkg_version.txt') }}
+    - name: Use cached vcpkg dependencies
+      if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
+      run: |
+        mkdir build
+        mv cache/vcpkg build/vcpkg.linux
     - name: Compile vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: |
-        ./vcpkg_linux.sh
-        mv ./build/vcpkg.linux ./build/vcpkg.linux.full
-        ./build/vcpkg.linux.full/vcpkg export --raw --output=../vcpkg.linux arrow:x64-linux
+      run: ./vcpkg_linux.sh
+    - name: Export vcpkg dependencies
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: build/vcpkg.linux/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
     - name: Compile native ParquetSharp library
       run: ./build_linux.sh
     - name: Build & Run .NET unit tests
@@ -57,15 +62,20 @@ jobs:
       id: get-cached-vcpkg
       uses: actions/cache@v1
       with:
-        path: build/vcpkg.windows
+        path: cache/vcpkg
         key: vcpkg-windows-2-${{ hashFiles('vcpkg_version.txt') }}
+    - name: Use cached vcpkg dependencies
+      if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
+      run: |
+        mkdir build
+        mv cache\vcpkg build\vcpkg.windows
     - name: Compile vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: |
-        vcpkg_windows.bat
-        move build/vcpkg.windows build/vcpkg.windows.full
-        build/vcpkg.windows.full/vcpkg export --7zip --output=../vcpkg.windows arrow:x64-windows-static
+      run: vcpkg_windows.bat
       shell: cmd
+    - name: Export vcpkg dependencies
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: build\vcpkg.windows\vcpkg export --x-all-installed --raw --output=..\..\cache\vcpkg
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.0
     - name: Compile native ParquetSharp library
