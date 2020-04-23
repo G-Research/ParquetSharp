@@ -9,7 +9,7 @@ on:
 jobs:
 
   # Note that vcpkg dependencies takes the majority of the build time.
-  # We cache them. Using vcpkg export gives archives that are small enough for GitHub 5GB cache.
+  # We cache them using GitHub Actions cache and export, making the scripts below a bit more complex.
 
   # Build and test everything on Linux.
   # Upload the native shared library as an artifact.
