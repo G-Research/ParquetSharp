@@ -25,12 +25,15 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get --yes install flex bison
+    - name: Resolve vcpkg version
+      id: resolve-vcpkg-version
+      run: echo "::set-output name=commit-id::$(git ls-remote https://github.com/microsoft/vcpkg.git $(< vcpkg_version.txt) | cut -f1)"
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
       uses: actions/cache@v1
       with:
         path: cache/vcpkg
-        key: vcpkg-linux-2-${{ hashFiles('vcpkg_version.txt') }}
+        key: vcpkg-linux-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
     - name: Use cached vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
       run: |
@@ -61,12 +64,15 @@ jobs:
     runs-on: windows-latest    
     steps:
     - uses: actions/checkout@v2
+    - name: Resolve vcpkg version
+      id: resolve-vcpkg-version
+      run: echo "::set-output name=commit-id::$(git ls-remote https://github.com/microsoft/vcpkg.git $(Get-Content vcpkg_version.txt) | %{ $_.Split()[0]; })"
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
       uses: actions/cache@v1
       with:
         path: cache/vcpkg
-        key: vcpkg-windows-2-${{ hashFiles('vcpkg_version.txt') }}
+        key: vcpkg-windows-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
     - name: Use cached vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
       run: |
