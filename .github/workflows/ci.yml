@@ -29,19 +29,20 @@ jobs:
       id: get-cached-vcpkg
       uses: actions/cache@v1
       with:
-        path: vcpkg.linux.7z
+        path: cache
         key: vcpkg-linux-${{ hashFiles('vcpkg_version.txt') }}
     - name: Extract vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
       run: |
-        mkdir -p build
-        7z x -obuild vcpkg.linux.7z
+        mkdir build
+        7z x -obuild cache/vcpkg.linux.7z
     - name: Compile vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: |
         ./vcpkg_linux.sh
         ./build/vcpkg.linux/vcpkg export --7zip --output=vcpkg.linux arrow:x64-linux
-        mv ./build/vcpkg.linux/vcpkg.linux.7z .
+        mkdir cache
+        mv ./build/vcpkg.linux/vcpkg.linux.7z ./cache
     - name: Compile native ParquetSharp library
       run: ./build_linux.sh
     - name: Build & Run .NET unit tests
@@ -62,19 +63,20 @@ jobs:
       id: get-cached-vcpkg
       uses: actions/cache@v1
       with:
-        path: vcpkg.windows.7z
+        path: cache
         key: vcpkg-windows-${{ hashFiles('vcpkg_version.txt') }}
     - name: Extract vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
       run: |
         mkdir build
-        7z x -obuild vcpkg.windows.7z
+        7z x -obuild cache/vcpkg.windows.7z
     - name: Compile vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: |
         vcpkg_windows.bat
         build/vcpkg.windows/vcpkg export --7zip --output=vcpkg.windows arrow:x64-windows-static
-        move build/vcpkg.windows/vcpkg.windows.7z .
+        mkdir cache
+        move build/vcpkg.windows/vcpkg.windows.7z cache
       shell: cmd
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.0
