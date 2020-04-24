@@ -172,6 +172,72 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestBigFileBufferedRowGroup()
+        {
+            // Test a large amount of rows with a buffered row group to uncover any particular issue.
+            const int numBatches = 64;
+            const int batchSize = 8192;
+            
+            using var buffer = new ResizableBuffer();
+
+            using (var output = new BufferOutputStream(buffer))
+            {
+                var columns = new Column[]
+                {
+                    new Column<int>("int"),
+                    new Column<double>("double"),
+                    new Column<string>("string"),
+                    new Column<bool>("bool")
+                };
+
+                using var builder = new WriterPropertiesBuilder();
+                using var writerProperties = builder.Compression(Compression.Snappy).DisableDictionary("double").Build();
+                using var fileWriter = new ParquetFileWriter(output, columns, writerProperties);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                using var col0 = rowGroupWriter.Column(0).LogicalWriter<int>();
+                using var col1 = rowGroupWriter.Column(1).LogicalWriter<double>();
+                using var col2 = rowGroupWriter.Column(2).LogicalWriter<string>();
+                using var col3 = rowGroupWriter.Column(3).LogicalWriter<bool>();
+
+                for (var batchIndex = 0; batchIndex < numBatches; ++batchIndex)
+                {
+                    var startIndex = batchSize * batchIndex;
+
+                    col0.WriteBatch(Enumerable.Range(startIndex, batchSize).ToArray());
+                    col1.WriteBatch(Enumerable.Range(startIndex, batchSize).Select(i => (double) i).ToArray());
+                    col2.WriteBatch(Enumerable.Range(startIndex, batchSize).Select(i => i.ToString()).ToArray());
+                    col3.WriteBatch(Enumerable.Range(startIndex, batchSize).Select(i => i % 2 == 0).ToArray());
+                }
+
+                fileWriter.Close();
+            }
+
+            using (var input = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(input);
+                using var rowGroupReader = fileReader.RowGroup(0);
+
+                using var col0 = rowGroupReader.Column(0).LogicalReader<int>();
+                using var col1 = rowGroupReader.Column(1).LogicalReader<double>();
+                using var col2 = rowGroupReader.Column(2).LogicalReader<string>();
+                using var col3 = rowGroupReader.Column(3).LogicalReader<bool>();
+
+                for (var batchIndex = 0; batchIndex < numBatches; ++batchIndex)
+                {
+                    var startIndex = batchSize * batchIndex;
+
+                    Assert.AreEqual(Enumerable.Range(startIndex, batchSize).ToArray(), col0.ReadAll(batchSize));
+                    Assert.AreEqual(Enumerable.Range(startIndex, batchSize).Select(i => (double)i).ToArray(), col1.ReadAll(batchSize));
+                    Assert.AreEqual(Enumerable.Range(startIndex, batchSize).Select(i => i.ToString()).ToArray(), col2.ReadAll(batchSize));
+                    Assert.AreEqual(Enumerable.Range(startIndex, batchSize).Select(i => i % 2 == 0).ToArray(), col3.ReadAll(batchSize));
+                }
+
+                fileReader.Close();
+            }
+        }
+
+        [Test]
         public static void TestBigArrayRoundtrip()
         {
             // Create a big array of float arrays. Try to detect buffer-size related issues.

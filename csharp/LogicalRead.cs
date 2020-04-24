@@ -436,9 +436,31 @@ namespace ParquetSharp
 
         private static string ToString(ByteArray byteArray, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
         {
-            return byteArrayCache.TryGetValue(byteArray, out var value) 
-                ? value 
-                : byteArrayCache.Add(byteArray, ToString(byteArray));
+            if (byteArrayCache.TryGetValue(byteArray, out var str))
+            {
+                // The string seems to already be in the cache. Check that the content matches.
+                if (IsCacheValid(byteArrayCache, byteArray, str))
+                {
+                    return str;
+                }
+
+                // The cache does not appear to be valid anymore.
+                byteArrayCache.Clear();
+            }
+                
+            return byteArrayCache.Add(byteArray, ToString(byteArray));
+        }
+
+        private static unsafe bool IsCacheValid(ByteArrayReaderCache<ByteArray, string> byteArrayCache, ByteArray byteArray, string str)
+        {
+            var byteCount = System.Text.Encoding.UTF8.GetByteCount(str);
+            var buffer = byteArrayCache.GetScratchBuffer(byteCount);
+            System.Text.Encoding.UTF8.GetBytes(str, 0, str.Length, buffer, 0);
+
+            var cached = new ReadOnlySpan<byte>((void*) byteArray.Pointer, byteArray.Length);
+            var expected = buffer.AsSpan(0, byteCount);
+            
+            return cached.SequenceEqual(expected);
         }
 
         private static unsafe string ToString(ByteArray byteArray)

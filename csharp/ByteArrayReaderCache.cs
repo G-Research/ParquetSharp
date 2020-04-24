@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -18,9 +19,16 @@ namespace ParquetSharp
                    (typeof(TPhysical) == typeof(ByteArray) || typeof(TPhysical) == typeof(FixedLenByteArray))
                 ? new Dictionary<TPhysical, TLogical>()
                 : null;
+
+            _scratch = new byte[64];
         }
 
         public bool IsUsable => _map != null;
+
+        public void Clear()
+        {
+            _map.Clear();
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TLogical Add(TPhysical physical, TLogical logical)
@@ -35,6 +43,13 @@ namespace ParquetSharp
             return _map.TryGetValue(physical, out logical);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte[] GetScratchBuffer(int minLength)
+        {
+            return _scratch.Length >= minLength ? _scratch : _scratch = new byte[Math.Max(_scratch.Length * 2, minLength)];
+        }
+
         private readonly Dictionary<TPhysical, TLogical> _map;
+        private byte[] _scratch;
     }
 }
