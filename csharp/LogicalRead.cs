@@ -434,7 +434,7 @@ namespace ParquetSharp
             }
         }
 
-        private static unsafe string ToString(ByteArray byteArray, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
+        private static string ToString(ByteArray byteArray, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
         {
             if (byteArrayCache.TryGetValue(byteArray, out var str))
             {
@@ -445,7 +445,6 @@ namespace ParquetSharp
                 }
 
                 // The cache does not appear to be valid anymore.
-                Console.WriteLine("Cache invalidated!!!!!!");
                 byteArrayCache.Clear();
             }
                 
