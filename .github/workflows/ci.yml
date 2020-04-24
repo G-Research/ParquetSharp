@@ -39,6 +39,9 @@ jobs:
     - name: Compile vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: ./vcpkg_linux.sh
+    - name: Cleanup vcpkg build
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: rm -rf build/vcpkg.linux/{buildtrees,downloads}
     - name: Export vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: build/vcpkg.linux/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
@@ -73,6 +76,9 @@ jobs:
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: vcpkg_windows.bat
       shell: cmd
+    - name: Cleanup vcpkg build
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: '"buildtrees","downloads" | % { rm -r build\vcpkg.windows\$_ }'
     - name: Export vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: build\vcpkg.windows\vcpkg export --x-all-installed --raw --output=..\..\cache\vcpkg
