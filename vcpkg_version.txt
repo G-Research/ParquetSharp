@@ -1,1 +1,1 @@
-2020.04
+https://github.com/microsoft/vcpkg.git 2020.04
