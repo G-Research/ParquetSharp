@@ -191,7 +191,7 @@ namespace ParquetSharp.Test
                 };
 
                 using var builder = new WriterPropertiesBuilder();
-                using var writerProperties = builder.DisableDictionary("doubleX").Build();
+                using var writerProperties = builder.Compression(Compression.Snappy).DisableDictionary("double").Build();
                 using var fileWriter = new ParquetFileWriter(output, columns, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
 
