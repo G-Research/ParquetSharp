@@ -74,8 +74,7 @@ jobs:
         mv cache\vcpkg build\vcpkg.windows
     - name: Compile vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: vcpkg_windows.bat
-      shell: cmd
+      run: .\vcpkg_windows.bat
     - name: Cleanup vcpkg build
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: '"buildtrees","downloads" | % { rm -r build\vcpkg.windows\$_ }'
@@ -85,11 +84,9 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.0
     - name: Compile native ParquetSharp library
-      run: build_windows.bat
-      shell: cmd
+      run: .\build_windows.bat
     - name: Build & Run .NET unit tests
       run: dotnet test csharp.test --configuration=Release
-      shell: cmd
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v1
       with:
