@@ -25,18 +25,29 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get --yes install flex bison
+    - name: Resolve vcpkg version
+      id: resolve-vcpkg-version
+      run: echo "::set-output name=commit-id::$(git ls-remote https://github.com/microsoft/vcpkg.git $(< vcpkg_version.txt) | cut -f1)"
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
       uses: actions/cache@v1
       with:
-        path: build/vcpkg.linux
-        key: vcpkg-linux-2-${{ hashFiles('vcpkg_version.txt') }}
+        path: cache/vcpkg
+        key: vcpkg-linux-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
+    - name: Use cached vcpkg dependencies
+      if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
+      run: |
+        mkdir build
+        mv cache/vcpkg build/vcpkg.linux
     - name: Compile vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: |
-        ./vcpkg_linux.sh
-        mv ./build/vcpkg.linux ./build/vcpkg.linux.full
-        ./build/vcpkg.linux.full/vcpkg export --raw --output=../vcpkg.linux arrow:x64-linux
+      run: ./vcpkg_linux.sh
+    - name: Cleanup vcpkg build
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: rm -rf build/vcpkg.linux/{buildtrees,downloads}
+    - name: Export vcpkg dependencies
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: build/vcpkg.linux/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
     - name: Compile native ParquetSharp library
       run: ./build_linux.sh
     - name: Build & Run .NET unit tests
@@ -53,27 +64,35 @@ jobs:
     runs-on: windows-latest    
     steps:
     - uses: actions/checkout@v2
+    - name: Resolve vcpkg version
+      id: resolve-vcpkg-version
+      run: echo "::set-output name=commit-id::$(git ls-remote https://github.com/microsoft/vcpkg.git $(Get-Content vcpkg_version.txt) | %{ $_.Split()[0]; })"
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
       uses: actions/cache@v1
       with:
-        path: build/vcpkg.windows
-        key: vcpkg-windows-2-${{ hashFiles('vcpkg_version.txt') }}
+        path: cache/vcpkg
+        key: vcpkg-windows-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
+    - name: Use cached vcpkg dependencies
+      if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
+      run: |
+        mkdir build
+        mv cache\vcpkg build\vcpkg.windows
     - name: Compile vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: |
-        vcpkg_windows.bat
-        move build/vcpkg.windows build/vcpkg.windows.full
-        build/vcpkg.windows.full/vcpkg export --7zip --output=../vcpkg.windows arrow:x64-windows-static
-      shell: cmd
+      run: .\vcpkg_windows.bat
+    - name: Cleanup vcpkg build
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: '"buildtrees","downloads" | % { rm -r build\vcpkg.windows\$_ }'
+    - name: Export vcpkg dependencies
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: build\vcpkg.windows\vcpkg export --x-all-installed --raw --output=..\..\cache\vcpkg
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.0
     - name: Compile native ParquetSharp library
-      run: build_windows.bat
-      shell: cmd
+      run: .\build_windows.bat
     - name: Build & Run .NET unit tests
       run: dotnet test csharp.test --configuration=Release
-      shell: cmd
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v1
       with:
