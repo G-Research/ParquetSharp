@@ -1,11 +1,12 @@
 #!/bin/bash
 set -e
 
+read -r vcpkg_url vcpkg_ref < vcpkg_version.txt
+
 mkdir -p build
 cd build
-git clone https://github.com/microsoft/vcpkg.git vcpkg.linux
+git clone $vcpkg_url -b $vcpkg_ref vcpkg.linux
 cd vcpkg.linux
-git checkout "$(< ../../vcpkg_version.txt)"
 ./bootstrap-vcpkg.sh
 
 ./vcpkg install arrow:x64-linux
