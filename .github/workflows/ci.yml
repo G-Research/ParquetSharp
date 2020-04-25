@@ -99,13 +99,58 @@ jobs:
         name: windows-native-library
         path: bin/ParquetSharpNative.dll
         
-  # Download both native shared libraries,
-  # Rebuild .NET projects (will automatically pick up both libraries and create a nuget package).
+  # Build and test everything on macOS.
+  # Upload the native shared library as an artifact.
+  native-osx:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.100
+    - name: Install build dependencies
+      run: brew install bison
+    - name: Resolve vcpkg version
+      id: resolve-vcpkg-version
+      run: echo "::set-output name=commit-id::$(git ls-remote $(cat vcpkg_version.txt) | cut -f1)"
+    - name: Get cached vcpkg dependencies
+      id: get-cached-vcpkg
+      uses: actions/cache@v1
+      with:
+        path: cache/vcpkg
+        key: vcpkg-osx-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
+    - name: Use cached vcpkg dependencies
+      if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
+      run: |
+        mkdir build
+        mv cache/vcpkg build/vcpkg.osx
+    - name: Compile vcpkg dependencies
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: ./vcpkg_osx.sh
+    - name: Cleanup vcpkg build
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: rm -rf build/vcpkg.osx/{buildtrees,downloads}
+    - name: Export vcpkg dependencies
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: build/vcpkg.osx/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
+    - name: Compile native ParquetSharp library
+      run: ./build_osx.sh
+    - name: Build & Run .NET unit tests
+      run: dotnet test csharp.test --configuration=Release
+    - name: Upload native ParquetSharp library
+      uses: actions/upload-artifact@v1
+      with:
+        name: osx-native-library
+        path: bin/ParquetSharpNative.dylib
+         
+  # Download all native shared libraries,
+  # Rebuild .NET projects (will automatically pick up all libraries and create a nuget package).
   # Retest .NET unit tests to make sure the native library is fine.
   # Upload nuget package as an artifact.
   build-nuget:
     runs-on: windows-latest    
-    needs: [native-linux, native-windows]
+    needs: [native-linux, native-windows, native-osx]
     steps:
     - uses: actions/checkout@v2
     - name: Download native ParquetSharp library (Linux)
@@ -117,6 +162,11 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name: windows-native-library
+        path: bin
+    - name: Download native ParquetSharp library (macOS)
+      uses: actions/download-artifact@v1
+      with:
+        name: osx-native-library
         path: bin
     - name: Build & Run .NET unit tests
       run: dotnet test csharp.test --configuration=Release

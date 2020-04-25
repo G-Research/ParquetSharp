@@ -126,6 +126,12 @@ For building Arrow (including Parquet) and its dependencies, we recommend using 
 > ./build_linux.sh
 > dotnet build csharp.test --configuration=Release
 ```
+**macOS (unsupported)**
+```
+> ./vcpkg_osx.sh
+> ./build_osx.sh
+> dotnet build csharp.test --configuration=Release
+```
 
 We have had to write our own `FindPackage` macros for most of the dependencies to get us going - it clearly needs more love and attention and is likely to be redundant with some vcpkg helper tools.
 
