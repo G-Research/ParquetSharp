@@ -40,7 +40,6 @@ if (UNIX)
 	set(CMAKE_SHARED_LIBRARY_PREFIX )
 
 	add_compile_options("-Wall")
-	add_compile_options("-fvisibility=hidden")
 	add_compile_options("-fvisibility-inlines-hidden")
 
   if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
