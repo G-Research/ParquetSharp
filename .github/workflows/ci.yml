@@ -41,7 +41,7 @@ jobs:
         mv cache/vcpkg build/vcpkg.linux
     - name: Compile vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: ./vcpkg_linux.sh
+      run: ./vcpkg_unix.sh
     - name: Cleanup vcpkg build
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: rm -rf build/vcpkg.linux/{buildtrees,downloads}
@@ -49,7 +49,7 @@ jobs:
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: build/vcpkg.linux/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
     - name: Compile native ParquetSharp library
-      run: ./build_linux.sh
+      run: ./build_unix.sh
     - name: Build & Run .NET unit tests
       run: dotnet test csharp.test --configuration=Release
     - name: Upload native ParquetSharp library
@@ -101,7 +101,7 @@ jobs:
         
   # Build and test everything on macOS.
   # Upload the native shared library as an artifact.
-  native-osx:
+  native-macos:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
@@ -119,29 +119,29 @@ jobs:
       uses: actions/cache@v1
       with:
         path: cache/vcpkg
-        key: vcpkg-osx-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
+        key: vcpkg-macos-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
     - name: Use cached vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
       run: |
         mkdir build
-        mv cache/vcpkg build/vcpkg.osx
+        mv cache/vcpkg build/vcpkg.macos
     - name: Compile vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: ./vcpkg_osx.sh
+      run: ./vcpkg_unix.sh
     - name: Cleanup vcpkg build
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: rm -rf build/vcpkg.osx/{buildtrees,downloads}
+      run: rm -rf build/vcpkg.macos/{buildtrees,downloads}
     - name: Export vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: build/vcpkg.osx/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
+      run: build/vcpkg.macos/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
     - name: Compile native ParquetSharp library
-      run: ./build_osx.sh
+      run: ./build_unix.sh
     - name: Build & Run .NET unit tests
       run: dotnet test csharp.test --configuration=Release
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v1
       with:
-        name: osx-native-library
+        name: macos-native-library
         path: bin/ParquetSharpNative.dylib
          
   # Download all native shared libraries,
@@ -150,7 +150,7 @@ jobs:
   # Upload nuget package as an artifact.
   build-nuget:
     runs-on: windows-latest    
-    needs: [native-linux, native-windows, native-osx]
+    needs: [native-linux, native-windows, native-macos]
     steps:
     - uses: actions/checkout@v2
     - name: Download native ParquetSharp library (Linux)
@@ -166,7 +166,7 @@ jobs:
     - name: Download native ParquetSharp library (macOS)
       uses: actions/download-artifact@v1
       with:
-        name: osx-native-library
+        name: macos-native-library
         path: bin
     - name: Build & Run .NET unit tests
       run: dotnet test csharp.test --configuration=Release
