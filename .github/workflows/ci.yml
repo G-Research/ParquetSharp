@@ -11,20 +11,20 @@ jobs:
   # Note that vcpkg dependencies takes the majority of the build time.
   # We cache them using GitHub Actions cache and export, making the scripts below a bit more complex.
 
-  # Build and test everything on Linux.
+  # Build and test everything on Unix platorms.
   # Upload the native shared library as an artifact.
-  native-linux:
-    runs-on: ubuntu-18.04
+  native-unix:
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.100
-    - name: Install Ubuntu dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get --yes install flex bison
     - name: Resolve vcpkg version
       id: resolve-vcpkg-version
       run: echo "::set-output name=commit-id::$(git ls-remote $(cat vcpkg_version.txt) | cut -f1)"
@@ -33,21 +33,29 @@ jobs:
       uses: actions/cache@v1
       with:
         path: cache/vcpkg
-        key: vcpkg-linux-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
+        key: vcpkg-${{ runner.os }}-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
     - name: Use cached vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
       run: |
         mkdir build
-        mv cache/vcpkg build/vcpkg.linux
+        mv cache/vcpkg build/vcpkg.$(echo ${{ runner.os }} | tr A-Z a-z)
+    - name: Install vcpkg build dependencies (Linux)
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get --yes install flex bison
+    - name: Install vcpkg build dependencies (macOS)
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'macOS'
+      run: brew install bison
     - name: Compile vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: ./vcpkg_unix.sh
     - name: Cleanup vcpkg build
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: rm -rf build/vcpkg.linux/{buildtrees,downloads}
+      run: rm -rf build/vcpkg.$(echo ${{ runner.os }} | tr A-Z a-z)/{buildtrees,downloads}
     - name: Export vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: build/vcpkg.linux/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
+      run: build/vcpkg.$(echo ${{ runner.os }} | tr A-Z a-z)/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
     - name: Compile native ParquetSharp library
       run: ./build_unix.sh
     - name: Build & Run .NET unit tests
@@ -55,8 +63,8 @@ jobs:
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v1
       with:
-        name: linux-native-library
-        path: bin/ParquetSharpNative.so
+        name: ${{ runner.os }}-native-library
+        path: bin
          
   # Build and test everything on Windows.
   # Upload the native shared library as an artifact.
@@ -96,77 +104,32 @@ jobs:
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v1
       with:
-        name: windows-native-library
+        name: Windows-native-library
         path: bin/ParquetSharpNative.dll
         
-  # Build and test everything on macOS.
-  # Upload the native shared library as an artifact.
-  native-macos:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.1.100
-    - name: Install build dependencies
-      run: brew install bison
-    - name: Resolve vcpkg version
-      id: resolve-vcpkg-version
-      run: echo "::set-output name=commit-id::$(git ls-remote $(cat vcpkg_version.txt) | cut -f1)"
-    - name: Get cached vcpkg dependencies
-      id: get-cached-vcpkg
-      uses: actions/cache@v1
-      with:
-        path: cache/vcpkg
-        key: vcpkg-macos-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
-    - name: Use cached vcpkg dependencies
-      if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
-      run: |
-        mkdir build
-        mv cache/vcpkg build/vcpkg.macos
-    - name: Compile vcpkg dependencies
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: ./vcpkg_unix.sh
-    - name: Cleanup vcpkg build
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: rm -rf build/vcpkg.macos/{buildtrees,downloads}
-    - name: Export vcpkg dependencies
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: build/vcpkg.macos/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
-    - name: Compile native ParquetSharp library
-      run: ./build_unix.sh
-    - name: Build & Run .NET unit tests
-      run: dotnet test csharp.test --configuration=Release
-    - name: Upload native ParquetSharp library
-      uses: actions/upload-artifact@v1
-      with:
-        name: macos-native-library
-        path: bin/ParquetSharpNative.dylib
-         
   # Download all native shared libraries,
   # Rebuild .NET projects (will automatically pick up all libraries and create a nuget package).
   # Retest .NET unit tests to make sure the native library is fine.
   # Upload nuget package as an artifact.
   build-nuget:
     runs-on: windows-latest    
-    needs: [native-linux, native-windows, native-macos]
+    needs: [native-unix, native-windows]
     steps:
     - uses: actions/checkout@v2
     - name: Download native ParquetSharp library (Linux)
       uses: actions/download-artifact@v1
       with:
-        name: linux-native-library
+        name: Linux-native-library
         path: bin
     - name: Download native ParquetSharp library (Windows)
       uses: actions/download-artifact@v1
       with:
-        name: windows-native-library
+        name: Windows-native-library
         path: bin
     - name: Download native ParquetSharp library (macOS)
       uses: actions/download-artifact@v1
       with:
-        name: macos-native-library
+        name: macOS-native-library
         path: bin
     - name: Build & Run .NET unit tests
       run: dotnet test csharp.test --configuration=Release
