@@ -41,15 +41,15 @@ if (UNIX)
 	add_compile_options("-Wall")
 	add_compile_options("-fvisibility=hidden")
 	add_compile_options("-fvisibility-inlines-hidden")
-	# add_link_options("-s")
-	# add_link_options("-Wl,--no-undefined")
+
+  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+    add_link_options("LINKER:--no-undefined")
+  endif()
 
 endif ()
 
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
   add_compile_options("-std=c++11")
-elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
-	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -s -Wl,--no-undefined")
 endif ()
 
 if (MSVC)
