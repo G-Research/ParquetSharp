@@ -82,9 +82,7 @@ jobs:
         name: ${{ runner.os }}-native-library
         path: bin
         
-  # Download all native shared libraries,
-  # Rebuild .NET projects (will automatically pick up all libraries and create a nuget package).
-  # Retest .NET unit tests to make sure the native library is fine.
+  # Download all native shared libraries and create the nuget package.
   # Upload nuget package as an artifact.
   build-nuget:
     runs-on: windows-latest    
@@ -107,12 +105,51 @@ jobs:
       with:
         name: macOS-native-library
         path: bin
-    - name: Build & Run .NET unit tests
-      run: dotnet test csharp.test --configuration=Release
     - name: Build NuGet package
-      run: dotnet pack csharp --configuration=Release
+      run: |
+        dotnet build csharp --configuration=Release
+        dotnet pack csharp --configuration=Release
     - name: Upload NuGet artifact 
       uses: actions/upload-artifact@v1
       with:
         name: nuget-package
         path: nuget
+
+  # Retest .NET unit tests with the nuget package on each platform.
+  test-nuget:
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-latest, windows-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    needs: build-nuget
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Get version
+      id: get-version
+      run: echo "::set-output name=version::$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)"
+      shell: pwsh
+    - name: Download NuGet artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: nuget-package
+        path: nuget
+    - name: Create local NuGet feed (Unix)
+      if: runner.os == 'Linux' || runner.os == 'macOS'
+      run: |
+        curl -sLO https://dist.nuget.org/win-x86-commandline/v5.5.1/nuget.exe
+        mono nuget.exe add -source local nuget/ParquetSharp.${{ steps.get-version.outputs.version }}.nupkg
+    - name: Create local NuGet feed (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        choco install nuget.commandline
+        nuget add -source local nuget/ParquetSharp.${{ steps.get-version.outputs.version }}.nupkg
+    - name: Add local NuGet feed
+      run: dotnet nuget add source -n local $PWD/local
+    - name: Change test project references to use local NuGet package
+      run: |
+        dotnet remove csharp.test reference csharp/ParquetSharp.csproj
+        dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }} -s local
+    - name: Build & Run .NET unit tests
+      run: dotnet test csharp.test --configuration=Release
