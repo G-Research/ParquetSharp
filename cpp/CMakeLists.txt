@@ -105,3 +105,11 @@ target_link_libraries(ParquetSharpNative
 add_definitions(-DARROW_STATIC)
 add_definitions(-DARROW_NO_DEPRECATED_API)
 add_definitions(-DPARQUET_STATIC)
+
+if (UNIX AND CMAKE_BUILD_TYPE STREQUAL Release)
+  if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+    set(STRIP_OPTIONS -x)
+  endif()
+  add_custom_command(TARGET ParquetSharpNative POST_BUILD
+    COMMAND ${CMAKE_STRIP} ${STRIP_OPTIONS} $<TARGET_FILE:ParquetSharpNative>)
+endif ()

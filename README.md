@@ -120,10 +120,10 @@ For building Arrow (including Parquet) and its dependencies, we recommend using 
 > build_windows.bat
 > dotnet build csharp.test --configuration=Release
 ```
-**Linux (GCC Makefile)**
+**Linux and macOS (Makefile)**
 ```
-> ./vcpkg_linux.sh
-> ./build_linux.sh
+> ./vcpkg_unix.sh
+> ./build_unix.sh
 > dotnet build csharp.test --configuration=Release
 ```
 
