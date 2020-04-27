@@ -11,7 +11,7 @@ jobs:
   # Note that vcpkg dependencies takes the majority of the build time.
   # We cache them using GitHub Actions cache and export, making the scripts below a bit more complex.
 
-  # Build and test everything all platorms.
+  # Build and test everything on all platorms.
   # Upload the native shared libraries as artifacts.
   build-native:
     strategy:
