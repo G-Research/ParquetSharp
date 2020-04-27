@@ -43,7 +43,7 @@ if (UNIX)
 	add_compile_options("-fvisibility-inlines-hidden")
 
   if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
-    add_link_options("LINKER:--no-undefined")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
   endif()
 
 endif ()
