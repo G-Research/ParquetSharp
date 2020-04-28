@@ -106,9 +106,7 @@ jobs:
         name: macOS-native-library
         path: bin
     - name: Build NuGet package
-      run: |
-        dotnet build csharp --configuration=Release
-        dotnet pack csharp --configuration=Release
+      run: dotnet build csharp --configuration=Release
     - name: Upload NuGet artifact 
       uses: actions/upload-artifact@v1
       with:
