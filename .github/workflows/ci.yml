@@ -11,7 +11,7 @@ jobs:
   # Note that vcpkg dependencies takes the majority of the build time.
   # We cache them using GitHub Actions cache and export, making the scripts below a bit more complex.
 
-  # Build and test everything on all platorms.
+  # Build everything on all platorms (thus testing the developer workflow).
   # Upload the native shared libraries as artifacts.
   build-native:
     strategy:
@@ -74,8 +74,8 @@ jobs:
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
       run: ./build_windows.bat
-    - name: Build & Run .NET unit tests
-      run: dotnet test csharp.test --configuration=Release
+    - name: Build .NET unit tests
+      run: dotnet build csharp.test --configuration=Release
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v1
       with:
@@ -113,7 +113,7 @@ jobs:
         name: nuget-package
         path: nuget
 
-  # Retest .NET unit tests with the nuget package on each platform.
+  # Run .NET unit tests with the nuget package on all platforms (thus testing the user workflow).
   test-nuget:
     strategy:
       matrix:
