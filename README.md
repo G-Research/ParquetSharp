@@ -1,8 +1,10 @@
 # ParquetSharp
 
-ParquetSharp is a .NET library for reading and writing Apache [Parquet][1] files.
+ParquetSharp is a cross-platform .NET library for reading and writing Apache [Parquet][1] files.
 
 It is implemented in C# as a [PInvoke][2] wrapper around [Apache Parquet C++][3] to provide high performance and compatibility.
+
+Supported platforms are Linux, Windows, and macOS.
 
 [1]: https://github.com/apache/parquet-format
 [2]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
