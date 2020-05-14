@@ -29,7 +29,10 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-    <None Include="ParquetSharp.targets" Pack="true" PackagePath="build" />
+    <None Include="ParquetSharp.targets">
+      <Pack>True</Pack>
+      <PackagePath>build;buildTransitive</PackagePath>
+    </None>
   </ItemGroup>
 
   <PropertyGroup>
