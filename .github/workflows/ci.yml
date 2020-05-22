@@ -38,14 +38,6 @@ jobs:
         mkdir build
         mv cache/vcpkg build/vcpkg.$(echo ${{ runner.os }} | tr A-Z a-z)
       shell: bash
-    - name: Install vcpkg build dependencies (Linux)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get --yes install flex bison
-    - name: Install vcpkg build dependencies (macOS)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'macOS'
-      run: brew install bison
     - name: Compile vcpkg dependencies (Unix)
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
       run: ./vcpkg_unix.sh
