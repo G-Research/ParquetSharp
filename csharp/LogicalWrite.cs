@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ParquetSharp
@@ -103,6 +105,16 @@ namespace ParquetSharp
             {
                 var multiplier = Decimal128.GetScaleMultiplier(scale);
                 return (Converter) (Delegate) (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal128(s, dl, d, multiplier, nl, byteBuffer));
+            }
+
+            if (typeof(TLogical) == typeof(Guid))
+            {
+                return (Converter) (Delegate) (LogicalWrite<Guid, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertUuid(s, d, byteBuffer));
+            }
+
+            if (typeof(TLogical) == typeof(Guid?))
+            {
+                return (Converter) (Delegate) (LogicalWrite<Guid?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertUuid(s, dl, d, nl, byteBuffer));
             }
 
             if (typeof(TLogical) == typeof(Date))
@@ -318,8 +330,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i != source.Length; ++i)
             {
-                var dec = new Decimal128(source[i], multiplier);
-                destination[i] = FromFixedLength(in dec, byteBuffer);
+                destination[i] = LogicalWrite.FromDecimal(source[i], multiplier, byteBuffer);
             }
         }
 
@@ -334,8 +345,32 @@ namespace ParquetSharp
                 }
                 else
                 {
-                    var dec = new Decimal128(value.Value, multiplier);
-                    destination[dst++] = FromFixedLength(in dec, byteBuffer);
+                    destination[dst++] = LogicalWrite.FromDecimal(value.Value, multiplier, byteBuffer);
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        private static void ConvertUuid(ReadOnlySpan<Guid> source, Span<FixedLenByteArray> destination, ByteBuffer byteBuffer)
+        {
+            for (int i = 0; i != source.Length; ++i)
+            {
+                destination[i] = LogicalWrite.FromUuid(source[i], byteBuffer);
+            }
+        }
+
+        private static void ConvertUuid(ReadOnlySpan<Guid?> source, Span<short> defLevels, Span<FixedLenByteArray> destination, short nullLevel, ByteBuffer byteBuffer)
+        {
+            for (int i = 0, dst = 0; i != source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = LogicalWrite.FromUuid(value.Value, byteBuffer);
                     defLevels[i] = (short) (nullLevel + 1);
                 }
             }
@@ -345,7 +380,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i != source.Length; ++i)
             {
-                destination[i] = (source[i].Ticks - DateTimeOffset) / (TimeSpan.TicksPerMillisecond / 1000);
+                destination[i] = LogicalWrite.FromDateTimeMicros(source[i]);
             }
         }
 
@@ -360,7 +395,7 @@ namespace ParquetSharp
                 }
                 else
                 {
-                    destination[dst++] = (value.Value.Ticks - DateTimeOffset) / (TimeSpan.TicksPerMillisecond / 1000);
+                    destination[dst++] = LogicalWrite.FromDateTimeMicros(value.Value);
                     defLevels[i] = (short) (nullLevel + 1);
                 }
             }
@@ -370,7 +405,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i != source.Length; ++i)
             {
-                destination[i] = (source[i].Ticks - DateTimeOffset) / TimeSpan.TicksPerMillisecond;
+                destination[i] = LogicalWrite.FromDateTimeMillis(source[i]);
             }
         }
 
@@ -385,7 +420,7 @@ namespace ParquetSharp
                 }
                 else
                 {
-                    destination[dst++] = (value.Value.Ticks - DateTimeOffset) / TimeSpan.TicksPerMillisecond;
+                    destination[dst++] = LogicalWrite.FromDateTimeMillis(value.Value);
                     defLevels[i] = (short) (nullLevel + 1);
                 }
             }
@@ -395,7 +430,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i != source.Length; ++i)
             {
-                destination[i] = source[i].Ticks / (TimeSpan.TicksPerMillisecond / 1000);
+                destination[i] = LogicalWrite.FromTimeSpanMicros(source[i]);
             }
         }
 
@@ -410,7 +445,7 @@ namespace ParquetSharp
                 }
                 else
                 {
-                    destination[dst++] = value.Value.Ticks / (TimeSpan.TicksPerMillisecond / 1000);
+                    destination[dst++] = LogicalWrite.FromTimeSpanMicros(value.Value);
                     defLevels[i] = (short) (nullLevel + 1);
                 }
             }
@@ -420,7 +455,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i != source.Length; ++i)
             {
-                destination[i] = (int) (source[i].Ticks / TimeSpan.TicksPerMillisecond);
+                destination[i] = LogicalWrite.FromTimeSpanMillis(source[i]);
             }
         }
 
@@ -435,7 +470,7 @@ namespace ParquetSharp
                 }
                 else
                 {
-                    destination[dst++] = (int) (value.Value.Ticks / TimeSpan.TicksPerMillisecond);
+                    destination[dst++] = LogicalWrite.FromTimeSpanMillis(value.Value);
                     defLevels[i] = (short) (nullLevel + 1);
                 }
             }
@@ -457,7 +492,7 @@ namespace ParquetSharp
                 }
                 else
                 {
-                    destination[dst++] = FromString(value, byteBuffer);
+                    destination[dst++] = LogicalWrite.FromString(value, byteBuffer);
                     defLevels[i] = (short) (nullLevel + 1);
                 }
             }
@@ -479,13 +514,91 @@ namespace ParquetSharp
                 }
                 else
                 {
-                    destination[dst++] = FromByteArray(value, byteBuffer);
+                    destination[dst++] = LogicalWrite.FromByteArray(value, byteBuffer);
                     defLevels[i] = (short) (nullLevel + 1);
                 }
             }
         }
 
-        private static unsafe ByteArray FromString(string str, ByteBuffer byteBuffer)
+
+    }
+
+    /// <summary>
+    /// C# types to Parquet physical types write conversion logic.
+    /// Separate class for per-element conversion logic.
+    /// </summary>
+    internal static class LogicalWrite
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FixedLenByteArray FromDecimal(decimal source, decimal multiplier, ByteBuffer byteBuffer)
+        {
+            var dec = new Decimal128(source, multiplier);
+            return FromFixedLength(in dec, byteBuffer);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe FixedLenByteArray FromUuid(Guid uuid, ByteBuffer byteBuffer)
+        {
+            Debug.Assert(sizeof(Guid) == 16);
+
+            // The creation of a temporary byte[] via ToByteArray() is a shame, but I can't find a better public interface into Guid.
+            // Riskier but faster proposition is to assume that the layout of Guid is consistent. There is no such guarantees!
+            // But hopefully any breaking change is going to be caught by our unit test.
+
+            //var array = FromFixedLengthByteArray(uuid.ToByteArray(), byteBuffer); // SLOW
+            var array = FromFixedLength(uuid, byteBuffer);
+            var p = (byte*) array.Pointer;
+
+            // From parquet-format logical type documentation
+            // The value is encoded using big-endian, so that 00112233-4455-6677-8899-aabbccddeeff is encoded
+            // as the bytes 00 11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff.
+            //
+            // But Guid endianess is platform dependent (and ToByteArray() uses a little endian representation).
+            void Swap<T>(ref T lhs, ref T rhs)
+            {
+                var temp = lhs;
+                lhs = rhs;
+                rhs = temp;
+            }
+
+            if (BitConverter.IsLittleEndian)
+            {
+                // ReSharper disable once PossibleNullReferenceException
+                Swap(ref p[0], ref p[3]);
+                Swap(ref p[1], ref p[2]);
+                Swap(ref p[4], ref p[5]);
+                Swap(ref p[6], ref p[7]);
+            }
+
+            return array;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long FromDateTimeMicros(DateTime source)
+        {
+            return (source.Ticks - DateTimeOffset) / (TimeSpan.TicksPerMillisecond / 1000);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long FromDateTimeMillis(DateTime source)
+        {
+            return (source.Ticks - DateTimeOffset) / TimeSpan.TicksPerMillisecond;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long FromTimeSpanMicros(TimeSpan source)
+        {
+            return source.Ticks / (TimeSpan.TicksPerMillisecond / 1000);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int FromTimeSpanMillis(TimeSpan source)
+        {
+            return (int) (source.Ticks / TimeSpan.TicksPerMillisecond);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe ByteArray FromString(string str, ByteBuffer byteBuffer)
         {
             var utf8 = System.Text.Encoding.UTF8;
             var byteCount = utf8.GetByteCount(str);
@@ -493,13 +606,15 @@ namespace ParquetSharp
 
             fixed (char* chars = str)
             {
+                // ReSharper disable once AssignNullToNotNullAttribute
                 utf8.GetBytes(chars, str.Length, (byte*) byteArray.Pointer, byteCount);
             }
 
             return byteArray;
         }
 
-        private static unsafe ByteArray FromByteArray(byte[] array, ByteBuffer byteBuffer)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe ByteArray FromByteArray(byte[] array, ByteBuffer byteBuffer)
         {
             var byteArray = byteBuffer.Allocate(array.Length);
 
@@ -511,6 +626,7 @@ namespace ParquetSharp
             return byteArray;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static unsafe FixedLenByteArray FromFixedLength<TValue>(in TValue value, ByteBuffer byteBuffer)
             where TValue : unmanaged
         {
