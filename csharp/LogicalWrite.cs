@@ -553,7 +553,7 @@ namespace ParquetSharp
             // The value is encoded using big-endian, so that 00112233-4455-6677-8899-aabbccddeeff is encoded
             // as the bytes 00 11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff.
             //
-            // But Guid (and even ToByteArray()) uses a little endian representation.
+            // But Guid endianess is platform dependent (and ToByteArray() uses a little endian representation).
             void Swap<T>(ref T lhs, ref T rhs)
             {
                 var temp = lhs;
@@ -561,11 +561,14 @@ namespace ParquetSharp
                 rhs = temp;
             }
 
-            // ReSharper disable once PossibleNullReferenceException
-            Swap(ref p[0], ref p[3]);
-            Swap(ref p[1], ref p[2]);
-            Swap(ref p[4], ref p[5]);
-            Swap(ref p[6], ref p[7]);
+            if (BitConverter.IsLittleEndian)
+            {
+                // ReSharper disable once PossibleNullReferenceException
+                Swap(ref p[0], ref p[3]);
+                Swap(ref p[1], ref p[2]);
+                Swap(ref p[4], ref p[5]);
+                Swap(ref p[6], ref p[7]);
+            }
 
             return array;
         }

@@ -502,12 +502,24 @@ namespace ParquetSharp
 
             var p = (byte*) source.Pointer;
 
-            // ReSharper disable once PossibleNullReferenceException
-            int a = p[0] << 24 | p[1] << 16 | p[2] << 8 | p[3];
-            short b = (short) (p[4] << 8 | p[5]);
-            short c = (short) (p[6] << 8 | p[7]);
+            if (BitConverter.IsLittleEndian)
+            {
+                // ReSharper disable once PossibleNullReferenceException
+                int a = p[0] << 24 | p[1] << 16 | p[2] << 8 | p[3];
+                short b = (short) (p[4] << 8 | p[5]);
+                short c = (short) (p[6] << 8 | p[7]);
 
-            return new Guid(a, b, c, p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
+                return new Guid(a, b, c, p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
+            }
+            else
+            {
+                // ReSharper disable once PossibleNullReferenceException
+                int a = p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
+                short b = (short) (p[4] | p[5] << 8);
+                short c = (short) (p[6] | p[7] << 8);
+
+                return new Guid(a, b, c, p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
