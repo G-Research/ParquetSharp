@@ -119,6 +119,11 @@ namespace ParquetSharp
                 return (typeof(FixedLenByteArray), nullable ? typeof(decimal?) : typeof(decimal));
             }
 
+            if (logicalType is UuidLogicalType)
+            {
+                return (typeof(FixedLenByteArray), nullable ? typeof(Guid?) : typeof(Guid));
+            }
+
             if (logicalType is DateLogicalType)
             {
                 return (typeof(int), nullable ? typeof(Date?) : typeof(Date));

@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 using ParquetSharp.IO;
 using NUnit.Framework;
 
@@ -597,7 +596,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => ((decimal) i * i * i) / 1000 - 10).ToArray(),
                     Min = -10m,
                     Max = ((NumRows-1m) * (NumRows-1m) * (NumRows-1m)) / 1000 - 10,
-                    Converter = v => DecimalConverter(v, 3)
+                    Converter = v => LogicalRead.ToDecimal((FixedLenByteArray) v, 3)
                 },
                 new ExpectedColumn
                 {
@@ -611,7 +610,33 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = -9.999m,
                     Max = ((NumRows-1m) * (NumRows-1m) * (NumRows-1m)) / 1000 - 10,
-                    Converter = v => DecimalConverter(v, 3)
+                    Converter = v => LogicalRead.ToDecimal((FixedLenByteArray) v, 3)
+                },
+                new ExpectedColumn
+                {
+                    Name = "uuid_field",
+                    PhysicalType = PhysicalType.FixedLenByteArray,
+                    LogicalType = LogicalType.Uuid(),
+                    LogicalTypeOverride = LogicalType.Uuid(),
+                    Length = 16,
+                    Values = Enumerable.Range(0, NumRows).Select(i => new Guid(i, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F)).ToArray(),
+                    Min = new Guid(0, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F),
+                    Max = new Guid(NumRows - 1, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F),
+                    Converter = v => LogicalRead.ToUuid((FixedLenByteArray) v)
+                },
+                new ExpectedColumn
+                {
+                    Name = "uuid?_field",
+                    PhysicalType = PhysicalType.FixedLenByteArray,
+                    LogicalType = LogicalType.Uuid(),
+                    LogicalTypeOverride = LogicalType.Uuid(),
+                    Length = 16,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? null : (Guid?) new Guid(i, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F)).ToArray(),
+                    NullCount = (NumRows + 10) / 11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
+                    Min = new Guid(1, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F),
+                    Max = new Guid(NumRows - 1, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F),
+                    Converter = v => LogicalRead.ToUuid((FixedLenByteArray) v)
                 },
                 new ExpectedColumn
                 {
@@ -641,7 +666,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     Min = new DateTime(2018, 01, 01),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
-                    Converter = DateTimeMicrosConverter
+                    Converter = v => LogicalRead.ToDateTimeMicros((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -653,7 +678,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = new DateTime(2018, 01, 01) + TimeSpan.FromHours(1),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
-                    Converter = DateTimeMicrosConverter
+                    Converter = v => LogicalRead.ToDateTimeMicros((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -664,7 +689,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     Min = new DateTime(2018, 01, 01),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
-                    Converter = DateTimeMillisConverter
+                    Converter = v => LogicalRead.ToDateTimeMillis((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -677,7 +702,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = new DateTime(2018, 01, 01) + TimeSpan.FromHours(1),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
-                    Converter = DateTimeMillisConverter
+                    Converter = v => LogicalRead.ToDateTimeMillis((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -687,7 +712,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(i))).ToArray(),
                     Min = new DateTimeNanos(new DateTime(2018, 01, 01)),
                     Max = new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1)),
-                    Converter = DateTimeNanosConverter
+                    Converter = v => new DateTimeNanos((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -699,7 +724,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(1)),
                     Max = new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1)),
-                    Converter = DateTimeNanosConverter
+                    Converter = v => new DateTimeNanos((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -709,7 +734,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     Min = TimeSpan.FromHours(-13),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
-                    Converter = TimeSpanMicrosConverter
+                    Converter = v => LogicalRead.ToTimeSpanMicros((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -721,7 +746,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = TimeSpan.FromHours(-13 + 1),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
-                    Converter = TimeSpanMicrosConverter
+                    Converter = v => LogicalRead.ToTimeSpanMicros((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -732,7 +757,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     Min = TimeSpan.FromHours(-13),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
-                    Converter = TimeSpanMillisConverter
+                    Converter = v => LogicalRead.ToTimeSpanMillis((int) v)
                 },
                 new ExpectedColumn
                 {
@@ -745,21 +770,21 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = TimeSpan.FromHours(-13 + 1),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
-                    Converter = TimeSpanMillisConverter
+                    Converter = v => LogicalRead.ToTimeSpanMillis((int) v)
                 },
                 new ExpectedColumn
                 {
-                    Name = "timespan_millis_field",
+                    Name = "timespan_nanos_field",
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Time(true, TimeUnit.Nanos),
                     Values = Enumerable.Range(0, NumRows).Select(i => new TimeSpanNanos(TimeSpan.FromHours(-13) + TimeSpan.FromHours(i))).ToArray(),
                     Min = new TimeSpanNanos(TimeSpan.FromHours(-13)),
                     Max = new TimeSpanNanos(TimeSpan.FromHours(-13 + NumRows - 1)),
-                    Converter = TimeSpanNanosConverter
+                    Converter = v => new TimeSpanNanos((long) v)
                 },
                 new ExpectedColumn
                 {
-                    Name = "timespan?_millis_field",
+                    Name = "timespan?_nanos_field",
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Time(true, TimeUnit.Nanos),
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (TimeSpanNanos?) null : new TimeSpanNanos(TimeSpan.FromHours(-13) + TimeSpan.FromHours(i))).ToArray(),
@@ -767,7 +792,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = new TimeSpanNanos(TimeSpan.FromHours(-13 + 1)),
                     Max = new TimeSpanNanos(TimeSpan.FromHours(-13 + NumRows - 1)),
-                    Converter = TimeSpanNanosConverter
+                    Converter = v => new TimeSpanNanos((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -779,7 +804,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 17) / 18,
                     Min = "",
                     Max = "Hello, 98!",
-                    Converter = StringConverter
+                    Converter = v => LogicalRead.ToString((ByteArray) v)
                 },
                 new ExpectedColumn
                 {
@@ -792,7 +817,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 8) / 9,
                     Min = "{ \"id\", 1 }",
                     Max = "{ \"id\", 98 }",
-                    Converter = StringConverter
+                    Converter = v => LogicalRead.ToString((ByteArray) v)
                 },
                 new ExpectedColumn
                 {
@@ -803,7 +828,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 5) / 6,
                     Min = new byte[0],
                     Max = BitConverter.GetBytes(NumRows - 1),
-                    Converter = ByteArrayConverter
+                    Converter = v => LogicalRead.ToByteArray((ByteArray) v)
                 },
                 new ExpectedColumn
                 {
@@ -816,7 +841,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 2) / 3,
                     Min = BitConverter.GetBytes(1),
                     Max = BitConverter.GetBytes(NumRows - 1),
-                    Converter = ByteArrayConverter
+                    Converter = v => LogicalRead.ToByteArray((ByteArray) v)
                 },
                 new ExpectedColumn
                 {
@@ -929,65 +954,9 @@ namespace ParquetSharp.Test
                     NumValues = (NumRows / 3 + 1) * 3,
                     Min = BitConverter.GetBytes(0),
                     Max = BitConverter.GetBytes(252),
-                    Converter = ByteArrayConverter
+                    Converter = v => LogicalRead.ToByteArray((ByteArray) v)
                 }
             };
-        }
-
-        private static unsafe object DecimalConverter(object v, int scale)
-        {
-            var multiplier = Decimal128.GetScaleMultiplier(scale);
-            return (*(Decimal128*) ((FixedLenByteArray) v).Pointer).ToDecimal(multiplier);
-        }
-
-        private static object DateTimeMicrosConverter(object v)
-        {
-            return new DateTime(1970, 01, 01).AddTicks((long) v * (TimeSpan.TicksPerMillisecond / 1000));
-        }
-
-        private static object DateTimeMillisConverter(object v)
-        {
-            return new DateTime(1970, 01, 01).AddTicks((long) v * TimeSpan.TicksPerMillisecond);
-        }
-
-        private static object DateTimeNanosConverter(object v)
-        {
-            return new DateTimeNanos((long) v);
-        }
-
-        private static object TimeSpanMicrosConverter(object v)
-        {
-            return TimeSpan.FromTicks((long) v * (TimeSpan.TicksPerMillisecond / 1000));
-        }
-
-        private static object TimeSpanMillisConverter(object v)
-        {
-            return TimeSpan.FromTicks((int) v * TimeSpan.TicksPerMillisecond);
-        }
-
-        private static object TimeSpanNanosConverter(object v)
-        {
-            return new TimeSpanNanos((long) v);
-        }
-
-        private static object ByteArrayConverter(object v)
-        {
-            var byteArray = (ByteArray) v;
-            var array = new byte[byteArray.Length];
-            if (byteArray.Length != 0)
-            {
-                Marshal.Copy(byteArray.Pointer, array, 0, array.Length);
-            }
-
-            return array;
-        }
-
-        private static unsafe object StringConverter(object v)
-        {
-            var byteArray = (ByteArray) v;
-            return byteArray.Length == 0
-                ? string.Empty
-                : System.Text.Encoding.UTF8.GetString((byte*) byteArray.Pointer, byteArray.Length);
         }
 
         private sealed class ExpectedColumn
