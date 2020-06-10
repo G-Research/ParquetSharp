@@ -2,8 +2,6 @@ name: CI
 
 on:
   push:
-    branches:
-      - master
   pull_request:
 
 jobs:
@@ -14,6 +12,11 @@ jobs:
   # Build everything on all platorms (thus testing the developer workflow).
   # Upload the native shared libraries as artifacts.
   build-native:
+    # Do not run this job for pull requests where both branches are from the same repo.
+    # Other jobs will be skipped too, as they depend on this one.
+    # This prevents duplicate CI runs for our own pull requests, whilst preserving the ability to
+    # run the CI for each branch push to a fork, and for each pull request originating from a fork.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-latest, windows-latest]
@@ -117,7 +120,7 @@ jobs:
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-latest, windows-latest]
+        os: [ubuntu-18.04, ubuntu-20.04, macos-latest, windows-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
     needs: build-nuget

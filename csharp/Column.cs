@@ -11,8 +11,8 @@ namespace ParquetSharp
     /// </summary>
     public class Column
     {
-        public unsafe Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride = null)
-            : this(logicalSystemType, name, logicalTypeOverride, logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?) ? sizeof(Decimal128) : -1)
+        public Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride = null)
+            : this(logicalSystemType, name, logicalTypeOverride, GetTypeLength(logicalSystemType))
         {
             LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -22,15 +22,21 @@ namespace ParquetSharp
         public unsafe Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride, int length)
         {
             var isDecimal = logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?);
+            var isUuid = logicalSystemType == typeof(Guid) || logicalSystemType == typeof(Guid?);
 
-            if (length != -1 && !isDecimal)
+            if (length != -1 && !isDecimal && !isUuid)
             {
-                throw new ArgumentException("length can only be set with the decimal type");
+                throw new ArgumentException("length can only be set with the decimal or Guid type");
             }
 
             if (isDecimal && !(logicalTypeOverride is DecimalLogicalType))
             {
                 throw new ArgumentException("decimal type requires a DecimalLogicalType override");
+            }
+
+            if (isUuid && !(logicalTypeOverride is UuidLogicalType))
+            {
+                throw new ArgumentException("Guid type requires a UuidLogicalType override");
             }
 
             if (logicalTypeOverride is DecimalLogicalType decimalLogicalType)
@@ -114,6 +120,21 @@ namespace ParquetSharp
             }
         }
 
+        private static unsafe int GetTypeLength(Type logicalSystemType)
+        {
+            if (logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?))
+            {
+                return sizeof(Decimal128);
+            }
+
+            if (logicalSystemType == typeof(Guid) || logicalSystemType == typeof(Guid?))
+            {
+                return 16;
+            }
+
+            return -1;
+        }
+
         private static Node CreateSchemaNode(Type type, string name, LogicalType logicalTypeOverride, int length)
         {
             if (Primitives.TryGetValue(type, out var p))
@@ -190,6 +211,8 @@ namespace ParquetSharp
                 {typeof(double?), (Repetition.Optional, LogicalType.None(), PhysicalType.Double)},
                 {typeof(decimal), (Repetition.Required, null, PhysicalType.FixedLenByteArray)},
                 {typeof(decimal?), (Repetition.Optional, null, PhysicalType.FixedLenByteArray)},
+                {typeof(Guid), (Repetition.Required, LogicalType.Uuid(), PhysicalType.FixedLenByteArray)},
+                {typeof(Guid?), (Repetition.Optional, LogicalType.Uuid(), PhysicalType.FixedLenByteArray)},
                 {typeof(Date), (Repetition.Required, LogicalType.Date(), PhysicalType.Int32)},
                 {typeof(Date?), (Repetition.Optional, LogicalType.Date(), PhysicalType.Int32)},
                 {typeof(DateTime), (Repetition.Required, LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), PhysicalType.Int64)},

@@ -21,15 +21,15 @@ namespace ParquetSharp.Test
                 //TestColumn.TestPrimitives();
                 //TestParquetFileWriter.TestReadWriteParquetMultipleTasks();
                 //TestColumnReader.TestHasNext();
-                //TestLogicalTypeRoundtrip.TestReaderWriteTypes(128, 2401, 1331);
+                TestLogicalTypeRoundtrip.TestRoundTrip(128, 2401, 1331, useDictionaryEncoding: true);
                 //TestPhysicalTypeRoundtrip.TestReaderWriteTypes();
                 //TestParquetFileReader.TestReadFileCreateByPython();
                 //TestParquetFileReader.TestFileHandleHasBeenReleased();
                 //TestParquetFileWriter.TestWriteLongString();
                 //TestManagedRandomAccessFile.TestWriteException();
                 //TestAadPrefixVerifier.TestOwnership();
-                TestEncryption.TestNoMatchingKeyMetadata();
-                TestParquetFileWriter.TestDisposeExceptionSafety_ColumnWriter();
+                //TestEncryption.TestNoMatchingKeyMetadata();
+                //TestParquetFileWriter.TestDisposeExceptionSafety_ColumnWriter();
 
                 // Ensure the finalizers are executed, so we can check whether they throw.
                 GC.Collect();
