@@ -1,1 +1,1 @@
-https://github.com/GPSnoopy/vcpkg.git Arrow-0.17.1
+https://github.com/microsoft/vcpkg.git master
