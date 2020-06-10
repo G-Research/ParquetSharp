@@ -25,7 +25,10 @@ case $(uname) in
     ;;
 esac
 
-read -r vcpkg_url vcpkg_ref < vcpkg_version.txt
+# Make sure reading vcpkg_version.txt works even when it doesn't end with a newline
+read -r vcpkg_url vcpkg_ref << EOF
+$(cat vcpkg_version.txt)
+EOF
 
 mkdir -p build
 cd build
