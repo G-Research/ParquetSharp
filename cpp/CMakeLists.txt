@@ -11,6 +11,7 @@ find_package(lz4 CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Snappy CONFIG REQUIRED)
 find_package(Thrift CONFIG REQUIRED)
+find_package(utf8proc REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Zstd REQUIRED)
 find_package(ParquetCpp REQUIRED)
@@ -96,6 +97,7 @@ target_link_libraries(ParquetSharpNative
 	${SSL_LIBRARIES}
 	Snappy::snappy
 	thrift::thrift
+	${utf8proc_LIBRARIES}
 	ZLIB::ZLIB
 	${Zstd_LIBRARIES} 
 	${Threads_LIBRARIES}
@@ -105,6 +107,7 @@ target_link_libraries(ParquetSharpNative
 add_definitions(-DARROW_STATIC)
 add_definitions(-DARROW_NO_DEPRECATED_API)
 add_definitions(-DPARQUET_STATIC)
+add_definitions(-DUTF8PROC_STATIC)
 
 if (UNIX AND CMAKE_BUILD_TYPE STREQUAL Release)
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")

@@ -43,7 +43,7 @@ namespace ParquetSharp.RowOriented
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
             string path,
             string[] columnNames = null,
-            Compression compression = Compression.Lz4,
+            Compression compression = Compression.Snappy,
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
@@ -56,7 +56,7 @@ namespace ParquetSharp.RowOriented
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
             OutputStream outputStream,
             string[] columnNames = null,
-            Compression compression = Compression.Lz4,
+            Compression compression = Compression.Snappy,
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);

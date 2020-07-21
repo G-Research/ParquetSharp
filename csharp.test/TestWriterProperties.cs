@@ -73,7 +73,7 @@ namespace ParquetSharp.Test
                 };
 
                 var p = new WriterPropertiesBuilder()
-                    .Compression(Compression.Lz4)
+                    .Compression(Compression.Snappy)
                     .DisableDictionary("value")
                     .Encoding("value", Encoding.ByteStreamSplit)
                     .Build();

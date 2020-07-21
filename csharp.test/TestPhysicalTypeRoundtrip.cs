@@ -174,7 +174,7 @@ namespace ParquetSharp.Test
         {
             var builder = new WriterPropertiesBuilder();
 
-            builder.Compression(Compression.Lz4);
+            builder.Compression(Compression.Snappy);
 
             if (!useDictionaryEncoding)
             {
@@ -248,7 +248,7 @@ namespace ParquetSharp.Test
             public int TypeScale = -1;
 
             public Encoding[] Encodings = {Encoding.PlainDictionary, Encoding.Plain, Encoding.Rle};
-            public Compression Compression = Compression.Lz4;
+            public Compression Compression = Compression.Snappy;
         }
     }
 }

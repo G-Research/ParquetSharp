@@ -61,7 +61,7 @@ namespace ParquetSharp.Test
         private static WriterProperties CreateWriterProperties(bool enableDictionary)
         {
             using var builder = new WriterPropertiesBuilder();
-            builder.Compression(Compression.Lz4);
+            builder.Compression(Compression.Snappy);
             return (enableDictionary ? builder : builder.DisableDictionary("value")).Build();
         }
 
