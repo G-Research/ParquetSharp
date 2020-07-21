@@ -1,1 +1,1 @@
-https://github.com/microsoft/vcpkg.git 2020.06
+https://github.com/GPSnoopy/vcpkg.git arrow-1.0.0
