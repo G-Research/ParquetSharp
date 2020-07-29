@@ -107,7 +107,6 @@ target_link_libraries(ParquetSharpNative
 add_definitions(-DARROW_STATIC)
 add_definitions(-DARROW_NO_DEPRECATED_API)
 add_definitions(-DPARQUET_STATIC)
-add_definitions(-DUTF8PROC_STATIC)
 
 if (UNIX AND CMAKE_BUILD_TYPE STREQUAL Release)
   if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
