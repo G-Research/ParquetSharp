@@ -1,1 +1,1 @@
-https://github.com/GPSnoopy/vcpkg.git arrow-1.0.0
+https://github.com/Microsoft/vcpkg.git b4f71b8f2fc0902a30fbf84e94418ae4d62e9986
