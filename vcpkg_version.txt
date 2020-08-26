@@ -1,1 +1,1 @@
-https://github.com/Microsoft/vcpkg.git master
+https://github.com/GPSnoopy/vcpkg.git arrow-1.0.1
