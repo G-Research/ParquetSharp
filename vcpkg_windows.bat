@@ -5,8 +5,10 @@ for /f "tokens=1,2" %%a in (vcpkg_version.txt) do (
 
 mkdir build
 cd build || goto :error
-git clone %vcpkg_url% -b %vcpkg_ref% vcpkg.windows || goto :error
+rem Clone without checking out a branch, as vcpkg_ref could be a commit SHA
+git clone %vcpkg_url% vcpkg.windows || goto :error
 cd vcpkg.windows || goto :error
+git checkout %vcpkg_ref% || goto :error
 if "%GITHUB_ACTIONS%"=="true" echo set(VCPKG_BUILD_TYPE release) >> triplets\x64-windows-static.cmake || goto :error
 call bootstrap-vcpkg.bat || goto :error
 
