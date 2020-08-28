@@ -32,8 +32,10 @@ EOF
 
 mkdir -p build
 cd build
-git clone $vcpkg_url -b $vcpkg_ref vcpkg.$os
+# Clone without checking out a branch, as vcpkg_ref could be a commit SHA
+git clone $vcpkg_url vcpkg.$os
 cd vcpkg.$os
+git checkout $vcpkg_ref
 ./bootstrap-vcpkg.sh
 
 ./vcpkg install arrow:$triplet
