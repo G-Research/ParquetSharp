@@ -297,7 +297,7 @@ namespace ParquetSharp.Test
             using var builder = new WriterPropertiesBuilder();
             
             return builder
-                .Compression(Compression.Lz4)
+                .Compression(Compression.Snappy)
                 .Encryption(fileEncryptionProperties)
                 .Build();
         }

@@ -11,6 +11,7 @@ find_package(lz4 CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Snappy CONFIG REQUIRED)
 find_package(Thrift CONFIG REQUIRED)
+find_package(utf8proc REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Zstd REQUIRED)
 find_package(ParquetCpp REQUIRED)
@@ -96,6 +97,7 @@ target_link_libraries(ParquetSharpNative
 	${SSL_LIBRARIES}
 	Snappy::snappy
 	thrift::thrift
+	${utf8proc_LIBRARIES}
 	ZLIB::ZLIB
 	${Zstd_LIBRARIES} 
 	${Threads_LIBRARIES}

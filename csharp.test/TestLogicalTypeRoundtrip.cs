@@ -96,7 +96,7 @@ namespace ParquetSharp.Test
         {
             var builder = new WriterPropertiesBuilder();
 
-            builder.Compression(Compression.Lz4);
+            builder.Compression(Compression.Snappy);
 
             if (!useDictionaryEncoding)
             {
