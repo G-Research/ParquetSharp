@@ -15,7 +15,7 @@ namespace ParquetSharp.Benchmark
             };
         }
 
-        protected static (DateTime[] dates, int[] objectIds, float[][] values, int numRows) CreateFloatDataFrame(int numDates = 360)
+        protected static (DateTime[] dates, int[] objectIds, float[][] values, int numRows) CreateFloatDataFrame(int numDates)
         {
             var rand = new Random(123);
 

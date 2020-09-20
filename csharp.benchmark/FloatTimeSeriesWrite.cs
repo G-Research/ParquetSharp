@@ -19,7 +19,7 @@ namespace ParquetSharp.Benchmark
             var timer = Stopwatch.StartNew();
             int numRows;
 
-            (_dates, _objectIds, _values, numRows) = CreateFloatDataFrame();
+            (_dates, _objectIds, _values, numRows) = CreateFloatDataFrame(360);
 
             Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", numRows, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
