@@ -261,7 +261,7 @@ namespace ParquetSharp
 
         private static void ConvertNative<TValue>(ReadOnlySpan<TValue> source, ReadOnlySpan<short> defLevels, Span<TValue?> destination, short nullLevel) where TValue : unmanaged
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(TValue?) : source[src++];
             }
@@ -269,7 +269,7 @@ namespace ParquetSharp
 
         private static void ConvertInt8(ReadOnlySpan<int> source, Span<sbyte> destination)
         {
-            for (int i = 0; i != destination.Length; ++i)
+            for (int i = 0; i < destination.Length; ++i)
             {
                 destination[i] = (sbyte) source[i];
             }
@@ -277,7 +277,7 @@ namespace ParquetSharp
 
         private static void ConvertInt8(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<sbyte?> destination, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(sbyte?) : (sbyte) source[src++];
             }
@@ -285,7 +285,7 @@ namespace ParquetSharp
 
         private static void ConvertUInt8(ReadOnlySpan<int> source, Span<byte> destination)
         {
-            for (int i = 0; i != destination.Length; ++i)
+            for (int i = 0; i < destination.Length; ++i)
             {
                 destination[i] = (byte) source[i];
             }
@@ -293,7 +293,7 @@ namespace ParquetSharp
 
         private static void ConvertUInt8(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<byte?> destination, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(byte?) : (byte) source[src++];
             }
@@ -301,7 +301,7 @@ namespace ParquetSharp
 
         private static void ConvertInt16(ReadOnlySpan<int> source, Span<short> destination)
         {
-            for (int i = 0; i != destination.Length; ++i)
+            for (int i = 0; i < destination.Length; ++i)
             {
                 destination[i] = (short) source[i];
             }
@@ -309,7 +309,7 @@ namespace ParquetSharp
 
         private static void ConvertInt16(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<short?> destination, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(short?) : (short) source[src++];
             }
@@ -317,7 +317,7 @@ namespace ParquetSharp
 
         private static void ConvertUInt16(ReadOnlySpan<int> source, Span<ushort> destination)
         {
-            for (int i = 0; i != destination.Length; ++i)
+            for (int i = 0; i < destination.Length; ++i)
             {
                 destination[i] = (ushort) source[i];
             }
@@ -325,7 +325,7 @@ namespace ParquetSharp
 
         private static void ConvertUInt16(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<ushort?> destination, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(ushort?) : (ushort) source[src++];
             }
@@ -333,7 +333,7 @@ namespace ParquetSharp
 
         private static void ConvertDecimal128(ReadOnlySpan<FixedLenByteArray> source, Span<decimal> destination, decimal multiplier)
         {
-            for (int i = 0; i != destination.Length; ++i)
+            for (int i = 0; i < destination.Length; ++i)
             {
                 destination[i] = LogicalRead.ToDecimal(source[i], multiplier);
             }
@@ -341,7 +341,7 @@ namespace ParquetSharp
 
         private static void ConvertDecimal128(ReadOnlySpan<FixedLenByteArray> source, ReadOnlySpan<short> defLevels, Span<decimal?> destination, decimal multiplier, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(decimal?) : LogicalRead.ToDecimal(source[src++], multiplier);
             }
@@ -349,7 +349,7 @@ namespace ParquetSharp
 
         private static void ConvertUuid(ReadOnlySpan<FixedLenByteArray> source, Span<Guid> destination)
         {
-            for (int i = 0; i != destination.Length; ++i)
+            for (int i = 0; i < destination.Length; ++i)
             {
                 destination[i] = LogicalRead.ToUuid(source[i]);
             }
@@ -357,7 +357,7 @@ namespace ParquetSharp
 
         private static void ConvertUuid(ReadOnlySpan<FixedLenByteArray> source, ReadOnlySpan<short> defLevels, Span<Guid?> destination, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(Guid?) : LogicalRead.ToUuid(source[src++]);
             }
@@ -365,7 +365,7 @@ namespace ParquetSharp
         
         private static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination)
         {
-            for (int i = 0; i != destination.Length; ++i)
+            for (int i = 0; i < destination.Length; ++i)
             {
                 destination[i] = LogicalRead.ToDateTimeMicros(source[i]);
             }
@@ -373,7 +373,7 @@ namespace ParquetSharp
 
         private static void ConvertDateTimeMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(DateTime?) : LogicalRead.ToDateTimeMicros(source[src++]);
             }
@@ -381,7 +381,7 @@ namespace ParquetSharp
 
         private static void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination)
         {
-            for (int i = 0; i != destination.Length; ++i)
+            for (int i = 0; i < destination.Length; ++i)
             {
                 destination[i] = LogicalRead.ToDateTimeMillis(source[i]);
             }
@@ -389,7 +389,7 @@ namespace ParquetSharp
 
         private static void ConvertDateTimeMillis(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(DateTime?) : LogicalRead.ToDateTimeMillis(source[src++]);
             }
@@ -397,7 +397,7 @@ namespace ParquetSharp
 
         private static void ConvertTimeSpanMicros(ReadOnlySpan<long> source, Span<TimeSpan> destination)
         {
-            for (int i = 0; i != destination.Length; ++i)
+            for (int i = 0; i < destination.Length; ++i)
             {
                 destination[i] = LogicalRead.ToTimeSpanMicros(source[i]);
             }
@@ -405,7 +405,7 @@ namespace ParquetSharp
 
         private static void ConvertTimeSpanMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<TimeSpan?> destination, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(TimeSpan?) : LogicalRead.ToTimeSpanMicros(source[src++]);
             }
@@ -413,7 +413,7 @@ namespace ParquetSharp
 
         private static void ConvertTimeSpanMillis(ReadOnlySpan<int> source, Span<TimeSpan> destination)
         {
-            for (int i = 0; i != destination.Length; ++i)
+            for (int i = 0; i < destination.Length; ++i)
             {
                 destination[i] = LogicalRead.ToTimeSpanMillis(source[i]);
             }
@@ -421,7 +421,7 @@ namespace ParquetSharp
 
         private static void ConvertTimeSpanMillis(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<TimeSpan?> destination, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(TimeSpan?) : LogicalRead.ToTimeSpanMillis(source[src++]);
             }
@@ -429,7 +429,7 @@ namespace ParquetSharp
 
         private static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string> destination, short nullLevel, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = !defLevels.IsEmpty && defLevels[i] == nullLevel ? null : ToString(source[src++], byteArrayCache);
             }
@@ -437,7 +437,7 @@ namespace ParquetSharp
 
         private static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string> destination, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = !defLevels.IsEmpty && defLevels[i] == nullLevel ? null : LogicalRead.ToString(source[src++]);
             }
@@ -445,7 +445,7 @@ namespace ParquetSharp
 
         private static void ConvertByteArray(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<byte[]> destination, short nullLevel)
         {
-            for (int i = 0, src = 0; i != destination.Length; ++i)
+            for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = !defLevels.IsEmpty && defLevels[i] == nullLevel ? null : LogicalRead.ToByteArray(source[src++]);
             }

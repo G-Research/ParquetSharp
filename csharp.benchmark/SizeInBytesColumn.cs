@@ -5,16 +5,23 @@ using BenchmarkDotNet.Running;
 
 namespace ParquetSharp.Benchmark
 {
-    internal sealed class ResultColumn : IColumn
+    internal sealed class SizeInBytesColumn : IColumn
     {
         public string GetValue(Summary summary, BenchmarkCase benchmarkCase)
         {
             var type = benchmarkCase.Descriptor.Type;
             var method = benchmarkCase.Descriptor.WorkloadMethod;
+
+            if (method.ReturnType != typeof(long))
+            {
+                return "";
+            }
+
             var instance = Activator.CreateInstance(type);
             var result = method.Invoke(instance, new object[0]);
 
-            return result is long l ? l.ToString("N0") : "";
+            // ReSharper disable once PossibleNullReferenceException
+            return ((long) result).ToString("N0");
         }
 
         public string GetValue(Summary summary, BenchmarkCase benchmarkCase, SummaryStyle style)
