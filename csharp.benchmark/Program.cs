@@ -14,7 +14,8 @@ namespace ParquetSharp.Benchmark
 
                 var config = DefaultConfig
                     .Instance
-                    .WithOptions(ConfigOptions.JoinSummary);
+                    .WithOptions(ConfigOptions.Default)
+                    .AddColumn(new ResultColumn());
 
                 BenchmarkRunner.Run(new[]
                 {

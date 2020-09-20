@@ -24,7 +24,7 @@ namespace ParquetSharp.Benchmark
                 return sign * ((decimal)n * n * n) / 1000M;
             }).ToArray();
 
-            Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", _numRows, timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", _values.Length, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
         }
 

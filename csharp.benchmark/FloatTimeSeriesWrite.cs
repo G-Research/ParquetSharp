@@ -25,7 +25,7 @@ namespace ParquetSharp.Benchmark
             Console.WriteLine();
         }
 
-        [Benchmark(Description = "Plop")]
+        [Benchmark(Description = "CSV")]
         public long Csv()
         {
             using (var csv = new StreamWriter("float_timeseries.csv"))
@@ -42,7 +42,7 @@ namespace ParquetSharp.Benchmark
             return new FileInfo("float_timeseries.csv").Length;
         }
 
-        [Benchmark]
+        [Benchmark(Description = "CSV.GZ")]
         public long CsvGz()
         {
             using (var stream = new FileStream("float_timeseries.csv.gz", FileMode.Create))
@@ -62,189 +62,148 @@ namespace ParquetSharp.Benchmark
             return new FileInfo("float_timeseries.csv.gz").Length;
         }
         
-        [Benchmark(Baseline = true)]
+        [Benchmark(Baseline = true, Description = "Baseline")]
         public long Parquet()
         {
             using (var fileWriter = new ParquetFileWriter("float_timeseries.parquet", CreateFloatColumns()))
             {
-                using var rowGroupWriter = fileWriter.AppendRowGroup();
-
-                using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
-                {
-                    for (int i = 0; i != _dates.Length; ++i)
-                    {
-                        dateTimeWriter.WriteBatch(Enumerable.Repeat(_dates[i], _objectIds.Length).ToArray());
-                    }
-                }
-
-                using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
-                {
-                    for (int i = 0; i != _dates.Length; ++i)
-                    {
-                        objectIdWriter.WriteBatch(_objectIds);
-                    }
-                }
-
-                using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
-                {
-                    for (int i = 0; i != _dates.Length; ++i)
-                    {
-                        valueWriter.WriteBatch(_values[i]);
-                    }
-                }
-
-                fileWriter.Close();
+                ParquetImpl(fileWriter);
             }
 
             return new FileInfo("float_timeseries.parquet").Length;
         }
 
-        [Benchmark]
-        public long ParquetChunked()
-        {
-            using (var fileWriter = new ParquetFileWriter("float_timeseries.parquet.chunked", CreateFloatColumns()))
-            {
-                for (int i = 0; i != _dates.Length; ++i)
-                {
-                    using var rowGroupWriter = fileWriter.AppendRowGroup();
-
-                    using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
-                    {
-                        dateTimeWriter.WriteBatch(Enumerable.Repeat(_dates[i], _objectIds.Length).ToArray());
-                    }
-
-                    using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
-                    {
-                        objectIdWriter.WriteBatch(_objectIds);
-                    }
-
-                    using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
-                    {
-                        valueWriter.WriteBatch(_values[i]);
-                    }
-                }
-
-                fileWriter.Close();
-            }
-
-            return new FileInfo("float_timeseries.parquet.chunked").Length;
-        }
-
-        [Benchmark]
-        public long ParquetRowsOriented()
-        {
-            using (var rowWriter =
-                ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet.roworiented", new[] {"DateTime", "ObjectId", "Value"}))
-            {
-                for (int i = 0; i != _dates.Length; ++i)
-                {
-                    for (int j = 0; j != _objectIds.Length; ++j)
-                    {
-                        rowWriter.WriteRow((_dates[i], _objectIds[j], _values[i][j]));
-                    }
-                }
-            }
-
-            return new FileInfo("float_timeseries.parquet.roworiented").Length;
-        }
-
-        [Benchmark]
+        [Benchmark(Description = "Baseline (Stream)")]
         public long ParquetStream()
         {
             using (var stream = new FileStream("float_timeseries.parquet.stream", FileMode.Create))
             {
                 using var writer = new IO.ManagedOutputStream(stream);
                 using var fileWriter = new ParquetFileWriter(writer, CreateFloatColumns());
-                using var rowGroupWriter = fileWriter.AppendRowGroup();
-
-                using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
-                {
-                    for (int i = 0; i != _dates.Length; ++i)
-                    {
-                        dateTimeWriter.WriteBatch(Enumerable.Repeat(_dates[i], _objectIds.Length).ToArray());
-                    }
-                }
-
-                using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
-                {
-                    for (int i = 0; i != _dates.Length; ++i)
-                    {
-                        objectIdWriter.WriteBatch(_objectIds);
-                    }
-                }
-
-                using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
-                {
-                    for (int i = 0; i != _dates.Length; ++i)
-                    {
-                        valueWriter.WriteBatch(_values[i]);
-                    }
-                }
-
-
-                fileWriter.Close();
+                ParquetImpl(fileWriter);
             }
 
             return new FileInfo("float_timeseries.parquet.stream").Length;
         }
 
-        [Benchmark]
+        private void ParquetImpl(ParquetFileWriter fileWriter)
+        {
+            using var rowGroupWriter = fileWriter.AppendRowGroup();
+
+            using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
+            {
+                for (int i = 0; i != _dates.Length; ++i)
+                {
+                    dateTimeWriter.WriteBatch(Enumerable.Repeat(_dates[i], _objectIds.Length).ToArray());
+                }
+            }
+
+            using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+            {
+                for (int i = 0; i != _dates.Length; ++i)
+                {
+                    objectIdWriter.WriteBatch(_objectIds);
+                }
+            }
+
+            using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
+            {
+                for (int i = 0; i != _dates.Length; ++i)
+                {
+                    valueWriter.WriteBatch(_values[i]);
+                }
+            }
+
+            fileWriter.Close();
+        }
+
+        [Benchmark(Description = "Chunked")]
+        public long ParquetChunked()
+        {
+            using (var fileWriter = new ParquetFileWriter("float_timeseries.parquet.chunked", CreateFloatColumns()))
+            {
+                ParquetChunkedImpl(fileWriter);
+            }
+
+            return new FileInfo("float_timeseries.parquet.chunked").Length;
+        }
+
+        [Benchmark(Description = "Chunked (Stream)")]
         public long ParquetChunkedStream()
         {
             using (var stream = new FileStream("float_timeseries.parquet.chunked.stream", FileMode.Create))
             {
                 using var writer = new IO.ManagedOutputStream(stream);
                 using var fileWriter = new ParquetFileWriter(writer, CreateFloatColumns());
-
-                for (int i = 0; i != _dates.Length; ++i)
-                {
-                    using var rowGroupWriter = fileWriter.AppendRowGroup();
-
-                    using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
-                    {
-                        dateTimeWriter.WriteBatch(Enumerable.Repeat(_dates[i], _objectIds.Length).ToArray());
-                    }
-
-                    using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
-                    {
-                        objectIdWriter.WriteBatch(_objectIds);
-                    }
-
-                    using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
-                    {
-                        valueWriter.WriteBatch(_values[i]);
-                    }
-                }
-
-                fileWriter.Close();
+                ParquetChunkedImpl(fileWriter);
             }
 
             return new FileInfo("float_timeseries.parquet.chunked.stream").Length;
         }
 
-        [Benchmark]
-        public long ParquetRowsOrientedStream()
+        private void ParquetChunkedImpl(ParquetFileWriter fileWriter)
+        {
+            for (int i = 0; i != _dates.Length; ++i)
+            {
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+
+                using (var dateTimeWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>())
+                {
+                    dateTimeWriter.WriteBatch(Enumerable.Repeat(_dates[i], _objectIds.Length).ToArray());
+                }
+
+                using (var objectIdWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                {
+                    objectIdWriter.WriteBatch(_objectIds);
+                }
+
+                using (var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>())
+                {
+                    valueWriter.WriteBatch(_values[i]);
+                }
+            }
+
+            fileWriter.Close();
+        }
+
+        [Benchmark(Description = "RowOriented")]
+        public long ParquetRowsOriented()
+        {
+            using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet.roworiented", new[] {"DateTime", "ObjectId", "Value"}))
+            {
+                ParquetRowOrientedImpl(rowWriter);
+            }
+
+            return new FileInfo("float_timeseries.parquet.roworiented").Length;
+        }
+
+        [Benchmark(Description = "RowOriented (Stream)")]
+        public long ParquetRowOrientedStream()
         {
             using (var stream = new FileStream("float_timeseries.parquet.roworiented.stream", FileMode.Create))
             {
                 using var writer = new IO.ManagedOutputStream(stream);
                 using var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>(writer, new[] {"DateTime", "ObjectId", "Value"});
-
-                for (int i = 0; i != _dates.Length; ++i)
-                {
-                    for (int j = 0; j != _objectIds.Length; ++j)
-                    {
-                        rowWriter.WriteRow((_dates[i], _objectIds[j], _values[i][j]));
-                    }
-                }
-
-                rowWriter.Close();
+                ParquetRowOrientedImpl(rowWriter);
             }
 
             return new FileInfo("float_timeseries.parquet.roworiented.stream").Length;
         }
 
-        [Benchmark]
+        private void ParquetRowOrientedImpl(ParquetRowWriter<(DateTime, int, float)> rowWriter)
+        {
+            for (int i = 0; i != _dates.Length; ++i)
+            {
+                for (int j = 0; j != _objectIds.Length; ++j)
+                {
+                    rowWriter.WriteRow((_dates[i], _objectIds[j], _values[i][j]));
+                }
+            }
+
+            rowWriter.Close();
+        }
+
+        [Benchmark(Description = "Parquet .NET")]
         public long ParquetDotNet()
         {
             var dateTimeField = new DateTimeDataField("DateTime", DateTimeFormat.DateAndTime);
