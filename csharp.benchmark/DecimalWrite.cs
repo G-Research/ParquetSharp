@@ -17,7 +17,7 @@ namespace ParquetSharp.Benchmark
             var timer = Stopwatch.StartNew();
             var rand = new Random(123);
 
-            _values = Enumerable.Range(0, 10_000_000).Select(i =>
+            _values = Enumerable.Range(0, 1_000_000).Select(i =>
             {
                 var n = rand.Next();
                 var sign = rand.NextDouble() < 0.5 ? -1M : +1M;

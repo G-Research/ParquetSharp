@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Linq;
+using BenchmarkDotNet.Analysers;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Exporters;
+using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 
 namespace ParquetSharp.Benchmark
@@ -18,12 +22,25 @@ namespace ParquetSharp.Benchmark
                     .WithOptions(ConfigOptions.Default)
                     ;
 
-                BenchmarkRunner.Run(new[]
+                var summaries = BenchmarkRunner.Run(new[]
                 {
                     BenchmarkConverter.TypeToBenchmarks(typeof(DecimalWrite), config),
                     BenchmarkConverter.TypeToBenchmarks(typeof(FloatTimeSeriesRead), config),
                     BenchmarkConverter.TypeToBenchmarks(typeof(FloatTimeSeriesWrite), config)
                 });
+
+                // Re-print to the console all the summaries. 
+                var logger = ConsoleLogger.Default;
+                
+                logger.WriteLine();
+
+                foreach (var summary in summaries)
+                {
+                    logger.WriteLine();
+                    logger.WriteHeader(summary.Title);
+                    MarkdownExporter.Console.ExportToLog(summary, logger);
+                    ConclusionHelper.Print(logger, config.GetAnalysers().SelectMany(a => a.Analyse(summary)).ToList());
+                }
 
                 return 0;
             }
