@@ -77,8 +77,10 @@ jobs:
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
       run: ./build_windows.bat
-    - name: Build .NET unit tests
-      run: dotnet build csharp.test --configuration=Release
+    - name: Build .NET benchmarks & unit tests
+      run: |
+        dotnet build csharp.benchmark --configuration=Release
+        dotnet build csharp.test --configuration=Release
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v1
       with:
