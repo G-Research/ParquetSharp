@@ -365,9 +365,11 @@ namespace ParquetSharp
         
         private static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination)
         {
+            var dst = MemoryMarshal.Cast<DateTime, long>(destination);
+
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = LogicalRead.ToDateTimeMicros(source[i]);
+                dst[i] = LogicalRead.ToDateTimeMicrosTicks(source[i]);
             }
         }
 
@@ -381,9 +383,11 @@ namespace ParquetSharp
 
         private static void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination)
         {
+            var dst = MemoryMarshal.Cast<DateTime, long>(destination);
+            
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = LogicalRead.ToDateTimeMillis(source[i]);
+                dst[i] = LogicalRead.ToDateTimeMillisTicks(source[i]);
             }
         }
 
@@ -525,13 +529,25 @@ namespace ParquetSharp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DateTime ToDateTimeMicros(long source)
         {
-            return new DateTime(DateTimeOffset + source * (TimeSpan.TicksPerMillisecond / 1000));
+            return new DateTime(ToDateTimeMicrosTicks(source));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long ToDateTimeMicrosTicks(long source)
+        {
+            return DateTimeOffset + source * (TimeSpan.TicksPerMillisecond / 1000);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DateTime ToDateTimeMillis(long source)
         {
-            return new DateTime(DateTimeOffset + source * TimeSpan.TicksPerMillisecond);
+            return new DateTime(ToDateTimeMillisTicks(source));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long ToDateTimeMillisTicks(long source)
+        {
+            return DateTimeOffset + source * TimeSpan.TicksPerMillisecond;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
