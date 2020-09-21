@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Parquet;
+using Parquet.Data;
 
 namespace ParquetSharp.Benchmark
 {
@@ -11,13 +12,13 @@ namespace ParquetSharp.Benchmark
     {
         public FloatTimeSeriesRead()
         {
-            Console.WriteLine("Generating data...");
+            Console.WriteLine("Writing data...");
 
             var timer = Stopwatch.StartNew();
 
-            float[][] values;
-            int[] objectIds;
             DateTime[] dates;
+            int[] objectIds;
+            float[][] values;
             (dates, objectIds, values, _numRows) = CreateFloatDataFrame(3600);
 
             using (var fileWriter = new ParquetFileWriter(Filename, CreateFloatColumns(), Compression.Snappy))
@@ -56,33 +57,40 @@ namespace ParquetSharp.Benchmark
         }
 
         [Benchmark(Baseline = true)]
-        public void ParquetSharp()
+        public (DateTime[] dateTimes, int[] objectIds, float[] values) ParquetSharp()
         {
             using var fileReader = new ParquetFileReader(Filename);
             using var groupReader = fileReader.RowGroup(0);
 
+            DateTime[] dateTimes;
             using (var dateTimeReader = groupReader.Column(0).LogicalReader<DateTime>())
             {
-                dateTimeReader.ReadAll(_numRows);
+                dateTimes = dateTimeReader.ReadAll(_numRows);
             }
 
+            int[] objectIds;
             using (var objectIdReader = groupReader.Column(1).LogicalReader<int>())
             {
-                objectIdReader.ReadAll(_numRows);
+                objectIds = objectIdReader.ReadAll(_numRows);
             }
 
+            float[] values;
             using (var valueReader = groupReader.Column(2).LogicalReader<float>())
             {
-                valueReader.ReadAll(_numRows);
+                values = valueReader.ReadAll(_numRows);
             }
+
+            fileReader.Close();
+
+            return (dateTimes, objectIds, values);
         }
 
         [Benchmark]
-        public void ParquetDotNet()
+        public DataColumn[] ParquetDotNet()
         {
             using var stream = File.OpenRead(Filename);
             using var parquetReader = new ParquetReader(stream);
-            parquetReader.ReadEntireRowGroup();
+            return parquetReader.ReadEntireRowGroup();
         }
 
         const string Filename = "float_timeseries.parquet";
