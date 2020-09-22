@@ -21,6 +21,11 @@ namespace ParquetSharp.Benchmark
 
             (_dates, _objectIds, _values, numRows) = CreateFloatDataFrame(360);
 
+            // For Parquet.NET
+            _allDatesAsDateTimeOffsets = _dates.SelectMany(d => Enumerable.Repeat(new DateTimeOffset(d, TimeSpan.Zero), _objectIds.Length)).ToArray();
+            _allObjectIds = _dates.SelectMany(d => _objectIds).ToArray();
+            _allValues = _dates.SelectMany((d, i) => _values[i]).ToArray();
+
             Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", numRows, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
         }
@@ -206,34 +211,74 @@ namespace ParquetSharp.Benchmark
         [Benchmark(Description = "Parquet .NET")]
         public long ParquetDotNet()
         {
-            var dateTimeField = new DateTimeDataField("DateTime", DateTimeFormat.DateAndTime);
-            var objectIdField = new DataField<int>("ObjectId");
-            var valueField = new DataField<float>("Value");
-            var schema = new Parquet.Data.Schema(dateTimeField, objectIdField, valueField);
-
-            using (var stream = File.Create("float_timeseries.parquet.net"))
-            using (var parquetWriter = new ParquetWriter(schema, stream))
-            using (var groupWriter = parquetWriter.CreateRowGroup())
             {
-                var dateTimeColumn = new DataColumn(dateTimeField,
-                    _dates.SelectMany(d => Enumerable.Repeat(new DateTimeOffset(d), _objectIds.Length)).ToArray());
+                var dateTimeField = new DateTimeDataField("DateTime", DateTimeFormat.DateAndTime, hasNulls: false);
+                var objectIdField = new DataField<int>("ObjectId");
+                var valueField = new DataField<float>("Value");
+                var schema = new Parquet.Data.Schema(dateTimeField, objectIdField, valueField);
 
-                var objectIdColumn = new DataColumn(objectIdField,
-                    _dates.SelectMany(d => _objectIds).ToArray());
+                using var stream = File.Create("float_timeseries.parquet.net");
+                using var parquetWriter = new ParquetWriter(schema, stream);
+                using var groupWriter = parquetWriter.CreateRowGroup();
 
-                var valueColumn = new DataColumn(valueField,
-                    _dates.SelectMany((d, i) => _values[i]).ToArray());
+                var dateTimeColumn = new DataColumn(dateTimeField, _allDatesAsDateTimeOffsets);
+                var objectIdColumn = new DataColumn(objectIdField, _allObjectIds);
+                var valueColumn = new DataColumn(valueField, _allValues);
 
                 groupWriter.WriteColumn(dateTimeColumn);
                 groupWriter.WriteColumn(objectIdColumn);
                 groupWriter.WriteColumn(valueColumn);
             }
 
+            if (Check.Enabled)
+            {
+                // Read content from ParquetSharp and Parquet.NET
+                var baseline = ReadFile("float_timeseries.parquet", _allValues.Length);
+                var results = ReadFile("float_timeseries.parquet.net", _allValues.Length);
+
+                // Prove that the content is the same
+                Check.ArraysAreEqual(baseline.dateTimes, results.dateTimes);
+                Check.ArraysAreEqual(baseline.objectIds, results.objectIds);
+                Check.ArraysAreEqual(baseline.values, results.values);
+            }
+
             return new FileInfo("float_timeseries.parquet.net").Length;
+        }
+
+        private static (DateTime[] dateTimes, int[] objectIds, float[] values) ReadFile(string filename, int numRows)
+        {
+            using var fileReader = new ParquetFileReader(filename);
+            using var groupReader = fileReader.RowGroup(0);
+
+            DateTime[] dateTimes;
+            using (var dateTimeReader = groupReader.Column(0).LogicalReader<DateTime>())
+            {
+                dateTimes = dateTimeReader.ReadAll(numRows);
+            }
+
+            int[] objectIds;
+            using (var objectIdReader = groupReader.Column(1).LogicalReader<int>())
+            {
+                objectIds = objectIdReader.ReadAll(numRows);
+            }
+
+            float[] values;
+            using (var valueReader = groupReader.Column(2).LogicalReader<float>())
+            {
+                values = valueReader.ReadAll(numRows);
+            }
+
+            fileReader.Close();
+
+            return (dateTimes, objectIds, values);
         }
 
         private readonly DateTime[] _dates;
         private readonly int[] _objectIds;
         private readonly float[][] _values;
+
+        private readonly DateTimeOffset[] _allDatesAsDateTimeOffsets;
+        private readonly int[] _allObjectIds;
+        private readonly float[] _allValues;
     }
 }

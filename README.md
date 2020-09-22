@@ -16,6 +16,18 @@ Supported platforms are Linux, Windows, and macOS.
 | **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
 | **CI Build** | [![CI Status](https://github.com/G-Research/ParquetSharp/workflows/CI/badge.svg)](https://github.com/G-Research/ParquetSharp/actions?query=workflow%3A%22CI%22) |
 
+## Performance
+
+The following benchmarks can be reproduced by running `ParquetSharp.Benchmark.csproj`. Performance of ParquetSharp 2.3.0-beta2 is compared to [Parquet.NET](https://github.com/aloneguid/parquet-dotnet) 3.7.7, an open-source fully managed .NET library used for handling Parquet files. The Decimal tests focus purely on handling C# `decimal` type, while the TimeSeries tests benchmark three columns of `{int, DateTime, float}`. Results are from an i9-9900K on Windows 10.
+
+**Relative Performance**
+| Library | Decimal (Read) | Decimal (Write) | TimeSeries (Read) | TimeSeries (Write) |
+| ------: | :------------: | :-------------: | :---------------: | :----------------: |
+| Parquet.NET | 1.0x | 1.0x | **Failed\*** | 1.0x |
+| **ParquetSharp** | **4.5x Faster** | **4.0x Faster** | **2.71x Faster** | **9.8x Faster** |
+
+   \* Parquet.NET failed to read all float values correctly. Confirmed the file validity with PyArrow. 
+
 ## Examples
 
 Both examples below output a Parquet file with three columns representing a timeseries of object-value pairs ordered by datetime and object id.

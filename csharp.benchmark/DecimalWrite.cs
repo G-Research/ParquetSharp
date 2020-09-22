@@ -47,16 +47,38 @@ namespace ParquetSharp.Benchmark
         [Benchmark]
         public long ParquetDotNet()
         {
-            var valueField = new DecimalDataField("Value", precision: 29, scale: 3);
-            var schema = new Parquet.Data.Schema(valueField);
+            {
+                var valueField = new DecimalDataField("Value", precision: 29, scale: 3, hasNulls: false);
+                var schema = new Parquet.Data.Schema(valueField);
 
-            using var stream = File.Create("decimal_timeseries.parquet.net");
-            using var parquetWriter = new ParquetWriter(schema, stream);
-            using var groupWriter = parquetWriter.CreateRowGroup();
+                using var stream = File.Create("decimal_timeseries.parquet.net");
+                using var parquetWriter = new ParquetWriter(schema, stream);
+                using var groupWriter = parquetWriter.CreateRowGroup();
 
-            groupWriter.WriteColumn(new DataColumn(valueField, _values));
+                groupWriter.WriteColumn(new DataColumn(valueField, _values));
+            }
+
+            if (Check.Enabled)
+            {
+                // Read content from ParquetSharp and Parquet.NET
+                var baseline = ReadFile("decimal_timeseries.parquet");
+                var results = ReadFile("decimal_timeseries.parquet.net");
+
+                // Prove that the content is the same
+                Check.ArraysAreEqual(_values, baseline);
+                Check.ArraysAreEqual(baseline, results);
+            }
 
             return new FileInfo("decimal_timeseries.parquet.net").Length;
+        }
+
+        private static decimal[] ReadFile(string filename)
+        {
+            using var stream = File.OpenRead(filename);
+            using var parquetReader = new ParquetReader(stream);
+            var results = parquetReader.ReadEntireRowGroup();
+
+            return (decimal[]) results[0].Data;
         }
 
         private readonly decimal[] _values;

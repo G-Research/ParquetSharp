@@ -17,7 +17,7 @@ namespace ParquetSharp.Benchmark
             var timer = Stopwatch.StartNew();
             var rand = new Random(123);
 
-            var values = Enumerable.Range(0, 1_000_000).Select(i =>
+            _values = Enumerable.Range(0, 1_000_000).Select(i =>
             {
                 var n = rand.Next();
                 var sign = rand.NextDouble() < 0.5 ? -1M : +1M;
@@ -28,13 +28,11 @@ namespace ParquetSharp.Benchmark
             {
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>();
-                valueWriter.WriteBatch(values);
+                valueWriter.WriteBatch(_values);
                 fileWriter.Close();
             }
 
-            _numRows = values.Length;
-
-            Console.WriteLine("Wrote {0:N0} rows in {1:N2} sec", _numRows, timer.Elapsed.TotalSeconds);
+            Console.WriteLine("Wrote {0:N0} rows in {1:N2} sec", _values.Length, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
         }
 
@@ -44,7 +42,14 @@ namespace ParquetSharp.Benchmark
             using var fileReader = new ParquetFileReader(Filename);
             using var groupReader = fileReader.RowGroup(0);
             using var dateTimeReader = groupReader.Column(0).LogicalReader<decimal>();
-            return dateTimeReader.ReadAll(_numRows);
+            var results = dateTimeReader.ReadAll(_values.Length);
+
+            if (Check.Enabled)
+            {
+                Check.ArraysAreEqual(_values, results);
+            }
+
+            return results;
         }
 
         [Benchmark]
@@ -52,11 +57,18 @@ namespace ParquetSharp.Benchmark
         {
             using var stream = File.OpenRead(Filename);
             using var parquetReader = new ParquetReader(stream);
-            return parquetReader.ReadEntireRowGroup();
+            var results = parquetReader.ReadEntireRowGroup();
+
+            if (Check.Enabled)
+            {
+                Check.ArraysAreEqual(_values, (decimal[]) results[0].Data);
+            }
+
+            return results;
         }
 
         private const string Filename = "decimal_timeseries.parquet";
 
-        private readonly int _numRows;
+        private readonly decimal[] _values;
     }
 }

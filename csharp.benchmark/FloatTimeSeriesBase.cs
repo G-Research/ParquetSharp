@@ -9,7 +9,7 @@ namespace ParquetSharp.Benchmark
         {
             return new Column[]
             {
-                new Column<DateTime>("DateTime"),
+                new Column<DateTime>("DateTime", LogicalType.Timestamp(true, TimeUnit.Millis)),
                 new Column<int>("ObjectId"),
                 new Column<float>("Value")
             };

@@ -21,6 +21,11 @@ namespace ParquetSharp.Benchmark
             float[][] values;
             (dates, objectIds, values, _numRows) = CreateFloatDataFrame(3600);
 
+            _allDates = dates.SelectMany(d => Enumerable.Repeat(d, objectIds.Length)).ToArray();
+            _allDatesAsDateTimeOffsets = dates.SelectMany(d => Enumerable.Repeat(new DateTimeOffset(d, TimeSpan.Zero), objectIds.Length)).ToArray();
+            _allObjectIds = dates.SelectMany(d => objectIds).ToArray();
+            _allValues = dates.SelectMany((d, i) => values[i]).ToArray();
+
             using (var fileWriter = new ParquetFileWriter(Filename, CreateFloatColumns(), Compression.Snappy))
             {
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
@@ -82,6 +87,13 @@ namespace ParquetSharp.Benchmark
 
             fileReader.Close();
 
+            if (Check.Enabled)
+            {
+                Check.ArraysAreEqual(_allDates, dateTimes);
+                Check.ArraysAreEqual(_allObjectIds, objectIds);
+                Check.ArraysAreEqual(_allValues, values);
+            }
+
             return (dateTimes, objectIds, values);
         }
 
@@ -90,11 +102,24 @@ namespace ParquetSharp.Benchmark
         {
             using var stream = File.OpenRead(Filename);
             using var parquetReader = new ParquetReader(stream);
-            return parquetReader.ReadEntireRowGroup();
+            var results = parquetReader.ReadEntireRowGroup();
+
+            if (Check.Enabled)
+            {
+                Check.ArraysAreEqual(_allDatesAsDateTimeOffsets, (DateTimeOffset[]) results[0].Data);
+                Check.ArraysAreEqual(_allObjectIds, (int[]) results[1].Data);
+                Check.ArraysAreEqual(_allValues, (float[]) results[2].Data);
+            }
+
+            return results;
         }
 
         const string Filename = "float_timeseries.parquet";
 
+        private readonly DateTime[] _allDates;
+        private readonly DateTimeOffset[] _allDatesAsDateTimeOffsets;
+        private readonly int[] _allObjectIds;
+        private readonly float[] _allValues;
         private readonly int _numRows;
     }
 }
