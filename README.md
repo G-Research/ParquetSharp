@@ -25,7 +25,7 @@ The following benchmarks can be reproduced by running `ParquetSharp.Benchmark.cs
 | Parquet.NET | 1.0x | 1.0x | _**Failed\***_ | 1.0x |
 | **ParquetSharp** | **4.5x Faster** | **4.0x Faster** | **2.71x Faster** | **9.8x Faster** |
 
-_\* Parquet.NET failed to read all float values correctly. Confirmed the file validity with PyArrow._ 
+_\* Parquet.NET failed to read all float values correctly. The input file correctness was confirmed with PyArrow._ 
 
 ## Examples
 
