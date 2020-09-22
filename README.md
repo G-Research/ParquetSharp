@@ -20,7 +20,7 @@ Supported platforms are Linux, Windows, and macOS.
 
 The following benchmarks can be reproduced by running `ParquetSharp.Benchmark.csproj`. The relative performance of ParquetSharp 2.3.0-beta2 is compared to [Parquet.NET](https://github.com/aloneguid/parquet-dotnet) 3.7.7, an open-source .NET library. The Decimal tests focus purely on handling the C# `decimal` type, while the TimeSeries tests benchmark three columns respectively of the types `{int, DateTime, float}`. Results are from an i9-9900K on Windows 10.
 
-| Library | Decimal (Read) | Decimal (Write) | TimeSeries (Read) | TimeSeries (Write) |
+|  | Decimal (Read) | Decimal (Write) | TimeSeries (Read) | TimeSeries (Write) |
 | ------: | :------------: | :-------------: | :---------------: | :----------------: |
 | Parquet.NET | 1.0x | 1.0x | _Failed\*_ | 1.0x |
 | ParquetSharp | 4.5x Faster | 4.0x Faster | 2.71x Faster | 9.8x Faster |
