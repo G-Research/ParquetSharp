@@ -58,7 +58,7 @@ The column names can also be explicitly given, see [Row-oriented API (Advanced)]
 
 ### Low-level API
 
-This closely maps to the API of Apache Parquet C++. It also provides reader and writer abstractions (`LogicalColumnReader` and `LogicalColumnWriter` respectively) to convert between .NET types and Parquet representations.
+This closely maps to the API of Apache Parquet C++. It also provides reader and writer abstractions (`LogicalColumnReader` and `LogicalColumnWriter` respectively) to convert between .NET types and Parquet representations. This is the recommended API.
 
 ```csharp
 var timestamps = new DateTime[] { /* ... */ };
