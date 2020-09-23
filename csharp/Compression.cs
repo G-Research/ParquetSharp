@@ -12,5 +12,5 @@ namespace ParquetSharp
         Lz4Frame = 6,
         Lzo = 7,
         Bz2 = 8
-    };
+    }
 }

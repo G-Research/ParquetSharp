@@ -31,6 +31,7 @@ if (MSVC)
 		endif()
 	endforeach()
 
+	add_compile_options("/std:c++17")
 	add_compile_options("/MP") # Compile files in parallel.
 	add_compile_options("/WX") # Threat warnings as errors.
 
@@ -40,6 +41,7 @@ if (UNIX)
 	
 	set(CMAKE_SHARED_LIBRARY_PREFIX )
 
+	add_compile_options("-std=c++17")
 	add_compile_options("-Wall")
 	add_compile_options("-Werror")
 	add_compile_options("-fvisibility-inlines-hidden")

@@ -6,5 +6,5 @@ namespace ParquetSharp
         Signed = 0,
         Unsigned = 1,
         Unknown = 2
-    };
+    }
 }

@@ -13,5 +13,5 @@ namespace ParquetSharp
         RleDictionary = 8,
         ByteStreamSplit = 9,
         Undefined = 10
-    };
+    }
 }

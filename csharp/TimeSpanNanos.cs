@@ -7,7 +7,7 @@ namespace ParquetSharp
     /// Represents a Parquet Time with Nanoseconds time unit.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public struct TimeSpanNanos : IEquatable<TimeSpanNanos>
+    public readonly struct TimeSpanNanos : IEquatable<TimeSpanNanos>
     {
         public TimeSpanNanos(long ticks)
         {

@@ -8,7 +8,7 @@ namespace ParquetSharp
     /// This is obsolete (see https://issues.apache.org/jira/browse/PARQUET-323).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public struct Int96 : IEquatable<Int96>
+    public readonly struct Int96 : IEquatable<Int96>
     {
         public Int96(int a, int b, int c)
         {

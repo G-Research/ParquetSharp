@@ -10,6 +10,7 @@ namespace ParquetSharp
         Float = 4,
         Double = 5,
         ByteArray = 6,
-        FixedLenByteArray = 7
-    };
+        FixedLenByteArray = 7,
+        Undefined = 8
+    }
 }

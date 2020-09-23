@@ -7,7 +7,7 @@ namespace ParquetSharp
     /// Represents a Parquet array of contiguous bytes.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public struct ByteArray : IEquatable<ByteArray>
+    public readonly struct ByteArray : IEquatable<ByteArray>
     {
         public ByteArray(IntPtr pointer, int length)
         {
