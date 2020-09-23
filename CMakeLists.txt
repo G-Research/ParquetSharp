@@ -15,7 +15,7 @@ set(CMAKE_DEBUG_POSTFIX d)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 foreach (OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
     string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
@@ -31,7 +31,6 @@ if (MSVC)
 		endif()
 	endforeach()
 
-	add_compile_options("/std:c++17")
 	add_compile_options("/MP") # Compile files in parallel.
 	add_compile_options("/WX") # Threat warnings as errors.
 
@@ -41,7 +40,6 @@ if (UNIX)
 	
 	set(CMAKE_SHARED_LIBRARY_PREFIX )
 
-	add_compile_options("-std=c++17")
 	add_compile_options("-Wall")
 	add_compile_options("-Werror")
 	add_compile_options("-fvisibility-inlines-hidden")
