@@ -47,7 +47,7 @@ The column names can also be explicitly given, see [Row-oriented API (Advanced)]
 
 ### Low-level API
 
-This closely maps to the API of Apache Parquet C++. It also provides reader and writer abstractions (`LogicalColumnReader` and `LogicalColumnWriter` respectively) to convert between .NET types and Parquet representations.
+This closely maps to the API of Apache Parquet C++. It also provides reader and writer abstractions (`LogicalColumnReader` and `LogicalColumnWriter` respectively) to convert between .NET types and Parquet representations. This is the recommended API.
 
 ```csharp
 var timestamps = new DateTime[] { /* ... */ };
@@ -94,13 +94,24 @@ file.Close();
 ## Rationale
 
 We desired a Parquet implementation with the following properties:
-- Cross platform (i.e. Windows and Linux).
+- Cross platform (originally Windows and Linux - but now also macOS).
 - Callable from .NET Core.
 - Good performance.
 - Well maintained.
 - Close to official Parquet reference implementations.
 
 Not finding an existing solution meeting these requirements, we decided to implement a .NET wrapper around apache-parquet-cpp (now part of Apache Arrow) starting at version 1.4.0. The library tries to stick closely to the existing C++ API, although it does provide higher level APIs to facilitate its usage from .NET. The user should always be able to access the lower-level API.
+
+## Performance
+
+The following benchmarks can be reproduced by running `ParquetSharp.Benchmark.csproj`. The relative performance of ParquetSharp 2.3.0-beta2 is compared to [Parquet.NET](https://github.com/aloneguid/parquet-dotnet) 3.7.7, an alternative open-source .NET library that is fully managed. The Decimal tests focus purely on handling the C# `decimal` type, while the TimeSeries tests benchmark three columns respectively of the types `{int, DateTime, float}`. Results are from an i9-9900K on Windows 10.
+
+|  | Decimal (Read) | Decimal (Write) | TimeSeries (Read) | TimeSeries (Write) |
+| ------: | :------------: | :-------------: | :---------------: | :----------------: |
+| Parquet.NET | 1.0x | 1.0x | _Failed\*_ | 1.0x |
+| ParquetSharp | 4.5x Faster | 4.0x Faster | 2.71x Faster | 9.8x Faster |
+
+_\[*] See [Parquet.NET Issue #81](https://github.com/aloneguid/parquet-dotnet/issues/81)._
 
 ## Known Limitations
 
@@ -112,7 +123,7 @@ Typically this can arise when attempting to access an instance whose owner has b
 
 Building ParquetSharp for Windows requires the following dependencies:
 - Visual Studio 2019 (16.4 or higher)
-- Apache Arrow (0.17.0)
+- Apache Arrow (1.0.0)
 
 For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). Note that the Windows build needs to be done in a Visual Studio x64 Native Tools Command Prompt for the build script to succeed.
 

@@ -8,7 +8,7 @@ namespace ParquetSharp.Test
     // the unit tests. As long as this is the case, provide our own Main().
     // https://github.com/dotnet/project-system/issues/3495
     // https://andrewlock.net/fixing-the-error-program-has-more-than-one-entry-point-defined-for-console-apps-containing-xunit-tests/
-    public static class Program
+    internal static class Program
     {
         public static int Main()
         {
