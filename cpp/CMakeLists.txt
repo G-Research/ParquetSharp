@@ -41,6 +41,7 @@ add_library(ParquetSharpNative SHARED
 	ColumnReader.cpp
 	ColumnWriter.cpp
 	CString.h
+	Enums.cpp
 	ExceptionInfo.h
 	ExceptionInfo.cpp
 	FileDecryptionProperties.cpp

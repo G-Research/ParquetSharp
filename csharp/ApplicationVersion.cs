@@ -36,7 +36,7 @@ namespace ParquetSharp
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct CStruct
+        internal readonly struct CStruct
         {
             public readonly IntPtr Application;
             public readonly IntPtr Build;

@@ -5,5 +5,5 @@ namespace ParquetSharp
     {
         Undefined = 0,
         TypeDefinedOrder = 1
-    };
+    }
 }

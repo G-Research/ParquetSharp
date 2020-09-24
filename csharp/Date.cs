@@ -7,7 +7,7 @@ namespace ParquetSharp
     /// Represent a Parquet 32-bit date, based around 1970-01-01.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public struct Date : IEquatable<Date>
+    public readonly struct Date : IEquatable<Date>
     {
         public Date(int year, int month, int day)
             : this(new DateTime(year, month, day))
