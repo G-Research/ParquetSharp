@@ -70,7 +70,7 @@ jobs:
         dotnet-version: 3.1.100
     - name: Setup MSBuild
       if: runner.os == 'Windows'
-      uses: microsoft/setup-msbuild@v1.0.0
+      uses: microsoft/setup-msbuild@v1
     - name: Compile native ParquetSharp library (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
       run: ./build_unix.sh
