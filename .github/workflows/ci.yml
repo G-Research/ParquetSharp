@@ -27,7 +27,12 @@ jobs:
       uses: actions/checkout@v2
     - name: Resolve vcpkg version
       id: resolve-vcpkg-version
-      run: echo "::set-output name=commit-id::$(git ls-remote $(cat vcpkg_version.txt) | cut -f1)"
+      run: |
+        read -r vcpkg_url vcpkg_ref << EOF
+        $(cat vcpkg_version.txt)
+        EOF
+        if [ ${#vcpkg_ref} -eq 40 ]; then commit_id=$vcpkg_ref; else commit_id=$(git ls-remote $vcpkg_url $vcpkg_ref | cut -f1); fi
+        echo "::set-output name=commit-id::$commit_id"
       shell: bash
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
