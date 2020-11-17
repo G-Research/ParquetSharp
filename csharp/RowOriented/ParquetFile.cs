@@ -233,7 +233,23 @@ namespace ParquetSharp.RowOriented
                 list.Add((property.Name, mappedColumn, property.PropertyType, property));
             }
 
-            return list.ToArray();
+            // The order in which fields are processed is important given that when a tuple type is used in
+            // ParquetFile.CreateRowWriter<TTuple>() with an array of column names it is expected that
+            // the resulting parquet file correctly maps the name to the appropriate column type.
+            //
+            // However, neither Type.GetFields() nor Type.GetProperties() guarantee the order in which they return
+            // fields or properties - importantly this means that they will not always be returned in
+            // declaration order, not even for ValueTuples. The accepted means of returning fields and
+            // properties in declaration order is to sort by MemberInfo.MetadataToken. This is done after
+            // both the fields and properties have been gathered for greatest consistency.
+            //
+            // See https://stackoverflow.com/questions/8067493/if-getfields-doesnt-guarantee-order-how-does-layoutkind-sequential-work and
+            // https://github.com/dotnet/corefx/issues/14606 for more detail.
+            //
+            // Note that most of the time GetFields() and GetProperties() _do_ return in declaration order and the times when they don't
+            // are determined at runtime and not by the type. As a resut it is pretty much impossible to cover this with a unit test. Hence this
+            // rather long comment aimed at avoiding accidental removal!
+            return list.OrderBy(x => x.info.MetadataToken).ToArray();
         }
 
         private static Column GetColumn((string name, string mappedColumn, Type type, MemberInfo info) field)
