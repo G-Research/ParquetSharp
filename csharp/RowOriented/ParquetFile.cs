@@ -78,7 +78,7 @@ namespace ParquetSharp.RowOriented
                     throw new ArgumentException("the length of column names does not mach the number of public fields and properties", nameof(columnNames));
                 }
 
-                columns = columns.Select((c, i) => new Column(c.LogicalSystemType, columnNames[i])).ToArray();
+                columns = columns.Select((c, i) => new Column(c.LogicalSystemType, columnNames[i], c.LogicalTypeOverride, c.Length)).ToArray();
             }
 
             return (columns, (ParquetRowWriter<TTuple>.WriteAction) writeDelegate);
