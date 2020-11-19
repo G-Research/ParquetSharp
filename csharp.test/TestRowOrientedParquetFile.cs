@@ -148,7 +148,14 @@ namespace ParquetSharp.Test
 
         private static void TestRoundtrip<TTuple>(TTuple[] rows)
         {
-            RoundTripAndCompare(rows, rows);
+            RoundTripAndCompare(rows, rows, columnNames: null);
+
+            var columnNames =
+                Enumerable.Range(1, typeof(TTuple).GetFields().Length + typeof(TTuple).GetProperties().Length)
+                          .Select(x => $"Col{x}")
+                          .ToArray();
+            
+            RoundTripAndCompare(rows, rows, columnNames);
         }
 
         private static void TestRoundtripMapped<TTupleWrite, TTupleRead>(TTupleWrite[] rows)
@@ -156,16 +163,16 @@ namespace ParquetSharp.Test
             var expectedRows = rows.Select(
                 i => (TTupleRead) Activator.CreateInstance(typeof(TTupleRead), i)
             );
-            RoundTripAndCompare(rows, expectedRows);
+            RoundTripAndCompare(rows, expectedRows, columnNames: null);
         }
 
-        private static void RoundTripAndCompare<TTupleWrite, TTupleRead>(TTupleWrite[] rows, IEnumerable<TTupleRead> expectedRows)
+        private static void RoundTripAndCompare<TTupleWrite, TTupleRead>(TTupleWrite[] rows, IEnumerable<TTupleRead> expectedRows, string[] columnNames)
         {
             using var buffer = new ResizableBuffer();
 
             using (var outputStream = new BufferOutputStream(buffer))
             {
-                using var writer = ParquetFile.CreateRowWriter<TTupleWrite>(outputStream);
+                using var writer = ParquetFile.CreateRowWriter<TTupleWrite>(outputStream, columnNames);
 
                 writer.WriteRows(rows);
                 writer.Close();
