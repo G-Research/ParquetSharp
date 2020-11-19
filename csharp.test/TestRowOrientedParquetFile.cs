@@ -148,7 +148,7 @@ namespace ParquetSharp.Test
 
         private static void TestRoundtrip<TTuple>(TTuple[] rows)
         {
-            RoundTripAndCompare(rows, rows);
+            RoundTripAndCompare(rows, rows, columnNames: null);
 
             var columnNames =
                 Enumerable.Range(1, typeof(TTuple).GetFields().Length + typeof(TTuple).GetProperties().Length)
@@ -163,10 +163,10 @@ namespace ParquetSharp.Test
             var expectedRows = rows.Select(
                 i => (TTupleRead) Activator.CreateInstance(typeof(TTupleRead), i)
             );
-            RoundTripAndCompare(rows, expectedRows);
+            RoundTripAndCompare(rows, expectedRows, columnNames: null);
         }
 
-        private static void RoundTripAndCompare<TTupleWrite, TTupleRead>(TTupleWrite[] rows, IEnumerable<TTupleRead> expectedRows, string[] columnNames = default)
+        private static void RoundTripAndCompare<TTupleWrite, TTupleRead>(TTupleWrite[] rows, IEnumerable<TTupleRead> expectedRows, string[] columnNames)
         {
             using var buffer = new ResizableBuffer();
 
