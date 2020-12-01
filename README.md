@@ -1,6 +1,6 @@
 ![Main logo](logo/svg/ParquetSharp_SignatureLogo_RGB-Black.svg)
 
-# ParquetSharp
+## Introduction
 
 ParquetSharp is a cross-platform .NET library for reading and writing Apache [Parquet][1] files.
 
