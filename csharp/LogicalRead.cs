@@ -376,12 +376,15 @@ namespace ParquetSharp
 
 #if NETCOREAPP
 
-            fixed (long* pSrc = source)
-            fixed (long* pDst = dst)
+            if (Avx2.IsSupported)
             {
-                for (; i <= source.Length - 4; i += 4)
+                fixed (long* pSrc = source)
+                fixed (long* pDst = dst)
                 {
-                    Avx.Store(pDst + i, LogicalRead.ToDateTimeMicrosTicksAvx(pSrc + i));
+                    for (; i <= source.Length - 4; i += 4)
+                    {
+                        Avx.Store(pDst + i, LogicalRead.ToDateTimeMicrosTicksAvx(pSrc + i));
+                    }
                 }
             }
 #endif
@@ -407,12 +410,15 @@ namespace ParquetSharp
 
 #if NETCOREAPP
 
-            fixed (long* pSrc = source)
-            fixed (long* pDst = dst)
+            if (Avx2.IsSupported)
             {
-                for (; i <= source.Length - 4; i += 4)
+                fixed (long* pSrc = source)
+                fixed (long* pDst = dst)
                 {
-                    Avx.Store(pDst + i, LogicalRead.ToDateTimeMillisTicksAvx(pSrc + i));
+                    for (; i <= source.Length - 4; i += 4)
+                    {
+                        Avx.Store(pDst + i, LogicalRead.ToDateTimeMillisTicksAvx(pSrc + i));
+                    }
                 }
             }
 #endif
@@ -607,7 +613,7 @@ namespace ParquetSharp
         {
             Debug.Assert(TimeSpan.TicksPerMillisecond == 10_000);
 
-            // Multiplying by 10,000 is equivalent to (x<<4) - (x<<8) + (x<<11)+ (x<<13)
+            // Multiplying by 10,000 is equivalent to (x<<4) - (x<<8) + (x<<11) + (x<<13)
             //
             // https://codegolf.stackexchange.com/questions/48093/implement-multiplication-by-a-constant-with-addition-and-bit-shifts
             //
