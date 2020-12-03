@@ -1,1 +1,1 @@
-https://github.com/Microsoft/vcpkg.git 2020.11
+https://github.com/Microsoft/vcpkg.git 2020.11-1
