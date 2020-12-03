@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks Condition="'$(OS)'=='Windows_NT'">netstandard2.0;net461</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)'=='Unix'">netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <LangVersion>7.3</LangVersion>
     <AssemblyName>ParquetSharp</AssemblyName>
     <RootNamespace>ParquetSharp</RootNamespace>
@@ -64,10 +63,6 @@
     <Content Include="..\bin\ParquetSharpNative.dylib" Link="ParquetSharpNative.dylib" PackagePath="runtimes/osx-x64/native" Condition="'$(Configuration)'=='Release' AND ('$(IsOSX)'=='true' OR Exists('..\bin\ParquetSharpNative.dylib'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>

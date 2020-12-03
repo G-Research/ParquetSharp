@@ -1,6 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+#if NETCOREAPP
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
 namespace ParquetSharp
 {
@@ -363,11 +369,24 @@ namespace ParquetSharp
             }
         }
         
-        private static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination)
+        private static unsafe void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination)
         {
             var dst = MemoryMarshal.Cast<DateTime, long>(destination);
+            var i = 0;
 
-            for (int i = 0; i < destination.Length; ++i)
+#if NETCOREAPP
+
+            fixed (long* pSrc = source)
+            fixed (long* pDst = dst)
+            {
+                for (; i <= source.Length - 4; i += 4)
+                {
+                    Avx.Store(pDst + i, LogicalRead.ToDateTimeMicrosTicksAvx(pSrc + i));
+                }
+            }
+#endif
+
+            for (; i < destination.Length; ++i)
             {
                 dst[i] = LogicalRead.ToDateTimeMicrosTicks(source[i]);
             }
@@ -381,11 +400,24 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination)
+        private static unsafe void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination)
         {
             var dst = MemoryMarshal.Cast<DateTime, long>(destination);
-            
-            for (int i = 0; i < destination.Length; ++i)
+            var i = 0;
+
+#if NETCOREAPP
+
+            fixed (long* pSrc = source)
+            fixed (long* pDst = dst)
+            {
+                for (; i <= source.Length - 4; i += 4)
+                {
+                    Avx.Store(pDst + i, LogicalRead.ToDateTimeMillisTicksAvx(pSrc + i));
+                }
+            }
+#endif
+
+            for (; i < destination.Length; ++i)
             {
                 dst[i] = LogicalRead.ToDateTimeMillisTicks(source[i]);
             }
@@ -538,6 +570,25 @@ namespace ParquetSharp
             return DateTimeOffset + source * (TimeSpan.TicksPerMillisecond / 1000);
         }
 
+#if NETCOREAPP
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe Vector256<long> ToDateTimeMicrosTicksAvx(long* source)
+        {
+            Debug.Assert(TimeSpan.TicksPerMillisecond == 10_000);
+
+            // Multiplying by 10 is equivalent to (x<<1) + (x<<3)
+
+            var x = Avx.LoadVector256(source);
+            var x1 = Avx2.ShiftLeftLogical(x, 1);
+            var x3 = Avx2.ShiftLeftLogical(x, 3);
+
+            var mult = Avx2.Add(x1, x3);
+            var result = Avx2.Add(DateTimeOffsetVector256, mult);
+
+            return result;
+        }
+#endif
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DateTime ToDateTimeMillis(long source)
         {
@@ -549,6 +600,42 @@ namespace ParquetSharp
         {
             return DateTimeOffset + source * TimeSpan.TicksPerMillisecond;
         }
+
+#if NETCOREAPP
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe Vector256<long> ToDateTimeMillisTicksAvx(long* source)
+        {
+            Debug.Assert(TimeSpan.TicksPerMillisecond == 10_000);
+
+            // Multiplying by 10,000 is equivalent to (x<<4) - (x<<8) + (x<<11)+ (x<<13)
+            //
+            // https://codegolf.stackexchange.com/questions/48093/implement-multiplication-by-a-constant-with-addition-and-bit-shifts
+            //
+            // import itertools as l
+            // def w(N, s= ''):
+            //   for k, v in enumerate(min([t for t in l.product((1, 0, -1), repeat = len(bin(N)) - 1)if sum([v * 2 * *k for k, v in enumerate(t)])== N],key = lambda t: sum(abs(k)for k in t))):
+            //     if v != 0:s += '{:+d}'.format(v)[0]; s += '((x)<<{})'.format(k)if k > 0 else '(x)'
+            //   return '#define XYZZY{}(x) ({})'.format(N, s.lstrip('+'))
+            //
+            // #define XYZZY2 (((x)<<1))
+            // #define XYZZY10 (((x)<<1)+((x)<<3))
+            // #define XYZZY100 (((x)<<2)+((x)<<5)+((x)<<6))
+            // #define XYZZY14043 (-(x)-((x)<<2)-((x)<<5)-((x)<<8)-((x)<<11)+((x)<<14))
+            // #define XYZZY65535(x) (-(x)+((x)<<16))
+            //
+
+            var x = Avx.LoadVector256(source);
+            var x4 = Avx2.ShiftLeftLogical(x, 4);
+            var x8 = Avx2.ShiftLeftLogical(x, 8);
+            var x11 = Avx2.ShiftLeftLogical(x, 11);
+            var x13 = Avx2.ShiftLeftLogical(x, 13);
+
+            var mult = Avx2.Subtract(Avx2.Add(Avx2.Add(x4, x11), x13), x8);
+            var result = Avx2.Add(DateTimeOffsetVector256, mult);
+
+            return result;
+        }
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TimeSpan ToTimeSpanMicros(long source)
@@ -583,5 +670,9 @@ namespace ParquetSharp
         }
 
         private const long DateTimeOffset = 621355968000000000; // new DateTime(1970, 01, 01).Ticks
+
+#if NETCOREAPP
+        private static readonly Vector256<long> DateTimeOffsetVector256 = Vector256.Create(DateTimeOffset);
+#endif
     }
 }
