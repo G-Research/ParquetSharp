@@ -17,7 +17,7 @@ extern "C"
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileReader_Open(
-		std::shared_ptr<arrow::io::RandomAccessFile>* readable_file_interface, 
+		std::shared_ptr<::arrow::io::RandomAccessFile>* readable_file_interface, 
 		const ReaderProperties* reader_properties,
 		ParquetFileReader** reader)
 	{

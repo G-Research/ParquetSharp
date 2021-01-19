@@ -27,7 +27,7 @@ extern "C"
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_Open(
-		std::shared_ptr<arrow::io::OutputStream>* output_stream,
+		std::shared_ptr<::arrow::io::OutputStream>* output_stream,
 		const std::shared_ptr<schema::GroupNode>* schema, 
 		const std::shared_ptr<WriterProperties>* writer_properties, 
 		const std::shared_ptr<const KeyValueMetadata>* key_value_metadata,
