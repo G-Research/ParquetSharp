@@ -66,12 +66,12 @@ jobs:
     - name: Compile vcpkg dependencies (Windows)
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Windows'
       run: ./vcpkg_windows.bat
-    - name: Upload vcpkg logs
+    - name: Upload vcpkg arrow logs
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ runner.os }}-vcpkg-logs
-        path: build/vcpkg.${{ runner.os }}/buildtrees
+        name: ${{ runner.os }}-vcpkg-arrow-logs
+        path: build/vcpkg.${{ runner.os }}/buildtrees/arrow
     - name: Cleanup vcpkg build
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: rm -rf build/vcpkg.$(echo ${{ runner.os }} | tr A-Z a-z)/{buildtrees,downloads}
