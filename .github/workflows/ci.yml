@@ -53,31 +53,31 @@ jobs:
       
     # Build vcpkg dependencies (if no cach hit).
     - name: Install vcpkg build dependencies (Linux)
-      if: steps.get-cached-vcpkg.outputs.cache-hit == 'false' && runner.os == 'Linux'
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get --yes install flex bison
     - name: Install vcpkg build dependencies (macOS)
-      if: steps.get-cached-vcpkg.outputs.cache-hit == 'false' && runner.os == 'macOS'
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'macOS'
       run: brew install bison pkg-config
     - name: Compile vcpkg dependencies (Unix)
-      if: steps.get-cached-vcpkg.outputs.cache-hit == 'false' && (runner.os == 'Linux' || runner.os == 'macOS')
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
       run: ./vcpkg_unix.sh
     - name: Compile vcpkg dependencies (Windows)
-      if: steps.get-cached-vcpkg.outputs.cache-hit == 'false' && runner.os == 'Windows'
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Windows'
       run: ./vcpkg_windows.bat
     - name: Upload vcpkg logs
-      if: steps.get-cached-vcpkg.outputs.cache-hit == 'false' && (success() || failure())
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
       uses: actions/upload-artifact@v2
       with:
         name: ${{ runner.os }}-vcpkg-logs
         path: build/vcpkg.${{ runner.os }}/buildtrees
     - name: Cleanup vcpkg build
-      if: steps.get-cached-vcpkg.outputs.cache-hit == 'false'
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: rm -rf build/vcpkg.$(echo ${{ runner.os }} | tr A-Z a-z)/{buildtrees,downloads}
       shell: bash
     - name: Export vcpkg dependencies
-      if: steps.get-cached-vcpkg.outputs.cache-hit == 'false'
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: build/vcpkg.$(echo ${{ runner.os }})/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
       shell: bash
       
