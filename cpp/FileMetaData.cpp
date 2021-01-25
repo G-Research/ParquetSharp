@@ -32,6 +32,11 @@ extern "C"
 		TRYCATCH(*created_by = (*file_meta_data)->created_by().c_str();)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* FileMetaData_Equals(const std::shared_ptr<FileMetaData>* file_meta_data, const std::shared_ptr<FileMetaData>* other, bool* equals)
+	{
+		TRYCATCH(*equals = (*file_meta_data)->Equals(**other);)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* FileMetaData_Key_Value_Metadata(const std::shared_ptr<FileMetaData>* file_meta_data, std::shared_ptr<const KeyValueMetadata>** key_value_metadata)
 	{
 		TRYCATCH

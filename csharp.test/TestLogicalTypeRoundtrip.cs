@@ -116,6 +116,8 @@ namespace ParquetSharp.Test
             using var fileMetaData = fileReader.FileMetaData;
             using var rowGroupReader = fileReader.RowGroup(0);
 
+            Assert.True(fileMetaData.Equals(fileMetaData));
+
             var rowGroupMetaData = rowGroupReader.MetaData;
             var numRows = rowGroupMetaData.NumRows;
 

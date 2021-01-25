@@ -5,7 +5,7 @@ using AppVer = ParquetSharp.ApplicationVersion.CStruct;
 
 namespace ParquetSharp
 {
-    public sealed class FileMetaData : IDisposable
+    public sealed class FileMetaData : IEquatable<FileMetaData>, IDisposable
     {
         internal FileMetaData(IntPtr handle)
         {
@@ -45,11 +45,19 @@ namespace ParquetSharp
         public ParquetVersion Version => ExceptionInfo.Return<ParquetVersion>(_handle, FileMetaData_Version);
         public ApplicationVersion WriterVersion => new ApplicationVersion(ExceptionInfo.Return<AppVer>(_handle, FileMetaData_Writer_Version));
 
+        public bool Equals(FileMetaData other)
+        {
+            return other != null && ExceptionInfo.Return<bool>(_handle, other._handle, FileMetaData_Equals);
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern void FileMetaData_Free(IntPtr fileMetaData);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileMetaData_Created_By(IntPtr fileMetaData, out IntPtr createdBy);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr FileMetaData_Equals(IntPtr fileMetaData, IntPtr other, [MarshalAs(UnmanagedType.I1)] out bool equals);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileMetaData_Key_Value_Metadata(IntPtr fileMetaData, out IntPtr keyValueMetadata);
