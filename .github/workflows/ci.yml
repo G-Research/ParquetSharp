@@ -71,7 +71,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ runner.os }}-vcpkg-arrow-logs
-        path: build/vcpkg.${{ runner.os }}/buildtrees/arrow
+        path: build/vcpkg.${{ runner.os }}/buildtrees/arrow/*.log
     - name: Cleanup vcpkg build
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: rm -rf build/vcpkg.$(echo ${{ runner.os }} | tr A-Z a-z)/{buildtrees,downloads}
