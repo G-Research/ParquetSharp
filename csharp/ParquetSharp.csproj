@@ -13,7 +13,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>1591;</NoWarn>
-    <Version>2.3.0</Version>
+    <Version>2.4.0-beta1</Version>
     <Company>G-Research</Company>
     <Authors>G-Research</Authors>
     <Product>ParquetSharp</Product>

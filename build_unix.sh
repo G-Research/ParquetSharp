@@ -3,11 +3,11 @@ set -e
 
 case $(uname) in
   Linux)
-    os=linux
+    os=Linux
     triplet=x64-linux
     ;;
   Darwin)
-    os=macos
+    os=macOS
     triplet=x64-osx
     ;;
   *)

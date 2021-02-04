@@ -25,6 +25,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      
+    # Find out which vcpkg version we are using.
     - name: Resolve vcpkg version
       id: resolve-vcpkg-version
       run: |
@@ -34,6 +36,8 @@ jobs:
         if [ ${#vcpkg_ref} -eq 40 ]; then commit_id=$vcpkg_ref; else commit_id=$(git ls-remote $vcpkg_url $vcpkg_ref | cut -f1); fi
         echo "::set-output name=commit-id::$commit_id"
       shell: bash
+      
+    # Check for cached vcpkg dependencies (use these if we can).
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
       uses: actions/cache@v1
@@ -44,8 +48,10 @@ jobs:
       if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
       run: |
         mkdir build
-        mv cache/vcpkg build/vcpkg.$(echo ${{ runner.os }} | tr A-Z a-z)
+        mv cache/vcpkg build/vcpkg.$(echo ${{ runner.os }})
       shell: bash
+      
+    # Build vcpkg dependencies (if no cach hit).
     - name: Install vcpkg build dependencies (Linux)
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |
@@ -60,14 +66,22 @@ jobs:
     - name: Compile vcpkg dependencies (Windows)
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Windows'
       run: ./vcpkg_windows.bat
+    - name: Upload vcpkg arrow logs
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ runner.os }}-vcpkg-arrow-logs
+        path: build/vcpkg.${{ runner.os }}/buildtrees/arrow/*.log
     - name: Cleanup vcpkg build
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: rm -rf build/vcpkg.$(echo ${{ runner.os }} | tr A-Z a-z)/{buildtrees,downloads}
       shell: bash
     - name: Export vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: build/vcpkg.$(echo ${{ runner.os }} | tr A-Z a-z)/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
+      run: build/vcpkg.$(echo ${{ runner.os }})/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
       shell: bash
+      
+    # .NET Core Setup.
     - name: Setup .NET Core
       if: runner.os == 'Linux' || runner.os == 'macOS'
       uses: actions/setup-dotnet@v1
@@ -76,6 +90,8 @@ jobs:
     - name: Setup MSBuild
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1
+      
+    # Compile ParquetSharp (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
       run: ./build_unix.sh
@@ -87,7 +103,7 @@ jobs:
         dotnet build csharp.benchmark --configuration=Release
         dotnet build csharp.test --configuration=Release
     - name: Upload native ParquetSharp library
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: ${{ runner.os }}-native-library
         path: bin
@@ -101,24 +117,24 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Download native ParquetSharp library (Linux)
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v2
       with:
         name: Linux-native-library
         path: bin
     - name: Download native ParquetSharp library (Windows)
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v2
       with:
         name: Windows-native-library
         path: bin
     - name: Download native ParquetSharp library (macOS)
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v2
       with:
         name: macOS-native-library
         path: bin
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release
     - name: Upload NuGet artifact 
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: nuget-package
         path: nuget
@@ -139,7 +155,7 @@ jobs:
       run: echo "::set-output name=version::$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)"
       shell: pwsh
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v2
       with:
         name: nuget-package
         path: nuget

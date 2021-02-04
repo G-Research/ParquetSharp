@@ -1,1 +1,1 @@
-https://github.com/Microsoft/vcpkg.git 2020.11-1
+https://github.com/microsoft/vcpkg.git 4260eaf6fa1badb5b03be8bfcccaf8db237fa18a
