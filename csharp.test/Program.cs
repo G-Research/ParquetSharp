@@ -21,7 +21,7 @@ namespace ParquetSharp.Test
                 //TestColumn.TestPrimitives();
                 //TestParquetFileWriter.TestReadWriteParquetMultipleTasks();
                 //TestColumnReader.TestHasNext();
-                TestLogicalTypeRoundtrip.TestRoundTrip(128, 2401, 1331, useDictionaryEncoding: true);
+                //TestLogicalTypeRoundtrip.TestRoundTrip(128, 2401, 1331, useDictionaryEncoding: true);
                 //TestPhysicalTypeRoundtrip.TestReaderWriteTypes();
                 //TestParquetFileReader.TestReadFileCreateByPython();
                 //TestParquetFileReader.TestFileHandleHasBeenReleased();
@@ -30,6 +30,7 @@ namespace ParquetSharp.Test
                 //TestAadPrefixVerifier.TestOwnership();
                 //TestEncryption.TestNoMatchingKeyMetadata();
                 //TestParquetFileWriter.TestDisposeExceptionSafety_ColumnWriter();
+                new TestMemoryLeaks().StressTestProcessMemory();
 
                 // Ensure the finalizers are executed, so we can check whether they throw.
                 GC.Collect();
