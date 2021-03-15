@@ -187,11 +187,7 @@ jobs:
     - name: Pin .NET Core SDK
       run: dotnet new globaljson --sdk-version ${{ env.dotnet_version }}
     - name: Add local NuGet feed
-      run: |
-        dotnet nuget add source -n local $PWD/local
-        # Removing and adding back nuget.org ensures that our local source will be used first
-        dotnet nuget remove source nuget.org
-        dotnet nuget add source -n nuget.org https://api.nuget.org/v3/index.json
+      run: dotnet nuget add source -n local $PWD/local
     - name: Change test project references to use local NuGet package
       run: |
         dotnet remove csharp.test reference csharp/ParquetSharp.csproj
