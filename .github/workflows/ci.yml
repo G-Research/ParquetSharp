@@ -3,6 +3,9 @@ name: CI
 on:
   push:
   pull_request:
+  
+env:
+  dotnet_version: '3.1.x'
 
 jobs:
 
@@ -81,12 +84,11 @@ jobs:
       run: build/vcpkg.$(echo ${{ runner.os }})/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
       shell: bash
       
-    # .NET Core Setup.
+    # .NET Core Setup (and also MSBuild for Windows).
     - name: Setup .NET Core
-      if: runner.os == 'Linux' || runner.os == 'macOS'
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.100
+        dotnet-version: ${{ env.dotnet_version }}
     - name: Setup MSBuild
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1
@@ -131,6 +133,10 @@ jobs:
       with:
         name: macOS-native-library
         path: bin
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.dotnet_version }}
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release
     - name: Upload NuGet artifact 
@@ -150,6 +156,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.dotnet_version }}
     - name: Get version
       id: get-version
       run: echo "::set-output name=version::$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)"
