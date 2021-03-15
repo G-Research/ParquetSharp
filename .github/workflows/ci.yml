@@ -5,6 +5,7 @@ on:
   pull_request:
 
 env:
+  DOTNET_NOLOGO: true
   dotnet_version: '3.1.407'
 
 jobs:
