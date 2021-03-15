@@ -170,11 +170,7 @@ jobs:
         choco install nuget.commandline
         nuget add -source local nuget/ParquetSharp.${{ steps.get-version.outputs.version }}.nupkg
     - name: Add local NuGet feed
-      run: |
-        dotnet nuget add source -n local $PWD/local
-        # Removing and adding back nuget.org ensures that our local source will be used first
-        dotnet nuget remove source nuget.org
-        dotnet nuget add source -n nuget.org https://api.nuget.org/v3/index.json
+      run: dotnet nuget add source -n local $PWD/local
     - name: Change test project references to use local NuGet package
       run: |
         dotnet remove csharp.test reference csharp/ParquetSharp.csproj
