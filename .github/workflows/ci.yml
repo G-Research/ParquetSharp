@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+env:
+  dotnet_version: '3.1.407'
+
 jobs:
 
   # Note that vcpkg dependencies takes the majority of the build time.
@@ -81,12 +84,13 @@ jobs:
       run: build/vcpkg.$(echo ${{ runner.os }})/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
       shell: bash
       
-    # .NET Core Setup.
+    # .NET Core Setup (and also MSBuild for Windows).
     - name: Setup .NET Core
-      if: runner.os == 'Linux' || runner.os == 'macOS'
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.407
+        dotnet-version: ${{ env.dotnet_version }}
+    - name: Pin .NET Core SDK
+      run: dotnet new globaljson --sdk-version ${{ env.dotnet_version }}
     - name: Setup MSBuild
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1
@@ -131,6 +135,12 @@ jobs:
       with:
         name: macOS-native-library
         path: bin
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.dotnet_version }}
+    - name: Pin .NET Core SDK
+      run: dotnet new globaljson --sdk-version ${{ env.dotnet_version }}
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release
     - name: Upload NuGet artifact 
@@ -169,6 +179,12 @@ jobs:
       run: |
         choco install nuget.commandline
         nuget add -source local nuget/ParquetSharp.${{ steps.get-version.outputs.version }}.nupkg
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.dotnet_version }}
+    - name: Pin .NET Core SDK
+      run: dotnet new globaljson --sdk-version ${{ env.dotnet_version }}
     - name: Add local NuGet feed
       run: |
         dotnet nuget add source -n local $PWD/local
