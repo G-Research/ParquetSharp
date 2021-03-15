@@ -171,15 +171,7 @@ namespace ParquetSharp
             WriteBatch(values.Length, null, null, values);
         }
 
-        [Obsolete("Use the WriteBatch(ReadOnlySpan<TValue> values) overload. The numValues argument is redundant.")]
-        public void WriteBatch(int numValues, ReadOnlySpan<TValue> values)
-        {
-            if (numValues > values.Length) throw new ArgumentOutOfRangeException(nameof(numValues), "numValues is larger than length of values");
-
-            WriteBatch(numValues, null, null, values);
-        }
-
-        public unsafe void WriteBatch(long numValues, ReadOnlySpan<short> defLevels, ReadOnlySpan<short> repLevels, ReadOnlySpan<TValue> values)
+        public unsafe void WriteBatch(int numValues, ReadOnlySpan<short> defLevels, ReadOnlySpan<short> repLevels, ReadOnlySpan<TValue> values)
         {
             if (values == null) throw new ArgumentNullException(nameof(values));
             if (defLevels != null && defLevels.Length < numValues) throw new ArgumentOutOfRangeException(nameof(defLevels), "numValues is larger than length of defLevels");
@@ -252,7 +244,7 @@ namespace ParquetSharp
         }
 
         public unsafe void WriteBatchSpaced(
-            long numValues, ReadOnlySpan<short> defLevels, ReadOnlySpan<short> repLevels, 
+            int numValues, ReadOnlySpan<short> defLevels, ReadOnlySpan<short> repLevels, 
             ReadOnlySpan<byte> validBits, long validBitsOffset, ReadOnlySpan<TValue> values)
         {
             if (values == null) throw new ArgumentNullException(nameof(values));
