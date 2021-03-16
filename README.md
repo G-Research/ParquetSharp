@@ -106,14 +106,12 @@ Not finding an existing solution meeting these requirements, we decided to imple
 
 ## Performance
 
-The following benchmarks can be reproduced by running `ParquetSharp.Benchmark.csproj`. The relative performance of ParquetSharp 2.3.0-beta2 is compared to [Parquet.NET](https://github.com/aloneguid/parquet-dotnet) 3.7.7, an alternative open-source .NET library that is fully managed. The Decimal tests focus purely on handling the C# `decimal` type, while the TimeSeries tests benchmark three columns respectively of the types `{int, DateTime, float}`. Results are from an i9-9900K on Windows 10.
+The following benchmarks can be reproduced by running `ParquetSharp.Benchmark.csproj`. The relative performance of ParquetSharp 2.4.0-beta1 is compared to [Parquet.NET](https://github.com/aloneguid/parquet-dotnet) 3.8.6, an alternative open-source .NET library that is fully managed. The Decimal tests focus purely on handling the C# `decimal` type, while the TimeSeries tests benchmark three columns respectively of the types `{int, DateTime, float}`. Results are from a Ryzen 5950X on Windows 10.
 
 |  | Decimal (Read) | Decimal (Write) | TimeSeries (Read) | TimeSeries (Write) |
 | ------: | :------------: | :-------------: | :---------------: | :----------------: |
-| Parquet.NET | 1.0x | 1.0x | _Failed\*_ | 1.0x |
-| ParquetSharp | 4.5x Faster | 4.0x Faster | 2.71x Faster | 9.8x Faster |
-
-_\[*] See [Parquet.NET Issue #81](https://github.com/aloneguid/parquet-dotnet/issues/81)._
+| Parquet.NET | 1.0x | 1.0x | 1.0x | 1.0x |
+| ParquetSharp | 4.7x Faster | 3.7x Faster | 2.9x Faster | 8.5x Faster |
 
 ## Known Limitations
 
@@ -125,7 +123,7 @@ Typically this can arise when attempting to access an instance whose owner has b
 
 Building ParquetSharp for Windows requires the following dependencies:
 - Visual Studio 2019 (16.4 or higher)
-- Apache Arrow (1.0.0)
+- Apache Arrow (3.0.0)
 
 For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). Note that the Windows build needs to be done in a Visual Studio x64 Native Tools Command Prompt for the build script to succeed.
 
@@ -150,7 +148,7 @@ We welcome new contributors! We will happily receive PRs for bug fixes or small 
 
 ## License
 
-Copyright 2018-2020 G-Research
+Copyright 2018-2021 G-Research
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use these files except in compliance with the License.
 You may obtain a copy of the License at
