@@ -153,12 +153,15 @@ jobs:
         name: nuget-package
         path: nuget
 
-  # Run .NET unit tests with the nuget package on all platforms (thus testing the user workflow).
+  # Run .NET unit tests with the nuget package on all platforms and all supported .NET runtimes (thus testing the user workflow).
   test-nuget:
     strategy:
       matrix:
         os: [ubuntu-18.04, ubuntu-20.04, macos-latest, windows-latest]
         dotnet: [3, 5]
+        include:
+        - os: windows-latest
+          dotnet: 4
       fail-fast: false
     name: Test NuGet package (.NET ${{ matrix.dotnet }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -189,9 +192,22 @@ jobs:
       id: dotnet
       shell: bash
       run: |
-        case ${{ matrix.dotnet }} in 3) framework=netcoreapp3.1;; 5) framework=net5.0;; esac
-        version=${dotnet_${{ matrix.dotnet }}_version}
-        echo "::set-output name=version::$version"
+        major=${{ matrix.dotnet }}
+        case $major in
+          3)
+            framework=netcoreapp3.1
+            ;;
+          4)
+            framework=net461
+            # We build for .NET framework with .NET Core 3.1 SDK
+            major=3
+            ;;
+          5)
+            framework=net5.0
+            ;;
+        esac
+        version=dotnet_${major}_version
+        echo "::set-output name=version::${!version}"
         echo "::set-output name=framework::$framework"
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
