@@ -92,8 +92,12 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: ${{ env.dotnet_3_version }}
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.dotnet_5_version }}
     - name: Pin .NET Core SDK
-      run: dotnet new globaljson --sdk-version ${{ env.dotnet_3_version }}
+      run: dotnet new globaljson --sdk-version ${{ env.dotnet_5_version }}
     - name: Setup MSBuild
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1
@@ -142,9 +146,9 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: ${{ env.dotnet_3_version }}
+        dotnet-version: ${{ env.dotnet_5_version }}
     - name: Pin .NET Core SDK
-      run: dotnet new globaljson --sdk-version ${{ env.dotnet_3_version }}
+      run: dotnet new globaljson --sdk-version ${{ env.dotnet_5_version }}
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release
     - name: Upload NuGet artifact 
