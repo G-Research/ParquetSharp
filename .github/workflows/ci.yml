@@ -6,7 +6,8 @@ on:
 
 env:
   DOTNET_NOLOGO: true
-  dotnet_version: '3.1.407'
+  dotnet_3_version: '3.1.407'
+  dotnet_5_version: '5.0.201'
 
 jobs:
 
@@ -25,6 +26,7 @@ jobs:
       matrix:
         os: [ubuntu-18.04, macos-latest, windows-latest]
       fail-fast: false
+    name: Build native library (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
@@ -89,9 +91,13 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: ${{ env.dotnet_version }}
+        dotnet-version: ${{ env.dotnet_3_version }}
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.dotnet_5_version }}
     - name: Pin .NET Core SDK
-      run: dotnet new globaljson --sdk-version ${{ env.dotnet_version }}
+      run: dotnet new globaljson --sdk-version ${{ env.dotnet_5_version }}
     - name: Setup MSBuild
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1
@@ -116,6 +122,7 @@ jobs:
   # Download all native shared libraries and create the nuget package.
   # Upload nuget package as an artifact.
   build-nuget:
+    name: Build NuGet package
     runs-on: windows-latest    
     needs: build-native
     steps:
@@ -139,9 +146,9 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: ${{ env.dotnet_version }}
+        dotnet-version: ${{ env.dotnet_5_version }}
     - name: Pin .NET Core SDK
-      run: dotnet new globaljson --sdk-version ${{ env.dotnet_version }}
+      run: dotnet new globaljson --sdk-version ${{ env.dotnet_5_version }}
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release
     - name: Upload NuGet artifact 
@@ -150,12 +157,17 @@ jobs:
         name: nuget-package
         path: nuget
 
-  # Run .NET unit tests with the nuget package on all platforms (thus testing the user workflow).
+  # Run .NET unit tests with the nuget package on all platforms and all supported .NET runtimes (thus testing the user workflow).
   test-nuget:
     strategy:
       matrix:
         os: [ubuntu-18.04, ubuntu-20.04, macos-latest, windows-latest]
+        dotnet: [3, 5]
+        include:
+        - os: windows-latest
+          dotnet: 4
       fail-fast: false
+    name: Test NuGet package (.NET ${{ matrix.dotnet }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     needs: build-nuget
     steps:
@@ -180,12 +192,33 @@ jobs:
       run: |
         choco install nuget.commandline
         nuget add -source local nuget/ParquetSharp.${{ steps.get-version.outputs.version }}.nupkg
+    - name: Setup .NET variables
+      id: dotnet
+      shell: bash
+      run: |
+        major=${{ matrix.dotnet }}
+        case $major in
+          3)
+            framework=netcoreapp3.1
+            ;;
+          4)
+            framework=net461
+            # We build for .NET framework with .NET Core 3.1 SDK
+            major=3
+            ;;
+          5)
+            framework=net5.0
+            ;;
+        esac
+        version=dotnet_${major}_version
+        echo "::set-output name=version::${!version}"
+        echo "::set-output name=framework::$framework"
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: ${{ env.dotnet_version }}
+        dotnet-version: ${{ steps.dotnet.outputs.version }}
     - name: Pin .NET Core SDK
-      run: dotnet new globaljson --sdk-version ${{ env.dotnet_version }}
+      run: dotnet new globaljson --sdk-version ${{ steps.dotnet.outputs.version }}
     - name: Add local NuGet feed
       run: dotnet nuget add source -n local $PWD/local
     - name: Change test project references to use local NuGet package
@@ -193,4 +226,4 @@ jobs:
         dotnet remove csharp.test reference csharp/ParquetSharp.csproj
         dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
     - name: Build & Run .NET unit tests
-      run: dotnet test csharp.test --configuration=Release
+      run: dotnet test csharp.test --configuration=Release --framework ${{ steps.dotnet.outputs.framework }}
