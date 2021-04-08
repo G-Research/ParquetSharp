@@ -28,7 +28,7 @@ namespace ParquetSharp.RowOriented
             Column[] columns,
             WriterProperties writerProperties,
             IReadOnlyDictionary<string, string> keyValueMetadata,
-            WriteAction writeAction
+            WriteAction writeAction)
             : this(new ParquetFileWriter(path, columns, writerProperties, keyValueMetadata), writeAction)
         {
         }
