@@ -29,8 +29,8 @@ namespace ParquetSharp.Test
                 //TestManagedRandomAccessFile.TestWriteException();
                 //TestAadPrefixVerifier.TestOwnership();
                 //TestEncryption.TestNoMatchingKeyMetadata();
-                //TestParquetFileWriter.TestDisposeExceptionSafety_ColumnWriter();
-                new TestMemoryLeaks().StressTestProcessMemory();
+                TestParquetFileWriter.TestProperties();
+                //new TestMemoryLeaks().StressTestProcessMemory();
 
                 // Ensure the finalizers are executed, so we can check whether they throw.
                 GC.Collect();

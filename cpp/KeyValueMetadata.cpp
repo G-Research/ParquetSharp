@@ -39,14 +39,14 @@ extern "C"
 	{
 		TRYCATCH
 		(
-			int64_t size = (*key_value_metadata)->size();
+			const int64_t size = (*key_value_metadata)->size();
 
 			std::unique_ptr<char*[]> keys_ptr(new char*[size]);
 			std::unique_ptr<char*[]> values_ptr(new char*[size]);
 
 			try
 			{
-				for (int i = 0; i != size; ++i)
+				for (int64_t i = 0; i != size; ++i)
 				{
 					const std::string k = (*key_value_metadata)->key(i);
 					const std::string v = (*key_value_metadata)->value(i);
@@ -60,7 +60,7 @@ extern "C"
 			}
 			catch (...)
 			{
-				for (int i = 0; i != size; ++i)
+				for (int64_t i = 0; i != size; ++i)
 				{
 					delete[] keys_ptr[i];
 					delete[] values_ptr[i];

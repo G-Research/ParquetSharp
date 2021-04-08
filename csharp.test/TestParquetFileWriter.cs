@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -11,6 +12,86 @@ namespace ParquetSharp.Test
     [TestFixture]
     internal static class TestParquetFileWriter
     {
+        [Test]
+        public static void TestProperties()
+        {
+            // Test the various properties exposed by ParquetFileWriter.
+
+            using var writerPropertiesBuilder = new WriterPropertiesBuilder();
+            using var writerProperties = writerPropertiesBuilder
+                .Compression(Compression.Zstd)
+                .DisableDictionary()
+                .CreatedBy("Some crazy unit test")
+                .Build();
+
+            var columns = new Column[]
+            {
+                new Column<int>("Index"), 
+                new Column<float>("Value")
+            };
+
+            var kvm = (IReadOnlyDictionary<string, string>) new Dictionary<string, string>
+            {
+                {"some key", "some value"}
+            };
+
+            using var buffer = new ResizableBuffer();
+            using var outStream = new BufferOutputStream(buffer);
+            using var fileWriter = new ParquetFileWriter(outStream, columns, writerProperties, kvm);
+
+            Assert.AreEqual(2, fileWriter.NumColumns);
+            Assert.AreEqual(0, fileWriter.NumRows);
+            Assert.AreEqual(0, fileWriter.NumRowGroups);
+            Assert.IsNull(fileWriter.FileMetaData);
+            Assert.AreEqual(Column.CreateSchemaNode(columns), fileWriter.Schema.GroupNode);
+            Assert.AreEqual(Column.CreateSchemaNode(columns), fileWriter.Schema.SchemaRoot);
+            Assert.AreEqual(columns[0].Name, fileWriter.ColumnDescriptor(0).Name);
+            Assert.AreEqual(columns[1].Name, fileWriter.ColumnDescriptor(1).Name);
+            Assert.AreEqual(kvm, fileWriter.KeyValueMetadata);
+
+            // TODO test writer properties
+            // TODO keep and dispose writer properties as we do for FileMetaData
+
+            using (var groupWriter = fileWriter.AppendRowGroup())
+            {
+                Assert.AreEqual(0, fileWriter.NumRows);
+                Assert.AreEqual(1, fileWriter.NumRowGroups);
+                Assert.IsNull(fileWriter.FileMetaData);
+
+                using (var writer = groupWriter.NextColumn().LogicalWriter<int>())
+                {
+                    writer.WriteBatch(new[] { 1, 2, 3, 4, 5, 6 });
+                }
+
+                Assert.AreEqual(0, fileWriter.NumRows);
+                Assert.AreEqual(1, fileWriter.NumRowGroups);
+                Assert.IsNull(fileWriter.FileMetaData);
+
+                using (var writer = groupWriter.NextColumn().LogicalWriter<float>())
+                {
+                    writer.WriteBatch(new[] { 1f, 2f, 3f, 4f, 5f, 6f });
+                }
+
+                Assert.AreEqual(0, fileWriter.NumRows);
+                Assert.AreEqual(1, fileWriter.NumRowGroups);
+                Assert.IsNull(fileWriter.FileMetaData);
+            }
+
+            Assert.AreEqual(0, fileWriter.NumRows);
+            Assert.AreEqual(1, fileWriter.NumRowGroups);
+            Assert.IsNull(fileWriter.FileMetaData);
+
+            fileWriter.Close();
+
+            //Assert.AreEqual(0, fileWriter.NumRows); // 2021-04-08: calling this results in a segfault when the writer has been closed
+            //Assert.AreEqual(1, fileWriter.NumRowGroups); // 2021-04-08: calling this results in a segfault when the writer has been closed
+            Assert.IsNotNull(fileWriter.FileMetaData);
+            Assert.AreEqual(2, fileWriter.FileMetaData.NumColumns);
+            Assert.AreEqual(6, fileWriter.FileMetaData.NumRows);
+            Assert.AreEqual(1, fileWriter.FileMetaData.NumRowGroups);
+            Assert.AreEqual(kvm, fileWriter.FileMetaData.KeyValueMetadata);
+        }
+
         [Test]
         public static void TestDisposedAccess()
         {
