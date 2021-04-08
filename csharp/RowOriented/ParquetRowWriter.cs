@@ -14,22 +14,42 @@ namespace ParquetSharp.RowOriented
         internal delegate void WriteAction(ParquetRowWriter<TTuple> parquetRowWriter, TTuple[] rows, int length);
 
         internal ParquetRowWriter(
-            string path, 
-            Column[] columns, 
+            string path,
+            Column[] columns,
             Compression compression,
-            IReadOnlyDictionary<string, string> keyValueMetadata, 
+            IReadOnlyDictionary<string, string> keyValueMetadata,
             WriteAction writeAction)
             : this(new ParquetFileWriter(path, columns, compression, keyValueMetadata), writeAction)
         {
         }
 
         internal ParquetRowWriter(
-            OutputStream outputStream, 
+            string path,
+            Column[] columns,
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string> keyValueMetadata,
+            WriteAction writeAction
+            : this(new ParquetFileWriter(path, columns, writerProperties, keyValueMetadata), writeAction)
+        {
+        }
+
+        internal ParquetRowWriter(
+            OutputStream outputStream,
             Column[] columns,
             Compression compression,
-            IReadOnlyDictionary<string, string> keyValueMetadata, 
+            IReadOnlyDictionary<string, string> keyValueMetadata,
             WriteAction writeAction)
             : this(new ParquetFileWriter(outputStream, columns, compression, keyValueMetadata), writeAction)
+        {
+        }
+
+        internal ParquetRowWriter(
+            OutputStream outputStream,
+            Column[] columns,
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string> keyValueMetadata,
+            WriteAction writeAction)
+            : this(new ParquetFileWriter(outputStream, columns, writerProperties, keyValueMetadata), writeAction)
         {
         }
 

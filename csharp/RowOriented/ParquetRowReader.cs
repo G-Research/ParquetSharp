@@ -19,8 +19,18 @@ namespace ParquetSharp.RowOriented
         {
         }
 
+        internal ParquetRowReader(string path, ReaderProperties readerProperties, ReadAction readAction, (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+            : this(new ParquetFileReader(path, readerProperties), readAction, fields)
+        {
+        }
+
         internal ParquetRowReader(RandomAccessFile randomAccessFile, ReadAction readAction, (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
             : this(new ParquetFileReader(randomAccessFile), readAction, fields)
+        {
+        }
+
+        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReaderProperties readerProperties, ReadAction readAction, (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+            : this(new ParquetFileReader(randomAccessFile, readerProperties), readAction, fields)
         {
         }
 
