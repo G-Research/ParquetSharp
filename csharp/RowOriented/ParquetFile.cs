@@ -27,6 +27,13 @@ namespace ParquetSharp.RowOriented
             return new ParquetRowReader<TTuple>(path, readDelegate, fields);
         }
 
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path, ReaderProperties readerProperties)
+        {
+            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
+            return new ParquetRowReader<TTuple>(path, readerProperties, readDelegate, fields);
+        }
+
         /// <summary>
         /// Create a row-oriented reader from an input stream.
         /// </summary>
@@ -35,6 +42,13 @@ namespace ParquetSharp.RowOriented
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
             return new ParquetRowReader<TTuple>(randomAccessFile, readDelegate, fields);
+        }
+
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile, ReaderProperties readerProperties)
+        {
+            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
+            return new ParquetRowReader<TTuple>(randomAccessFile, readerProperties, readDelegate, fields);
         }
 
         /// <summary>
@@ -50,6 +64,16 @@ namespace ParquetSharp.RowOriented
             return new ParquetRowWriter<TTuple>(path, columns, compression, keyValueMetadata, writeDelegate);
         }
 
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            string path,
+            WriterProperties writerProperties,
+            string[] columnNames = null,
+            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+        {
+            var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
+            return new ParquetRowWriter<TTuple>(path, columns, writerProperties, keyValueMetadata, writeDelegate);
+        }
+
         /// <summary>
         /// Create a row-oriented writer to an output stream. By default, the column names are reflected from the tuple public fields and properties.
         /// </summary>
@@ -61,6 +85,16 @@ namespace ParquetSharp.RowOriented
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
             return new ParquetRowWriter<TTuple>(outputStream, columns, compression, keyValueMetadata, writeDelegate);
+        }
+
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            OutputStream outputStream,
+            WriterProperties writerProperties,
+            string[] columnNames = null,
+            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+        {
+            var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
+            return new ParquetRowWriter<TTuple>(outputStream, columns, writerProperties, keyValueMetadata, writeDelegate);
         }
 
         private static ParquetRowReader<TTuple>.ReadAction GetOrCreateReadDelegate<TTuple>((string name, string mappedColumn, Type type, MemberInfo info)[] fields)
