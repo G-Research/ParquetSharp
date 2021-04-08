@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ParquetSharp.IO;
 using NUnit.Framework;
+using ParquetSharp.Schema;
 
 namespace ParquetSharp.Test
 {
@@ -49,8 +50,9 @@ namespace ParquetSharp.Test
             Assert.AreEqual(columns[1].Name, fileWriter.ColumnDescriptor(1).Name);
             Assert.AreEqual(kvm, fileWriter.KeyValueMetadata);
 
-            // TODO test writer properties
-            // TODO keep and dispose writer properties as we do for FileMetaData
+            Assert.AreEqual(Compression.Zstd, fileWriter.WriterProperties.Compression(new ColumnPath("")));
+            Assert.AreEqual(false, fileWriter.WriterProperties.DictionaryEnabled(new ColumnPath("")));
+            Assert.AreEqual("Some crazy unit test", fileWriter.WriterProperties.CreatedBy);
 
             using (var groupWriter = fileWriter.AppendRowGroup())
             {
