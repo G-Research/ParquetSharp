@@ -146,6 +146,18 @@ namespace ParquetSharp.Test
             Assert.AreEqual(compression, groupReader.MetaData.GetColumnChunkMetaData(1).Compression);
         }
 
+        [Test]
+        public static void TestWriterPropertiesArgument()
+        {
+            using var builder = new WriterPropertiesBuilder();
+            using var writerProperties = builder.CreatedBy("This unit test").Build();
+            using var buffer = new ResizableBuffer();
+            using var outputStream = new BufferOutputStream(buffer);
+            using var writer = ParquetFile.CreateRowWriter<(int, float)>(outputStream, writerProperties);
+
+            Assert.AreEqual("This unit test", writer.WriterProperties.CreatedBy);
+        }
+
         private static void TestRoundtrip<TTuple>(TTuple[] rows)
         {
             RoundTripAndCompare(rows, rows, columnNames: null);

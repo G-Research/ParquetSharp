@@ -73,6 +73,12 @@ namespace ParquetSharp.RowOriented
             _parquetFileWriter.Close();
         }
 
+        public WriterProperties WriterProperties => _parquetFileWriter.WriterProperties;
+        public SchemaDescriptor Schema => _parquetFileWriter.Schema;
+        public ColumnDescriptor ColumnDescriptor(int i) => _parquetFileWriter.ColumnDescriptor(i);
+        public FileMetaData FileMetaData => _parquetFileWriter.FileMetaData;
+        public IReadOnlyDictionary<string, string> KeyValueMetadata => _parquetFileWriter.KeyValueMetadata;
+
         public void StartNewRowGroup()
         {
             _writeAction(this, _rows, _pos);
