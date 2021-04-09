@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ParquetSharp.IO;
 using NUnit.Framework;
+using ParquetSharp.Schema;
 
 namespace ParquetSharp.Test
 {
@@ -222,5 +223,31 @@ namespace ParquetSharp.Test
             Task.WaitAll(running);
         }
 
+        [Test]
+        public static void TestWriterProperties([Values(Compression.Brotli, Compression.Uncompressed)]
+            Compression compression)
+        {
+            using var buffer = new ResizableBuffer();
+            using var outStream = new BufferOutputStream(buffer);
+
+            using var writerPropertiesBuilder = new WriterPropertiesBuilder().Compression(compression);
+            using var writerProperties = writerPropertiesBuilder.Build();
+            using var fileWriter =
+                new ParquetFileWriter(outStream, new Column[] {new Column<int>("Index")}, writerProperties);
+
+            using var writerProperties_ = fileWriter.WriterProperties();
+
+            Assert.AreEqual(compression, writerProperties_.Compression(new ColumnPath("Index")));
+        }
+
+        [Test]
+        public static void TestWriterSchema()
+        {
+            using var buffer = new ResizableBuffer();
+            using var outStream = new BufferOutputStream(buffer);
+            using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("Index")});
+
+            Assert.AreEqual(1, fileWriter.SchemaDescriptor().NumColumns);
+        }
     }
 }

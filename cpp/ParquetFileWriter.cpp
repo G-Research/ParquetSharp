@@ -41,6 +41,20 @@ extern "C"
 		delete writer;
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_Get_WriterProperties(
+		ParquetFileWriter* writer,
+		const std::shared_ptr<WriterProperties>** writer_properties)
+	{
+		TRYCATCH(*writer_properties = new std::shared_ptr<WriterProperties>(writer->properties());)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_Get_SchemaDescriptor(
+		ParquetFileWriter* writer,
+		const SchemaDescriptor** schema)
+	{
+		TRYCATCH(*schema = writer->schema();)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_Close(ParquetFileWriter* writer)
 	{
 		TRYCATCH(writer->Close();)

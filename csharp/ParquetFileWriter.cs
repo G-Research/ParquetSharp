@@ -76,6 +76,12 @@ namespace ParquetSharp
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
         }
 
+        public WriterProperties WriterProperties() =>
+            new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Get_WriterProperties));
+
+        public SchemaDescriptor SchemaDescriptor() =>
+            new SchemaDescriptor(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Get_SchemaDescriptor));
+
         public void Dispose()
         {
             // Unfortunately we cannot call Close() here as it can throw exceptions.
@@ -164,6 +170,12 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
         private static extern IntPtr ParquetFileWriter_Open(IntPtr outputStream, IntPtr schema, IntPtr writerProperties, IntPtr keyValueMetadata, out IntPtr writer);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_Get_WriterProperties(IntPtr writer, out IntPtr writerProperties);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_Get_SchemaDescriptor(IntPtr writer, out IntPtr schemaDescriptor);
 
         [DllImport(ParquetDll.Name)]
         private static extern void ParquetFileWriter_Free(IntPtr writer);
