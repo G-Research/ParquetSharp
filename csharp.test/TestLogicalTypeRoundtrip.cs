@@ -136,6 +136,7 @@ namespace ParquetSharp.Test
 
                     Assert.AreEqual(expected.Name, fileMetaData.Schema.ColumnRoot(c).Name);
                     Assert.AreEqual(expected.Name, descr.Path.ToDotVector().First());
+                    Assert.AreEqual(c, fileMetaData.Schema.ColumnIndex(descr.Path.ToDotString()));
                     Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
                     Assert.AreEqual(expected.LogicalType, descr.LogicalType);
                     Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalValueGetter(checked((int) numRows), rowsPerBatch)));
