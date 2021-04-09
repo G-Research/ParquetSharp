@@ -44,16 +44,6 @@ namespace ParquetSharp.Schema
                 LogicalType is NoneLogicalType ? null : LogicalType);
         }
 
-        public override bool Equals(Node other)
-        {
-            return
-                other is GroupNode groupNode &&
-                Name == groupNode.Name &&
-                Repetition == groupNode.Repetition &&
-                LogicalType.Equals(groupNode.LogicalType) &&
-                Fields.SequenceEqual(groupNode.Fields);
-        }
-
         private static unsafe IntPtr Make(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType logicalType)
         {
             var handles = fields.Select(f => f.Handle.IntPtr).ToArray();
