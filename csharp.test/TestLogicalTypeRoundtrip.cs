@@ -134,6 +134,7 @@ namespace ParquetSharp.Test
 
                     Console.WriteLine("Reading '{0}'", expected.Name);
 
+                    Assert.AreEqual(expected.Name, fileMetaData.Schema.ColumnRoot(c).Name);
                     Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
                     Assert.AreEqual(expected.LogicalType, descr.LogicalType);
                     Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalValueGetter(checked((int) numRows), rowsPerBatch)));
