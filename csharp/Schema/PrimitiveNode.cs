@@ -39,17 +39,6 @@ namespace ParquetSharp.Schema
                 TypeLength);
         }
 
-        public override bool Equals(Node other)
-        {
-            return
-                other is PrimitiveNode primitiveNode &&
-                Name == primitiveNode.Name &&
-                Repetition == primitiveNode.Repetition &&
-                PhysicalType == primitiveNode.PhysicalType &&
-                LogicalType.Equals(primitiveNode.LogicalType) &&
-                TypeLength == primitiveNode.TypeLength;
-        }
-
         private static IntPtr Make(
             string name,
             Repetition repetition,

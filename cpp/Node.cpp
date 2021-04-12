@@ -13,6 +13,11 @@ extern "C"
 		delete node;
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* Node_Equals(const std::shared_ptr<const schema::Node>* node, const std::shared_ptr<const schema::Node>* other, bool* equals)
+	{
+		TRYCATCH(*equals = (*node)->Equals(other->get());)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* Node_Field_Id(const std::shared_ptr<const schema::Node>* node, int* id)
 	{
 		TRYCATCH(*id = (*node)->field_id();)

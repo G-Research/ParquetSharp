@@ -35,7 +35,11 @@ namespace ParquetSharp.Schema
         /// Deep cloning of the node. If the node is a group node, its children will be deep cloned as well.
         /// </summary>
         public abstract Node DeepClone();
-        public abstract bool Equals(Node other);
+
+        public bool Equals(Node other)
+        {
+            return other != null && ExceptionInfo.Return<bool>(Handle, other.Handle, Node_Equals);
+        }
 
         internal static Node Create(IntPtr handle)
         {
@@ -59,6 +63,9 @@ namespace ParquetSharp.Schema
 
         [DllImport(ParquetDll.Name)]
         private static extern void Node_Free(IntPtr node);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr Node_Equals(IntPtr node, IntPtr other, [MarshalAs(UnmanagedType.I1)] out bool equals);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Node_Field_Id(IntPtr node, out int id);
