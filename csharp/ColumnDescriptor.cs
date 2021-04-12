@@ -22,6 +22,7 @@ namespace ParquetSharp
         public short MaxDefinitionLevel => ExceptionInfo.Return<short>(_handle, ColumnDescriptor_Max_Definition_Level);
         public short MaxRepetitionLevel => ExceptionInfo.Return<short>(_handle, ColumnDescriptor_Max_Repetition_Level);
         public string Name => Marshal.PtrToStringAnsi(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Name));
+        public Schema.ColumnPath Path => new Schema.ColumnPath(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Path));
         public Schema.Node SchemaNode => Schema.Node.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Schema_Node));
         public PhysicalType PhysicalType => ExceptionInfo.Return<PhysicalType>(_handle, ColumnDescriptor_Physical_Type);
         public SortOrder SortOrder => ExceptionInfo.Return<SortOrder>(_handle, ColumnDescriptor_SortOrder);
@@ -37,8 +38,12 @@ namespace ParquetSharp
 
                 var iface = typeof(IColumnDescriptorVisitor<TReturn>);
                 var genericMethod = iface.GetMethod(nameof(visitor.OnColumnDescriptor));
-                var method = genericMethod.MakeGenericMethod(t.physicalType, t.logicalType, t.elementType);
+                if (genericMethod == null)
+                {
+                    throw new Exception($"failed to reflect '{nameof(visitor.OnColumnDescriptor)}' method");
+                }
 
+                var method = genericMethod.MakeGenericMethod(t.physicalType, t.logicalType, t.elementType);
                 var visitorParam = Expression.Parameter(typeof(IColumnDescriptorVisitor<TReturn>), nameof(visitor));
                 var callExpr = Expression.Call(visitorParam, method);
 
@@ -187,6 +192,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnDescriptor_Name(IntPtr columnDescriptor, out IntPtr name);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ColumnDescriptor_Path(IntPtr columnDescriptor, out IntPtr path);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnDescriptor_Schema_Node(IntPtr columnDescriptor, out IntPtr schemaNode);

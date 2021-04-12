@@ -43,6 +43,11 @@ extern "C"
 		TRYCATCH(*name = column_descriptor->name().c_str();)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnDescriptor_Path(const ColumnDescriptor* column_descriptor, std::shared_ptr<schema::ColumnPath>** path)
+	{
+		TRYCATCH(*path = new std::shared_ptr<schema::ColumnPath>(column_descriptor->path());)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* ColumnDescriptor_Schema_Node(const ColumnDescriptor* column_descriptor, std::shared_ptr<schema::Node>** schema_node)
 	{
 		TRYCATCH(*schema_node = new std::shared_ptr<schema::Node>(column_descriptor->schema_node());)
