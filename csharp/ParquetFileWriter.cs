@@ -84,6 +84,7 @@ namespace ParquetSharp
             //
             // See https://github.com/G-Research/ParquetSharp/issues/104.
 
+            _fileMetaData?.Dispose();
             _handle.Dispose();
         }
 
@@ -106,6 +107,44 @@ namespace ParquetSharp
         public RowGroupWriter AppendBufferedRowGroup()
         {
             return new RowGroupWriter(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendBufferedRowGroup));
+        }
+
+        internal int NumColumns => ExceptionInfo.Return<int>(_handle, ParquetFileWriter_Num_Columns); // 2021-04-08: calling this results in a segfault when the writer has been closed
+        internal long NumRows => ExceptionInfo.Return<long>(_handle, ParquetFileWriter_Num_Rows); // 2021-04-08: calling this results in a segfault when the writer has been closed
+        internal int NumRowGroups => ExceptionInfo.Return<int>(_handle, ParquetFileWriter_Num_Row_Groups); // 2021-04-08: calling this results in a segfault when the writer has been closed
+        public WriterProperties WriterProperties => _writerProperties ?? (_writerProperties = new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Properties)));
+        public SchemaDescriptor Schema => new SchemaDescriptor(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Schema));
+        public ColumnDescriptor ColumnDescriptor(int i) => new ColumnDescriptor(ExceptionInfo.Return<int, IntPtr>(_handle, i, ParquetFileWriter_Descr));
+
+        public IReadOnlyDictionary<string, string> KeyValueMetadata
+        {
+            get
+            {
+                var kvmHandle = ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Key_Value_Metadata);
+                if (kvmHandle == IntPtr.Zero)
+                {
+                    return new Dictionary<string, string>();
+                }
+
+                using (var keyValueMetadata = new KeyValueMetadata(kvmHandle))
+                {
+                    return keyValueMetadata.ToDictionary();
+                }
+            }
+        }
+
+        public FileMetaData FileMetaData
+        {
+            get
+            {
+                if (_fileMetaData != null)
+                {
+                    return _fileMetaData;
+                }
+
+                var handle = ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Metadata);
+                return _fileMetaData = handle == IntPtr.Zero ? null : new FileMetaData(handle);
+            }
         }
 
         private static ParquetHandle CreateParquetFileWriter(
@@ -177,6 +216,32 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ParquetFileWriter_AppendBufferedRowGroup(IntPtr writer, out IntPtr rowGroupWriter);
 
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_Num_Columns(IntPtr writer, out int numColumns);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_Num_Rows(IntPtr writer, out long numRows);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_Num_Row_Groups(IntPtr writer, out int numRowGroups);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_Properties(IntPtr writer, out IntPtr properties);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_Schema(IntPtr writer, out IntPtr schema);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_Descr(IntPtr writer, int i, out IntPtr descr);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_Key_Value_Metadata(IntPtr writer, out IntPtr keyValueMetadata);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_Metadata(IntPtr writer, out IntPtr metadata);
+
         private readonly ParquetHandle _handle;
+        private FileMetaData _fileMetaData;
+        private WriterProperties _writerProperties;
     }
 }
