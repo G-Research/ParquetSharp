@@ -7,7 +7,7 @@ namespace ParquetSharp
     /// <summary>
     /// Parquet physical types to C# types read conversion logic.
     /// </summary>
-    internal static class LogicalRead<TLogical, TPhysical>
+    public static class LogicalRead<TLogical, TPhysical>
         where TPhysical : unmanaged
     {
         public delegate long DirectReader(ColumnReader<TPhysical> columnReader, Span<TLogical> destination);
@@ -49,7 +49,7 @@ namespace ParquetSharp
             return null;
         }
 
-        public static Converter GetConverter(LogicalType logicalType, int scale, ByteArrayReaderCache<TPhysical, TLogical> byteArrayCache)
+        public static Converter GetConverter(ColumnDescriptor columnDescriptor, ColumnChunkMetaData columnChunkMetaData)
         {
             if (typeof(TLogical) == typeof(bool) ||
                 typeof(TLogical) == typeof(int) ||
@@ -133,13 +133,13 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(decimal))
             {
-                var multiplier = Decimal128.GetScaleMultiplier(scale);
+                var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
                 return (Converter) (Delegate) (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal128(s, d, multiplier));
             }
 
             if (typeof(TLogical) == typeof(decimal?))
             {
-                var multiplier = Decimal128.GetScaleMultiplier(scale);
+                var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
                 return (Converter) (Delegate) (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal128(s, dl, d, multiplier, nl));
             }
 
@@ -162,6 +162,8 @@ namespace ParquetSharp
             {
                 return (Converter) (Delegate) (LogicalRead<Date?, int>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<int, Date>(s), dl, d, nl));
             }
+
+            var logicalType = columnDescriptor.LogicalType;
 
             if (typeof(TLogical) == typeof(DateTime))
             {
@@ -234,6 +236,8 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(string))
             {
+                var byteArrayCache = new ByteArrayReaderCache<TPhysical, TLogical>(columnChunkMetaData);
+
                 return byteArrayCache.IsUsable
                     ? (Converter) (Delegate) (LogicalRead<string, ByteArray>.Converter) ((s, dl, d, nl) => ConvertString(s, dl, d, nl, (ByteArrayReaderCache<ByteArray, string>) (object) byteArrayCache)) 
                     : (Converter) (Delegate) (LogicalRead<string, ByteArray>.Converter) ConvertString;
@@ -253,13 +257,13 @@ namespace ParquetSharp
 
             throw new NotSupportedException($"unsupported logical system type {typeof(TLogical)} with logical type {logicalType}");
         }
-        
-        private static void ConvertNative<TValue>(ReadOnlySpan<TValue> source, Span<TValue> destination) where TValue : unmanaged
+
+        public static void ConvertNative<TValue>(ReadOnlySpan<TValue> source, Span<TValue> destination) where TValue : unmanaged
         {
             source.CopyTo(destination);
         }
 
-        private static void ConvertNative<TValue>(ReadOnlySpan<TValue> source, ReadOnlySpan<short> defLevels, Span<TValue?> destination, short nullLevel) where TValue : unmanaged
+        public static void ConvertNative<TValue>(ReadOnlySpan<TValue> source, ReadOnlySpan<short> defLevels, Span<TValue?> destination, short nullLevel) where TValue : unmanaged
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -267,7 +271,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertInt8(ReadOnlySpan<int> source, Span<sbyte> destination)
+        public static void ConvertInt8(ReadOnlySpan<int> source, Span<sbyte> destination)
         {
             for (int i = 0; i < destination.Length; ++i)
             {
@@ -275,7 +279,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertInt8(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<sbyte?> destination, short nullLevel)
+        public static void ConvertInt8(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<sbyte?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -283,7 +287,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertUInt8(ReadOnlySpan<int> source, Span<byte> destination)
+        public static void ConvertUInt8(ReadOnlySpan<int> source, Span<byte> destination)
         {
             for (int i = 0; i < destination.Length; ++i)
             {
@@ -291,7 +295,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertUInt8(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<byte?> destination, short nullLevel)
+        public static void ConvertUInt8(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<byte?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -299,7 +303,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertInt16(ReadOnlySpan<int> source, Span<short> destination)
+        public static void ConvertInt16(ReadOnlySpan<int> source, Span<short> destination)
         {
             for (int i = 0; i < destination.Length; ++i)
             {
@@ -307,7 +311,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertInt16(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<short?> destination, short nullLevel)
+        public static void ConvertInt16(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<short?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -315,7 +319,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertUInt16(ReadOnlySpan<int> source, Span<ushort> destination)
+        public static void ConvertUInt16(ReadOnlySpan<int> source, Span<ushort> destination)
         {
             for (int i = 0; i < destination.Length; ++i)
             {
@@ -323,7 +327,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertUInt16(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<ushort?> destination, short nullLevel)
+        public static void ConvertUInt16(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<ushort?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -331,7 +335,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertDecimal128(ReadOnlySpan<FixedLenByteArray> source, Span<decimal> destination, decimal multiplier)
+        public static void ConvertDecimal128(ReadOnlySpan<FixedLenByteArray> source, Span<decimal> destination, decimal multiplier)
         {
             for (int i = 0; i < destination.Length; ++i)
             {
@@ -339,7 +343,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertDecimal128(ReadOnlySpan<FixedLenByteArray> source, ReadOnlySpan<short> defLevels, Span<decimal?> destination, decimal multiplier, short nullLevel)
+        public static void ConvertDecimal128(ReadOnlySpan<FixedLenByteArray> source, ReadOnlySpan<short> defLevels, Span<decimal?> destination, decimal multiplier, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -347,7 +351,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertUuid(ReadOnlySpan<FixedLenByteArray> source, Span<Guid> destination)
+        public static void ConvertUuid(ReadOnlySpan<FixedLenByteArray> source, Span<Guid> destination)
         {
             for (int i = 0; i < destination.Length; ++i)
             {
@@ -355,15 +359,15 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertUuid(ReadOnlySpan<FixedLenByteArray> source, ReadOnlySpan<short> defLevels, Span<Guid?> destination, short nullLevel)
+        public static void ConvertUuid(ReadOnlySpan<FixedLenByteArray> source, ReadOnlySpan<short> defLevels, Span<Guid?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] == nullLevel ? default(Guid?) : LogicalRead.ToUuid(source[src++]);
             }
         }
-        
-        private static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination)
+
+        public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination)
         {
             var dst = MemoryMarshal.Cast<DateTime, long>(destination);
 
@@ -373,7 +377,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertDateTimeMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short nullLevel)
+        public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -381,7 +385,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination)
+        public static void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination)
         {
             var dst = MemoryMarshal.Cast<DateTime, long>(destination);
             
@@ -391,7 +395,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertDateTimeMillis(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short nullLevel)
+        public static void ConvertDateTimeMillis(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -399,7 +403,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertTimeSpanMicros(ReadOnlySpan<long> source, Span<TimeSpan> destination)
+        public static void ConvertTimeSpanMicros(ReadOnlySpan<long> source, Span<TimeSpan> destination)
         {
             for (int i = 0; i < destination.Length; ++i)
             {
@@ -407,7 +411,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertTimeSpanMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<TimeSpan?> destination, short nullLevel)
+        public static void ConvertTimeSpanMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<TimeSpan?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -415,7 +419,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertTimeSpanMillis(ReadOnlySpan<int> source, Span<TimeSpan> destination)
+        public static void ConvertTimeSpanMillis(ReadOnlySpan<int> source, Span<TimeSpan> destination)
         {
             for (int i = 0; i < destination.Length; ++i)
             {
@@ -423,7 +427,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertTimeSpanMillis(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<TimeSpan?> destination, short nullLevel)
+        public static void ConvertTimeSpanMillis(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<TimeSpan?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -431,7 +435,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string> destination, short nullLevel, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
+        public static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string> destination, short nullLevel, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -439,7 +443,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string> destination, short nullLevel)
+        public static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -447,7 +451,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertByteArray(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<byte[]> destination, short nullLevel)
+        public static void ConvertByteArray(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<byte[]> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -455,7 +459,7 @@ namespace ParquetSharp
             }
         }
 
-        private static string ToString(ByteArray byteArray, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
+        public static string ToString(ByteArray byteArray, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
         {
             if (byteArrayCache.TryGetValue(byteArray, out var str))
             {
@@ -472,7 +476,7 @@ namespace ParquetSharp
             return byteArrayCache.Add(byteArray, LogicalRead.ToString(byteArray));
         }
 
-        private static unsafe bool IsCacheValid(ByteArrayReaderCache<ByteArray, string> byteArrayCache, ByteArray byteArray, string str)
+        public static unsafe bool IsCacheValid(ByteArrayReaderCache<ByteArray, string> byteArrayCache, ByteArray byteArray, string str)
         {
             var byteCount = System.Text.Encoding.UTF8.GetByteCount(str);
             var buffer = byteArrayCache.GetScratchBuffer(byteCount);
@@ -489,7 +493,7 @@ namespace ParquetSharp
     /// Parquet physical types to C# types read conversion logic.
     /// Separate class for per-element conversion logic.
     /// </summary>
-    internal static class LogicalRead
+    public static class LogicalRead
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe decimal ToDecimal(FixedLenByteArray source, decimal multiplier)

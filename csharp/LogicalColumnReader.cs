@@ -16,16 +16,19 @@ namespace ParquetSharp
         {
         }
 
-        internal static LogicalColumnReader Create(ColumnReader columnReader, int bufferLength)
+        internal static LogicalColumnReader Create(ColumnReader columnReader, LogicalReadConverterFactory converterFactory, int bufferLength)
         {
             if (columnReader == null) throw new ArgumentNullException(nameof(columnReader));
 
-            return columnReader.ColumnDescriptor.Apply(new Creator(columnReader, bufferLength));
+            return columnReader.ColumnDescriptor.Apply(new Creator(columnReader, converterFactory, bufferLength));
         }
 
-        internal static LogicalColumnReader<TElement> Create<TElement>(ColumnReader columnReader, int bufferLength)
+        internal static LogicalColumnReader<TElement> Create<TElement>(
+            ColumnReader columnReader, 
+            LogicalReadConverterFactory converterFactory, 
+            int bufferLength)
         {
-            var reader = Create(columnReader, bufferLength);
+            var reader = Create(columnReader, converterFactory, bufferLength);
 
             try
             {
@@ -44,18 +47,20 @@ namespace ParquetSharp
 
         private sealed class Creator : IColumnDescriptorVisitor<LogicalColumnReader>
         {
-            public Creator(ColumnReader columnReader, int bufferLength)
+            public Creator(ColumnReader columnReader, LogicalReadConverterFactory converterFactory, int bufferLength)
             {
                 _columnReader = columnReader;
+                _converterFactory = converterFactory;
                 _bufferLength = bufferLength;
             }
 
             public LogicalColumnReader OnColumnDescriptor<TPhysical, TLogical, TElement>() where TPhysical : unmanaged
             {
-                return new LogicalColumnReader<TPhysical, TLogical, TElement>(_columnReader, _bufferLength);
+                return new LogicalColumnReader<TPhysical, TLogical, TElement>(_columnReader, _converterFactory, _bufferLength);
             }
 
             private readonly ColumnReader _columnReader;
+            private readonly LogicalReadConverterFactory _converterFactory;
             private readonly int _bufferLength;
         }
     }
@@ -116,13 +121,14 @@ namespace ParquetSharp
     internal sealed class LogicalColumnReader<TPhysical, TLogical, TElement> : LogicalColumnReader<TElement>
         where TPhysical : unmanaged
     {
-        internal LogicalColumnReader(ColumnReader columnReader, int bufferLength)
+        internal LogicalColumnReader(ColumnReader columnReader, LogicalReadConverterFactory converterFactory, int bufferLength)
             : base(columnReader, bufferLength)
         {
-            _byteArrayCache = new ByteArrayReaderCache<TPhysical, TLogical>(columnReader.ColumnChunkMetaData);
+            var byteArrayCache = new ByteArrayReaderCache<TPhysical, TLogical>(columnReader.ColumnChunkMetaData);
+
             _bufferedReader = new BufferedReader<TPhysical>(Source, (TPhysical[]) Buffer, DefLevels, RepLevels);
-            _directReader = LogicalRead<TLogical, TPhysical>.GetDirectReader();
-            _converter = LogicalRead<TLogical, TPhysical>.GetConverter(LogicalType, ColumnDescriptor.TypeScale, _byteArrayCache);
+            _directReader = converterFactory.GetDirectReader<TLogical, TPhysical>();
+            _converter = converterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, columnReader.ColumnChunkMetaData);
         }
 
         public override int ReadBatch(Span<TElement> destination)
@@ -261,7 +267,7 @@ namespace ParquetSharp
         {
             if (elementType.IsArray)
             {
-                return Array.CreateInstance(elementType.GetElementType(), 0);
+                return Array.CreateInstance(elementType.GetElementType() ?? throw new InvalidOperationException(), 0);
             }
 
             throw new ArgumentException(nameof(elementType));
@@ -310,7 +316,6 @@ namespace ParquetSharp
             return rowsRead;
         }
 
-        private readonly ByteArrayReaderCache<TPhysical, TLogical> _byteArrayCache;
         private readonly BufferedReader<TPhysical> _bufferedReader;
         private readonly LogicalRead<TLogical, TPhysical>.DirectReader _directReader;
         private readonly LogicalRead<TLogical, TPhysical>.Converter _converter;
