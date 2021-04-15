@@ -586,6 +586,6 @@ namespace ParquetSharp
             return array;
         }
 
-        private const long DateTimeOffset = 621355968000000000; // new DateTime(1970, 01, 01).Ticks
+        public const long DateTimeOffset = LogicalWrite.DateTimeOffset;
     }
 }

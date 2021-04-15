@@ -16,19 +16,20 @@ namespace ParquetSharp
         {
         }
 
-        internal static LogicalColumnReader Create(ColumnReader columnReader, LogicalReadConverterFactory converterFactory, int bufferLength)
+        internal static LogicalColumnReader Create(ColumnReader columnReader, int bufferLength)
         {
             if (columnReader == null) throw new ArgumentNullException(nameof(columnReader));
+
+            // TODO get converterFactory from ColumnReader/ParquetFileReader properties
 
             return columnReader.ColumnDescriptor.Apply(new Creator(columnReader, converterFactory, bufferLength));
         }
 
         internal static LogicalColumnReader<TElement> Create<TElement>(
             ColumnReader columnReader, 
-            LogicalReadConverterFactory converterFactory, 
             int bufferLength)
         {
-            var reader = Create(columnReader, converterFactory, bufferLength);
+            var reader = Create(columnReader, bufferLength);
 
             try
             {
