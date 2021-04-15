@@ -6,6 +6,11 @@ namespace ParquetSharp
     /// </summary>
     public class LogicalWriteConverterFactory
     {
+        public GetTypeOverrides()
+        {
+            string, Type, (Repetition, LogicalType, PhysicalType)
+
+        }
         // tanguyf: 2020-04-15: there is no GetDirectWriter delegate like with LogicalReadConverterFactory.
         // While this would nicely mirror LogicalReadConverterFactory interface, it is actually not needed in practice
         // since Parquet column writing is much slower than reading. Hence there is limited value for such an optimisation in this case,
