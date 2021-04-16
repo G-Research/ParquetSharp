@@ -11,6 +11,7 @@ namespace ParquetSharp
         where TPhysical : unmanaged
     {
         public delegate long DirectReader(ColumnReader<TPhysical> columnReader, Span<TLogical> destination);
+
         public delegate void Converter(ReadOnlySpan<TPhysical> source, ReadOnlySpan<short> defLevels, Span<TLogical> destination, short nullLevel);
 
         public static DirectReader GetDirectReader()
@@ -58,7 +59,7 @@ namespace ParquetSharp
                 typeof(TLogical) == typeof(float) ||
                 typeof(TLogical) == typeof(double))
             {
-                return (Converter) (Delegate) (LogicalRead<TPhysical, TPhysical>.Converter) ((s, dl, d, nl) => ConvertNative(s, d));
+                return (Converter) (Delegate) (LogicalRead<TPhysical, TPhysical>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(s, d));
             }
 
             if (typeof(TLogical) == typeof(bool?) ||
@@ -68,99 +69,99 @@ namespace ParquetSharp
                 typeof(TLogical) == typeof(float?) ||
                 typeof(TLogical) == typeof(double?))
             {
-                return (Converter) (Delegate) (LogicalRead<TPhysical?, TPhysical>.Converter) ConvertNative;
+                return (Converter) (Delegate) (LogicalRead<TPhysical?, TPhysical>.Converter) LogicalRead.ConvertNative;
             }
 
             if (typeof(TLogical) == typeof(sbyte))
             {
-                return (Converter) (Delegate) (LogicalRead<sbyte, int>.Converter) ((s, dl, d, nl) => ConvertInt8(s, d));
+                return (Converter) (Delegate) (LogicalRead<sbyte, int>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertInt8(s, d));
             }
 
             if (typeof(TLogical) == typeof(sbyte?))
             {
-                return (Converter) (Delegate) (LogicalRead<sbyte?, int>.Converter) ConvertInt8;
+                return (Converter) (Delegate) (LogicalRead<sbyte?, int>.Converter) LogicalRead.ConvertInt8;
             }
 
             if (typeof(TLogical) == typeof(byte))
             {
-                return (Converter) (Delegate) (LogicalRead<byte, int>.Converter) ((s, dl, d, nl) => ConvertUInt8(s, d));
+                return (Converter) (Delegate) (LogicalRead<byte, int>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertUInt8(s, d));
             }
 
             if (typeof(TLogical) == typeof(byte?))
             {
-                return (Converter) (Delegate) (LogicalRead<byte?, int>.Converter) ConvertUInt8;
+                return (Converter) (Delegate) (LogicalRead<byte?, int>.Converter) LogicalRead.ConvertUInt8;
             }
 
             if (typeof(TLogical) == typeof(short))
             {
-                return (Converter) (Delegate) (LogicalRead<short, int>.Converter) ((s, dl, d, nl) => ConvertInt16(s, d));
+                return (Converter) (Delegate) (LogicalRead<short, int>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertInt16(s, d));
             }
 
             if (typeof(TLogical) == typeof(short?))
             {
-                return (Converter) (Delegate) (LogicalRead<short?, int>.Converter) ConvertInt16;
+                return (Converter) (Delegate) (LogicalRead<short?, int>.Converter) LogicalRead.ConvertInt16;
             }
 
             if (typeof(TLogical) == typeof(ushort))
             {
-                return (Converter) (Delegate) (LogicalRead<ushort, int>.Converter) ((s, dl, d, nl) => ConvertUInt16(s, d));
+                return (Converter) (Delegate) (LogicalRead<ushort, int>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertUInt16(s, d));
             }
 
             if (typeof(TLogical) == typeof(ushort?))
             {
-                return (Converter) (Delegate) (LogicalRead<ushort?, int>.Converter) ConvertUInt16;
+                return (Converter) (Delegate) (LogicalRead<ushort?, int>.Converter) LogicalRead.ConvertUInt16;
             }
 
             if (typeof(TLogical) == typeof(uint))
             {
-                return (Converter) (Delegate) (LogicalRead<uint, int>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<int, uint>(s), d));
+                return (Converter) (Delegate) (LogicalRead<uint, int>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<int, uint>(s), d));
             }
 
             if (typeof(TLogical) == typeof(uint?))
             {
-                return (Converter) (Delegate) (LogicalRead<uint?, int>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<int, uint>(s), dl, d, nl));
+                return (Converter) (Delegate) (LogicalRead<uint?, int>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<int, uint>(s), dl, d, nl));
             }
 
             if (typeof(TLogical) == typeof(ulong))
             {
-                return (Converter) (Delegate) (LogicalRead<ulong, long>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<long, ulong>(s), d));
+                return (Converter) (Delegate) (LogicalRead<ulong, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, ulong>(s), d));
             }
 
             if (typeof(TLogical) == typeof(ulong?))
             {
-                return (Converter) (Delegate) (LogicalRead<ulong?, long>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<long, ulong>(s), dl, d, nl));
+                return (Converter) (Delegate) (LogicalRead<ulong?, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, ulong>(s), dl, d, nl));
             }
 
             if (typeof(TLogical) == typeof(decimal))
             {
                 var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
-                return (Converter) (Delegate) (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal128(s, d, multiplier));
+                return (Converter) (Delegate) (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertDecimal128(s, d, multiplier));
             }
 
             if (typeof(TLogical) == typeof(decimal?))
             {
                 var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
-                return (Converter) (Delegate) (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal128(s, dl, d, multiplier, nl));
+                return (Converter) (Delegate) (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertDecimal128(s, dl, d, multiplier, nl));
             }
 
             if (typeof(TLogical) == typeof(Guid))
             {
-                return (Converter) (Delegate) (LogicalRead<Guid, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertUuid(s, d));
+                return (Converter) (Delegate) (LogicalRead<Guid, FixedLenByteArray>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertUuid(s, d));
             }
 
             if (typeof(TLogical) == typeof(Guid?))
             {
-                return (Converter) (Delegate) (LogicalRead<Guid?, FixedLenByteArray>.Converter) ConvertUuid;
+                return (Converter) (Delegate) (LogicalRead<Guid?, FixedLenByteArray>.Converter) LogicalRead.ConvertUuid;
             }
 
             if (typeof(TLogical) == typeof(Date))
             {
-                return (Converter) (Delegate) (LogicalRead<Date, int>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<int, Date>(s), d));
+                return (Converter) (Delegate) (LogicalRead<Date, int>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<int, Date>(s), d));
             }
 
             if (typeof(TLogical) == typeof(Date?))
             {
-                return (Converter) (Delegate) (LogicalRead<Date?, int>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<int, Date>(s), dl, d, nl));
+                return (Converter) (Delegate) (LogicalRead<Date?, int>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<int, Date>(s), dl, d, nl));
             }
 
             var logicalType = columnDescriptor.LogicalType;
@@ -170,15 +171,15 @@ namespace ParquetSharp
                 switch (((TimestampLogicalType) logicalType).TimeUnit)
                 {
                     case TimeUnit.Millis:
-                        return (Converter) (Delegate) (LogicalRead<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMillis(s, d));
+                        return (Converter) (Delegate) (LogicalRead<DateTime, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertDateTimeMillis(s, d));
                     case TimeUnit.Micros:
-                        return (Converter) (Delegate) (LogicalRead<DateTime, long>.Converter) ((s, dl, d, nl) => ConvertDateTimeMicros(s, d));
+                        return (Converter) (Delegate) (LogicalRead<DateTime, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertDateTimeMicros(s, d));
                 }
             }
 
             if (typeof(TLogical) == typeof(DateTimeNanos))
             {
-                return (Converter) (Delegate) (LogicalRead<DateTimeNanos, long>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<long, DateTimeNanos>(s), d));
+                return (Converter) (Delegate) (LogicalRead<DateTimeNanos, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, DateTimeNanos>(s), d));
             }
 
             if (typeof(TLogical) == typeof(DateTime?))
@@ -186,17 +187,17 @@ namespace ParquetSharp
                 switch (((TimestampLogicalType) logicalType).TimeUnit)
                 {
                     case TimeUnit.Millis:
-                        return (Converter) (Delegate) (LogicalRead<DateTime?, long>.Converter) ConvertDateTimeMillis;
+                        return (Converter) (Delegate) (LogicalRead<DateTime?, long>.Converter) LogicalRead.ConvertDateTimeMillis;
                     case TimeUnit.Micros:
-                        return (Converter) (Delegate) (LogicalRead<DateTime?, long>.Converter) ConvertDateTimeMicros;
+                        return (Converter) (Delegate) (LogicalRead<DateTime?, long>.Converter) LogicalRead.ConvertDateTimeMicros;
                     case TimeUnit.Nanos:
-                        return (Converter) (Delegate) (LogicalRead<TPhysical?, TPhysical>.Converter) ConvertNative;
+                        return (Converter) (Delegate) (LogicalRead<TPhysical?, TPhysical>.Converter) LogicalRead.ConvertNative;
                 }
             }
 
             if (typeof(TLogical) == typeof(DateTimeNanos?))
             {
-                return (Converter) (Delegate) (LogicalRead<DateTimeNanos?, long>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<long, DateTimeNanos>(s), dl, d, nl));
+                return (Converter) (Delegate) (LogicalRead<DateTimeNanos?, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, DateTimeNanos>(s), dl, d, nl));
             }
 
             if (typeof(TLogical) == typeof(TimeSpan))
@@ -204,15 +205,15 @@ namespace ParquetSharp
                 switch (((TimeLogicalType) logicalType).TimeUnit)
                 {
                     case TimeUnit.Millis:
-                        return (Converter) (Delegate) (LogicalRead<TimeSpan, int>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMillis(s, d));
+                        return (Converter) (Delegate) (LogicalRead<TimeSpan, int>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertTimeSpanMillis(s, d));
                     case TimeUnit.Micros:
-                        return (Converter) (Delegate) (LogicalRead<TimeSpan, long>.Converter) ((s, dl, d, nl) => ConvertTimeSpanMicros(s, d));
+                        return (Converter) (Delegate) (LogicalRead<TimeSpan, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertTimeSpanMicros(s, d));
                 }
             }
 
             if (typeof(TLogical) == typeof(TimeSpanNanos))
             {
-                return (Converter) (Delegate) (LogicalRead<TimeSpanNanos, long>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<long, TimeSpanNanos>(s), d));
+                return (Converter) (Delegate) (LogicalRead<TimeSpanNanos, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, TimeSpanNanos>(s), d));
             }
 
             if (typeof(TLogical) == typeof(TimeSpan?))
@@ -223,15 +224,15 @@ namespace ParquetSharp
                 switch (timeUnit)
                 {
                     case TimeUnit.Millis:
-                        return (Converter) (Delegate) (LogicalRead<TimeSpan?, int>.Converter) ConvertTimeSpanMillis;
+                        return (Converter) (Delegate) (LogicalRead<TimeSpan?, int>.Converter) LogicalRead.ConvertTimeSpanMillis;
                     case TimeUnit.Micros:
-                        return (Converter) (Delegate) (LogicalRead<TimeSpan?, long>.Converter) ConvertTimeSpanMicros;
+                        return (Converter) (Delegate) (LogicalRead<TimeSpan?, long>.Converter) LogicalRead.ConvertTimeSpanMicros;
                 }
             }
 
             if (typeof(TLogical) == typeof(TimeSpanNanos?))
             {
-                return (Converter) (Delegate) (LogicalRead<TimeSpanNanos?, long>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<long, TimeSpanNanos>(s), dl, d, nl));
+                return (Converter) (Delegate) (LogicalRead<TimeSpanNanos?, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, TimeSpanNanos>(s), dl, d, nl));
             }
 
             if (typeof(TLogical) == typeof(string))
@@ -239,8 +240,8 @@ namespace ParquetSharp
                 var byteArrayCache = new ByteArrayReaderCache<TPhysical, TLogical>(columnChunkMetaData);
 
                 return byteArrayCache.IsUsable
-                    ? (Converter) (Delegate) (LogicalRead<string, ByteArray>.Converter) ((s, dl, d, nl) => ConvertString(s, dl, d, nl, (ByteArrayReaderCache<ByteArray, string>) (object) byteArrayCache)) 
-                    : (Converter) (Delegate) (LogicalRead<string, ByteArray>.Converter) ConvertString;
+                    ? (Converter) (Delegate) (LogicalRead<string, ByteArray>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertString(s, dl, d, nl, (ByteArrayReaderCache<ByteArray, string>) (object) byteArrayCache))
+                    : (Converter) (Delegate) (LogicalRead<string, ByteArray>.Converter) LogicalRead.ConvertString;
             }
 
             if (typeof(TLogical) == typeof(byte[]))
@@ -251,13 +252,20 @@ namespace ParquetSharp
                 //return byteArrayCache.IsUsable
                 //    ? (Converter) (Delegate) (LogicalRead<byte[], ByteArray>.Converter) ((s, dl, d, nl) => ConvertByteArray(s, dl, d, nl, (ByteArrayReaderCache<ByteArray, byte[]>) (object) byteArrayCache))
                 //    : (Converter) (Delegate) (LogicalRead<byte[], ByteArray>.Converter) ConvertByteArray;
-                
-                return (Converter) (Delegate) (LogicalRead<byte[], ByteArray>.Converter) ConvertByteArray;
+
+                return (Converter) (Delegate) (LogicalRead<byte[], ByteArray>.Converter) LogicalRead.ConvertByteArray;
             }
 
             throw new NotSupportedException($"unsupported logical system type {typeof(TLogical)} with logical type {logicalType}");
         }
+    }
 
+    /// <summary>
+    /// Parquet physical types to C# types read conversion logic.
+    /// Separate class for per-element conversion logic.
+    /// </summary>
+    public static class LogicalRead
+    {
         public static void ConvertNative<TValue>(ReadOnlySpan<TValue> source, Span<TValue> destination) where TValue : unmanaged
         {
             source.CopyTo(destination);
@@ -275,7 +283,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = (sbyte) source[i];
+                destination[i] = (sbyte)source[i];
             }
         }
 
@@ -283,7 +291,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(sbyte?) : (sbyte) source[src++];
+                destination[i] = defLevels[i] == nullLevel ? default(sbyte?) : (sbyte)source[src++];
             }
         }
 
@@ -291,7 +299,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = (byte) source[i];
+                destination[i] = (byte)source[i];
             }
         }
 
@@ -299,7 +307,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(byte?) : (byte) source[src++];
+                destination[i] = defLevels[i] == nullLevel ? default(byte?) : (byte)source[src++];
             }
         }
 
@@ -307,7 +315,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = (short) source[i];
+                destination[i] = (short)source[i];
             }
         }
 
@@ -315,7 +323,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(short?) : (short) source[src++];
+                destination[i] = defLevels[i] == nullLevel ? default(short?) : (short)source[src++];
             }
         }
 
@@ -323,7 +331,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = (ushort) source[i];
+                destination[i] = (ushort)source[i];
             }
         }
 
@@ -331,7 +339,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(ushort?) : (ushort) source[src++];
+                destination[i] = defLevels[i] == nullLevel ? default(ushort?) : (ushort)source[src++];
             }
         }
 
@@ -388,7 +396,7 @@ namespace ParquetSharp
         public static void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination)
         {
             var dst = MemoryMarshal.Cast<DateTime, long>(destination);
-            
+
             for (int i = 0; i < destination.Length; ++i)
             {
                 dst[i] = LogicalRead.ToDateTimeMillisTicks(source[i]);
@@ -472,7 +480,7 @@ namespace ParquetSharp
                 // The cache does not appear to be valid anymore.
                 byteArrayCache.Clear();
             }
-                
+
             return byteArrayCache.Add(byteArray, LogicalRead.ToString(byteArray));
         }
 
@@ -482,19 +490,12 @@ namespace ParquetSharp
             var buffer = byteArrayCache.GetScratchBuffer(byteCount);
             System.Text.Encoding.UTF8.GetBytes(str, 0, str.Length, buffer, 0);
 
-            var cached = new ReadOnlySpan<byte>((void*) byteArray.Pointer, byteArray.Length);
+            var cached = new ReadOnlySpan<byte>((void*)byteArray.Pointer, byteArray.Length);
             var expected = buffer.AsSpan(0, byteCount);
-            
+
             return cached.SequenceEqual(expected);
         }
-    }
 
-    /// <summary>
-    /// Parquet physical types to C# types read conversion logic.
-    /// Separate class for per-element conversion logic.
-    /// </summary>
-    public static class LogicalRead
-    {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe decimal ToDecimal(FixedLenByteArray source, decimal multiplier)
         {

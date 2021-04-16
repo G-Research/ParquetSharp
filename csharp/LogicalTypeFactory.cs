@@ -6,6 +6,11 @@ namespace ParquetSharp
 {
     public class LogicalTypeFactory
     {
+        public LogicalTypeFactory()
+            : this(DefaultPrimitiveMapping)
+        {
+        }
+
         public LogicalTypeFactory(IReadOnlyDictionary<Type, (LogicalType logicalType, Repetition repetition, PhysicalType physicalType)> primitiveMapping)
         {
             _primitiveMapping = primitiveMapping;
@@ -190,7 +195,7 @@ namespace ParquetSharp
                 {PhysicalType.FixedLenByteArray, typeof(FixedLenByteArray)},
             };
 
-        public static readonly LogicalTypeFactory Default = new(DefaultPrimitiveMapping);
+        public static readonly LogicalTypeFactory Default = new();
 
         private readonly IReadOnlyDictionary<Type, (LogicalType logicalType, Repetition repetition, PhysicalType physicalType)> _primitiveMapping;
     }
