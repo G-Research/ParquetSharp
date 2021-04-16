@@ -124,8 +124,8 @@ namespace ParquetSharp
             var converterFactory = columnReader.LogicalReadConverterFactory;
 
             _bufferedReader = new BufferedReader<TPhysical>(Source, (TPhysical[]) Buffer, DefLevels, RepLevels);
-            _directReader = converterFactory.GetDirectReader<TLogical, TPhysical>();
-            _converter = converterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, columnReader.ColumnChunkMetaData);
+            _directReader = (LogicalRead<TLogical, TPhysical>.DirectReader) converterFactory.GetDirectReader<TLogical, TPhysical>();
+            _converter = (LogicalRead<TLogical, TPhysical>.Converter) converterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, columnReader.ColumnChunkMetaData);
         }
 
         public override int ReadBatch(Span<TElement> destination)

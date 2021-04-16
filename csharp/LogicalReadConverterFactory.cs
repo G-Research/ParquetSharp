@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace ParquetSharp
 {
     /// <summary>
@@ -11,7 +13,7 @@ namespace ParquetSharp
         /// Otherwise return null. This is an optimisation to avoid needless memory copies between buffers (i.e. otherwise we have to use the
         /// identity converter).
         /// </summary>
-        public virtual LogicalRead<TLogical, TPhysical>.DirectReader GetDirectReader<TLogical, TPhysical>() 
+        public virtual Delegate GetDirectReader<TLogical, TPhysical>() 
             where TPhysical : unmanaged
         {
             return LogicalRead<TLogical, TPhysical>.GetDirectReader();
@@ -22,7 +24,7 @@ namespace ParquetSharp
         /// </summary>
         /// <param name="columnDescriptor">The descriptor of the column to be converted.</param>
         /// <param name="columnChunkMetaData">The metadata of the column-chunk to be converted.</param>
-        public virtual LogicalRead<TLogical, TPhysical>.Converter GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ColumnChunkMetaData columnChunkMetaData)
+        public virtual Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ColumnChunkMetaData columnChunkMetaData)
             where TPhysical : unmanaged
         {
             return LogicalRead<TLogical, TPhysical>.GetConverter(columnDescriptor, columnChunkMetaData);
