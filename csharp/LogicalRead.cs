@@ -23,17 +23,17 @@ namespace ParquetSharp
                 typeof(TLogical) == typeof(float) ||
                 typeof(TLogical) == typeof(double))
             {
-                return (LogicalRead<TPhysical, TPhysical>.DirectReader) LogicalRead.ReadDirect;
+                return LogicalRead.GetDirectReader<TPhysical, TPhysical>();
             }
 
             if (typeof(TLogical) == typeof(uint))
             {
-                return (LogicalRead<uint, int>.DirectReader) ((r, d) => LogicalRead.ReadDirect(r, MemoryMarshal.Cast<uint, int>(d)));
+                return LogicalRead.GetDirectReader<uint, int>();
             }
 
             if (typeof(TLogical) == typeof(ulong))
             {
-                return (LogicalRead<ulong, long>.DirectReader) ((r, d) => LogicalRead.ReadDirect(r, MemoryMarshal.Cast<ulong, long>(d)));
+                return LogicalRead.GetDirectReader<ulong, long>();
             }
 
             return null;
@@ -48,7 +48,7 @@ namespace ParquetSharp
                 typeof(TLogical) == typeof(float) ||
                 typeof(TLogical) == typeof(double))
             {
-                return (LogicalRead<TPhysical, TPhysical>.Converter) ((s, _, d, _) => LogicalRead.ConvertNative(s, d));
+                return LogicalRead.GetNativeConverter<TPhysical, TPhysical>();
             }
 
             if (typeof(TLogical) == typeof(bool?) ||
@@ -58,7 +58,7 @@ namespace ParquetSharp
                 typeof(TLogical) == typeof(float?) ||
                 typeof(TLogical) == typeof(double?))
             {
-                return (LogicalRead<TPhysical?, TPhysical>.Converter) LogicalRead.ConvertNative;
+                return LogicalRead.GetNullableNativeConverter<TPhysical, TPhysical>();
             }
 
             if (typeof(TLogical) == typeof(sbyte))
@@ -103,22 +103,22 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(uint))
             {
-                return (LogicalRead<uint, int>.Converter) ((s, _, d, _) => LogicalRead.ConvertNative(MemoryMarshal.Cast<int, uint>(s), d));
+                return LogicalRead.GetNativeConverter<uint, int>();
             }
 
             if (typeof(TLogical) == typeof(uint?))
             {
-                return (LogicalRead<uint?, int>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<int, uint>(s), dl, d, nl));
+                return LogicalRead.GetNullableNativeConverter<uint, int>();
             }
 
             if (typeof(TLogical) == typeof(ulong))
             {
-                return (LogicalRead<ulong, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, ulong>(s), d));
+                return LogicalRead.GetNativeConverter<ulong, long>();
             }
 
             if (typeof(TLogical) == typeof(ulong?))
             {
-                return (LogicalRead<ulong?, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, ulong>(s), dl, d, nl));
+                return LogicalRead.GetNullableNativeConverter<ulong, long>();
             }
 
             if (typeof(TLogical) == typeof(decimal))
@@ -145,12 +145,12 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(Date))
             {
-                return (LogicalRead<Date, int>.Converter) ((s, _, d, _) => LogicalRead.ConvertNative(MemoryMarshal.Cast<int, Date>(s), d));
+                return LogicalRead.GetNativeConverter<Date, int>();
             }
 
             if (typeof(TLogical) == typeof(Date?))
             {
-                return (LogicalRead<Date?, int>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<int, Date>(s), dl, d, nl));
+                return LogicalRead.GetNullableNativeConverter<Date, int>();
             }
 
             var logicalType = columnDescriptor.LogicalType;
@@ -168,7 +168,7 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(DateTimeNanos))
             {
-                return (LogicalRead<DateTimeNanos, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, DateTimeNanos>(s), d));
+                return LogicalRead.GetNativeConverter<DateTimeNanos, long>();
             }
 
             if (typeof(TLogical) == typeof(DateTime?))
@@ -186,7 +186,7 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(DateTimeNanos?))
             {
-                return (LogicalRead<DateTimeNanos?, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, DateTimeNanos>(s), dl, d, nl));
+                return LogicalRead.GetNullableNativeConverter<DateTimeNanos, long>();
             }
 
             if (typeof(TLogical) == typeof(TimeSpan))
@@ -202,7 +202,7 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(TimeSpanNanos))
             {
-                return (LogicalRead<TimeSpanNanos, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, TimeSpanNanos>(s), d));
+                return LogicalRead.GetNativeConverter<TimeSpanNanos, long>();
             }
 
             if (typeof(TLogical) == typeof(TimeSpan?))
@@ -221,7 +221,7 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(TimeSpanNanos?))
             {
-                return (LogicalRead<TimeSpanNanos?, long>.Converter) ((s, dl, d, nl) => LogicalRead.ConvertNative(MemoryMarshal.Cast<long, TimeSpanNanos>(s), dl, d, nl));
+                return LogicalRead.GetNullableNativeConverter<TimeSpanNanos, long>();
             }
 
             if (typeof(TLogical) == typeof(string))
@@ -255,6 +255,27 @@ namespace ParquetSharp
     /// </summary>
     public static class LogicalRead
     {
+        public static Delegate GetDirectReader<TTLogical, TTPhysical>()
+            where TTLogical : unmanaged
+            where TTPhysical : unmanaged
+        {
+            return (LogicalRead<TTLogical, TTPhysical>.DirectReader)((r, d) => ReadDirect(r, MemoryMarshal.Cast<TTLogical, TTPhysical>(d)));
+        }
+
+        public static Delegate GetNativeConverter<TTLogical, TTPhysical>()
+            where TTLogical : unmanaged
+            where TTPhysical : unmanaged
+        {
+            return (LogicalRead<TTLogical, TTPhysical>.Converter)((s, _, d, _) => ConvertNative(MemoryMarshal.Cast<TTPhysical, TTLogical>(s), d));
+        }
+
+        public static Delegate GetNullableNativeConverter<TTLogical, TTPhysical>()
+            where TTLogical : unmanaged
+            where TTPhysical : unmanaged
+        {
+            return (LogicalRead<TTLogical?, TTPhysical>.Converter)((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<TTPhysical, TTLogical>(s), dl, d, nl));
+        }
+
         public static long ReadDirect<TPhys>(ColumnReader<TPhys> r, Span<TPhys> d) where TPhys : unmanaged
         {
             var read = r.ReadBatch(d.Length, d, out var valuesRead);

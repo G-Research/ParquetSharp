@@ -18,11 +18,11 @@ namespace ParquetSharp.Test
             // Write regular float values to the file.
             using (var output = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(output, new Column[] { new Column<float>("values") });
+                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<float>("values")});
                 using var groupWriter = fileWriter.AppendRowGroup();
                 using var columnWriter = groupWriter.NextColumn().LogicalWriter<float>();
 
-                columnWriter.WriteBatch(new[] { 1f, 2f, 3f });
+                columnWriter.WriteBatch(new[] {1f, 2f, 3f});
                 fileWriter.Close();
             }
 
@@ -48,7 +48,7 @@ namespace ParquetSharp.Test
                 using var groupWriter = fileWriter.AppendRowGroup();
                 using var columnWriter = groupWriter.NextColumn().LogicalWriter<float>();
 
-                columnWriter.WriteBatch(new [] {1f, 2f, 3f});
+                columnWriter.WriteBatch(new[] {1f, 2f, 3f});
                 fileWriter.Close();
             }
 
@@ -78,7 +78,7 @@ namespace ParquetSharp.Test
             // Write regular float arrays to the file.
             using (var output = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(output, new Column[] { new Column<float[]>("values") });
+                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<float[]>("values")});
                 using var groupWriter = fileWriter.AppendRowGroup();
                 using var columnWriter = groupWriter.NextColumn().LogicalWriter<float[]>();
 
@@ -155,8 +155,7 @@ namespace ParquetSharp.Test
                 // Since VolumeInDollars is bitwise identical to float, we can read the values in-place.
                 if (typeof(TLogical) == typeof(uint))
                 {
-                    return (LogicalRead<VolumeInDollars, float>.DirectReader)((r, d) => 
-                        LogicalRead.ReadDirect(r, MemoryMarshal.Cast<VolumeInDollars, float>(d)));
+                    return LogicalRead.GetDirectReader<VolumeInDollars, float>();
                 }
 
                 return base.GetDirectReader<TLogical, TPhysical>();
@@ -164,11 +163,10 @@ namespace ParquetSharp.Test
 
             public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ColumnChunkMetaData columnChunkMetaData)
             {
-                // VolumeInDollars is bitwise identical to float, so we can reuse the ConvertNative method.
+                // VolumeInDollars is bitwise identical to float, so we can reuse the native converter.
                 if (typeof(TLogical) == typeof(VolumeInDollars))
                 {
-                    return (LogicalRead<VolumeInDollars, float>.Converter)((s, _, d, _) =>
-                        LogicalRead.ConvertNative(MemoryMarshal.Cast<float, VolumeInDollars>(s), d));
+                    return LogicalRead.GetNativeConverter<VolumeInDollars, float>();
                 }
 
                 return base.GetConverter<TLogical, TPhysical>(columnDescriptor, columnChunkMetaData);
