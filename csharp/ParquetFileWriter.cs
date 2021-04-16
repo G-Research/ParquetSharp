@@ -14,11 +14,9 @@ namespace ParquetSharp
             Compression compression = Compression.Snappy, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            using (var schema = Column.CreateSchemaNode(columns))
-            using (var writerProperties = CreateWriterProperties(compression))
-            {
-                _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
-            }
+            using var schema = Column.CreateSchemaNode(columns);
+            using var writerProperties = CreateWriterProperties(compression);
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
         }
 
         public ParquetFileWriter(
@@ -27,11 +25,9 @@ namespace ParquetSharp
             Compression compression = Compression.Snappy, 
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            using (var schema = Column.CreateSchemaNode(columns))
-            using (var writerProperties = CreateWriterProperties(compression))
-            {
-                _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
-            }
+            using var schema = Column.CreateSchemaNode(columns);
+            using var writerProperties = CreateWriterProperties(compression);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
         }
 
         public ParquetFileWriter(
@@ -40,10 +36,8 @@ namespace ParquetSharp
             WriterProperties writerProperties,
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            using (var schema = Column.CreateSchemaNode(columns))
-            {
-                _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
-            }
+            using var schema = Column.CreateSchemaNode(columns);
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
         }
 
         public ParquetFileWriter(
@@ -52,10 +46,8 @@ namespace ParquetSharp
             WriterProperties writerProperties,
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
-            using (var schema = Column.CreateSchemaNode(columns))
-            {
-                _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
-            }
+            using var schema = Column.CreateSchemaNode(columns);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
         }
 
         public ParquetFileWriter(
@@ -101,21 +93,25 @@ namespace ParquetSharp
 
         public RowGroupWriter AppendRowGroup()
         {
-            return new RowGroupWriter(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendRowGroup));
+            return new(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendRowGroup), this);
         }
 
         public RowGroupWriter AppendBufferedRowGroup()
         {
-            return new RowGroupWriter(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendBufferedRowGroup));
+            return new(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendBufferedRowGroup), this);
         }
 
         internal int NumColumns => ExceptionInfo.Return<int>(_handle, ParquetFileWriter_Num_Columns); // 2021-04-08: calling this results in a segfault when the writer has been closed
         internal long NumRows => ExceptionInfo.Return<long>(_handle, ParquetFileWriter_Num_Rows); // 2021-04-08: calling this results in a segfault when the writer has been closed
         internal int NumRowGroups => ExceptionInfo.Return<int>(_handle, ParquetFileWriter_Num_Row_Groups); // 2021-04-08: calling this results in a segfault when the writer has been closed
-        public WriterProperties WriterProperties => _writerProperties ?? (_writerProperties = new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Properties)));
-        public SchemaDescriptor Schema => new SchemaDescriptor(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Schema));
-        public ColumnDescriptor ColumnDescriptor(int i) => new ColumnDescriptor(ExceptionInfo.Return<int, IntPtr>(_handle, i, ParquetFileWriter_Descr));
 
+        public LogicalTypeFactory LogicalTypeFactory { get; set; } = LogicalTypeFactory.Default; // TODO make this init only at some point when C# 9 is more widespread
+        public LogicalWriteConverterFactory LogicalWriteConverterFactory { get; set; } = LogicalWriteConverterFactory.Default; // TODO make this init only at some point when C# 9 is more widespread
+        public WriterProperties WriterProperties => _writerProperties ??= new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Properties));
+        public SchemaDescriptor Schema => new(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Schema));
+        public ColumnDescriptor ColumnDescriptor(int i) => new(ExceptionInfo.Return<int, IntPtr>(_handle, i, ParquetFileWriter_Descr));
+
+        
         public IReadOnlyDictionary<string, string> KeyValueMetadata
         {
             get
@@ -126,10 +122,8 @@ namespace ParquetSharp
                     return new Dictionary<string, string>();
                 }
 
-                using (var keyValueMetadata = new KeyValueMetadata(kvmHandle))
-                {
-                    return keyValueMetadata.ToDictionary();
-                }
+                using var keyValueMetadata = new KeyValueMetadata(kvmHandle);
+                return keyValueMetadata.ToDictionary();
             }
         }
 
@@ -191,11 +185,9 @@ namespace ParquetSharp
 
         private static WriterProperties CreateWriterProperties(Compression compression)
         {
-            using (var builder = new WriterPropertiesBuilder())
-            {
-                builder.Compression(compression);
-                return builder.Build();
-            }
+            using var builder = new WriterPropertiesBuilder();
+            builder.Compression(compression);
+            return builder.Build();
         }
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]

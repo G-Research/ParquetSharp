@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)'=='Windows_NT'">$(TargetFrameworks);net461</TargetFrameworks>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <AssemblyName>ParquetSharp</AssemblyName>
     <RootNamespace>ParquetSharp</RootNamespace>
     <Platforms>x64</Platforms>

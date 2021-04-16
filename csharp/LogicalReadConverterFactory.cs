@@ -28,6 +28,6 @@ namespace ParquetSharp
             return LogicalRead<TLogical, TPhysical>.GetConverter(columnDescriptor, columnChunkMetaData);
         }
 
-        public static readonly LogicalReadConverterFactory Default = new LogicalReadConverterFactory();
+        public static readonly LogicalReadConverterFactory Default = new();
     }
 }

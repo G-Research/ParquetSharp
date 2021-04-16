@@ -20,9 +20,7 @@ namespace ParquetSharp
         {
             if (columnReader == null) throw new ArgumentNullException(nameof(columnReader));
 
-            // TODO get converterFactory from ColumnReader/ParquetFileReader properties
-
-            return columnReader.ColumnDescriptor.Apply(new Creator(columnReader, converterFactory, bufferLength));
+            return columnReader.ColumnDescriptor.Apply(columnReader.LogicalTypeFactory, new Creator(columnReader, bufferLength));
         }
 
         internal static LogicalColumnReader<TElement> Create<TElement>(
@@ -48,20 +46,18 @@ namespace ParquetSharp
 
         private sealed class Creator : IColumnDescriptorVisitor<LogicalColumnReader>
         {
-            public Creator(ColumnReader columnReader, LogicalReadConverterFactory converterFactory, int bufferLength)
+            public Creator(ColumnReader columnReader, int bufferLength)
             {
                 _columnReader = columnReader;
-                _converterFactory = converterFactory;
                 _bufferLength = bufferLength;
             }
 
             public LogicalColumnReader OnColumnDescriptor<TPhysical, TLogical, TElement>() where TPhysical : unmanaged
             {
-                return new LogicalColumnReader<TPhysical, TLogical, TElement>(_columnReader, _converterFactory, _bufferLength);
+                return new LogicalColumnReader<TPhysical, TLogical, TElement>(_columnReader, _bufferLength);
             }
 
             private readonly ColumnReader _columnReader;
-            private readonly LogicalReadConverterFactory _converterFactory;
             private readonly int _bufferLength;
         }
     }
@@ -122,10 +118,10 @@ namespace ParquetSharp
     internal sealed class LogicalColumnReader<TPhysical, TLogical, TElement> : LogicalColumnReader<TElement>
         where TPhysical : unmanaged
     {
-        internal LogicalColumnReader(ColumnReader columnReader, LogicalReadConverterFactory converterFactory, int bufferLength)
+        internal LogicalColumnReader(ColumnReader columnReader, int bufferLength)
             : base(columnReader, bufferLength)
         {
-            var byteArrayCache = new ByteArrayReaderCache<TPhysical, TLogical>(columnReader.ColumnChunkMetaData);
+            var converterFactory = columnReader.LogicalReadConverterFactory;
 
             _bufferedReader = new BufferedReader<TPhysical>(Source, (TPhysical[]) Buffer, DefLevels, RepLevels);
             _directReader = converterFactory.GetDirectReader<TLogical, TPhysical>();
@@ -161,9 +157,9 @@ namespace ParquetSharp
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                if (schemaNodes.Length >= 2 && (schemaNodes[0] is GroupNode g1) && g1.LogicalType is ListLogicalType
-                    && g1.Repetition == Repetition.Optional && (schemaNodes[1] is GroupNode g2)
-                    && g2.LogicalType is NoneLogicalType && g2.Repetition == Repetition.Repeated)
+                if (schemaNodes.Length >= 2 && 
+                    schemaNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} && 
+                    schemaNodes[1] is GroupNode {LogicalType: NoneLogicalType, Repetition: Repetition.Repeated})
                 {
                     return ReadArrayIntermediateLevel(schemaNodes, valueReader, elementType, converter, numArrayEntriesToRead, (short)repetitionLevel, (short)nullDefinitionLevel);
                 }

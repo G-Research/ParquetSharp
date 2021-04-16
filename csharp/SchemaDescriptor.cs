@@ -18,7 +18,7 @@ namespace ParquetSharp
 
         public ColumnDescriptor Column(int i)
         {
-            return new ColumnDescriptor(ExceptionInfo.Return<int, IntPtr>(_handle, i, SchemaDescriptor_Column));
+            return new(ExceptionInfo.Return<int, IntPtr>(_handle, i, SchemaDescriptor_Column));
         }
 
         public int ColumnIndex(Node node)

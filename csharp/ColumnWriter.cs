@@ -8,36 +8,37 @@ namespace ParquetSharp
     /// </summary>
     public abstract class ColumnWriter : IDisposable
     {
-        internal static ColumnWriter Create(IntPtr handle)
+        internal static ColumnWriter Create(IntPtr handle, RowGroupWriter rowGroupWriter)
         {
             var type = ExceptionInfo.Return<PhysicalType>(handle, ColumnWriter_Type);
 
             switch (type)
             {
                 case PhysicalType.Boolean:
-                    return new ColumnWriter<bool>(handle);
+                    return new ColumnWriter<bool>(handle, rowGroupWriter);
                 case PhysicalType.Int32:
-                    return new ColumnWriter<int>(handle);
+                    return new ColumnWriter<int>(handle, rowGroupWriter);
                 case PhysicalType.Int64:
-                    return new ColumnWriter<long>(handle);
+                    return new ColumnWriter<long>(handle, rowGroupWriter);
                 case PhysicalType.Int96:
-                    return new ColumnWriter<Int96>(handle);
+                    return new ColumnWriter<Int96>(handle, rowGroupWriter);
                 case PhysicalType.Float:
-                    return new ColumnWriter<float>(handle);
+                    return new ColumnWriter<float>(handle, rowGroupWriter);
                 case PhysicalType.Double:
-                    return new ColumnWriter<double>(handle);
+                    return new ColumnWriter<double>(handle, rowGroupWriter);
                 case PhysicalType.ByteArray:
-                    return new ColumnWriter<ByteArray>(handle);
+                    return new ColumnWriter<ByteArray>(handle, rowGroupWriter);
                 case PhysicalType.FixedLenByteArray:
-                    return new ColumnWriter<FixedLenByteArray>(handle);
+                    return new ColumnWriter<FixedLenByteArray>(handle, rowGroupWriter);
                 default:
                     throw new NotSupportedException($"Physical type {type} is not supported");
             }
         }
 
-        internal ColumnWriter(IntPtr handle)
+        internal ColumnWriter(IntPtr handle, RowGroupWriter rowGroupWriter)
         {
             Handle = handle;
+            RowGroupWriter = rowGroupWriter;
         }
 
         public void Dispose()
@@ -51,10 +52,13 @@ namespace ParquetSharp
             return ExceptionInfo.Return<long>(Handle, ColumnWriter_Close);
         }
 
-        public ColumnDescriptor ColumnDescriptor => new ColumnDescriptor(ExceptionInfo.Return<IntPtr>(Handle, ColumnWriter_Descr));
+        public LogicalTypeFactory LogicalTypeFactory => RowGroupWriter.ParquetFileWriter.LogicalTypeFactory;
+        public LogicalWriteConverterFactory LogicalWriteConverterFactory => RowGroupWriter.ParquetFileWriter.LogicalWriteConverterFactory;
+        
+        public ColumnDescriptor ColumnDescriptor => new(ExceptionInfo.Return<IntPtr>(Handle, ColumnWriter_Descr));
         public long RowWritten => ExceptionInfo.Return<long>(Handle, ColumnWriter_Rows_Written);
         public PhysicalType Type => ExceptionInfo.Return<PhysicalType>(Handle, ColumnWriter_Type);
-        public WriterProperties WriterProperties => new WriterProperties(ExceptionInfo.Return<IntPtr>(Handle, ColumnWriter_Properties));
+        public WriterProperties WriterProperties => new(ExceptionInfo.Return<IntPtr>(Handle, ColumnWriter_Properties));
 
         public abstract Type ElementType { get; }
         public abstract TReturn Apply<TReturn>(IColumnWriterVisitor<TReturn> visitor);
@@ -149,13 +153,14 @@ namespace ParquetSharp
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, byte* validBits, long validBitsOffset, FixedLenByteArray* values);
 
         protected readonly IntPtr Handle;
+        internal readonly RowGroupWriter RowGroupWriter;
     }
 
     /// <inheritdoc />
     public sealed class ColumnWriter<TValue> : ColumnWriter where TValue : unmanaged
     {
-        internal ColumnWriter(IntPtr handle)
-            : base(handle)
+        internal ColumnWriter(IntPtr handle, RowGroupWriter rowGroupWriter)
+            : base(handle, rowGroupWriter)
         {
         }
 

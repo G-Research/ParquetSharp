@@ -21,5 +21,7 @@ namespace ParquetSharp
         {
             return LogicalWrite<TLogical, TPhysical>.GetConverter(columnDescriptor, byteBuffer);
         }
+
+        public static readonly LogicalWriteConverterFactory Default = new();
     }
 }

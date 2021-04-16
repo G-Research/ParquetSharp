@@ -32,7 +32,7 @@ namespace ParquetSharp.Schema
 
         public ColumnPath Extend(string nodeName)
         {
-            return new ColumnPath(ExceptionInfo.Return<string, IntPtr>(Handle, nodeName, ColumnPath_Extend));
+            return new(ExceptionInfo.Return<string, IntPtr>(Handle, nodeName, ColumnPath_Extend));
         }
 
         public string ToDotString()

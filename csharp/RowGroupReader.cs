@@ -5,9 +5,10 @@ namespace ParquetSharp
 {
     public sealed class RowGroupReader : IDisposable
     {
-        internal RowGroupReader(IntPtr handle)
+        internal RowGroupReader(IntPtr handle, ParquetFileReader parquetFileReader)
         {
             _handle = new ParquetHandle(handle, RowGroupReader_Free);
+            ParquetFileReader = parquetFileReader;
         }
 
         public void Dispose()
@@ -15,12 +16,11 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
-        public RowGroupMetaData MetaData =>
-            _metaData
-            ?? (_metaData = new RowGroupMetaData(ExceptionInfo.Return<IntPtr>(_handle, RowGroupReader_Metadata)));
+        public RowGroupMetaData MetaData => _metaData ??= new RowGroupMetaData(ExceptionInfo.Return<IntPtr>(_handle, RowGroupReader_Metadata));
 
         public ColumnReader Column(int i) => ColumnReader.Create(
             ExceptionInfo.Return<int, IntPtr>(_handle, i, RowGroupReader_Column),
+            this,
             MetaData.GetColumnChunkMetaData(i));
 
         [DllImport(ParquetDll.Name)]
@@ -33,6 +33,7 @@ namespace ParquetSharp
         private static extern IntPtr RowGroupReader_Metadata(IntPtr rowGroupReader, out IntPtr rowGroupMetaData);
 
         private readonly ParquetHandle _handle;
+        internal readonly ParquetFileReader ParquetFileReader;
         private RowGroupMetaData _metaData;
     }
 }

@@ -18,9 +18,7 @@ namespace ParquetSharp
         {
             if (columnWriter == null) throw new ArgumentNullException(nameof(columnWriter));
 
-            // TODO get converterFactory from ColumnWriter/ParquetFileWriter properties
-
-            return columnWriter.ColumnDescriptor.Apply(new Creator(columnWriter, bufferLength));
+            return columnWriter.ColumnDescriptor.Apply(columnWriter.LogicalTypeFactory, new Creator(columnWriter, bufferLength));
         }
 
         internal static LogicalColumnWriter<TElementType> Create<TElementType>(ColumnWriter columnWriter, int bufferLength = 4 * 1024)
@@ -94,7 +92,7 @@ namespace ParquetSharp
                 : null;
 
             // Convert logical values into physical values at the lowest array level
-            _converter = LogicalWrite<TLogical, TPhysical>.GetConverter(ColumnDescriptor, _byteBuffer);
+            _converter = columnWriter.LogicalWriteConverterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, _byteBuffer);
         }
 
         public override void Dispose()
@@ -121,9 +119,9 @@ namespace ParquetSharp
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                if (schemaNodes.Length >= 2
-                    && (schemaNodes[0] is GroupNode g1) && g1.LogicalType is ListLogicalType && g1.Repetition == Repetition.Optional
-                    && (schemaNodes[1] is GroupNode g2) && g2.LogicalType is NoneLogicalType && g2.Repetition == Repetition.Repeated)
+                if (schemaNodes.Length >= 2 && 
+                    schemaNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} && 
+                    schemaNodes[1] is GroupNode {LogicalType: NoneLogicalType, Repetition: Repetition.Repeated})
                 {
                     var containedType = elementType.GetElementType();
 

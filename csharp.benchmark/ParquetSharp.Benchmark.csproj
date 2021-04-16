@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <AssemblyName>ParquetSharp.Benchmark</AssemblyName>
     <RootNamespace>ParquetSharp.Benchmark</RootNamespace>
     <Platforms>x64</Platforms>

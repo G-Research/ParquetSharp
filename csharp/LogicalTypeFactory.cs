@@ -20,13 +20,23 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Get the mapping from a column descriptor to the actual C# physical and logical types.
+        /// Get the mapping from a column descriptor to the actual C# physical and logical element types.
+        /// If we know the exact column logical type, use that instead (i.e. user custom types).
         /// </summary>
-        // TODO TRY GET instead
-        public virtual unsafe (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Repetition repetition)
+        public virtual (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type columnLogicalTypeHint)
+        {
+            var types = GetSystemTypes(descriptor);
+            return (types.physicalType, columnLogicalTypeHint ?? types.logicalType);
+        }
+
+        /// <summary>
+        /// Get the mapping from a column descriptor to the actual C# physical and logical element types.
+        /// </summary>
+        public virtual unsafe (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor)
         {
             var physicalType = descriptor.PhysicalType;
             var logicalType = descriptor.LogicalType;
+            var repetition = descriptor.SchemaNode.Repetition;
             var nullable = repetition == Repetition.Optional;
 
             // Check for an exact match in the default primitive mapping.
@@ -110,7 +120,7 @@ namespace ParquetSharp
             }
 
             // Milliseconds TimeSpan can be stored on Int32
-            if (logicalTypeOverride is TimeLogicalType timeLogicalType && timeLogicalType.TimeUnit == TimeUnit.Millis)
+            if (logicalTypeOverride is TimeLogicalType {TimeUnit: TimeUnit.Millis})
             {
                 physicalType = PhysicalType.Int32;
             }
@@ -180,7 +190,7 @@ namespace ParquetSharp
                 {PhysicalType.FixedLenByteArray, typeof(FixedLenByteArray)},
             };
 
-        public static readonly LogicalTypeFactory Default = new LogicalTypeFactory(DefaultPrimitiveMapping);
+        public static readonly LogicalTypeFactory Default = new(DefaultPrimitiveMapping);
 
         private readonly IReadOnlyDictionary<Type, (LogicalType logicalType, Repetition repetition, PhysicalType physicalType)> _primitiveMapping;
     }
