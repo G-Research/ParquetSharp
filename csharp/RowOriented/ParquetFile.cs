@@ -109,7 +109,7 @@ namespace ParquetSharp.RowOriented
             {
                 if (columnNames.Length != columns.Length)
                 {
-                    throw new ArgumentException("the length of column names does not mach the number of public fields and properties", nameof(columnNames));
+                    throw new ArgumentException("the length of column names does not match the number of public fields and properties", nameof(columnNames));
                 }
 
                 columns = columns.Select((c, i) => new Column(c.LogicalSystemType, columnNames[i], c.LogicalTypeOverride, c.Length)).ToArray();
@@ -121,35 +121,72 @@ namespace ParquetSharp.RowOriented
         /// <summary>
         /// Returns a delegate to read rows from individual Parquet columns.
         /// </summary>
-        private static ParquetRowReader<TTuple>.ReadAction CreateReadDelegate<TTuple>((string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+        private static ParquetRowReader<TTuple>.ReadAction CreateReadDelegate<TTuple>(
+            (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
         {
             // Parameters
             var reader = Expression.Parameter(typeof(ParquetRowReader<TTuple>), "reader");
             var tuples = Expression.Parameter(typeof(TTuple[]), "tuples");
             var length = Expression.Parameter(typeof(int), "length");
 
-            // Use constructor or the property setters.
-            var ctor = typeof(TTuple).GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, fields.Select(f => f.type).ToArray(), null);
-
             // Buffers.
-            var buffers = fields.Select(f => Expression.Variable(f.type.MakeArrayType(), $"buffer_{f.name}")).ToArray();
-            var bufferAssigns = fields.Select((f, i) => (Expression) Expression.Assign(buffers[i], Expression.NewArrayBounds(f.type, length))).ToArray();
-
+            var buffers = new List<ParameterExpression>();
+            var bufferAssigns = new List<Expression>();
             // Read the columns from Parquet and populate the buffers.
-            var reads = buffers.Select((buffer, i) => Expression.Call(reader, GetReadMethod<TTuple>(fields[i].type), Expression.Constant(i), buffer, length)).ToArray();
-
+            var reads = new List<MethodCallExpression>();
             // Loop over the tuples, constructing them from the column buffers.
             var index = Expression.Variable(typeof(int), "index");
-            var loop = For(index, Expression.Constant(0), Expression.NotEqual(index, length), Expression.PreIncrementAssign(index),
+            var loop = For(index, Expression.Constant(0), Expression.NotEqual(index, length),
+                Expression.PreIncrementAssign(index),
                 Expression.Assign(
                     Expression.ArrayAccess(tuples, index),
-                    ctor == null
-                        ? Expression.MemberInit(Expression.New(typeof(TTuple)), fields.Select((f, i) => Expression.Bind(f.info, Expression.ArrayAccess(buffers[i], index))))
-                        : (Expression) Expression.New(ctor, fields.Select((f, i) => (Expression) Expression.ArrayAccess(buffers[i], index)))
+                    ConstructType(typeof(TTuple), fields)
                 )
             );
 
-            var body = Expression.Block(buffers, bufferAssigns.Concat(reads).Concat(new[] {loop}));
+            Expression CreateBuffer((string name, string mappedColumn, Type type, MemberInfo info) field)
+            {
+                var expr = Expression.Variable(field.type.MakeArrayType(), $"buffer_{field.name}");
+                buffers.Add(expr);
+                bufferAssigns.Add(Expression.Assign(expr, Expression.NewArrayBounds(field.type, length)));
+                reads.Add(Expression.Call(reader, GetReadMethod<TTuple>(field.type),
+                    Expression.Constant(buffers.Count - 1), expr, length));
+                return expr;
+            }
+
+            Expression ConstructType(Type type,
+                (string name, string mappedColumn, Type type, MemberInfo info)[] fields2)
+            {
+                // Use constructor or the property setters.
+                var ctorInfo = type.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null,
+                    fields2.Select(f => f.type).ToArray(), null);
+
+                return ctorInfo is null
+                    ? (Expression) Expression.MemberInit(Expression.New(type), FieldBindings())
+                    : Expression.New(ctorInfo, FieldExpressions());
+
+                Expression FieldExpression((string name, string mappedColumn, Type type, MemberInfo info) field)
+                {
+                    if (!Column.IsSupported(field.type))
+                    {
+                        return ConstructType(field.type, GetFieldsAndProperties(field.type));
+                    }
+
+                    return Expression.ArrayAccess(CreateBuffer(field), index);
+                }
+
+                IEnumerable<MemberBinding> FieldBindings()
+                {
+                    return fields2.Select(field => Expression.Bind(field.info, FieldExpression(field)));
+                }
+
+                IEnumerable<Expression> FieldExpressions()
+                {
+                    return fields2.Select(FieldExpression);
+                }
+            }
+
+            var body = Expression.Block(buffers.ToArray(), bufferAssigns.Concat(reads).Concat(new[] {loop}));
             var lambda = Expression.Lambda<ParquetRowReader<TTuple>.ReadAction>(body, reader, tuples, length);
             OnReadExpressionCreated?.Invoke(lambda);
             return lambda.Compile();
@@ -160,46 +197,61 @@ namespace ParquetSharp.RowOriented
         /// </summary>
         private static (Column[] columns, ParquetRowWriter<TTuple>.WriteAction writeDelegate) CreateWriteDelegate<TTuple>()
         {
-            var fields = GetFieldsAndProperties(typeof(TTuple));
-            var columns = fields.Select(GetColumn).ToArray();
+            var columns = new List<Column>();
 
             // Parameters
             var writer = Expression.Parameter(typeof(ParquetRowWriter<TTuple>), "writer");
             var tuples = Expression.Parameter(typeof(TTuple[]), "tuples");
             var length = Expression.Parameter(typeof(int), "length");
 
-            var columnBodies = fields.Select(f =>
+            var index = Expression.Variable(typeof(int), "index");
+            IEnumerable<Expression> ExpressionsForType(Type type, Func<Expression> value)
             {
-                // Column buffer
-                var bufferType = f.type.MakeArrayType();
-                var buffer = Expression.Variable(bufferType, $"buffer_{f.name}");
-                var bufferAssign = Expression.Assign(buffer, Expression.NewArrayBounds(f.type, length));
-                var bufferReset = Expression.Assign(buffer, Expression.Constant(null, bufferType));
+                return GetFieldsAndProperties(type).SelectMany(field =>
+                {
+                    if (!Column.IsSupported(field.type))
+                    {
+                        return ExpressionsForType(field.type, () => Expression.PropertyOrField(value(), field.name));
+                    }
 
-                // Loop over the tuples and fill the current column buffer.
-                var index = Expression.Variable(typeof(int), "index");
-                var loop = For(index, Expression.Constant(0), Expression.NotEqual(index, length), Expression.PreIncrementAssign(index),
-                    Expression.Assign(
-                        Expression.ArrayAccess(buffer, index),
-                        Expression.PropertyOrField(Expression.ArrayAccess(tuples, index), f.name)
-                    )
-                );
+                    columns.Add(GetColumn(field));
 
-                // Write the buffer to Parquet.
-                var writeCall = Expression.Call(writer, GetWriteMethod<TTuple>(buffer.Type.GetElementType()), buffer, length);
+                    // Column buffer
+                    var bufferType = field.type.MakeArrayType();
+                    var buffer = Expression.Variable(bufferType, $"buffer_{field.name}");
+                    var bufferAssign = Expression.Assign(buffer, Expression.NewArrayBounds(field.type, length));
+                    var bufferReset = Expression.Assign(buffer, Expression.Constant(null, bufferType));
 
-                return Expression.Block(
-                    new[] {buffer, index},
-                    bufferAssign,
-                    loop,
-                    writeCall,
-                    bufferReset);
-            });
+                    // Loop over the tuples and fill the current column buffer.
+                    var loop = For(index, Expression.Constant(0), Expression.NotEqual(index, length),
+                        Expression.PreIncrementAssign(index),
+                        Expression.Assign( // buffer[i] = tuples[i].field
+                            Expression.ArrayAccess(buffer, index),
+                            Expression.PropertyOrField(value(), field.name)
+                        )
+                    );
 
-            var body = Expression.Block(columnBodies);
+                    // Write the buffer to Parquet.
+                    var writeCall = Expression.Call(writer, GetWriteMethod<TTuple>(buffer.Type.GetElementType()),
+                        buffer, length);
+
+                    return new[]
+                    {
+                        (Expression) Expression.Block(
+                            new[] {buffer},
+                            bufferAssign,
+                            loop,
+                            writeCall,
+                            bufferReset)
+                    };
+                });
+            }
+            var columnBodies = ExpressionsForType(typeof(TTuple), () => Expression.ArrayAccess(tuples, index));
+
+            var body = Expression.Block(new []{index}, columnBodies);
             var lambda = Expression.Lambda<ParquetRowWriter<TTuple>.WriteAction>(body, writer, tuples, length);
             OnWriteExpressionCreated?.Invoke(lambda);
-            return (columns, lambda.Compile());
+            return (columns.ToArray(), lambda.Compile());
         }
 
         private static MethodInfo GetReadMethod<TTuple>(Type type)
@@ -281,7 +333,7 @@ namespace ParquetSharp.RowOriented
             // https://github.com/dotnet/corefx/issues/14606 for more detail.
             //
             // Note that most of the time GetFields() and GetProperties() _do_ return in declaration order and the times when they don't
-            // are determined at runtime and not by the type. As a resut it is pretty much impossible to cover this with a unit test. Hence this
+            // are determined at runtime and not by the type. As a result it is pretty much impossible to cover this with a unit test. Hence this
             // rather long comment aimed at avoiding accidental removal!
             return list.OrderBy(x => x.info.MetadataToken).ToArray();
         }

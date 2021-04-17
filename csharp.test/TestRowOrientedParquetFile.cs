@@ -158,12 +158,32 @@ namespace ParquetSharp.Test
             Assert.AreEqual("This unit test", writer.WriterProperties.CreatedBy);
         }
 
-        private static void TestRoundtrip<TTuple>(TTuple[] rows)
+        [Test]
+        public static void TestNestedStruct()
+        {
+            TestRoundtrip(new[]
+            {
+                new Nested {Inner = new Inner {InnerInt = 1}, F = -1f},
+                new Nested {Inner = new Inner {InnerInt = 2}, F = -2f}
+            });
+        }
+
+        [Test]
+        public static void TestDoubleNestedStruct()
+        {
+            TestRoundtrip(new[]
+            {
+                new DoubleNested {I = 1, Inner = new Inner {InnerInt = 2}, N = new Nested {Inner = new Inner {InnerInt = 3}, F = -1f}, S = "foo"},
+                new DoubleNested {I = 4, Inner = new Inner {InnerInt = 5}, N = new Nested {Inner = new Inner {InnerInt = 6}, F = -2f}, S = "bar"},
+            }, 5);
+        }
+
+        private static void TestRoundtrip<TTuple>(TTuple[] rows, int? columnCountOverride = null)
         {
             RoundTripAndCompare(rows, rows, columnNames: null);
 
             var columnNames =
-                Enumerable.Range(1, typeof(TTuple).GetFields().Length + typeof(TTuple).GetProperties().Length)
+                Enumerable.Range(1, columnCountOverride ?? typeof(TTuple).GetFields().Length + typeof(TTuple).GetProperties().Length)
                           .Select(x => $"Col{x}")
                           .ToArray();
             
@@ -272,6 +292,25 @@ namespace ParquetSharp.Test
 
             [MapToColumn("D"), ParquetDecimalScale(3)]
             public decimal T;
+        }
+
+        private struct DoubleNested
+        {
+            public string S;
+            public Inner Inner;
+            public Nested N;
+            public int I;
+        }
+
+        private struct Nested
+        {
+            public Inner Inner;
+            public float F;
+        }
+
+        private struct Inner
+        {
+            public int InnerInt;
         }
 
 #if DUMP_EXPRESSION_TREES
