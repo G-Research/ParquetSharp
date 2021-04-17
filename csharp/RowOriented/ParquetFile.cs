@@ -140,7 +140,7 @@ namespace ParquetSharp.RowOriented
                 Expression.PreIncrementAssign(index),
                 Expression.Assign(
                     Expression.ArrayAccess(tuples, index),
-                    ConstructType(typeof(TTuple), fields)
+                    ConstructTypeFromFields(typeof(TTuple), fields)
                 )
             );
 
@@ -154,35 +154,23 @@ namespace ParquetSharp.RowOriented
                 return expr;
             }
 
-            Expression ConstructType(Type type,
-                (string name, string mappedColumn, Type type, MemberInfo info)[] fields2)
+            Expression ConstructTypeFromFields(Type type,
+                (string name, string mappedColumn, Type type, MemberInfo info)[] typeFields)
             {
                 // Use constructor or the property setters.
                 var ctorInfo = type.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null,
-                    fields2.Select(f => f.type).ToArray(), null);
+                    typeFields.Select(f => f.type).ToArray(), null);
 
                 return ctorInfo is null
-                    ? (Expression) Expression.MemberInit(Expression.New(type), FieldBindings())
-                    : Expression.New(ctorInfo, FieldExpressions());
+                    ? (Expression) Expression.MemberInit(Expression.New(type),
+                        typeFields.Select(field => Expression.Bind(field.info, FieldExpression(field))))
+                    : Expression.New(ctorInfo, typeFields.Select(FieldExpression));
 
                 Expression FieldExpression((string name, string mappedColumn, Type type, MemberInfo info) field)
                 {
-                    if (!Column.IsSupported(field.type))
-                    {
-                        return ConstructType(field.type, GetFieldsAndProperties(field.type));
-                    }
-
-                    return Expression.ArrayAccess(CreateBuffer(field), index);
-                }
-
-                IEnumerable<MemberBinding> FieldBindings()
-                {
-                    return fields2.Select(field => Expression.Bind(field.info, FieldExpression(field)));
-                }
-
-                IEnumerable<Expression> FieldExpressions()
-                {
-                    return fields2.Select(FieldExpression);
+                    return Column.IsSupported(field.type)
+                        ? Expression.ArrayAccess(CreateBuffer(field), index)
+                        : ConstructTypeFromFields(field.type, GetFieldsAndProperties(field.type));
                 }
             }
 
@@ -205,13 +193,14 @@ namespace ParquetSharp.RowOriented
             var length = Expression.Parameter(typeof(int), "length");
 
             var index = Expression.Variable(typeof(int), "index");
-            IEnumerable<Expression> ExpressionsForType(Type type, Func<Expression> value)
+            IEnumerable<Expression> WriteFieldsOf(Expression value)
             {
+                var type = value.Type;
                 return GetFieldsAndProperties(type).SelectMany(field =>
                 {
                     if (!Column.IsSupported(field.type))
                     {
-                        return ExpressionsForType(field.type, () => Expression.PropertyOrField(value(), field.name));
+                        return WriteFieldsOf(Expression.PropertyOrField(value, field.name));
                     }
 
                     columns.Add(GetColumn(field));
@@ -227,7 +216,7 @@ namespace ParquetSharp.RowOriented
                         Expression.PreIncrementAssign(index),
                         Expression.Assign( // buffer[i] = tuples[i].field
                             Expression.ArrayAccess(buffer, index),
-                            Expression.PropertyOrField(value(), field.name)
+                            Expression.PropertyOrField(value, field.name)
                         )
                     );
 
@@ -246,7 +235,7 @@ namespace ParquetSharp.RowOriented
                     };
                 });
             }
-            var columnBodies = ExpressionsForType(typeof(TTuple), () => Expression.ArrayAccess(tuples, index));
+            var columnBodies = WriteFieldsOf(Expression.ArrayAccess(tuples, index));
 
             var body = Expression.Block(new []{index}, columnBodies);
             var lambda = Expression.Lambda<ParquetRowWriter<TTuple>.WriteAction>(body, writer, tuples, length);
