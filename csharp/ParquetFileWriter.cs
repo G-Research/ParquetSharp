@@ -31,6 +31,30 @@ namespace ParquetSharp
         }
 
         public ParquetFileWriter(
+            string path,
+            Column[] columns,
+            LogicalTypeFactory logicalTypeFactory,
+            Compression compression = Compression.Snappy,
+            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+        {
+            using var schema = Column.CreateSchemaNode(columns, LogicalTypeFactory = logicalTypeFactory ?? LogicalTypeFactory.Default);
+            using var writerProperties = CreateWriterProperties(compression);
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
+        }
+
+        public ParquetFileWriter(
+            OutputStream outputStream,
+            Column[] columns,
+            LogicalTypeFactory logicalTypeFactory,
+            Compression compression = Compression.Snappy,
+            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+        {
+            using var schema = Column.CreateSchemaNode(columns, LogicalTypeFactory = logicalTypeFactory ?? LogicalTypeFactory.Default);
+            using var writerProperties = CreateWriterProperties(compression);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
+        }
+
+        public ParquetFileWriter(
             string path, 
             Column[] columns,
             WriterProperties writerProperties,
@@ -47,6 +71,28 @@ namespace ParquetSharp
             IReadOnlyDictionary<string, string> keyValueMetadata = null)
         {
             using var schema = Column.CreateSchemaNode(columns);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
+        }
+
+        public ParquetFileWriter(
+            string path,
+            Column[] columns,
+            LogicalTypeFactory logicalTypeFactory,
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+        {
+            using var schema = Column.CreateSchemaNode(columns, LogicalTypeFactory = logicalTypeFactory ?? LogicalTypeFactory.Default);
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
+        }
+
+        public ParquetFileWriter(
+            OutputStream outputStream,
+            Column[] columns,
+            LogicalTypeFactory logicalTypeFactory,
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+        {
+            using var schema = Column.CreateSchemaNode(columns, LogicalTypeFactory = logicalTypeFactory ?? LogicalTypeFactory.Default);
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
         }
 

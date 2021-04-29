@@ -92,7 +92,7 @@ namespace ParquetSharp
                 : null;
 
             // Convert logical values into physical values at the lowest array level
-            _converter = columnWriter.LogicalWriteConverterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, _byteBuffer);
+            _converter = (LogicalWrite<TLogical, TPhysical>.Converter) columnWriter.LogicalWriteConverterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, _byteBuffer);
         }
 
         public override void Dispose()

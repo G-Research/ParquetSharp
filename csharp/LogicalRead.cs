@@ -259,21 +259,21 @@ namespace ParquetSharp
             where TTLogical : unmanaged
             where TTPhysical : unmanaged
         {
-            return (LogicalRead<TTLogical, TTPhysical>.DirectReader)((r, d) => ReadDirect(r, MemoryMarshal.Cast<TTLogical, TTPhysical>(d)));
+            return (LogicalRead<TTLogical, TTPhysical>.DirectReader) ((r, d) => ReadDirect(r, MemoryMarshal.Cast<TTLogical, TTPhysical>(d)));
         }
 
         public static Delegate GetNativeConverter<TTLogical, TTPhysical>()
             where TTLogical : unmanaged
             where TTPhysical : unmanaged
         {
-            return (LogicalRead<TTLogical, TTPhysical>.Converter)((s, _, d, _) => ConvertNative(MemoryMarshal.Cast<TTPhysical, TTLogical>(s), d));
+            return (LogicalRead<TTLogical, TTPhysical>.Converter) ((s, _, d, _) => ConvertNative(MemoryMarshal.Cast<TTPhysical, TTLogical>(s), d));
         }
 
         public static Delegate GetNullableNativeConverter<TTLogical, TTPhysical>()
             where TTLogical : unmanaged
             where TTPhysical : unmanaged
         {
-            return (LogicalRead<TTLogical?, TTPhysical>.Converter)((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<TTPhysical, TTLogical>(s), dl, d, nl));
+            return (LogicalRead<TTLogical?, TTPhysical>.Converter) ((s, dl, d, nl) => ConvertNative(MemoryMarshal.Cast<TTPhysical, TTLogical>(s), dl, d, nl));
         }
 
         public static long ReadDirect<TPhys>(ColumnReader<TPhys> r, Span<TPhys> d) where TPhys : unmanaged
@@ -304,7 +304,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = (sbyte)source[i];
+                destination[i] = (sbyte) source[i];
             }
         }
 
@@ -312,7 +312,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(sbyte?) : (sbyte)source[src++];
+                destination[i] = defLevels[i] == nullLevel ? default(sbyte?) : (sbyte) source[src++];
             }
         }
 
@@ -320,7 +320,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = (byte)source[i];
+                destination[i] = (byte) source[i];
             }
         }
 
@@ -328,7 +328,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(byte?) : (byte)source[src++];
+                destination[i] = defLevels[i] == nullLevel ? default(byte?) : (byte) source[src++];
             }
         }
 
@@ -336,7 +336,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = (short)source[i];
+                destination[i] = (short) source[i];
             }
         }
 
@@ -344,7 +344,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(short?) : (short)source[src++];
+                destination[i] = defLevels[i] == nullLevel ? default(short?) : (short) source[src++];
             }
         }
 
@@ -352,7 +352,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = (ushort)source[i];
+                destination[i] = (ushort) source[i];
             }
         }
 
@@ -360,7 +360,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(ushort?) : (ushort)source[src++];
+                destination[i] = defLevels[i] == nullLevel ? default(ushort?) : (ushort) source[src++];
             }
         }
 
@@ -368,7 +368,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = LogicalRead.ToDecimal(source[i], multiplier);
+                destination[i] = ToDecimal(source[i], multiplier);
             }
         }
 
@@ -376,7 +376,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(decimal?) : LogicalRead.ToDecimal(source[src++], multiplier);
+                destination[i] = defLevels[i] == nullLevel ? default(decimal?) : ToDecimal(source[src++], multiplier);
             }
         }
 
@@ -384,7 +384,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = LogicalRead.ToUuid(source[i]);
+                destination[i] = ToUuid(source[i]);
             }
         }
 
@@ -392,7 +392,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(Guid?) : LogicalRead.ToUuid(source[src++]);
+                destination[i] = defLevels[i] == nullLevel ? default(Guid?) : ToUuid(source[src++]);
             }
         }
 
@@ -402,7 +402,7 @@ namespace ParquetSharp
 
             for (int i = 0; i < destination.Length; ++i)
             {
-                dst[i] = LogicalRead.ToDateTimeMicrosTicks(source[i]);
+                dst[i] = ToDateTimeMicrosTicks(source[i]);
             }
         }
 
@@ -410,7 +410,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(DateTime?) : LogicalRead.ToDateTimeMicros(source[src++]);
+                destination[i] = defLevels[i] == nullLevel ? default(DateTime?) : ToDateTimeMicros(source[src++]);
             }
         }
 
@@ -420,7 +420,7 @@ namespace ParquetSharp
 
             for (int i = 0; i < destination.Length; ++i)
             {
-                dst[i] = LogicalRead.ToDateTimeMillisTicks(source[i]);
+                dst[i] = ToDateTimeMillisTicks(source[i]);
             }
         }
 
@@ -428,7 +428,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(DateTime?) : LogicalRead.ToDateTimeMillis(source[src++]);
+                destination[i] = defLevels[i] == nullLevel ? default(DateTime?) : ToDateTimeMillis(source[src++]);
             }
         }
 
@@ -436,7 +436,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = LogicalRead.ToTimeSpanMicros(source[i]);
+                destination[i] = ToTimeSpanMicros(source[i]);
             }
         }
 
@@ -444,7 +444,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(TimeSpan?) : LogicalRead.ToTimeSpanMicros(source[src++]);
+                destination[i] = defLevels[i] == nullLevel ? default(TimeSpan?) : ToTimeSpanMicros(source[src++]);
             }
         }
 
@@ -452,7 +452,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < destination.Length; ++i)
             {
-                destination[i] = LogicalRead.ToTimeSpanMillis(source[i]);
+                destination[i] = ToTimeSpanMillis(source[i]);
             }
         }
 
@@ -460,7 +460,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] == nullLevel ? default(TimeSpan?) : LogicalRead.ToTimeSpanMillis(source[src++]);
+                destination[i] = defLevels[i] == nullLevel ? default(TimeSpan?) : ToTimeSpanMillis(source[src++]);
             }
         }
 
@@ -476,7 +476,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = !defLevels.IsEmpty && defLevels[i] == nullLevel ? null : LogicalRead.ToString(source[src++]);
+                destination[i] = !defLevels.IsEmpty && defLevels[i] == nullLevel ? null : ToString(source[src++]);
             }
         }
 
@@ -484,7 +484,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = !defLevels.IsEmpty && defLevels[i] == nullLevel ? null : LogicalRead.ToByteArray(source[src++]);
+                destination[i] = !defLevels.IsEmpty && defLevels[i] == nullLevel ? null : ToByteArray(source[src++]);
             }
         }
 
@@ -502,7 +502,7 @@ namespace ParquetSharp
                 byteArrayCache.Clear();
             }
 
-            return byteArrayCache.Add(byteArray, LogicalRead.ToString(byteArray));
+            return byteArrayCache.Add(byteArray, ToString(byteArray));
         }
 
         public static unsafe bool IsCacheValid(ByteArrayReaderCache<ByteArray, string> byteArrayCache, ByteArray byteArray, string str)
@@ -511,7 +511,7 @@ namespace ParquetSharp
             var buffer = byteArrayCache.GetScratchBuffer(byteCount);
             System.Text.Encoding.UTF8.GetBytes(str, 0, str.Length, buffer, 0);
 
-            var cached = new ReadOnlySpan<byte>((void*)byteArray.Pointer, byteArray.Length);
+            var cached = new ReadOnlySpan<byte>((void*) byteArray.Pointer, byteArray.Length);
             var expected = buffer.AsSpan(0, byteCount);
 
             return cached.SequenceEqual(expected);
@@ -555,7 +555,7 @@ namespace ParquetSharp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DateTime ToDateTimeMicros(long source)
         {
-            return new DateTime(ToDateTimeMicrosTicks(source));
+            return new(ToDateTimeMicrosTicks(source));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -567,7 +567,7 @@ namespace ParquetSharp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DateTime ToDateTimeMillis(long source)
         {
-            return new DateTime(ToDateTimeMillisTicks(source));
+            return new(ToDateTimeMillisTicks(source));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -593,7 +593,7 @@ namespace ParquetSharp
         {
             return byteArray.Length == 0
                 ? string.Empty
-                : System.Text.Encoding.UTF8.GetString((byte*)byteArray.Pointer, byteArray.Length);
+                : System.Text.Encoding.UTF8.GetString((byte*) byteArray.Pointer, byteArray.Length);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
