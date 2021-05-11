@@ -80,7 +80,7 @@ namespace ParquetSharp.Test
             });
 
             Assert.That(
-                exception.Message,
+                exception?.Message,
                 Contains.Substring("this is an erroneous writer"));
         }
 
@@ -114,7 +114,7 @@ namespace ParquetSharp.Test
             });
 
             Assert.That(
-                exception.Message,
+                exception?.Message,
                 Contains.Substring("this is an erroneous reader"));
         }
 

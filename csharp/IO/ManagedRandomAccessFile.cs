@@ -40,7 +40,7 @@ namespace ParquetSharp.IO
             return new ParquetHandle(handle, RandomAccessFile_Free);
         }
 
-        private byte Read(long nbytes, IntPtr bytesRead, IntPtr dest, out string exception)
+        private byte Read(long nbytes, IntPtr bytesRead, IntPtr dest, out string? exception)
         {
             try
             {
@@ -65,7 +65,7 @@ namespace ParquetSharp.IO
             }
         }
 
-        private byte Close(out string exception)
+        private byte Close(out string? exception)
         {
             try
             {
@@ -83,7 +83,7 @@ namespace ParquetSharp.IO
             }
         }
 
-        private byte GetSize(IntPtr size, out string exception)
+        private byte GetSize(IntPtr size, out string? exception)
         {
             try
             {
@@ -97,7 +97,7 @@ namespace ParquetSharp.IO
             }
         }
 
-        private byte Tell(IntPtr position, out string exception)
+        private byte Tell(IntPtr position, out string? exception)
         {
             try
             {
@@ -111,7 +111,7 @@ namespace ParquetSharp.IO
             }
         }
 
-        private byte Seek(long position, out string exception)
+        private byte Seek(long position, out string? exception)
         {
             try
             {
@@ -137,7 +137,7 @@ namespace ParquetSharp.IO
             }
         }
 
-        private byte HandleException(Exception error, out string exception)
+        private byte HandleException(Exception error, out string? exception)
         {
             if (error is OutOfMemoryException)
             {
@@ -164,11 +164,11 @@ namespace ParquetSharp.IO
             ClosedDelegate closed,
             out IntPtr randomAccessFile);
 
-        private delegate byte ReadDelegate(long nbyte, IntPtr bytesRead, IntPtr dest, [MarshalAs(UnmanagedType.LPStr)] out string exception);
-        private delegate byte CloseDelegate([MarshalAs(UnmanagedType.LPStr)] out string exception);
-        private delegate byte GetSizeDelegate(IntPtr size, [MarshalAs(UnmanagedType.LPStr)] out string exception);
-        private delegate byte TellDelegate(IntPtr position, [MarshalAs(UnmanagedType.LPStr)] out string exception);
-        private delegate byte SeekDelegate(long position, [MarshalAs(UnmanagedType.LPStr)] out string exception);
+        private delegate byte ReadDelegate(long nbyte, IntPtr bytesRead, IntPtr dest, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
+        private delegate byte CloseDelegate([MarshalAs(UnmanagedType.LPStr)] out string? exception);
+        private delegate byte GetSizeDelegate(IntPtr size, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
+        private delegate byte TellDelegate(IntPtr position, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
+        private delegate byte SeekDelegate(long position, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
         private delegate bool ClosedDelegate();
 
         private readonly Stream _stream;
@@ -186,7 +186,7 @@ namespace ParquetSharp.IO
 
         // The lifetime of the exception message must match the lifetime of this class.
         // ReSharper disable NotAccessedField.Local
-        private string _exceptionMessage;
+        private string? _exceptionMessage;
         // ReSharper restore NotAccessedField.Local
     }
 }

@@ -32,7 +32,7 @@ namespace ParquetSharp
             }
         }
 
-        public FileDecryptionProperties FileDecryptionProperties
+        public FileDecryptionProperties? FileDecryptionProperties
         {
             get
             {

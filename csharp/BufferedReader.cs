@@ -7,7 +7,7 @@ namespace ParquetSharp
     /// </summary>
     internal sealed class BufferedReader<TPhysicalvalue> where TPhysicalvalue : unmanaged
     {
-        public BufferedReader(ColumnReader reader, TPhysicalvalue[] values, short[] defLevels, short[] repLevels)
+        public BufferedReader(ColumnReader reader, TPhysicalvalue[] values, short[]? defLevels, short[]? repLevels)
         {
             _columnReader = reader;
             _values = values;
@@ -30,6 +30,9 @@ namespace ParquetSharp
 
         public (short DefLevel, short RepLevel) GetCurrentDefinition()
         {
+            if (_defLevels == null) throw new InvalidOperationException("definition levels not defined");
+            if (_repLevels == null) throw new InvalidOperationException("repetition levels not defined");
+
             if (_levelIndex >= _numLevels)
             {
                 if (!FillBuffer())
@@ -69,8 +72,8 @@ namespace ParquetSharp
 
         private readonly ColumnReader _columnReader;
         private readonly TPhysicalvalue[] _values;
-        private readonly short[] _defLevels;
-        private readonly short[] _repLevels;
+        private readonly short[]? _defLevels;
+        private readonly short[]? _repLevels;
 
         private long _numValues;
         private int _valueIndex;

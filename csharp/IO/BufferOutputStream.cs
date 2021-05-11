@@ -20,7 +20,7 @@ namespace ParquetSharp.IO
 
         public Buffer Finish()
         {
-            return new Buffer(ExceptionInfo.Return<IntPtr>(Handle, BufferOutputStream_Finish));
+            return new Buffer(ExceptionInfo.Return<IntPtr>(Handle!, BufferOutputStream_Finish));
         }
 
         [DllImport(ParquetDll.Name)]

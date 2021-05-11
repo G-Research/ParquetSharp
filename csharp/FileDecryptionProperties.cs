@@ -24,7 +24,7 @@ namespace ParquetSharp
         public bool CheckPlaintextFooterIntegrity => ExceptionInfo.Return<bool>(Handle, FileDecryptionProperties_Check_Plaintext_Footer_Integrity);
         public bool PlaintextFilesAllowed => ExceptionInfo.Return<bool>(Handle, FileDecryptionProperties_Plaintext_Files_Allowed);
 
-        public DecryptionKeyRetriever KeyRetriever
+        public DecryptionKeyRetriever? KeyRetriever
         {
             get
             {
@@ -33,7 +33,7 @@ namespace ParquetSharp
             }
         }
 
-        public AadPrefixVerifier AadPrefixVerifier
+        public AadPrefixVerifier? AadPrefixVerifier
         {
             get
             {

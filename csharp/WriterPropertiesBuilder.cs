@@ -205,7 +205,7 @@ namespace ParquetSharp
             return this;
         }
 
-        public WriterPropertiesBuilder Encryption(FileEncryptionProperties fileEncryptionProperties)
+        public WriterPropertiesBuilder Encryption(FileEncryptionProperties? fileEncryptionProperties)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Encryption(_handle.IntPtr, fileEncryptionProperties?.Handle.IntPtr ?? IntPtr.Zero));
             GC.KeepAlive(_handle);

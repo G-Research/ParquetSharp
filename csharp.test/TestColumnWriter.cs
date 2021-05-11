@@ -46,7 +46,7 @@ namespace ParquetSharp.Test
             var exception = Assert.Throws<ArgumentException>(() => 
                 new ParquetFileWriter(outStream, new Column[] {new Column<object>("unsupported")}));
 
-            Assert.AreEqual("unsupported logical type System.Object", exception.Message);
+            Assert.AreEqual("unsupported logical type System.Object", exception?.Message);
         }
     }
 }

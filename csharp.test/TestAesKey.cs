@@ -10,7 +10,7 @@ namespace ParquetSharp.Test
         public static void TestIncorrectSize()
         {
             var exception = Assert.Throws<ArgumentException>(() => new AesKey(new byte[8]));
-            Assert.That(exception.Message, Contains.Substring("AES key can only be 128, 192, or 256-bit in length"));
+            Assert.That(exception?.Message, Contains.Substring("AES key can only be 128, 192, or 256-bit in length"));
         }
 
         [Test]

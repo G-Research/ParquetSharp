@@ -178,7 +178,7 @@ namespace ParquetSharp.Test
             RoundTripAndCompare(rows, expectedRows, columnNames: null);
         }
 
-        private static void RoundTripAndCompare<TTupleWrite, TTupleRead>(TTupleWrite[] rows, IEnumerable<TTupleRead> expectedRows, string[] columnNames)
+        private static void RoundTripAndCompare<TTupleWrite, TTupleRead>(TTupleWrite[] rows, IEnumerable<TTupleRead> expectedRows, string[]? columnNames)
         {
             using var buffer = new ResizableBuffer();
 
@@ -206,7 +206,7 @@ namespace ParquetSharp.Test
             [ParquetDecimalScale(3)]
             public decimal D;
 
-            public bool Equals(Row1 other)
+            public bool Equals(Row1? other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;

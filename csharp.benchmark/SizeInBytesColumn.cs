@@ -20,8 +20,7 @@ namespace ParquetSharp.Benchmark
             var instance = Activator.CreateInstance(type);
             var result = method.Invoke(instance, new object[0]);
 
-            // ReSharper disable once PossibleNullReferenceException
-            return ((long) result).ToString("N0");
+            return ((long) result!).ToString("N0");
         }
 
         public string GetValue(Summary summary, BenchmarkCase benchmarkCase, SummaryStyle style)

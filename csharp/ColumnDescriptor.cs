@@ -23,7 +23,7 @@ namespace ParquetSharp
         public short MaxRepetitionLevel => ExceptionInfo.Return<short>(_handle, ColumnDescriptor_Max_Repetition_Level);
         public string Name => Marshal.PtrToStringAnsi(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Name));
         public Schema.ColumnPath Path => new Schema.ColumnPath(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Path));
-        public Schema.Node SchemaNode => Schema.Node.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Schema_Node));
+        public Schema.Node SchemaNode => Schema.Node.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Schema_Node)) ?? throw new InvalidOperationException();
         public PhysicalType PhysicalType => ExceptionInfo.Return<PhysicalType>(_handle, ColumnDescriptor_Physical_Type);
         public SortOrder SortOrder => ExceptionInfo.Return<SortOrder>(_handle, ColumnDescriptor_SortOrder);
         public int TypeLength => ExceptionInfo.Return<int>(_handle, ColumnDescriptor_Type_Length);

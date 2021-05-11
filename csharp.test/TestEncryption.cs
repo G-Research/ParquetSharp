@@ -18,7 +18,7 @@ namespace ParquetSharp.Test
         {
             // Case where the parquet file is encrypted but no decryption properties have been provided.
             var exception = Assert.Throws<ParquetException>(() => AssertEncryptionRoundtrip(CreateEncryptSameKeyProperties, () => null));
-            Assert.That(exception.Message, Contains.Substring("Could not read encrypted metadata, no decryption found in reader's properties"));
+            Assert.That(exception?.Message, Contains.Substring("Could not read encrypted metadata, no decryption found in reader's properties"));
         }
 
         [Test]
@@ -26,7 +26,7 @@ namespace ParquetSharp.Test
         {
             // Case where the parquet file is encrypted but no decryption properties have been provided.
             var exception = Assert.Throws<ParquetException>(() => AssertEncryptionRoundtrip(() => null, CreateDecryptAllSameKeyProperties));
-            Assert.That(exception.Message, Contains.Substring("Applying decryption properties on plaintext file"));
+            Assert.That(exception?.Message, Contains.Substring("Applying decryption properties on plaintext file"));
         }
 
         [Test]
@@ -34,7 +34,7 @@ namespace ParquetSharp.Test
         {
             // Case where the parquet file is encrypted but no key can be found matching the key metadata.
             var exception = Assert.Throws<ParquetException>(() => AssertEncryptionRoundtrip(CreateEncryptNoMatchingKeyMetadataProperties, CreateDecryptWithKeyRetrieverProperties));
-            Assert.That(exception.Message, Contains.Substring("System.Collections.Generic.KeyNotFoundException: 'NotGoingToWork' metadata does not match any encryption key"));
+            Assert.That(exception?.Message, Contains.Substring("System.Collections.Generic.KeyNotFoundException: 'NotGoingToWork' metadata does not match any encryption key"));
         }
 
         [Test]
@@ -48,13 +48,13 @@ namespace ParquetSharp.Test
                 using var crypto0 = colMetadata0.CryptoMetadata;
                 using var crypto1 = colMetadata1.CryptoMetadata;
 
-                Assert.AreEqual("", crypto0.ColumnPath.ToDotString());
-                Assert.AreEqual(true, crypto0.EncryptedWithFooterKey);
-                Assert.AreEqual("", crypto0.KeyMetadata);
+                Assert.AreEqual("", crypto0?.ColumnPath.ToDotString());
+                Assert.AreEqual(true, crypto0?.EncryptedWithFooterKey);
+                Assert.AreEqual("", crypto0?.KeyMetadata);
 
-                Assert.AreEqual("", crypto1.ColumnPath.ToDotString());
-                Assert.AreEqual(true, crypto1.EncryptedWithFooterKey);
-                Assert.AreEqual("", crypto1.KeyMetadata);
+                Assert.AreEqual("", crypto1?.ColumnPath.ToDotString());
+                Assert.AreEqual(true, crypto1?.EncryptedWithFooterKey);
+                Assert.AreEqual("", crypto1?.KeyMetadata);
             });
         }
 
@@ -69,13 +69,13 @@ namespace ParquetSharp.Test
                 using var crypto0 = colMetadata0.CryptoMetadata;
                 using var crypto1 = colMetadata1.CryptoMetadata;
 
-                Assert.AreEqual("Id", crypto0.ColumnPath.ToDotString());
-                Assert.AreEqual(false, crypto0.EncryptedWithFooterKey);
-                Assert.AreEqual("Key1", crypto0.KeyMetadata);
+                Assert.AreEqual("Id", crypto0?.ColumnPath.ToDotString());
+                Assert.AreEqual(false, crypto0?.EncryptedWithFooterKey);
+                Assert.AreEqual("Key1", crypto0?.KeyMetadata);
 
-                Assert.AreEqual("Value", crypto1.ColumnPath.ToDotString());
-                Assert.AreEqual(false, crypto1.EncryptedWithFooterKey);
-                Assert.AreEqual("Key2", crypto1.KeyMetadata);
+                Assert.AreEqual("Value", crypto1?.ColumnPath.ToDotString());
+                Assert.AreEqual(false, crypto1?.EncryptedWithFooterKey);
+                Assert.AreEqual("Key2", crypto1?.KeyMetadata);
             });
         }
 
@@ -90,13 +90,13 @@ namespace ParquetSharp.Test
                 using var crypto0 = colMetadata0.CryptoMetadata;
                 using var crypto1 = colMetadata1.CryptoMetadata;
 
-                Assert.AreEqual("Id", crypto0.ColumnPath.ToDotString());
-                Assert.AreEqual(false, crypto0.EncryptedWithFooterKey);
-                Assert.AreEqual("Key1", crypto0.KeyMetadata);
+                Assert.AreEqual("Id", crypto0?.ColumnPath.ToDotString());
+                Assert.AreEqual(false, crypto0?.EncryptedWithFooterKey);
+                Assert.AreEqual("Key1", crypto0?.KeyMetadata);
 
-                Assert.AreEqual("Value", crypto1.ColumnPath.ToDotString());
-                Assert.AreEqual(false, crypto1.EncryptedWithFooterKey);
-                Assert.AreEqual("Key2", crypto1.KeyMetadata);
+                Assert.AreEqual("Value", crypto1?.ColumnPath.ToDotString());
+                Assert.AreEqual(false, crypto1?.EncryptedWithFooterKey);
+                Assert.AreEqual("Key2", crypto1?.KeyMetadata);
             });
         }
 
@@ -104,45 +104,44 @@ namespace ParquetSharp.Test
         public static void TestEncryptJustOneColumn()
         {
             // Case where the footer is unencrypted and all columns are encrypted all with different keys.
-            using (var buffer = new ResizableBuffer())
+            using var buffer = new ResizableBuffer();
+
+            using (var output = new BufferOutputStream(buffer))
             {
-                using (var output = new BufferOutputStream(buffer))
+                using var fileEncryptionProperties = CreateEncryptJustOneColumnProperties();
+                WriteParquetFile(output, fileEncryptionProperties);
+            }
+
+            // Decrypt the whole parquet file with matching decrypt properties.
+            using (var input = new BufferReader(buffer))
+            {
+                using var fileDecryptionProperties = CreateDecryptWithKeyRetrieverProperties();
+                ReadParquetFile(fileDecryptionProperties, input, rowGroupMetadata =>
                 {
-                    using var fileEncryptionProperties = CreateEncryptJustOneColumnProperties();
-                    WriteParquetFile(output, fileEncryptionProperties);
-                }
+                    using var colMetadata0 = rowGroupMetadata.GetColumnChunkMetaData(0);
+                    using var colMetadata1 = rowGroupMetadata.GetColumnChunkMetaData(1);
+                    using var crypto0 = colMetadata0.CryptoMetadata;
+                    using var crypto1 = colMetadata1.CryptoMetadata;
 
-                // Decrypt the whole parquet file with matching decrypt properties.
-                using (var input = new BufferReader(buffer))
-                {
-                    using var fileDecryptionProperties = CreateDecryptWithKeyRetrieverProperties();
-                    ReadParquetFile(fileDecryptionProperties, input, rowGroupMetadata =>
-                    {
-                        using var colMetadata0 = rowGroupMetadata.GetColumnChunkMetaData(0);
-                        using var colMetadata1 = rowGroupMetadata.GetColumnChunkMetaData(1);
-                        using var crypto0 = colMetadata0.CryptoMetadata;
-                        using var crypto1 = colMetadata1.CryptoMetadata;
+                    Assert.AreEqual(null, crypto0);
 
-                        Assert.AreEqual(null, crypto0);
+                    Assert.AreEqual("Value", crypto1?.ColumnPath.ToDotString());
+                    Assert.AreEqual(false, crypto1?.EncryptedWithFooterKey);
+                    Assert.AreEqual("Key2", crypto1?.KeyMetadata);
+                });
+            }
 
-                        Assert.AreEqual("Value", crypto1.ColumnPath.ToDotString());
-                        Assert.AreEqual(false, crypto1.EncryptedWithFooterKey);
-                        Assert.AreEqual("Key2", crypto1.KeyMetadata);
-                    });
-                }
-
-                // Decrypt only the unencrypted column without providing any decrypt properties.
-                using (var input = new BufferReader(buffer))
-                {
-                    using var fileReader = new ParquetFileReader(input);
-                    using var groupReader = fileReader.RowGroup(0);
+            // Decrypt only the unencrypted column without providing any decrypt properties.
+            using (var input = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(input);
+                using var groupReader = fileReader.RowGroup(0);
                     
-                    var numRows = (int) groupReader.MetaData.NumRows;
+                var numRows = (int) groupReader.MetaData.NumRows;
 
-                    using (var idReader = groupReader.Column(0).LogicalReader<int>())
-                    {
-                        Assert.AreEqual(Ids, idReader.ReadAll(numRows));
-                    }
+                using (var idReader = groupReader.Column(0).LogicalReader<int>())
+                {
+                    Assert.AreEqual(Ids, idReader.ReadAll(numRows));
                 }
             }
         }
@@ -234,9 +233,9 @@ namespace ParquetSharp.Test
         }
 
         private static void AssertEncryptionRoundtrip(
-            Func<FileEncryptionProperties> createFileEncryptionProperties,
-            Func<FileDecryptionProperties> createFileDecryptionProperties, 
-            Action<RowGroupMetaData> onGroupReader = null)
+            Func<FileEncryptionProperties?> createFileEncryptionProperties,
+            Func<FileDecryptionProperties?> createFileDecryptionProperties, 
+            Action<RowGroupMetaData>? onGroupReader = null)
         {
             using var buffer = new ResizableBuffer();
 
@@ -253,7 +252,7 @@ namespace ParquetSharp.Test
             }
         }
 
-        private static void WriteParquetFile(BufferOutputStream output, FileEncryptionProperties fileEncryptionProperties)
+        private static void WriteParquetFile(BufferOutputStream output, FileEncryptionProperties? fileEncryptionProperties)
         {
             using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
             using var fileWriter = new ParquetFileWriter(output, Columns, writerProperties);
@@ -270,7 +269,7 @@ namespace ParquetSharp.Test
             }
         }
 
-        private static void ReadParquetFile(FileDecryptionProperties fileDecryptionProperties, BufferReader input, Action<RowGroupMetaData> onGroupReader)
+        private static void ReadParquetFile(FileDecryptionProperties? fileDecryptionProperties, BufferReader input, Action<RowGroupMetaData>? onGroupReader)
         {
             using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
             using var fileReader = new ParquetFileReader(input, readerProperties);
@@ -292,7 +291,7 @@ namespace ParquetSharp.Test
             }
         }
 
-        private static WriterProperties CreateWriterProperties(FileEncryptionProperties fileEncryptionProperties)
+        private static WriterProperties CreateWriterProperties(FileEncryptionProperties? fileEncryptionProperties)
         {
             using var builder = new WriterPropertiesBuilder();
             
@@ -302,7 +301,7 @@ namespace ParquetSharp.Test
                 .Build();
         }
 
-        private static ReaderProperties CreateReaderProperties(FileDecryptionProperties fileDecryptionProperties)
+        private static ReaderProperties CreateReaderProperties(FileDecryptionProperties? fileDecryptionProperties)
         {
             var readerProperties = ReaderProperties.GetDefaultReaderProperties();
             readerProperties.FileDecryptionProperties = fileDecryptionProperties;

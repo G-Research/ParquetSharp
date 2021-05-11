@@ -11,15 +11,14 @@ namespace ParquetSharp
     /// </summary>
     public class Column
     {
-        public Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride = null)
+        public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride = null)
             : this(logicalSystemType, name, logicalTypeOverride, GetTypeLength(logicalSystemType))
         {
             LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
             Name = name ?? throw new ArgumentNullException(nameof(name));
-            LogicalTypeOverride = logicalTypeOverride;
         }
 
-        public unsafe Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride, int length)
+        public unsafe Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride, int length)
         {
             var isDecimal = logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?);
             var isUuid = logicalSystemType == typeof(Guid) || logicalSystemType == typeof(Guid?);
@@ -63,7 +62,7 @@ namespace ParquetSharp
 
         public readonly Type LogicalSystemType;
         public readonly string Name;
-        public readonly LogicalType LogicalTypeOverride;
+        public readonly LogicalType? LogicalTypeOverride;
         public readonly int Length;
 
         /// <summary>
@@ -135,7 +134,7 @@ namespace ParquetSharp
             return -1;
         }
 
-        private static Node CreateSchemaNode(Type type, string name, LogicalType logicalTypeOverride, int length)
+        private static Node CreateSchemaNode(Type type, string name, LogicalType? logicalTypeOverride, int length)
         {
             if (Primitives.TryGetValue(type, out var p))
             {
@@ -163,16 +162,17 @@ namespace ParquetSharp
         }
 
         private static (LogicalType LogicalType, PhysicalType PhysicalType) GetEntry(
-            LogicalType logicalTypeOverride, LogicalType logicalType, PhysicalType physicalType)
+            LogicalType? logicalTypeOverride, LogicalType? logicalType, PhysicalType physicalType)
         {
             // By default, return the first listed logical type.
             if (logicalTypeOverride == null || logicalTypeOverride is NoneLogicalType)
             {
+                if (logicalType == null) throw new ArgumentNullException(nameof(logicalType), $"both {nameof(logicalType)} and {nameof(logicalTypeOverride)} are null");
                 return (logicalType, physicalType);
             }
 
             // Milliseconds TimeSpan can be stored on Int32
-            if (logicalTypeOverride is TimeLogicalType timeLogicalType && timeLogicalType.TimeUnit == TimeUnit.Millis)
+            if (logicalTypeOverride is TimeLogicalType {TimeUnit: TimeUnit.Millis})
             {
                 physicalType = PhysicalType.Int32;
             }
@@ -182,8 +182,8 @@ namespace ParquetSharp
         }
 
         // Dictionary of default options for each supported C# type.
-        private static readonly IReadOnlyDictionary<Type, (Repetition Repetition, LogicalType LogicalType, PhysicalType PhysicalType)>
-            Primitives = new Dictionary<Type, (Repetition, LogicalType, PhysicalType)>
+        private static readonly IReadOnlyDictionary<Type, (Repetition Repetition, LogicalType? LogicalType, PhysicalType PhysicalType)>
+            Primitives = new Dictionary<Type, (Repetition, LogicalType?, PhysicalType)>
             {
                 {typeof(bool), (Repetition.Required, LogicalType.None(), PhysicalType.Boolean)},
                 {typeof(bool?), (Repetition.Optional, LogicalType.None(), PhysicalType.Boolean)},
@@ -230,7 +230,7 @@ namespace ParquetSharp
 
     public sealed class Column<TLogicalType> : Column
     {
-        public Column(string name, LogicalType logicalTypeOverride = null)
+        public Column(string name, LogicalType? logicalTypeOverride = null)
             : base(typeof(TLogicalType), name, logicalTypeOverride)
         {
         }

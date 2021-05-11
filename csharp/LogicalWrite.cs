@@ -13,7 +13,7 @@ namespace ParquetSharp
     {
         public delegate void Converter(ReadOnlySpan<TLogical> source, Span<short> defLevels, Span<TPhysical> destination, short nullLevel);
 
-        public static Converter GetConverter(LogicalType logicalType, int scale, ByteBuffer byteBuffer)
+        public static Converter GetConverter(LogicalType logicalType, int scale, ByteBuffer? byteBuffer)
         {
             if (typeof(TLogical) == typeof(bool) ||
                 typeof(TLogical) == typeof(int) ||
@@ -97,23 +97,27 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(decimal))
             {
+                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 var multiplier = Decimal128.GetScaleMultiplier(scale);
                 return (Converter) (Delegate) (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal128(s, d, multiplier, byteBuffer));
             }
 
             if (typeof(TLogical) == typeof(decimal?))
             {
+                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 var multiplier = Decimal128.GetScaleMultiplier(scale);
                 return (Converter) (Delegate) (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertDecimal128(s, dl, d, multiplier, nl, byteBuffer));
             }
 
             if (typeof(TLogical) == typeof(Guid))
             {
+                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 return (Converter) (Delegate) (LogicalWrite<Guid, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertUuid(s, d, byteBuffer));
             }
 
             if (typeof(TLogical) == typeof(Guid?))
             {
+                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 return (Converter) (Delegate) (LogicalWrite<Guid?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => ConvertUuid(s, dl, d, nl, byteBuffer));
             }
 
@@ -193,11 +197,13 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(string))
             {
+                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 return (Converter) (Delegate) (LogicalWrite<string, ByteArray>.Converter) ((s, dl, d, nl) => ConvertString(s, dl, d, nl, byteBuffer));
             }
 
             if (typeof(TLogical) == typeof(byte[]))
             {
+                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 return (Converter) (Delegate) (LogicalWrite<byte[], ByteArray>.Converter) ((s, dl, d, nl) => ConvertByteArray(s, dl, d, nl, byteBuffer));
             }
 

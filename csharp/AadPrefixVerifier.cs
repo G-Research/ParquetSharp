@@ -30,7 +30,7 @@ namespace ParquetSharp
         }
 
         internal delegate void FreeGcHandleFunc(IntPtr handle);
-        internal delegate void VerifyFunc(IntPtr handle, IntPtr aadPrefix, out string exception);
+        internal delegate void VerifyFunc(IntPtr handle, IntPtr aadPrefix, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
 
         internal static readonly FreeGcHandleFunc FreeGcHandleCallback = FreeGcHandle;
         internal static readonly VerifyFunc VerifyFuncCallback = Verify;
@@ -40,13 +40,13 @@ namespace ParquetSharp
             GCHandle.FromIntPtr(handle).Free();
         }
 
-        private static void Verify(IntPtr handle, IntPtr aadPrefix, out string exception)
+        private static void Verify(IntPtr handle, IntPtr aadPrefix, out string? exception)
         {
             exception = null;
 
             try
             {
-                var obj = (AadPrefixVerifier)GCHandle.FromIntPtr(handle).Target;
+                var obj = (AadPrefixVerifier) GCHandle.FromIntPtr(handle).Target;
                 var aadPrefixStr = Marshal.PtrToStringAnsi(aadPrefix);
                 obj.Verify(aadPrefixStr);
             }

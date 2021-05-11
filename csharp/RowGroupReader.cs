@@ -15,9 +15,7 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
-        public RowGroupMetaData MetaData =>
-            _metaData
-            ?? (_metaData = new RowGroupMetaData(ExceptionInfo.Return<IntPtr>(_handle, RowGroupReader_Metadata)));
+        public RowGroupMetaData MetaData => _metaData ??= new RowGroupMetaData(ExceptionInfo.Return<IntPtr>(_handle, RowGroupReader_Metadata));
 
         public ColumnReader Column(int i) => ColumnReader.Create(
             ExceptionInfo.Return<int, IntPtr>(_handle, i, RowGroupReader_Column),
@@ -33,6 +31,6 @@ namespace ParquetSharp
         private static extern IntPtr RowGroupReader_Metadata(IntPtr rowGroupReader, out IntPtr rowGroupMetaData);
 
         private readonly ParquetHandle _handle;
-        private RowGroupMetaData _metaData;
+        private RowGroupMetaData? _metaData;
     }
 }

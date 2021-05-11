@@ -67,7 +67,7 @@ namespace ParquetSharp.Test
 
         private sealed class StringReferenceComparer : EqualityComparer<string>
         {
-            public override bool Equals(string x, string y) => ReferenceEquals(x, y);
+            public override bool Equals(string? x, string? y) => ReferenceEquals(x, y);
             public override int GetHashCode(string obj) => RuntimeHelpers.GetHashCode(obj);
         }
     }

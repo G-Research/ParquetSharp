@@ -13,7 +13,7 @@ namespace ParquetSharp
         public delegate long DirectReader(ColumnReader<TPhysical> columnReader, Span<TLogical> destination);
         public delegate void Converter(ReadOnlySpan<TPhysical> source, ReadOnlySpan<short> defLevels, Span<TLogical> destination, short nullLevel);
 
-        public static DirectReader GetDirectReader()
+        public static DirectReader? GetDirectReader()
         {
             long Read<TPhys>(ColumnReader<TPhys> r, Span<TPhys> d) where TPhys : unmanaged
             {
@@ -235,8 +235,8 @@ namespace ParquetSharp
             if (typeof(TLogical) == typeof(string))
             {
                 return byteArrayCache.IsUsable
-                    ? (Converter) (Delegate) (LogicalRead<string, ByteArray>.Converter) ((s, dl, d, nl) => ConvertString(s, dl, d, nl, (ByteArrayReaderCache<ByteArray, string>) (object) byteArrayCache)) 
-                    : (Converter) (Delegate) (LogicalRead<string, ByteArray>.Converter) ConvertString;
+                    ? (Converter) (Delegate) (LogicalRead<string?, ByteArray>.Converter) ((s, dl, d, nl) => ConvertString(s, dl, d, nl, (ByteArrayReaderCache<ByteArray, string>) (object) byteArrayCache)) 
+                    : (Converter) (Delegate) (LogicalRead<string?, ByteArray>.Converter) ConvertString;
             }
 
             if (typeof(TLogical) == typeof(byte[]))
@@ -248,7 +248,7 @@ namespace ParquetSharp
                 //    ? (Converter) (Delegate) (LogicalRead<byte[], ByteArray>.Converter) ((s, dl, d, nl) => ConvertByteArray(s, dl, d, nl, (ByteArrayReaderCache<ByteArray, byte[]>) (object) byteArrayCache))
                 //    : (Converter) (Delegate) (LogicalRead<byte[], ByteArray>.Converter) ConvertByteArray;
                 
-                return (Converter) (Delegate) (LogicalRead<byte[], ByteArray>.Converter) ConvertByteArray;
+                return (Converter) (Delegate) (LogicalRead<byte[]?, ByteArray>.Converter) ConvertByteArray;
             }
 
             throw new NotSupportedException($"unsupported logical system type {typeof(TLogical)} with logical type {logicalType}");
@@ -431,7 +431,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string> destination, short nullLevel, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
+        private static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string?> destination, short nullLevel, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -439,7 +439,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string> destination, short nullLevel)
+        private static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
@@ -447,7 +447,7 @@ namespace ParquetSharp
             }
         }
 
-        private static void ConvertByteArray(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<byte[]> destination, short nullLevel)
+        private static void ConvertByteArray(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<byte[]?> destination, short nullLevel)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {

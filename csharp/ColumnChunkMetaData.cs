@@ -17,7 +17,7 @@ namespace ParquetSharp
 
         public Compression Compression => ExceptionInfo.Return<Compression>(_handle, ColumnChunkMetaData_Compression);
 
-        public ColumnCryptoMetaData CryptoMetadata
+        public ColumnCryptoMetaData? CryptoMetadata
         {
             get
             {
@@ -48,7 +48,7 @@ namespace ParquetSharp
         public long NumValues => ExceptionInfo.Return<long>(_handle, ColumnChunkMetaData_Num_Values);
         public long TotalCompressedSize => ExceptionInfo.Return<long>(_handle, ColumnChunkMetaData_Total_Compressed_Size);
         public long TotalUncompressedSize => ExceptionInfo.Return<long>(_handle, ColumnChunkMetaData_Total_Uncompressed_Size);
-        public Statistics Statistics => Statistics.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnChunkMetaData_Statistics));
+        public Statistics? Statistics => Statistics.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnChunkMetaData_Statistics));
         public PhysicalType Type => ExceptionInfo.Return<PhysicalType>(_handle, ColumnChunkMetaData_Type);
         
         [DllImport(ParquetDll.Name)]
