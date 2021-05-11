@@ -48,9 +48,9 @@ namespace ParquetSharp
             return Days;
         }
 
-        public int CompareTo(Date? other)
+        public int CompareTo(Date other)
         {
-            return Days.CompareTo(other?.Days);
+            return Days.CompareTo(other.Days);
         }
 
         public override string ToString()
