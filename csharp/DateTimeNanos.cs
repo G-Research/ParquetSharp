@@ -34,9 +34,9 @@ namespace ParquetSharp
             return Ticks == other.Ticks;
         }
 
-        public int CompareTo(DateTimeNanos? other)
+        public int CompareTo(DateTimeNanos other)
         {
-            return Ticks.CompareTo(other?.Ticks);
+            return Ticks.CompareTo(other.Ticks);
         }
 
         public override string ToString()
