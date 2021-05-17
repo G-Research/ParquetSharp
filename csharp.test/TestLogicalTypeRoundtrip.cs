@@ -296,7 +296,7 @@ namespace ParquetSharp.Test
              * None
              * [[]]
              */
-            double?[]?[]?[] expected = new double?[]?[]?[]
+            var expected = new double?[]?[]?[]
             {
                 new double?[]?[] {null, new double?[] { }, new double?[] {1.0, null, 2.0}},
                 new double?[]?[] { },
