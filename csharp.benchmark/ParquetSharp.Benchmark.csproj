@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
     <AssemblyName>ParquetSharp.Benchmark</AssemblyName>
     <RootNamespace>ParquetSharp.Benchmark</RootNamespace>
     <Platforms>x64</Platforms>

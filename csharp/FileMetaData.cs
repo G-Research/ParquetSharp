@@ -29,10 +29,8 @@ namespace ParquetSharp
                     return new Dictionary<string, string>();
                 }
 
-                using (var keyValueMetadata = new KeyValueMetadata(kvmHandle))
-                {
-                    return keyValueMetadata.ToDictionary();
-                }
+                using var keyValueMetadata = new KeyValueMetadata(kvmHandle);
+                return keyValueMetadata.ToDictionary();
             }
         }
 
@@ -40,12 +38,12 @@ namespace ParquetSharp
         public long NumRows => ExceptionInfo.Return<long>(_handle, FileMetaData_Num_Rows);
         public int NumRowGroups => ExceptionInfo.Return<int>(_handle, FileMetaData_Num_Row_Groups);
         public int NumSchemaElements => ExceptionInfo.Return<int>(_handle, FileMetaData_Num_Schema_Elements);
-        public SchemaDescriptor Schema => _schema ?? (_schema = new SchemaDescriptor(ExceptionInfo.Return<IntPtr>(_handle, FileMetaData_Schema)));
+        public SchemaDescriptor Schema => _schema ??= new SchemaDescriptor(ExceptionInfo.Return<IntPtr>(_handle, FileMetaData_Schema));
         public int Size => ExceptionInfo.Return<int>(_handle, FileMetaData_Size);
         public ParquetVersion Version => ExceptionInfo.Return<ParquetVersion>(_handle, FileMetaData_Version);
         public ApplicationVersion WriterVersion => new ApplicationVersion(ExceptionInfo.Return<AppVer>(_handle, FileMetaData_Writer_Version));
 
-        public bool Equals(FileMetaData other)
+        public bool Equals(FileMetaData? other)
         {
             return other != null && ExceptionInfo.Return<bool>(_handle, other._handle, FileMetaData_Equals);
         }
@@ -87,6 +85,6 @@ namespace ParquetSharp
         private static extern IntPtr FileMetaData_Writer_Version(IntPtr fileMetaData, out AppVer applicationVersion);
 
         private readonly ParquetHandle _handle;
-        private SchemaDescriptor _schema;
+        private SchemaDescriptor? _schema;
     }
 }

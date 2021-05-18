@@ -111,7 +111,7 @@ namespace ParquetSharp
             }
             else
             {
-                WriteBatchSimple(values, converter as LogicalWrite<TElement, TPhysical>.Converter);
+                WriteBatchSimple(values, (converter as LogicalWrite<TElement, TPhysical>.Converter)!);
             }
         }
 
@@ -119,9 +119,9 @@ namespace ParquetSharp
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                if (schemaNodes.Length >= 2
-                    && (schemaNodes[0] is GroupNode g1) && g1.LogicalType is ListLogicalType && g1.Repetition == Repetition.Optional
-                    && (schemaNodes[1] is GroupNode g2) && g2.LogicalType is NoneLogicalType && g2.Repetition == Repetition.Repeated)
+                if (schemaNodes.Length >= 2 && 
+                    schemaNodes[0] is GroupNode {LogicalType: ListLogicalType _, Repetition: Repetition.Optional} &&
+                    schemaNodes[1] is GroupNode {LogicalType: NoneLogicalType _, Repetition: Repetition.Repeated})
                 {
                     var containedType = elementType.GetElementType();
 
@@ -204,7 +204,8 @@ namespace ParquetSharp
             ReadOnlySpan<TLogical> valuesSpan = (TLogical[])values;
 
             if (converter == null) throw new ArgumentNullException(nameof(converter));
-            if (DefLevels == null) throw new ArgumentException("internal error: DefLevels should not be null.");
+            if (DefLevels == null) throw new InvalidOperationException("DefLevels should not be null.");
+            if (RepLevels == null) throw new InvalidOperationException("RepLevels should not be null.");
 
             var rowsWritten = 0;
             var columnWriter = (ColumnWriter<TPhysical>) Source;
@@ -266,6 +267,6 @@ namespace ParquetSharp
             }
         }
 
-        private readonly ByteBuffer _byteBuffer;
+        private readonly ByteBuffer? _byteBuffer;
     }
 }

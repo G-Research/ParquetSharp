@@ -27,6 +27,6 @@ namespace ParquetSharp.IO
         [DllImport(ParquetDll.Name)]
         internal static extern void OutputStream_Free(IntPtr outputStream);
 
-        internal ParquetHandle Handle;
+        internal ParquetHandle? Handle;
     }
 }

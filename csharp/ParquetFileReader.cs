@@ -30,6 +30,7 @@ namespace ParquetSharp
         public ParquetFileReader(RandomAccessFile randomAccessFile, ReaderProperties readerProperties)
         {
             if (randomAccessFile == null) throw new ArgumentNullException(nameof(randomAccessFile));
+            if (randomAccessFile.Handle == null) throw new ArgumentNullException(nameof(randomAccessFile.Handle));
             if (readerProperties == null) throw new ArgumentNullException(nameof(readerProperties));
 
             _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle, readerProperties.Handle.IntPtr, ParquetFileReader_Open), ParquetFileReader_Free);
@@ -49,9 +50,7 @@ namespace ParquetSharp
             GC.KeepAlive(_handle);
         }
 
-        public FileMetaData FileMetaData =>
-            _fileMetaData 
-            ?? (_fileMetaData = new FileMetaData(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileReader_MetaData)));
+        public FileMetaData FileMetaData => _fileMetaData ??= new FileMetaData(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileReader_MetaData));
 
         public RowGroupReader RowGroup(int i)
         {
@@ -77,6 +76,6 @@ namespace ParquetSharp
         private static extern IntPtr ParquetFileReader_RowGroup(IntPtr reader, int i, out IntPtr rowGroupReader);
 
         private readonly ParquetHandle _handle;
-        private FileMetaData _fileMetaData;
+        private FileMetaData? _fileMetaData;
     }
 }

@@ -27,12 +27,14 @@ namespace ParquetSharp
 
         public void Clear()
         {
+            if (_map == null) throw new InvalidOperationException("cache is not in a usable state");
             _map.Clear();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TLogical Add(TPhysical physical, TLogical logical)
         {
+            if (_map == null) throw new InvalidOperationException("cache is not in a usable state");
             _map.Add(physical, logical);
             return logical;
         }
@@ -40,6 +42,7 @@ namespace ParquetSharp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(TPhysical physical, out TLogical logical)
         {
+            if (_map == null) throw new InvalidOperationException("cache is not in a usable state");
             return _map.TryGetValue(physical, out logical);
         }
 
@@ -49,7 +52,7 @@ namespace ParquetSharp
             return _scratch.Length >= minLength ? _scratch : _scratch = new byte[Math.Max(_scratch.Length * 2, minLength)];
         }
 
-        private readonly Dictionary<TPhysical, TLogical> _map;
+        private readonly Dictionary<TPhysical, TLogical>? _map;
         private byte[] _scratch;
     }
 }

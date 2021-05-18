@@ -28,7 +28,8 @@ namespace ParquetSharp.Test
             // At this point C# has no reference to the key-receiver. And yet we can still get it back from C++.
             var keyReceiver = properties.KeyRetriever;
 
-            Assert.AreEqual("HelloWorld\0 Key!", System.Text.Encoding.ASCII.GetString(keyReceiver.GetKey("not-used")));
+            Assert.IsNotNull(keyReceiver);
+            Assert.AreEqual("HelloWorld\0 Key!", System.Text.Encoding.ASCII.GetString(keyReceiver!.GetKey("not-used")));
 
             // But after we return, both C# and C++ will lose all references and the key-receiver should get GCed. 
             return new WeakReference(keyReceiver);

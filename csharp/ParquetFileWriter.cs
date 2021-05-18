@@ -12,57 +12,49 @@ namespace ParquetSharp
             string path, 
             Column[] columns, 
             Compression compression = Compression.Snappy, 
-            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
-            using (var schema = Column.CreateSchemaNode(columns))
-            using (var writerProperties = CreateWriterProperties(compression))
-            {
-                _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
-            }
+            using var schema = Column.CreateSchemaNode(columns);
+            using var writerProperties = CreateWriterProperties(compression);
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
         }
 
         public ParquetFileWriter(
             OutputStream outputStream, 
             Column[] columns, 
             Compression compression = Compression.Snappy, 
-            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
-            using (var schema = Column.CreateSchemaNode(columns))
-            using (var writerProperties = CreateWriterProperties(compression))
-            {
-                _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
-            }
+            using var schema = Column.CreateSchemaNode(columns);
+            using var writerProperties = CreateWriterProperties(compression);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
         }
 
         public ParquetFileWriter(
             string path, 
             Column[] columns,
             WriterProperties writerProperties,
-            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
-            using (var schema = Column.CreateSchemaNode(columns))
-            {
-                _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
-            }
+            using var schema = Column.CreateSchemaNode(columns);
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
         }
 
         public ParquetFileWriter(
             OutputStream outputStream, 
             Column[] columns,
             WriterProperties writerProperties,
-            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
-            using (var schema = Column.CreateSchemaNode(columns))
-            {
-                _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
-            }
+            using var schema = Column.CreateSchemaNode(columns);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
         }
 
         public ParquetFileWriter(
             string path, 
             GroupNode schema, 
             WriterProperties writerProperties, 
-            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
         }
@@ -71,7 +63,7 @@ namespace ParquetSharp
             OutputStream outputStream, 
             GroupNode schema, 
             WriterProperties writerProperties,
-            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
         }
@@ -112,7 +104,7 @@ namespace ParquetSharp
         internal int NumColumns => ExceptionInfo.Return<int>(_handle, ParquetFileWriter_Num_Columns); // 2021-04-08: calling this results in a segfault when the writer has been closed
         internal long NumRows => ExceptionInfo.Return<long>(_handle, ParquetFileWriter_Num_Rows); // 2021-04-08: calling this results in a segfault when the writer has been closed
         internal int NumRowGroups => ExceptionInfo.Return<int>(_handle, ParquetFileWriter_Num_Row_Groups); // 2021-04-08: calling this results in a segfault when the writer has been closed
-        public WriterProperties WriterProperties => _writerProperties ?? (_writerProperties = new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Properties)));
+        public WriterProperties WriterProperties => _writerProperties ??= new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Properties));
         public SchemaDescriptor Schema => new SchemaDescriptor(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Schema));
         public ColumnDescriptor ColumnDescriptor(int i) => new ColumnDescriptor(ExceptionInfo.Return<int, IntPtr>(_handle, i, ParquetFileWriter_Descr));
 
@@ -133,7 +125,7 @@ namespace ParquetSharp
             }
         }
 
-        public FileMetaData FileMetaData
+        public FileMetaData? FileMetaData
         {
             get
             {
@@ -148,8 +140,10 @@ namespace ParquetSharp
         }
 
         private static ParquetHandle CreateParquetFileWriter(
-            string path, GroupNode schema, WriterProperties writerProperties,
-            IReadOnlyDictionary<string, string> keyValueMetadata)
+            string path, 
+            GroupNode schema, 
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string>? keyValueMetadata)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
             if (schema == null) throw new ArgumentNullException(nameof(schema));
@@ -158,7 +152,7 @@ namespace ParquetSharp
             using (var kvm = keyValueMetadata == null ? null : new KeyValueMetadata(keyValueMetadata))
             {
                 ExceptionInfo.Check(ParquetFileWriter_OpenFile(
-                    path, schema.Handle.IntPtr, writerProperties.Handle.IntPtr, kvm?.Handle?.IntPtr ?? IntPtr.Zero, out var writer));
+                    path, schema.Handle.IntPtr, writerProperties.Handle.IntPtr, kvm?.Handle.IntPtr ?? IntPtr.Zero, out var writer));
 
                 // Keep alive schema and writerProperties until this point, otherwise the GC might kick in while we're in OpenFile().
                 GC.KeepAlive(schema);
@@ -169,17 +163,20 @@ namespace ParquetSharp
         }
 
         private static ParquetHandle CreateParquetFileWriter(
-            OutputStream outputStream, GroupNode schema, WriterProperties writerProperties,
-            IReadOnlyDictionary<string, string> keyValueMetadata)
+            OutputStream outputStream, 
+            GroupNode schema, 
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string>? keyValueMetadata)
         {
             if (outputStream == null) throw new ArgumentNullException(nameof(outputStream));
+            if (outputStream.Handle == null) throw new ArgumentNullException(nameof(outputStream.Handle));
             if (schema == null) throw new ArgumentNullException(nameof(schema));
             if (writerProperties == null) throw new ArgumentNullException(nameof(writerProperties));
 
             using (var kvm = keyValueMetadata == null ? null : new KeyValueMetadata(keyValueMetadata))
             {
                 ExceptionInfo.Check(ParquetFileWriter_Open(
-                    outputStream.Handle.IntPtr, schema.Handle.IntPtr, writerProperties.Handle.IntPtr, kvm?.Handle?.IntPtr ?? IntPtr.Zero, out var writer));
+                    outputStream.Handle.IntPtr, schema.Handle.IntPtr, writerProperties.Handle.IntPtr, kvm?.Handle.IntPtr ?? IntPtr.Zero, out var writer));
 
                 // Keep alive schema and writerProperties until this point, otherwise the GC might kick in while we're in Open().
                 GC.KeepAlive(schema);
@@ -191,11 +188,9 @@ namespace ParquetSharp
 
         private static WriterProperties CreateWriterProperties(Compression compression)
         {
-            using (var builder = new WriterPropertiesBuilder())
-            {
-                builder.Compression(compression);
-                return builder.Build();
-            }
+            using var builder = new WriterPropertiesBuilder();
+            builder.Compression(compression);
+            return builder.Build();
         }
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
@@ -241,7 +236,7 @@ namespace ParquetSharp
         private static extern IntPtr ParquetFileWriter_Metadata(IntPtr writer, out IntPtr metadata);
 
         private readonly ParquetHandle _handle;
-        private FileMetaData _fileMetaData;
-        private WriterProperties _writerProperties;
+        private FileMetaData? _fileMetaData;
+        private WriterProperties? _writerProperties;
     }
 }

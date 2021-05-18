@@ -7,7 +7,7 @@ namespace ParquetSharp.Schema
 {
     public sealed class GroupNode : Node
     {
-        public GroupNode(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType logicalType = null)
+        public GroupNode(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType? logicalType = null)
             : this(Make(name, repetition, fields, logicalType))
         {
         }
@@ -22,7 +22,7 @@ namespace ParquetSharp.Schema
 
         public Node Field(int i)
         {
-            return Create(ExceptionInfo.Return<int, IntPtr>(Handle, i, GroupNode_Field));
+            return Create(ExceptionInfo.Return<int, IntPtr>(Handle, i, GroupNode_Field)) ?? throw new InvalidOperationException();
         }
 
         public int FieldIndex(string name)
@@ -44,7 +44,7 @@ namespace ParquetSharp.Schema
                 LogicalType is NoneLogicalType ? null : LogicalType);
         }
 
-        private static unsafe IntPtr Make(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType logicalType)
+        private static unsafe IntPtr Make(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType? logicalType)
         {
             var handles = fields.Select(f => f.Handle.IntPtr).ToArray();
 

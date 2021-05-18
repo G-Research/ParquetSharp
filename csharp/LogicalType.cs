@@ -38,7 +38,7 @@ namespace ParquetSharp
 
         public LogicalTypeEnum Type => ExceptionInfo.Return<LogicalTypeEnum>(Handle, LogicalType_Type);
 
-        public bool Equals(LogicalType other)
+        public bool Equals(LogicalType? other)
         {
             if (other == null) return false;
             if (Handle.IntPtr == IntPtr.Zero || other.Handle.IntPtr == IntPtr.Zero) return false;
@@ -74,48 +74,31 @@ namespace ParquetSharp
         {
             if (handle == IntPtr.Zero)
             {
-                return null;
+                throw new ArgumentNullException(nameof(handle));
             }
 
             var type = ExceptionInfo.Return<LogicalTypeEnum>(handle, LogicalType_Type);
 
-            switch (type)
+            return type switch
             {
-                case LogicalTypeEnum.String:
-                    return new StringLogicalType(handle);
-                case LogicalTypeEnum.Map:
-                    return new MapLogicalType(handle);
-                case LogicalTypeEnum.List:
-                    return new ListLogicalType(handle);
-                case LogicalTypeEnum.Enum:
-                    return new EnumLogicalType(handle);
-                case LogicalTypeEnum.Decimal:
-                    return new DecimalLogicalType(handle);
-                case LogicalTypeEnum.Date:
-                    return new DateLogicalType(handle);
-                case LogicalTypeEnum.Time:
-                    return new TimeLogicalType(handle);
-                case LogicalTypeEnum.Timestamp:
-                    return new TimestampLogicalType(handle);
-                case LogicalTypeEnum.Interval:
-                    return new IntervalLogicalType(handle);
-                case LogicalTypeEnum.Int:
-                    return new IntLogicalType(handle);
-                case LogicalTypeEnum.Nil:
-                    return new NullLogicalType(handle);
-                case LogicalTypeEnum.Json:
-                    return new JsonLogicalType(handle);
-                case LogicalTypeEnum.Bson:
-                    return new BsonLogicalType(handle);
-                case LogicalTypeEnum.Uuid:
-                    return new UuidLogicalType(handle);
-                case LogicalTypeEnum.None:
-                    return new NoneLogicalType(handle);
-                case LogicalTypeEnum.Unknown:
-                    return new UnknownLogicalType(handle);
-                default:
-                    throw new ArgumentOutOfRangeException($"unknown logical type {type}");
-            }
+                LogicalTypeEnum.String => new StringLogicalType(handle),
+                LogicalTypeEnum.Map => new MapLogicalType(handle),
+                LogicalTypeEnum.List => new ListLogicalType(handle),
+                LogicalTypeEnum.Enum => new EnumLogicalType(handle),
+                LogicalTypeEnum.Decimal => new DecimalLogicalType(handle),
+                LogicalTypeEnum.Date => new DateLogicalType(handle),
+                LogicalTypeEnum.Time => new TimeLogicalType(handle),
+                LogicalTypeEnum.Timestamp => new TimestampLogicalType(handle),
+                LogicalTypeEnum.Interval => new IntervalLogicalType(handle),
+                LogicalTypeEnum.Int => new IntLogicalType(handle),
+                LogicalTypeEnum.Nil => new NullLogicalType(handle),
+                LogicalTypeEnum.Json => new JsonLogicalType(handle),
+                LogicalTypeEnum.Bson => new BsonLogicalType(handle),
+                LogicalTypeEnum.Uuid => new UuidLogicalType(handle),
+                LogicalTypeEnum.None => new NoneLogicalType(handle),
+                LogicalTypeEnum.Unknown => new UnknownLogicalType(handle),
+                _ => throw new ArgumentOutOfRangeException($"unknown logical type {type}")
+            };
         }
 
         [DllImport(ParquetDll.Name)]

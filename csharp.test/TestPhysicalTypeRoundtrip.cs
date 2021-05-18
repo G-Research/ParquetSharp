@@ -234,8 +234,8 @@ namespace ParquetSharp.Test
 
         private sealed class ExpectedColumn
         {
-            public string Name;
-            public Array Values;
+            public string Name = ""; // TODO replace with init;
+            public Array Values = new object[0]; // TODO replace with init;
 
             public int MaxDefinitionlevel = 0;
             public int MaxRepetitionLevel = 0;

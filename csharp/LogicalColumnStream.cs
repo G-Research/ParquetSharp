@@ -31,9 +31,9 @@ namespace ParquetSharp
         private static List<Schema.Node> GetSchemaNode(Schema.Node node)
         {
             var schemaNodes = new List<Schema.Node>();
-            for (; node != null; node = node.Parent)
+            for (var n = node; n != null; n = n.Parent)
             {
-                schemaNodes.Add(node);
+                schemaNodes.Add(n);
             }
             schemaNodes.RemoveAt(schemaNodes.Count - 1); // we don't need the schema root
             schemaNodes.Reverse(); // root to leaf
@@ -46,9 +46,9 @@ namespace ParquetSharp
         public LogicalType LogicalType { get; }
 
         protected readonly Array Buffer;
-        protected readonly short[] DefLevels;
-        protected readonly short[] RepLevels;
+        protected readonly short[]? DefLevels;
+        protected readonly short[]? RepLevels;
 
-        protected readonly Schema.Node[] ArraySchemaNodes;
+        protected readonly Schema.Node[]? ArraySchemaNodes;
     }
 }

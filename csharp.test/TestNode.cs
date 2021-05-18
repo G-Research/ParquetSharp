@@ -198,7 +198,7 @@ namespace ParquetSharp.Test
         private string _groupName = "root";
         private PhysicalType _physicalType = PhysicalType.Int32;
         private LogicalType _primitiveLogicalType = LogicalType.Int(32, true);
-        private LogicalType _groupLogicalType = null;
+        private LogicalType? _groupLogicalType = null;
         private Repetition _primitiveRepetition = Repetition.Required;
         private Repetition _groupRepetition = Repetition.Required;
         private int _length = 16;

@@ -88,10 +88,10 @@ namespace ParquetSharp.Test
             //Assert.AreEqual(0, fileWriter.NumRows); // 2021-04-08: calling this results in a segfault when the writer has been closed
             //Assert.AreEqual(1, fileWriter.NumRowGroups); // 2021-04-08: calling this results in a segfault when the writer has been closed
             Assert.IsNotNull(fileWriter.FileMetaData);
-            Assert.AreEqual(2, fileWriter.FileMetaData.NumColumns);
-            Assert.AreEqual(6, fileWriter.FileMetaData.NumRows);
-            Assert.AreEqual(1, fileWriter.FileMetaData.NumRowGroups);
-            Assert.AreEqual(kvm, fileWriter.FileMetaData.KeyValueMetadata);
+            Assert.AreEqual(2, fileWriter.FileMetaData?.NumColumns);
+            Assert.AreEqual(6, fileWriter.FileMetaData?.NumRows);
+            Assert.AreEqual(1, fileWriter.FileMetaData?.NumRowGroups);
+            Assert.AreEqual(kvm, fileWriter.FileMetaData?.KeyValueMetadata);
         }
 
         [Test]
@@ -106,7 +106,7 @@ namespace ParquetSharp.Test
             fileWriter.Dispose();
 
             var exception = Assert.Throws<NullReferenceException>(() => fileWriter.AppendRowGroup());
-            Assert.AreEqual("null native handle", exception.Message);
+            Assert.AreEqual("null native handle", exception?.Message);
         }
 
         [Test]
@@ -121,7 +121,7 @@ namespace ParquetSharp.Test
                 throw new Exception("this is the expected message");
             });
 
-            Assert.That(exception.Message, Contains.Substring("this is the expected message"));
+            Assert.That(exception?.Message, Contains.Substring("this is the expected message"));
         }
 
         [Test]
@@ -137,7 +137,7 @@ namespace ParquetSharp.Test
                 throw new Exception("this is the expected message");
             });
 
-            Assert.That(exception.Message, Contains.Substring("this is the expected message"));
+            Assert.That(exception?.Message, Contains.Substring("this is the expected message"));
         }
 
         [Test]
@@ -161,7 +161,7 @@ namespace ParquetSharp.Test
                 }
             });
 
-            Assert.That(exception.Message, Contains.Substring("this is the expected message"));
+            Assert.That(exception?.Message, Contains.Substring("this is the expected message"));
         }
 
         [Test]
