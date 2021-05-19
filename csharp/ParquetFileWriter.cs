@@ -17,6 +17,7 @@ namespace ParquetSharp
             using var schema = Column.CreateSchemaNode(columns);
             using var writerProperties = CreateWriterProperties(compression);
             _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
+            Columns = columns;
         }
 
         public ParquetFileWriter(
@@ -28,6 +29,7 @@ namespace ParquetSharp
             using var schema = Column.CreateSchemaNode(columns);
             using var writerProperties = CreateWriterProperties(compression);
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
+            Columns = columns;
         }
 
         public ParquetFileWriter(
@@ -40,6 +42,7 @@ namespace ParquetSharp
             using var schema = Column.CreateSchemaNode(columns, LogicalTypeFactory = logicalTypeFactory ?? LogicalTypeFactory.Default);
             using var writerProperties = CreateWriterProperties(compression);
             _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
+            Columns = columns;
         }
 
         public ParquetFileWriter(
@@ -52,6 +55,7 @@ namespace ParquetSharp
             using var schema = Column.CreateSchemaNode(columns, LogicalTypeFactory = logicalTypeFactory ?? LogicalTypeFactory.Default);
             using var writerProperties = CreateWriterProperties(compression);
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
+            Columns = columns;
         }
 
         public ParquetFileWriter(
@@ -62,6 +66,7 @@ namespace ParquetSharp
         {
             using var schema = Column.CreateSchemaNode(columns);
             _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
+            Columns = columns;
         }
 
         public ParquetFileWriter(
@@ -72,6 +77,7 @@ namespace ParquetSharp
         {
             using var schema = Column.CreateSchemaNode(columns);
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
+            Columns = columns;
         }
 
         public ParquetFileWriter(
@@ -83,6 +89,7 @@ namespace ParquetSharp
         {
             using var schema = Column.CreateSchemaNode(columns, LogicalTypeFactory = logicalTypeFactory ?? LogicalTypeFactory.Default);
             _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
+            Columns = columns;
         }
 
         public ParquetFileWriter(
@@ -94,6 +101,7 @@ namespace ParquetSharp
         {
             using var schema = Column.CreateSchemaNode(columns, LogicalTypeFactory = logicalTypeFactory ?? LogicalTypeFactory.Default);
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
+            Columns = columns;
         }
 
         public ParquetFileWriter(
@@ -103,6 +111,7 @@ namespace ParquetSharp
             IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             _handle = CreateParquetFileWriter(path, schema, writerProperties, keyValueMetadata);
+            Columns = null;
         }
 
         public ParquetFileWriter(
@@ -112,6 +121,7 @@ namespace ParquetSharp
             IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, keyValueMetadata);
+            Columns = null;
         }
 
         public void Dispose()
@@ -157,7 +167,6 @@ namespace ParquetSharp
         public SchemaDescriptor Schema => new(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Schema));
         public ColumnDescriptor ColumnDescriptor(int i) => new(ExceptionInfo.Return<int, IntPtr>(_handle, i, ParquetFileWriter_Descr));
 
-        
         public IReadOnlyDictionary<string, string> KeyValueMetadata
         {
             get
@@ -284,6 +293,7 @@ namespace ParquetSharp
         private static extern IntPtr ParquetFileWriter_Metadata(IntPtr writer, out IntPtr metadata);
 
         private readonly ParquetHandle _handle;
+        internal readonly Column[]? Columns;
         private FileMetaData? _fileMetaData;
         private WriterProperties? _writerProperties;
     }

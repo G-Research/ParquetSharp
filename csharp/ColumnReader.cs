@@ -8,7 +8,7 @@ namespace ParquetSharp
     /// </summary>
     public abstract class ColumnReader : IDisposable
     {
-        internal static ColumnReader Create(IntPtr handle, RowGroupReader rowGroupReader, ColumnChunkMetaData columnChunkMetaData)
+        internal static ColumnReader Create(IntPtr handle, RowGroupReader rowGroupReader, ColumnChunkMetaData columnChunkMetaData, int columnIndex)
         {
             var parquetHandle = new ParquetHandle(handle, ColumnReader_Free);
 
@@ -19,21 +19,21 @@ namespace ParquetSharp
                 switch (type)
                 {
                     case PhysicalType.Boolean:
-                        return new ColumnReader<bool>(parquetHandle, rowGroupReader, columnChunkMetaData);
+                        return new ColumnReader<bool>(parquetHandle, rowGroupReader, columnChunkMetaData, columnIndex);
                     case PhysicalType.Int32:
-                        return new ColumnReader<int>(parquetHandle, rowGroupReader, columnChunkMetaData);
+                        return new ColumnReader<int>(parquetHandle, rowGroupReader, columnChunkMetaData, columnIndex);
                     case PhysicalType.Int64:
-                        return new ColumnReader<long>(parquetHandle, rowGroupReader, columnChunkMetaData);
+                        return new ColumnReader<long>(parquetHandle, rowGroupReader, columnChunkMetaData, columnIndex);
                     case PhysicalType.Int96:
-                        return new ColumnReader<Int96>(parquetHandle, rowGroupReader, columnChunkMetaData);
+                        return new ColumnReader<Int96>(parquetHandle, rowGroupReader, columnChunkMetaData, columnIndex);
                     case PhysicalType.Float:
-                        return new ColumnReader<float>(parquetHandle, rowGroupReader, columnChunkMetaData);
+                        return new ColumnReader<float>(parquetHandle, rowGroupReader, columnChunkMetaData, columnIndex);
                     case PhysicalType.Double:
-                        return new ColumnReader<double>(parquetHandle, rowGroupReader, columnChunkMetaData);
+                        return new ColumnReader<double>(parquetHandle, rowGroupReader, columnChunkMetaData, columnIndex);
                     case PhysicalType.ByteArray:
-                        return new ColumnReader<ByteArray>(parquetHandle, rowGroupReader, columnChunkMetaData);
+                        return new ColumnReader<ByteArray>(parquetHandle, rowGroupReader, columnChunkMetaData, columnIndex);
                     case PhysicalType.FixedLenByteArray:
-                        return new ColumnReader<FixedLenByteArray>(parquetHandle, rowGroupReader, columnChunkMetaData);
+                        return new ColumnReader<FixedLenByteArray>(parquetHandle, rowGroupReader, columnChunkMetaData, columnIndex);
                     default:
                         throw new NotSupportedException($"Physical type {type} is not supported");
                 }
@@ -46,11 +46,12 @@ namespace ParquetSharp
             }
         }
 
-        internal ColumnReader(ParquetHandle handle, RowGroupReader rowGroupReader, ColumnChunkMetaData columnChunkMetaData)
+        internal ColumnReader(ParquetHandle handle, RowGroupReader rowGroupReader, ColumnChunkMetaData columnChunkMetaData, int columnIndex)
         {
             Handle = handle;
             RowGroupReader = rowGroupReader;
             ColumnChunkMetaData = columnChunkMetaData;
+            ColumnIndex = columnIndex;
         }
 
         public void Dispose()
@@ -59,6 +60,7 @@ namespace ParquetSharp
             Handle.Dispose();
         }
 
+        public int ColumnIndex { get; }
         public LogicalTypeFactory LogicalTypeFactory => RowGroupReader.ParquetFileReader.LogicalTypeFactory;
         public LogicalReadConverterFactory LogicalReadConverterFactory => RowGroupReader.ParquetFileReader.LogicalReadConverterFactory;
 
@@ -203,8 +205,8 @@ namespace ParquetSharp
     /// <inheritdoc />
     public sealed class ColumnReader<TValue> : ColumnReader where TValue : unmanaged
     {
-        internal ColumnReader(ParquetHandle handle, RowGroupReader rowGroupReader, ColumnChunkMetaData columnChunkMetaData)
-            : base(handle, rowGroupReader, columnChunkMetaData)
+        internal ColumnReader(ParquetHandle handle, RowGroupReader rowGroupReader, ColumnChunkMetaData columnChunkMetaData, int columnIndex)
+            : base(handle, rowGroupReader, columnChunkMetaData, columnIndex)
         {
         }
 

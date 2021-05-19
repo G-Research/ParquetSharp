@@ -30,12 +30,12 @@ namespace ParquetSharp
 
         public ColumnWriter Column(int i)
         {
-            return ColumnWriter.Create(ExceptionInfo.Return<int, IntPtr>(_handle, i, RowGroupWriter_Column), this);
+            return ColumnWriter.Create(ExceptionInfo.Return<int, IntPtr>(_handle, i, RowGroupWriter_Column), this, i);
         }
 
         public ColumnWriter NextColumn()
         {
-            return ColumnWriter.Create(ExceptionInfo.Return<IntPtr>(_handle, RowGroupWriter_NextColumn), this);
+            return ColumnWriter.Create(ExceptionInfo.Return<IntPtr>(_handle, RowGroupWriter_NextColumn), this, CurrentColumn);
         }
 
         [DllImport(ParquetDll.Name)]

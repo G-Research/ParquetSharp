@@ -8,37 +8,38 @@ namespace ParquetSharp
     /// </summary>
     public abstract class ColumnWriter : IDisposable
     {
-        internal static ColumnWriter Create(IntPtr handle, RowGroupWriter rowGroupWriter)
+        internal static ColumnWriter Create(IntPtr handle, RowGroupWriter rowGroupWriter, int columnIndex)
         {
             var type = ExceptionInfo.Return<PhysicalType>(handle, ColumnWriter_Type);
 
             switch (type)
             {
                 case PhysicalType.Boolean:
-                    return new ColumnWriter<bool>(handle, rowGroupWriter);
+                    return new ColumnWriter<bool>(handle, rowGroupWriter, columnIndex);
                 case PhysicalType.Int32:
-                    return new ColumnWriter<int>(handle, rowGroupWriter);
+                    return new ColumnWriter<int>(handle, rowGroupWriter, columnIndex);
                 case PhysicalType.Int64:
-                    return new ColumnWriter<long>(handle, rowGroupWriter);
+                    return new ColumnWriter<long>(handle, rowGroupWriter, columnIndex);
                 case PhysicalType.Int96:
-                    return new ColumnWriter<Int96>(handle, rowGroupWriter);
+                    return new ColumnWriter<Int96>(handle, rowGroupWriter, columnIndex);
                 case PhysicalType.Float:
-                    return new ColumnWriter<float>(handle, rowGroupWriter);
+                    return new ColumnWriter<float>(handle, rowGroupWriter, columnIndex);
                 case PhysicalType.Double:
-                    return new ColumnWriter<double>(handle, rowGroupWriter);
+                    return new ColumnWriter<double>(handle, rowGroupWriter, columnIndex);
                 case PhysicalType.ByteArray:
-                    return new ColumnWriter<ByteArray>(handle, rowGroupWriter);
+                    return new ColumnWriter<ByteArray>(handle, rowGroupWriter, columnIndex);
                 case PhysicalType.FixedLenByteArray:
-                    return new ColumnWriter<FixedLenByteArray>(handle, rowGroupWriter);
+                    return new ColumnWriter<FixedLenByteArray>(handle, rowGroupWriter, columnIndex);
                 default:
                     throw new NotSupportedException($"Physical type {type} is not supported");
             }
         }
 
-        internal ColumnWriter(IntPtr handle, RowGroupWriter rowGroupWriter)
+        internal ColumnWriter(IntPtr handle, RowGroupWriter rowGroupWriter, int columnIndex)
         {
             Handle = handle;
             RowGroupWriter = rowGroupWriter;
+            ColumnIndex = columnIndex;
         }
 
         public void Dispose()
@@ -52,6 +53,7 @@ namespace ParquetSharp
             return ExceptionInfo.Return<long>(Handle, ColumnWriter_Close);
         }
 
+        public int ColumnIndex { get; }
         public LogicalTypeFactory LogicalTypeFactory => RowGroupWriter.ParquetFileWriter.LogicalTypeFactory;
         public LogicalWriteConverterFactory LogicalWriteConverterFactory => RowGroupWriter.ParquetFileWriter.LogicalWriteConverterFactory;
         
@@ -159,8 +161,8 @@ namespace ParquetSharp
     /// <inheritdoc />
     public sealed class ColumnWriter<TValue> : ColumnWriter where TValue : unmanaged
     {
-        internal ColumnWriter(IntPtr handle, RowGroupWriter rowGroupWriter)
-            : base(handle, rowGroupWriter)
+        internal ColumnWriter(IntPtr handle, RowGroupWriter rowGroupWriter, int columnIndex)
+            : base(handle, rowGroupWriter, columnIndex)
         {
         }
 

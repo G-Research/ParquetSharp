@@ -57,7 +57,7 @@ namespace ParquetSharp.Test
             {
                 using var fileReader = new ParquetFileReader(input)
                 {
-                    LogicalTypeFactory = new ReadTypeFactory(),
+                    LogicalTypeFactory = new ReadTypeFactoryNoHint(),
                     LogicalReadConverterFactory = new ReadConverterFactory()
                 };
                 using var groupReader = fileReader.RowGroup(0);
@@ -91,7 +91,7 @@ namespace ParquetSharp.Test
             {
                 using var fileReader = new ParquetFileReader(input)
                 {
-                    LogicalTypeFactory = new ReadTypeFactory(),
+                    LogicalTypeFactory = new ReadTypeFactoryNoHint(),
                     LogicalReadConverterFactory = new ReadConverterFactory()
                 };
                 using var groupReader = fileReader.RowGroup(0);
@@ -116,7 +116,6 @@ namespace ParquetSharp.Test
             // Write float values using a custom user-type
             using (var output = new BufferOutputStream(buffer))
             {
-                // TODO use direct schema to avoid name mapping
                 using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<VolumeInDollars>("values")}, new WriteTypeFactory())
                 {
                     LogicalWriteConverterFactory = new WriteConverterFactory()
@@ -142,6 +141,53 @@ namespace ParquetSharp.Test
             }
         }
 
+        [Test]
+        public static void TestWriterConverterNoHint()
+        {
+            using var buffer = new ResizableBuffer();
+
+            // Write float values using a custom user-type.
+            // Use explicit schema description, such that ParquetFileWriter does not know the C# logical type mapping.
+            using (var output = new BufferOutputStream(buffer))
+            {
+                var logicalTypeFactory = new WriteTypeFactoryNoHint();
+
+                using var schema = Column.CreateSchemaNode(new Column[] {new Column<VolumeInDollars>("values")}, logicalTypeFactory);
+                using var writerProperties = CreateWriterProperties();
+                using var fileWriter = new ParquetFileWriter(output, schema, writerProperties)
+                {
+                    LogicalTypeFactory = logicalTypeFactory,
+                    LogicalWriteConverterFactory = new WriteConverterFactory()
+                };
+                using var groupWriter = fileWriter.AppendRowGroup();
+                using var columnWriter = groupWriter.NextColumn().LogicalWriter<VolumeInDollars>();
+
+                columnWriter.WriteBatch(new[] { new VolumeInDollars(1f), new VolumeInDollars(2f), new VolumeInDollars(3f) });
+                fileWriter.Close();
+            }
+
+            // Read back regular float values.
+            using (var input = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(input);
+                using var groupReader = fileReader.RowGroup(0);
+                using var columnReader = groupReader.Column(0).LogicalReader<float>();
+
+                var expected = new[] { 1f, 2f, 3f };
+                var values = columnReader.ReadAll(checked((int)groupReader.MetaData.NumRows));
+
+                Assert.AreEqual(expected, values);
+            }
+        }
+
+        // TODO Arrays
+
+        private static WriterProperties CreateWriterProperties()
+        {
+            using var builder = new WriterPropertiesBuilder();
+            return builder.Compression(Compression.Snappy).Build();
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         private readonly struct VolumeInDollars : IEquatable<VolumeInDollars>
         {
@@ -164,17 +210,15 @@ namespace ParquetSharp.Test
         }
 
         /// <summary>
-        /// A logical type factory that supports our user custom type (for the read tests only).
+        /// A logical type factory that supports our user custom type (for the read tests only). Ignore hints (used by unit tests that cannot provide a columnLogicalTypeHint).
         /// </summary>
-        private sealed class ReadTypeFactory : LogicalTypeFactory
+        private sealed class ReadTypeFactoryNoHint : LogicalTypeFactory
         {
             public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeHint)
             {
-                // We have to use the column name to know what type to expose if we don't get the column hint.
-                // The column logical type hint is given to us if we use the row-oriented API or a ParquetFileWriter
-                // with the Column[] ctor argument.
-                columnLogicalTypeHint ??= descriptor.Path.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null;
-                return base.GetSystemTypes(descriptor, columnLogicalTypeHint);
+                // We have to use the column name to know what type to expose.
+                Assert.IsNull(columnLogicalTypeHint);
+                return base.GetSystemTypes(descriptor, descriptor.Path.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null);
             }
         }
 
@@ -187,48 +231,46 @@ namespace ParquetSharp.Test
             {
                 // Optional: the following is an optimisation and not stricly needed (but helps with speed).
                 // Since VolumeInDollars is bitwise identical to float, we can read the values in-place.
-                if (typeof(TLogical) == typeof(VolumeInDollars))
-                {
-                    return LogicalRead.GetDirectReader<VolumeInDollars, float>();
-                }
-
+                if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalRead.GetDirectReader<VolumeInDollars, float>();
                 return base.GetDirectReader<TLogical, TPhysical>();
             }
 
             public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ColumnChunkMetaData columnChunkMetaData)
             {
                 // VolumeInDollars is bitwise identical to float, so we can reuse the native converter.
-                if (typeof(TLogical) == typeof(VolumeInDollars))
-                {
-                    return LogicalRead.GetNativeConverter<VolumeInDollars, float>();
-                }
-
+                if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalRead.GetNativeConverter<VolumeInDollars, float>();
                 return base.GetConverter<TLogical, TPhysical>(columnDescriptor, columnChunkMetaData);
             }
         }
 
         /// <summary>
-        /// A logical type factory that supports our user custom type (for the write tests only).
+        /// A logical type factory that supports our user custom type (for the write tests only). Rely on hints (used by unit tests that can provide a columnLogicalTypeHint).
         /// </summary>
         private sealed class WriteTypeFactory : LogicalTypeFactory
         {
             public override bool TryGetParquetTypes(Type logicalSystemType, out (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType) entry)
             {
-                if (logicalSystemType == typeof(VolumeInDollars))
-                {
-                    return base.TryGetParquetTypes(typeof(float), out entry);
-                }
+                if (logicalSystemType == typeof(VolumeInDollars)) return base.TryGetParquetTypes(typeof(float), out entry);
+                return base.TryGetParquetTypes(logicalSystemType, out entry);
+            }
+        }
 
+        /// <summary>
+        /// A logical type factory that supports our user custom type (for the write tests only). Ignore hints (used by unit tests that cannot provide a columnLogicalTypeHint).
+        /// </summary>
+        private sealed class WriteTypeFactoryNoHint : LogicalTypeFactory
+        {
+            public override bool TryGetParquetTypes(Type logicalSystemType, out (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType) entry)
+            {
+                if (logicalSystemType == typeof(VolumeInDollars)) return base.TryGetParquetTypes(typeof(float), out entry);
                 return base.TryGetParquetTypes(logicalSystemType, out entry);
             }
 
             public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeHint)
             {
-                // We have to use the column name to know what type to expose if we don't get the column hint.
-                // The column logical type hint is given to us if we use the row-oriented API or a ParquetFileWriter
-                // with the Column[] ctor argument.
-                columnLogicalTypeHint ??= descriptor.Path.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null;
-                return base.GetSystemTypes(descriptor, columnLogicalTypeHint);
+                // We have to use the column name to know what type to expose.
+                Assert.IsNull(columnLogicalTypeHint);
+                return base.GetSystemTypes(descriptor, descriptor.Path.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null);
             }
         }
 
@@ -239,12 +281,7 @@ namespace ParquetSharp.Test
         {
             public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ByteBuffer? byteBuffer)
             {
-                // VolumeInDollars is bitwise identical to float, so we can reuse the native converter.
-                if (typeof(TLogical) == typeof(VolumeInDollars))
-                {
-                    return LogicalWrite.GetNativeConverter<VolumeInDollars, float>();
-                }
-
+                if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalWrite.GetNativeConverter<VolumeInDollars, float>();
                 return base.GetConverter<TLogical, TPhysical>(columnDescriptor, byteBuffer);
             }
         }
