@@ -27,6 +27,7 @@ namespace ParquetSharp
             ColumnReader columnReader, 
             int bufferLength)
         {
+            //TODO use TElement as a LogicalWrite hint
             var reader = Create(columnReader, bufferLength);
 
             try

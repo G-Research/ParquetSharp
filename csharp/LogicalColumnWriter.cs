@@ -14,14 +14,14 @@ namespace ParquetSharp
         {
         }
 
-        internal static LogicalColumnWriter Create(ColumnWriter columnWriter, int bufferLength = 4 * 1024)
+        internal static LogicalColumnWriter Create(ColumnWriter columnWriter, int bufferLength, Type? elementTypeHint)
         {
             if (columnWriter == null) throw new ArgumentNullException(nameof(columnWriter));
 
             // We already know what the column writer logical system type should be,
             // if the file writer was constructed with a Columns[] argument.
             var columns = columnWriter.RowGroupWriter.ParquetFileWriter.Columns;
-            var columnLogicalTypeHint = GetLeafElementType(columns?[columnWriter.ColumnIndex].LogicalSystemType);
+            var columnLogicalTypeHint = GetLeafElementType(elementTypeHint ?? columns?[columnWriter.ColumnIndex].LogicalSystemType);
 
             return columnWriter.ColumnDescriptor.Apply(
                 columnWriter.LogicalTypeFactory, 
@@ -29,9 +29,9 @@ namespace ParquetSharp
                 new Creator(columnWriter, bufferLength));
         }
 
-        internal static LogicalColumnWriter<TElementType> Create<TElementType>(ColumnWriter columnWriter, int bufferLength = 4 * 1024)
+        internal static LogicalColumnWriter<TElementType> Create<TElementType>(ColumnWriter columnWriter, int bufferLength)
         {
-            var writer = Create(columnWriter, bufferLength);
+            var writer = Create(columnWriter, bufferLength, typeof(TElementType));
 
             try
             {
