@@ -18,8 +18,8 @@ namespace ParquetSharp
         {
             if (columnWriter == null) throw new ArgumentNullException(nameof(columnWriter));
 
-            // We already know what the column writer logical system type should be,
-            // if the file writer was constructed with a Columns[] argument.
+            // If the file writer was constructed with a Columns[] argument, or if an elementTypeHint is given,
+            // then we already know what the column writer logical system type should be.
             var columns = columnWriter.RowGroupWriter.ParquetFileWriter.Columns;
             var columnLogicalTypeHint = GetLeafElementType(elementTypeHint ?? columns?[columnWriter.ColumnIndex].LogicalSystemType);
 
@@ -45,16 +45,6 @@ namespace ParquetSharp
         }
 
         public abstract TReturn Apply<TReturn>(ILogicalColumnWriterVisitor<TReturn> visitor);
-
-        private static Type? GetLeafElementType(Type? type)
-        {
-            while (type != null && type != typeof(byte[]) && type.IsArray)
-            {
-                type = type.GetElementType();
-            }
-
-            return type;
-        }
 
         private sealed class Creator : IColumnDescriptorVisitor<LogicalColumnWriter>
         {

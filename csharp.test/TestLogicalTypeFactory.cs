@@ -9,154 +9,167 @@ namespace ParquetSharp.Test
     [TestFixture]
     internal static class TestLogicalTypeFactory
     {
+        // Summmary:
+        //
+        // Whenever the user uses a custom type to read or write values to a Parquet file, a LogicalReadWriteConverterFactory
+        // needs to be provided. This ConverterFactory tells to the LogicalColumnReader/Writer how to convert the user custom type
+        // into a physical type that is understood by Parquet.
+        //
+        // On top of that, if the custom type is used for creating the schema (when writing), or if accessing a
+        // LogicalColumnReader/Writer without explicitly giving the element type (e.g. columnWriter.LogicalColumn<CustomType>()),
+        // then a LogicalTypeFactory is needed in order to establish the proper logical type mapping.
+        //
+        // The following tests try to encompass all these potential use cases.
 
         [Test]
-        public static void TestReadConverterNoFactories()
+        public static void TestReadNoTypeFactory()
         {
-            using var buffer = new ResizableBuffer();
-
-            // Write regular float values to the file.
-            using (var output = new BufferOutputStream(buffer))
-            {
-                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<float>("values")});
-                using var groupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = groupWriter.NextColumn().LogicalWriter<float>();
-
-                columnWriter.WriteBatch(Values);
-                fileWriter.Close();
-            }
-
             // Test that we cannot read back the values using a custom type without providing a factory.
-            using (var input = new BufferReader(buffer))
+            using var buffer = WriteTestValues(Values);
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            using var groupReader = fileReader.RowGroup(0);
+
+            var exception = Assert.Throws<InvalidCastException>(() =>
             {
-                using var fileReader = new ParquetFileReader(input);
-                using var groupReader = fileReader.RowGroup(0);
-
-                Assert.Throws<InvalidCastException>(() => groupReader.Column(0).LogicalReader<VolumeInDollars>());
-            }
+                var reader = (LogicalColumnReader<VolumeInDollars>) groupReader.Column(0).LogicalReader();
+            });
+            StringAssert.StartsWith("Unable to cast object of type 'ParquetSharp.LogicalColumnReader`3[System.Single,System.Single,System.Single]", exception?.Message);
         }
 
         [Test]
-        public static void TestReadConverter()
+        public static void TestReadNoConverterFactory()
         {
-            using var buffer = new ResizableBuffer();
+            // Test that we cannot read back the values using a custom type without providing a factory.
+            using var buffer = WriteTestValues(Values);
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            using var groupReader = fileReader.RowGroup(0);
 
-            // Write regular float values to the file.
-            using (var output = new BufferOutputStream(buffer))
+            var exception = Assert.Throws<NotSupportedException>(() => groupReader.Column(0).LogicalReader<VolumeInDollars>());
+            StringAssert.StartsWith("unsupported logical system type", exception?.Message);
+        }
+
+        // TODO Same for writer
+
+        [Test]
+        public static void TestRead()
+        {
+            TestRead(CustomValues, Values);
+        }
+
+        [Test]
+        public static void TestRead_Array()
+        {
+            TestRead(ArrayCustomValues, ArrayValues);
+        }
+
+        [Test]
+        public static void TestReadNoReaderHint()
+        {
+            TestReadNoReaderHint(CustomValues, Values);
+        }
+
+        [Test]
+        public static void TestReadNoReaderHint_Array()
+        {
+            TestReadNoReaderHint(ArrayCustomValues, ArrayValues);
+        }
+
+        [Test]
+        public static void TestWrite()
+        {
+            TestWrite(Values, CustomValues);
+        }
+
+        [Test]
+        public static void TestWrite_Array()
+        {
+            TestWrite(ArrayValues, ArrayCustomValues);
+        }
+
+        [Test]
+        public static void TestWriteNoColumnHint()
+        {
+            TestWriteNoColumnHint(Values, CustomValues);
+        }
+
+        [Test]
+        public static void TestWriteNoColumnHint_Array()
+        {
+            TestWriteNoColumnHint(ArrayValues, ArrayCustomValues);
+        }
+
+        [Test]
+        public static void TestWriteNoWriterHint()
+        {
+            TestWriteNoWriterHint(Values, CustomValues);
+        }
+
+        [Test]
+        public static void TestWriteNoWriterHint_Array()
+        {
+            TestWriteNoWriterHint(ArrayValues, ArrayCustomValues);
+        }
+
+        [Test]
+        public static void TestWriteNoColumnNorWriterHint()
+        {
+            TestWriteNoColumnNorWriterHint(Values, CustomValues);
+        }
+
+        [Test]
+        public static void TestWriteNoColumnNorWriterHint_Array()
+        {
+            TestWriteNoColumnNorWriterHint(ArrayValues, ArrayCustomValues);
+        }
+
+        // Reader tests.
+
+        private static void TestRead<TCustom, TValue>(TCustom[] expected, TValue[] written)
+        {
+            // Read float values into a custom user-type:
+            // - Provide a converter factory such that float values can be written as VolumeInDollars.
+
+            using var buffer = WriteTestValues(written);
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input)
             {
-                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<float>("values")});
-                using var groupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = groupWriter.NextColumn().LogicalWriter<float>();
+                LogicalReadConverterFactory = new ReadConverterFactory()
+            };
+            using var groupReader = fileReader.RowGroup(0);
+            using var columnReader = groupReader.Column(0).LogicalReader<TCustom>();
 
-                columnWriter.WriteBatch(Values);
-                fileWriter.Close();
-            }
+            var values = columnReader.ReadAll(checked((int) groupReader.MetaData.NumRows));
 
-            // Read back the float values using a custom user-type.
-            using (var input = new BufferReader(buffer))
+            Assert.AreEqual(expected, values);
+        }
+
+        private static void TestReadNoReaderHint<TCustom, TValue>(TCustom[] expected, TValue[] written)
+        {
+            // Read float values into a custom user-type:
+            // - Provide a type factory such that Column("values") is known to be of type VolumeInDollars.
+            // - Provide a converter factory such that float values can be written as VolumeInDollars.
+            // - Do not explicitly state the expected type when accessing the LogicalColumnReader.
+
+            using var buffer = WriteTestValues(written);
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input)
             {
-                using var fileReader = new ParquetFileReader(input)
-                {
-                    LogicalTypeFactory = new ReadTypeFactoryNoHint(),
-                    LogicalReadConverterFactory = new ReadConverterFactory()
-                };
-                using var groupReader = fileReader.RowGroup(0);
-                using var columnReader = groupReader.Column(0).LogicalReader<VolumeInDollars>();
+                LogicalTypeFactory = new ReadTypeFactoryNoHint(),
+                LogicalReadConverterFactory = new ReadConverterFactory()
+            };
+            using var groupReader = fileReader.RowGroup(0);
+            using var columnReader = (LogicalColumnReader<TCustom>) groupReader.Column(0).LogicalReader();
 
-                var expected = new[] {new VolumeInDollars(1f), new VolumeInDollars(2f), new VolumeInDollars(3f)};
-                var values = columnReader.ReadAll(checked((int) groupReader.MetaData.NumRows));
+            var values = columnReader.ReadAll(checked((int) groupReader.MetaData.NumRows));
 
-                Assert.AreEqual(expected, values);
-            }
+            Assert.AreEqual(expected, values);
         }
 
-        [Test]
-        public static void TestReadConverterArrays()
-        {
-            using var buffer = new ResizableBuffer();
+        // Writer tests
 
-            // Write regular float arrays to the file.
-            using (var output = new BufferOutputStream(buffer))
-            {
-                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<float[]>("values")});
-                using var groupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = groupWriter.NextColumn().LogicalWriter<float[]>();
-
-                columnWriter.WriteBatch(new[] { new[] { 1f, 2f, 3f }, new[] {4f}});
-                fileWriter.Close();
-            }
-
-            // Read back the float arrays using a custom user-type.
-            using (var input = new BufferReader(buffer))
-            {
-                using var fileReader = new ParquetFileReader(input)
-                {
-                    LogicalTypeFactory = new ReadTypeFactoryNoHint(),
-                    LogicalReadConverterFactory = new ReadConverterFactory()
-                };
-                using var groupReader = fileReader.RowGroup(0);
-                using var columnReader = groupReader.Column(0).LogicalReader<VolumeInDollars[]>();
-
-                var expected = new[]
-                {
-                    new[] {new VolumeInDollars(1f), new VolumeInDollars(2f), new VolumeInDollars(3f)},
-                    new[] {new VolumeInDollars(4f)}
-                };
-                var values = columnReader.ReadAll(checked((int) groupReader.MetaData.NumRows));
-
-                Assert.AreEqual(expected, values);
-            }
-        }
-
-        [Test]
-        public static void TestWriterConverter()
-        {
-            TestWriterConverter(Values, CustomValues);
-        }
-
-        [Test]
-        public static void TestWriterConverter_Array()
-        {
-            TestWriterConverter(ArrayValues, ArrayCustomValues);
-        }
-
-        [Test]
-        public static void TestWriterConverterNoColumnHint()
-        {
-            TestWriterConverterNoColumnHint(Values, CustomValues);
-        }
-
-        [Test]
-        public static void TestWriterConverterNoColumnHint_Array()
-        {
-            TestWriterConverterNoColumnHint(ArrayValues, ArrayCustomValues);
-        }
-
-        [Test]
-        public static void TestWriterConverterNoWriterHint()
-        {
-            TestWriterConverterNoWriterHint(Values, CustomValues);
-        }
-
-        [Test]
-        public static void TestWriterConverterNoWriterHint_Array()
-        {
-            TestWriterConverterNoWriterHint(ArrayValues, ArrayCustomValues);
-        }
-
-        [Test]
-        public static void TestWriterConverterNoColumnNorWriterHint()
-        {
-            TestWriterConverterNoColumnNorWriterHint(Values, CustomValues);
-        }
-
-        [Test]
-        public static void TestWriterConverterNoColumnNorWriterHint_Array()
-        {
-            TestWriterConverterNoColumnNorWriterHint(ArrayValues, ArrayCustomValues);
-        }
-
-        private static void TestWriterConverter<TValue, TCustom>(TValue[] expected, TCustom[] written)
+        private static void TestWrite<TValue, TCustom>(TValue[] expected, TCustom[] written)
         {
             using var buffer = new ResizableBuffer();
 
@@ -180,7 +193,7 @@ namespace ParquetSharp.Test
             CheckWrittenValues(buffer, expected);
         }
 
-        private static void TestWriterConverterNoColumnHint<TValue, TCustom>(TValue[] expected, TCustom[] written)
+        private static void TestWriteNoColumnHint<TValue, TCustom>(TValue[] expected, TCustom[] written)
         {
             using var buffer = new ResizableBuffer();
 
@@ -206,7 +219,7 @@ namespace ParquetSharp.Test
             CheckWrittenValues(buffer, expected);
         }
 
-        private static void TestWriterConverterNoWriterHint<TValue, TCustom>(TValue[] expected, TCustom[] written)
+        private static void TestWriteNoWriterHint<TValue, TCustom>(TValue[] expected, TCustom[] written)
         {
             using var buffer = new ResizableBuffer();
 
@@ -231,7 +244,7 @@ namespace ParquetSharp.Test
             CheckWrittenValues(buffer, expected);
         }
 
-        private static void TestWriterConverterNoColumnNorWriterHint<TValue, TCustom>(TValue[] expected, TCustom[] written)
+        private static void TestWriteNoColumnNorWriterHint<TValue, TCustom>(TValue[] expected, TCustom[] written)
         {
             using var buffer = new ResizableBuffer();
 
@@ -258,6 +271,30 @@ namespace ParquetSharp.Test
             }
 
             CheckWrittenValues(buffer, expected);
+        }
+
+        private static ResizableBuffer WriteTestValues<TValue>(TValue[] written)
+        {
+            var buffer = new ResizableBuffer();
+
+            try
+            {
+                using var output = new BufferOutputStream(buffer);
+                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<TValue>("values")});
+                using var groupWriter = fileWriter.AppendRowGroup();
+                using var columnWriter = groupWriter.NextColumn().LogicalWriter<TValue>();
+
+                columnWriter.WriteBatch(written);
+                fileWriter.Close();
+
+                return buffer;
+            }
+
+            catch
+            {
+                buffer.Dispose();
+                throw;
+            }
         }
 
         private static void CheckWrittenValues<TValue>(ResizableBuffer buffer, TValue[] expected)
@@ -287,7 +324,7 @@ namespace ParquetSharp.Test
                 Value = value;
             }
 
-            public readonly float Value;
+            private readonly float Value;
 
             public bool Equals(VolumeInDollars other)
             {

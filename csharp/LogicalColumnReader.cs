@@ -16,19 +16,24 @@ namespace ParquetSharp
         {
         }
 
-        internal static LogicalColumnReader Create(ColumnReader columnReader, int bufferLength)
+        internal static LogicalColumnReader Create(ColumnReader columnReader, int bufferLength, Type? elementTypeHint)
         {
             if (columnReader == null) throw new ArgumentNullException(nameof(columnReader));
 
-            return columnReader.ColumnDescriptor.Apply(columnReader.LogicalTypeFactory, new Creator(columnReader, bufferLength));
+            // If an elementTypeHint is given, then we already know what the column reader logical system type should be.
+            var columnLogicalTypeHint = GetLeafElementType(elementTypeHint);
+            
+            return columnReader.ColumnDescriptor.Apply(
+                columnReader.LogicalTypeFactory, 
+                columnLogicalTypeHint, 
+                new Creator(columnReader, bufferLength));
         }
 
         internal static LogicalColumnReader<TElement> Create<TElement>(
             ColumnReader columnReader, 
             int bufferLength)
         {
-            //TODO use TElement as a LogicalWrite hint
-            var reader = Create(columnReader, bufferLength);
+            var reader = Create(columnReader, bufferLength, typeof(TElement));
 
             try
             {
