@@ -12,12 +12,15 @@ namespace ParquetSharp.Test
         // Summmary:
         //
         // Whenever the user uses a custom type to read or write values to a Parquet file, a LogicalReadWriteConverterFactory
-        // needs to be provided. This ConverterFactory tells to the LogicalColumnReader/Writer how to convert the user custom type
+        // needs to be provided. This converter factory tells to the LogicalColumnReader/Writer how to convert the user custom type
         // into a physical type that is understood by Parquet.
         //
         // On top of that, if the custom type is used for creating the schema (when writing), or if accessing a
-        // LogicalColumnReader/Writer without explicitly giving the element type (e.g. columnWriter.LogicalColumn<CustomType>()),
+        // LogicalColumnReader/Writer without explicitly giving the element type (e.g. columnWriter.LogicalReader<CustomType>()),
         // then a LogicalTypeFactory is needed in order to establish the proper logical type mapping.
+        //
+        // In other words, the LogicalTypeFactory is only required if the user neither provides a Column class (writer only)
+        // nor gets the LogicalColumnReader/Writer via the strongly typed methods. The corresponding converter factory is always needed.
         //
         // The following tests try to encompass all these potential use cases.
 
