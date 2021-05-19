@@ -81,26 +81,26 @@ namespace ParquetSharp
             return value;
         }
 
-        public static string ReturnString(IntPtr handle, GetFunction<IntPtr> getter, Action<IntPtr> deleter = null)
+        public static string ReturnString(IntPtr handle, GetFunction<IntPtr> getter, Action<IntPtr>? deleter = null)
         {
             Check(getter(handle, out var value));
             return ConvertPtrToString(handle, deleter, value);
         }
 
-        public static string ReturnString(ParquetHandle handle, GetFunction<IntPtr> getter, Action<IntPtr> deleter = null)
+        public static string ReturnString(ParquetHandle handle, GetFunction<IntPtr> getter, Action<IntPtr>? deleter = null)
         {
             Check(getter(handle.IntPtr, out var value));
             return ConvertPtrToString(handle, deleter, value);
         }
 
-        private static string ConvertPtrToString(IntPtr handle, Action<IntPtr> deleter, IntPtr value)
+        private static string ConvertPtrToString(IntPtr handle, Action<IntPtr>? deleter, IntPtr value)
         {
             var str = Marshal.PtrToStringAnsi(value);
             deleter?.Invoke(value);
             return str;
         }
 
-        private static string ConvertPtrToString(ParquetHandle handle, Action<IntPtr> deleter, IntPtr value)
+        private static string ConvertPtrToString(ParquetHandle handle, Action<IntPtr>? deleter, IntPtr value)
         {
             var str = Marshal.PtrToStringAnsi(value);
             deleter?.Invoke(value);

@@ -10,15 +10,14 @@ namespace ParquetSharp
     /// </summary>
     public class Column
     {
-        public Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride = null)
+        public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride = null)
             : this(logicalSystemType, name, logicalTypeOverride, GetTypeLength(logicalSystemType))
         {
             LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
             Name = name ?? throw new ArgumentNullException(nameof(name));
-            LogicalTypeOverride = logicalTypeOverride;
         }
 
-        public unsafe Column(Type logicalSystemType, string name, LogicalType logicalTypeOverride, int length)
+        public unsafe Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride, int length)
         {
             var isDecimal = logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?);
             var isUuid = logicalSystemType == typeof(Guid) || logicalSystemType == typeof(Guid?);
@@ -62,7 +61,7 @@ namespace ParquetSharp
 
         public readonly Type LogicalSystemType;
         public readonly string Name;
-        public readonly LogicalType LogicalTypeOverride;
+        public readonly LogicalType? LogicalTypeOverride;
         public readonly int Length;
 
         /// <summary>
@@ -126,7 +125,7 @@ namespace ParquetSharp
             return -1;
         }
 
-        private static Node CreateSchemaNode(LogicalTypeFactory logicalTypeFactory, Type type, string name, LogicalType logicalTypeOverride, int length)
+        private static Node CreateSchemaNode(LogicalTypeFactory logicalTypeFactory, Type type, string name, LogicalType? logicalTypeOverride, int length)
         {
             if (logicalTypeFactory.TryGetParquetTypes(type, out var p))
             {
@@ -156,7 +155,7 @@ namespace ParquetSharp
 
     public sealed class Column<TLogicalType> : Column
     {
-        public Column(string name, LogicalType logicalTypeOverride = null)
+        public Column(string name, LogicalType? logicalTypeOverride = null)
             : base(typeof(TLogicalType), name, logicalTypeOverride)
         {
         }

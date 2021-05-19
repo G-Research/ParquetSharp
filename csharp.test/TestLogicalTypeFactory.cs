@@ -168,7 +168,7 @@ namespace ParquetSharp.Test
         /// </summary>
         private sealed class ReadTypeFactory : LogicalTypeFactory
         {
-            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type columnLogicalTypeHint)
+            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeHint)
             {
                 // We have to use the column name to know what type to expose if we don't get the column hint.
                 // The column logical type hint is given to us if we use the row-oriented API or a ParquetFileWriter
@@ -183,7 +183,7 @@ namespace ParquetSharp.Test
         /// </summary>
         private sealed class ReadConverterFactory : LogicalReadConverterFactory
         {
-            public override Delegate GetDirectReader<TLogical, TPhysical>()
+            public override Delegate? GetDirectReader<TLogical, TPhysical>()
             {
                 // Optional: the following is an optimisation and not stricly needed (but helps with speed).
                 // Since VolumeInDollars is bitwise identical to float, we can read the values in-place.
@@ -212,7 +212,7 @@ namespace ParquetSharp.Test
         /// </summary>
         private sealed class WriteTypeFactory : LogicalTypeFactory
         {
-            public override bool TryGetParquetTypes(Type logicalSystemType, out (LogicalType logicalType, Repetition repetition, PhysicalType physicalType) entry)
+            public override bool TryGetParquetTypes(Type logicalSystemType, out (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType) entry)
             {
                 if (logicalSystemType == typeof(VolumeInDollars))
                 {
@@ -222,7 +222,7 @@ namespace ParquetSharp.Test
                 return base.TryGetParquetTypes(logicalSystemType, out entry);
             }
 
-            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type columnLogicalTypeHint)
+            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeHint)
             {
                 // We have to use the column name to know what type to expose if we don't get the column hint.
                 // The column logical type hint is given to us if we use the row-oriented API or a ParquetFileWriter
@@ -237,7 +237,7 @@ namespace ParquetSharp.Test
         /// </summary>
         private sealed class WriteConverterFactory : LogicalWriteConverterFactory
         {
-            public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ByteBuffer byteBuffer)
+            public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ByteBuffer? byteBuffer)
             {
                 // VolumeInDollars is bitwise identical to float, so we can reuse the native converter.
                 if (typeof(TLogical) == typeof(VolumeInDollars))

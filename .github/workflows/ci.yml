@@ -202,7 +202,7 @@ jobs:
             framework=netcoreapp3.1
             ;;
           4)
-            framework=net461
+            framework=net472
             # We build for .NET framework with .NET Core 3.1 SDK
             major=3
             ;;

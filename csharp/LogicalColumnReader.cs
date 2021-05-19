@@ -124,7 +124,7 @@ namespace ParquetSharp
             var converterFactory = columnReader.LogicalReadConverterFactory;
 
             _bufferedReader = new BufferedReader<TPhysical>(Source, (TPhysical[]) Buffer, DefLevels, RepLevels);
-            _directReader = (LogicalRead<TLogical, TPhysical>.DirectReader) converterFactory.GetDirectReader<TLogical, TPhysical>();
+            _directReader = (LogicalRead<TLogical, TPhysical>.DirectReader?) converterFactory.GetDirectReader<TLogical, TPhysical>();
             _converter = (LogicalRead<TLogical, TPhysical>.Converter) converterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, columnReader.ColumnChunkMetaData);
         }
 
@@ -140,19 +140,20 @@ namespace ParquetSharp
             return ReadBatchSimple(
                 destination, 
                 _directReader as LogicalRead<TElement, TPhysical>.DirectReader, 
-                _converter as LogicalRead<TElement, TPhysical>.Converter);
+                (_converter as LogicalRead<TElement, TPhysical>.Converter)!);
         }
 
         private int ReadBatchArray(Span<TElement> destination, LogicalRead<TLogical, TPhysical>.Converter converter)
         {
-            var result = (Span<TElement>)ReadArray(ArraySchemaNodes, typeof(TElement), converter, _bufferedReader, destination.Length, 0, 0);
+            var result = (Span<TElement>) (TElement[]) ReadArray(ArraySchemaNodes, typeof(TElement), converter, _bufferedReader, destination.Length, 0, 0);
 
             result.CopyTo(destination);
 
             return result.Length;
         }
 
-        private static Array ReadArray(ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalRead<TLogical, TPhysical>.Converter converter, 
+        private static Array ReadArray(
+            ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalRead<TLogical, TPhysical>.Converter converter, 
             BufferedReader<TPhysical> valueReader, int numArrayEntriesToRead, int repetitionLevel, int nullDefinitionLevel)
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
@@ -180,13 +181,13 @@ namespace ParquetSharp
         private static Array ReadArrayIntermediateLevel(ReadOnlySpan<Node> schemaNodes, BufferedReader<TPhysical> valueReader, Type elementType, 
             LogicalRead<TLogical, TPhysical>.Converter converter, int numArrayEntriesToRead, short repetitionLevel, short nullDefinitionLevel)
         {
-            var acc = new List<Array>();
+            var acc = new List<Array?>();
 
             while (numArrayEntriesToRead == -1 || acc.Count < numArrayEntriesToRead)
             {
                 var defn = valueReader.GetCurrentDefinition();
 
-                Array newItem = null;
+                Array? newItem = null;
 
                 if (defn.DefLevel >= nullDefinitionLevel + 2)
                 {
@@ -248,7 +249,7 @@ namespace ParquetSharp
             return dest;
         }
 
-        private static Array ListToArray(List<Array> list, Type elementType)
+        private static Array ListToArray(List<Array?> list, Type elementType)
         {
             var result = Array.CreateInstance(elementType, list.Count);
 
@@ -275,7 +276,7 @@ namespace ParquetSharp
         /// </summary>
         private int ReadBatchSimple<TTLogical>(
             Span<TTLogical> destination, 
-            LogicalRead<TTLogical, TPhysical>.DirectReader directReader,
+            LogicalRead<TTLogical, TPhysical>.DirectReader? directReader,
             LogicalRead<TTLogical, TPhysical>.Converter converter)
         {
             if (typeof(TTLogical) != typeof(TLogical)) throw new ArgumentException("generic logical type should never be different");
@@ -314,7 +315,7 @@ namespace ParquetSharp
         }
 
         private readonly BufferedReader<TPhysical> _bufferedReader;
-        private readonly LogicalRead<TLogical, TPhysical>.DirectReader _directReader;
+        private readonly LogicalRead<TLogical, TPhysical>.DirectReader? _directReader;
         private readonly LogicalRead<TLogical, TPhysical>.Converter _converter;
     }
 }

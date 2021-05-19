@@ -14,8 +14,8 @@ namespace ParquetSharp.RowOriented
     /// </summary>
     public static class ParquetFile
     {
-        public static Action<Expression> OnReadExpressionCreated;
-        public static Action<Expression> OnWriteExpressionCreated;
+        public static Action<Expression>? OnReadExpressionCreated;
+        public static Action<Expression>? OnWriteExpressionCreated;
 
         /// <summary>
         /// Create a row-oriented reader from a file.
@@ -56,9 +56,9 @@ namespace ParquetSharp.RowOriented
         /// </summary>
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
             string path,
-            string[] columnNames = null,
+            string[]? columnNames = null,
             Compression compression = Compression.Snappy,
-            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
             return new ParquetRowWriter<TTuple>(path, columns, compression, keyValueMetadata, writeDelegate);
@@ -67,8 +67,8 @@ namespace ParquetSharp.RowOriented
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
             string path,
             WriterProperties writerProperties,
-            string[] columnNames = null,
-            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+            string[]? columnNames = null,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
             return new ParquetRowWriter<TTuple>(path, columns, writerProperties, keyValueMetadata, writeDelegate);
@@ -79,9 +79,9 @@ namespace ParquetSharp.RowOriented
         /// </summary>
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
             OutputStream outputStream,
-            string[] columnNames = null,
+            string[]? columnNames = null,
             Compression compression = Compression.Snappy,
-            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
             return new ParquetRowWriter<TTuple>(outputStream, columns, compression, keyValueMetadata, writeDelegate);
@@ -90,19 +90,19 @@ namespace ParquetSharp.RowOriented
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
             OutputStream outputStream,
             WriterProperties writerProperties,
-            string[] columnNames = null,
-            IReadOnlyDictionary<string, string> keyValueMetadata = null)
+            string[]? columnNames = null,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
             return new ParquetRowWriter<TTuple>(outputStream, columns, writerProperties, keyValueMetadata, writeDelegate);
         }
 
-        private static ParquetRowReader<TTuple>.ReadAction GetOrCreateReadDelegate<TTuple>((string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+        private static ParquetRowReader<TTuple>.ReadAction GetOrCreateReadDelegate<TTuple>((string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
         {
             return (ParquetRowReader<TTuple>.ReadAction) ReadDelegatesCache.GetOrAdd(typeof(TTuple), k => CreateReadDelegate<TTuple>(fields));
         }
 
-        private static (Column[] columns, ParquetRowWriter<TTuple>.WriteAction writeDelegate) GetOrCreateWriteDelegate<TTuple>(string[] columnNames)
+        private static (Column[] columns, ParquetRowWriter<TTuple>.WriteAction writeDelegate) GetOrCreateWriteDelegate<TTuple>(string[]? columnNames)
         {
             var (columns, writeDelegate) = WriteDelegates.GetOrAdd(typeof(TTuple), k => CreateWriteDelegate<TTuple>());
             if (columnNames != null)
@@ -121,7 +121,7 @@ namespace ParquetSharp.RowOriented
         /// <summary>
         /// Returns a delegate to read rows from individual Parquet columns.
         /// </summary>
-        private static ParquetRowReader<TTuple>.ReadAction CreateReadDelegate<TTuple>((string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+        private static ParquetRowReader<TTuple>.ReadAction CreateReadDelegate<TTuple>((string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
         {
             // Parameters
             var reader = Expression.Parameter(typeof(ParquetRowReader<TTuple>), "reader");
@@ -245,9 +245,9 @@ namespace ParquetSharp.RowOriented
             );
         }
 
-        private static (string name, string mappedColumn, Type type, MemberInfo info)[] GetFieldsAndProperties(Type type)
+        private static (string name, string? mappedColumn, Type type, MemberInfo info)[] GetFieldsAndProperties(Type type)
         {
-            var list = new List<(string name, string mappedColumn, Type type, MemberInfo info)>();
+            var list = new List<(string name, string? mappedColumn, Type type, MemberInfo info)>();
             var flags = BindingFlags.Public | BindingFlags.Instance;
 
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTuple<,,,,,,,>))
@@ -286,7 +286,7 @@ namespace ParquetSharp.RowOriented
             return list.OrderBy(x => x.info.MetadataToken).ToArray();
         }
 
-        private static Column GetColumn((string name, string mappedColumn, Type type, MemberInfo info) field)
+        private static Column GetColumn((string name, string? mappedColumn, Type type, MemberInfo info) field)
         {
             var isDecimal = field.type == typeof(decimal) || field.type == typeof(decimal?);
             var decimalScale = field.info.GetCustomAttributes(typeof(ParquetDecimalScaleAttribute))
@@ -303,7 +303,7 @@ namespace ParquetSharp.RowOriented
                 throw new ArgumentException($"field '{field.name}' has no {nameof(ParquetDecimalScaleAttribute)} despite being a decimal type");
             }
 
-            return new Column(field.type, field.mappedColumn ?? field.name, isDecimal ? LogicalType.Decimal(29, decimalScale.Scale) : null);
+            return new Column(field.type, field.mappedColumn ?? field.name, isDecimal ? LogicalType.Decimal(29, decimalScale!.Scale) : null);
         }
 
         private static readonly ConcurrentDictionary<Type, Delegate> ReadDelegatesCache =

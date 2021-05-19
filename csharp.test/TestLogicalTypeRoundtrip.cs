@@ -18,7 +18,9 @@ namespace ParquetSharp.Test
         )
         {
             var expectedColumns = CreateExpectedColumns();
-            var schemaColumns = expectedColumns.Select(c => new Column(c.Values.GetType().GetElementType(), c.Name, c.LogicalTypeOverride)).ToArray();
+            var schemaColumns = expectedColumns         
+                .Select(c => new Column(c.Values.GetType().GetElementType() ?? throw new InvalidOperationException(), c.Name, c.LogicalTypeOverride))
+                .ToArray();
 
             using var buffer = new ResizableBuffer();
 
@@ -56,7 +58,9 @@ namespace ParquetSharp.Test
         )
         {
             var expectedColumns = CreateExpectedColumns();
-            var schemaColumns = expectedColumns.Select(c => new Column(c.Values.GetType().GetElementType(), c.Name, c.LogicalTypeOverride)).ToArray();
+            var schemaColumns = expectedColumns
+                .Select(c => new Column(c.Values.GetType().GetElementType() ?? throw new InvalidOperationException(), c.Name, c.LogicalTypeOverride))
+                .ToArray();
 
             using var buffer = new ResizableBuffer();
 
@@ -147,18 +151,18 @@ namespace ParquetSharp.Test
 
                     if (expected.HasStatistics)
                     {
-                        Assert.AreEqual(expected.HasMinMax, statistics.HasMinMax);
-                        //Assert.AreEqual(expected.NullCount, statistics.NullCount);
-                        //Assert.AreEqual(expected.NumValues, statistics.NumValues);
-                        Assert.AreEqual(expected.PhysicalType, statistics.PhysicalType);
+                        Assert.AreEqual(expected.HasMinMax, statistics?.HasMinMax);
+                        //Assert.AreEqual(expected.NullCount, statistics?.NullCount);
+                        //Assert.AreEqual(expected.NumValues, statistics?.NumValues);
+                        Assert.AreEqual(expected.PhysicalType, statistics?.PhysicalType);
 
                         // BUG Don't check for decimal until https://issues.apache.org/jira/browse/ARROW-6149 is fixed.
                         var buggy = expected.LogicalType is DecimalLogicalType;
 
                         if (expected.HasMinMax && !buggy)
                         {
-                            Assert.AreEqual(expected.Min, expected.Converter(statistics.MinUntyped));
-                            Assert.AreEqual(expected.Max, expected.Converter(statistics.MaxUntyped));
+                            Assert.AreEqual(expected.Min, expected.Converter(statistics!.MinUntyped));
+                            Assert.AreEqual(expected.Max, expected.Converter(statistics!.MaxUntyped));
                         }
                     }
                     else
@@ -292,12 +296,12 @@ namespace ParquetSharp.Test
              * None
              * [[]]
              */
-            var expected = new double?[][][]
+            var expected = new double?[]?[]?[]
             {
-                new double?[][] {null, new double?[] { }, new double?[] {1.0, null, 2.0}},
-                new double?[][] { },
+                new double?[]?[] {null, new double?[] { }, new double?[] {1.0, null, 2.0}},
+                new double?[]?[] { },
                 null,
-                new double?[][] {new double?[] { }}
+                new double?[]?[] {new double?[] { }}
             };
 
             using var buffer = new ResizableBuffer();
@@ -306,7 +310,7 @@ namespace ParquetSharp.Test
             {
                 using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<double?[][]>("a")});
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
-                using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[][]>();
+                using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[]?[]?>();
 
                 colWriter.WriteBatch(expected);
 
@@ -876,7 +880,7 @@ namespace ParquetSharp.Test
                             };
                         }
 
-                        return new long[][]
+                        return new long[]?[]
                         {
                             null
                         };
@@ -914,7 +918,7 @@ namespace ParquetSharp.Test
                             };
                         }
 
-                        return new long?[][]
+                        return new long?[]?[]
                         {
                             null
                         };
@@ -950,7 +954,7 @@ namespace ParquetSharp.Test
                             };
                         }
 
-                        return new byte[][]
+                        return new byte[]?[]
                         {
                             null
                         };
@@ -966,8 +970,8 @@ namespace ParquetSharp.Test
 
         private sealed class ExpectedColumn
         {
-            public string Name;
-            public Array Values;
+            public string Name = ""; // TODO replace with init;
+            public Array Values = new object[0]; // TODO replace with init;
             public PhysicalType PhysicalType;
             public LogicalType LogicalType = LogicalType.None();
             public LogicalType LogicalTypeOverride = LogicalType.None();
@@ -975,8 +979,8 @@ namespace ParquetSharp.Test
 
             public bool HasStatistics = true;
             public bool HasMinMax = true;
-            public object Min;
-            public object Max;
+            public object? Min;
+            public object? Max;
             public long NullCount;
             public long NumValues = NumRows;
 

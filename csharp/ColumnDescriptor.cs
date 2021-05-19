@@ -23,7 +23,7 @@ namespace ParquetSharp
         public short MaxRepetitionLevel => ExceptionInfo.Return<short>(_handle, ColumnDescriptor_Max_Repetition_Level);
         public string Name => Marshal.PtrToStringAnsi(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Name));
         public Schema.ColumnPath Path => new(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Path));
-        public Schema.Node SchemaNode => Schema.Node.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Schema_Node));
+        public Schema.Node SchemaNode => Schema.Node.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnDescriptor_Schema_Node)) ?? throw new InvalidOperationException();
         public PhysicalType PhysicalType => ExceptionInfo.Return<PhysicalType>(_handle, ColumnDescriptor_Physical_Type);
         public SortOrder SortOrder => ExceptionInfo.Return<SortOrder>(_handle, ColumnDescriptor_SortOrder);
         public int TypeLength => ExceptionInfo.Return<int>(_handle, ColumnDescriptor_Type_Length);
@@ -35,7 +35,7 @@ namespace ParquetSharp
             return Apply(typeFactory, null, visitor);
         }
 
-        public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type columnLogicalTypeHint, IColumnDescriptorVisitor<TReturn> visitor)
+        public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? columnLogicalTypeHint, IColumnDescriptorVisitor<TReturn> visitor)
         {
             var types = GetSystemTypes(typeFactory, columnLogicalTypeHint);
             var visitorApply = VisitorCache.GetOrAdd((types.physicalType, types.logicalType, types.elementType, typeof(TReturn)), t =>
@@ -64,7 +64,7 @@ namespace ParquetSharp
         /// LogicalType is the most nested logical type (e.g. string).
         /// ElementType is the type represented by the column (e.g. string[][][]).
         /// </summary>
-        public (Type physicalType, Type logicalType, Type elementType) GetSystemTypes(LogicalTypeFactory typeFactory, Type columnLogicalTypeHint)
+        public (Type physicalType, Type logicalType, Type elementType) GetSystemTypes(LogicalTypeFactory typeFactory, Type? columnLogicalTypeHint)
         {
             var (physicalType, logicalType) = typeFactory.GetSystemTypes(this, columnLogicalTypeHint);
             var elementType = logicalType;

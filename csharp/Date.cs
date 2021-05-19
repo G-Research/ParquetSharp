@@ -7,7 +7,7 @@ namespace ParquetSharp
     /// Represent a Parquet 32-bit date, based around 1970-01-01.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct Date : IEquatable<Date>
+    public readonly struct Date : IEquatable<Date>, IComparable<Date>
     {
         public Date(int year, int month, int day)
             : this(new DateTime(year, month, day))
@@ -46,6 +46,11 @@ namespace ParquetSharp
         public override int GetHashCode()
         {
             return Days;
+        }
+
+        public int CompareTo(Date other)
+        {
+            return Days.CompareTo(other.Days);
         }
 
         public override string ToString()

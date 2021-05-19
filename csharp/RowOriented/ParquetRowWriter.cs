@@ -17,7 +17,7 @@ namespace ParquetSharp.RowOriented
             string path,
             Column[] columns,
             Compression compression,
-            IReadOnlyDictionary<string, string> keyValueMetadata,
+            IReadOnlyDictionary<string, string>? keyValueMetadata,
             WriteAction writeAction)
             : this(new ParquetFileWriter(path, columns, compression, keyValueMetadata), writeAction)
         {
@@ -27,7 +27,7 @@ namespace ParquetSharp.RowOriented
             string path,
             Column[] columns,
             WriterProperties writerProperties,
-            IReadOnlyDictionary<string, string> keyValueMetadata,
+            IReadOnlyDictionary<string, string>? keyValueMetadata,
             WriteAction writeAction)
             : this(new ParquetFileWriter(path, columns, writerProperties, keyValueMetadata), writeAction)
         {
@@ -37,7 +37,7 @@ namespace ParquetSharp.RowOriented
             OutputStream outputStream,
             Column[] columns,
             Compression compression,
-            IReadOnlyDictionary<string, string> keyValueMetadata,
+            IReadOnlyDictionary<string, string>? keyValueMetadata,
             WriteAction writeAction)
             : this(new ParquetFileWriter(outputStream, columns, compression, keyValueMetadata), writeAction)
         {
@@ -47,7 +47,7 @@ namespace ParquetSharp.RowOriented
             OutputStream outputStream,
             Column[] columns,
             WriterProperties writerProperties,
-            IReadOnlyDictionary<string, string> keyValueMetadata,
+            IReadOnlyDictionary<string, string>? keyValueMetadata,
             WriteAction writeAction)
             : this(new ParquetFileWriter(outputStream, columns, writerProperties, keyValueMetadata), writeAction)
         {
@@ -76,11 +76,13 @@ namespace ParquetSharp.RowOriented
         public WriterProperties WriterProperties => _parquetFileWriter.WriterProperties;
         public SchemaDescriptor Schema => _parquetFileWriter.Schema;
         public ColumnDescriptor ColumnDescriptor(int i) => _parquetFileWriter.ColumnDescriptor(i);
-        public FileMetaData FileMetaData => _parquetFileWriter.FileMetaData;
+        public FileMetaData? FileMetaData => _parquetFileWriter.FileMetaData;
         public IReadOnlyDictionary<string, string> KeyValueMetadata => _parquetFileWriter.KeyValueMetadata;
 
         public void StartNewRowGroup()
         {
+            if (_rowGroupWriter == null) throw new InvalidOperationException("writer has been closed or disposed");
+            
             _writeAction(this, _rows, _pos);
             _pos = 0;
 
@@ -111,10 +113,10 @@ namespace ParquetSharp.RowOriented
 
         internal void WriteColumn<TValue>(TValue[] values, int length)
         {
-            using (var columnWriter = _rowGroupWriter.NextColumn().LogicalWriter<TValue>())
-            {
-                columnWriter.WriteBatch(values, 0, length);
-            }
+            if (_rowGroupWriter == null) throw new InvalidOperationException("writer has been closed or disposed");
+
+            using var columnWriter = _rowGroupWriter.NextColumn().LogicalWriter<TValue>();
+            columnWriter.WriteBatch(values, 0, length);
         }
 
         private void FlushAndDisposeRowGroup()
@@ -131,7 +133,7 @@ namespace ParquetSharp.RowOriented
 
         private readonly ParquetFileWriter _parquetFileWriter;
         private readonly WriteAction _writeAction;
-        private RowGroupWriter _rowGroupWriter;
+        private RowGroupWriter? _rowGroupWriter;
         private TTuple[] _rows;
         private int _pos;
     }

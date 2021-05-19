@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)'=='Windows_NT'">$(TargetFrameworks);net461</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
     <AssemblyName>ParquetSharp</AssemblyName>
     <RootNamespace>ParquetSharp</RootNamespace>
     <Platforms>x64</Platforms>
@@ -13,12 +13,12 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>1591;</NoWarn>
-    <Version>2.4.0-beta2</Version>
+    <Version>2.5.0-beta1</Version>
     <Company>G-Research</Company>
     <Authors>G-Research</Authors>
     <Product>ParquetSharp</Product>
     <Description>ParquetSharp is a .NET library for reading and writing Parquet files. It's implemented in C# as a PInvoke wrapper around apache-parquet-cpp to provide high performance and compatibility.</Description>
-    <Copyright>Copyright G-Research 2020</Copyright>
+    <Copyright>Copyright G-Research 2021</Copyright>
     <PackageProjectUrl>https://github.com/G-Research/ParquetSharp</PackageProjectUrl>
     <PackageTags>apache parquet gresearch g-research .net c#</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
@@ -64,10 +64,6 @@
     <Content Include="..\bin\ParquetSharpNative.dylib" Link="ParquetSharpNative.dylib" PackagePath="runtimes/osx-x64/native" Condition="'$(Configuration)'=='Release' AND ('$(IsOSX)'=='true' OR Exists('..\bin\ParquetSharpNative.dylib'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>

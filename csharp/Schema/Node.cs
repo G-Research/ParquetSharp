@@ -27,7 +27,7 @@ namespace ParquetSharp.Schema
         public LogicalType LogicalType => LogicalType.Create(ExceptionInfo.Return<IntPtr>(Handle, Node_Logical_Type));
         public string Name => ExceptionInfo.ReturnString(Handle, Node_Name);
         public NodeType NodeType => ExceptionInfo.Return<NodeType>(Handle, Node_Node_Type);
-        public Node Parent => Create(ExceptionInfo.Return<IntPtr>(Handle, Node_Parent));
+        public Node? Parent => Create(ExceptionInfo.Return<IntPtr>(Handle, Node_Parent));
         public ColumnPath Path => new ColumnPath(ExceptionInfo.Return<IntPtr>(Handle, Node_Path));
         public Repetition Repetition => ExceptionInfo.Return<Repetition>(Handle, Node_Repetition);
 
@@ -36,12 +36,12 @@ namespace ParquetSharp.Schema
         /// </summary>
         public abstract Node DeepClone();
 
-        public bool Equals(Node other)
+        public bool Equals(Node? other)
         {
             return other != null && ExceptionInfo.Return<bool>(Handle, other.Handle, Node_Equals);
         }
 
-        internal static Node Create(IntPtr handle)
+        internal static Node? Create(IntPtr handle)
         {
             if (handle == IntPtr.Zero)
             {
@@ -50,15 +50,12 @@ namespace ParquetSharp.Schema
 
             var nodeType = ExceptionInfo.Return<NodeType>(handle, Node_Node_Type);
 
-            switch (nodeType)
+            return nodeType switch
             {
-                case NodeType.Primitive:
-                    return new PrimitiveNode(handle);
-                case NodeType.Group:
-                    return new GroupNode(handle);
-                default:
-                    throw new ArgumentOutOfRangeException($"unknown node type {nodeType}");
-            }
+                NodeType.Primitive => new PrimitiveNode(handle),
+                NodeType.Group => new GroupNode(handle),
+                _ => throw new ArgumentOutOfRangeException($"unknown node type {nodeType}")
+            };
         }
 
         [DllImport(ParquetDll.Name)]

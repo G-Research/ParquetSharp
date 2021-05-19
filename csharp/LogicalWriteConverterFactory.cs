@@ -18,7 +18,7 @@ namespace ParquetSharp
         /// </summary>
         /// <param name="columnDescriptor">The descriptor of the column to be converted.</param>
         /// <param name="byteBuffer">The ByteBuffer allocation pool for efficiently handling byte arrays.</param>
-        public virtual Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ByteBuffer byteBuffer)
+        public virtual Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ByteBuffer? byteBuffer)
             where TPhysical : unmanaged
         {
             return LogicalWrite<TLogical, TPhysical>.GetConverter(columnDescriptor, byteBuffer);

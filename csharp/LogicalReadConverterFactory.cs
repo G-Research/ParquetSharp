@@ -13,7 +13,7 @@ namespace ParquetSharp
         /// Otherwise return null. This is an optimisation to avoid needless memory copies between buffers (i.e. otherwise we have to use the
         /// identity converter).
         /// </summary>
-        public virtual Delegate GetDirectReader<TLogical, TPhysical>() 
+        public virtual Delegate? GetDirectReader<TLogical, TPhysical>() 
             where TPhysical : unmanaged
         {
             return LogicalRead<TLogical, TPhysical>.GetDirectReader();

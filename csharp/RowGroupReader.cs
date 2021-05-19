@@ -34,6 +34,6 @@ namespace ParquetSharp
 
         private readonly ParquetHandle _handle;
         internal readonly ParquetFileReader ParquetFileReader;
-        private RowGroupMetaData _metaData;
+        private RowGroupMetaData? _metaData;
     }
 }

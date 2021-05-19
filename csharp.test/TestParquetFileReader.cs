@@ -21,7 +21,7 @@ namespace ParquetSharp.Test
                 " (message: 'IOError: Failed to open local file 'non_existent.parquet'. Detail: " +
                 (isUnix ? "[errno 2] No such file or directory" : "[Windows error 2] The system cannot find the file specified." + Environment.NewLine) +
                 "')",
-                exception.Message);
+                exception?.Message);
         }
 
         [Test]
@@ -59,7 +59,7 @@ namespace ParquetSharp.Test
                 "Unable to cast object of type " +
                 "'ParquetSharp.LogicalColumnReader`3[System.Int32,System.Int32,System.Int32]'" +
                 " to type 'ParquetSharp.LogicalColumnReader`1[System.Single]'.",
-                exception.Message);
+                exception?.Message);
         }
 
         [Test]
@@ -143,7 +143,7 @@ namespace ParquetSharp.Test
             Console.WriteLine("FINISHED");
         }
 
-        private static string ToString(object value)
+        private static string? ToString(object? value)
         {
             if (value is null)
             {

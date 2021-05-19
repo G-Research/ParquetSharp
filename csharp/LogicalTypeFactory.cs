@@ -11,7 +11,7 @@ namespace ParquetSharp
         {
         }
 
-        public LogicalTypeFactory(IReadOnlyDictionary<Type, (LogicalType logicalType, Repetition repetition, PhysicalType physicalType)> primitiveMapping)
+        public LogicalTypeFactory(IReadOnlyDictionary<Type, (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType)> primitiveMapping)
         {
             _primitiveMapping = primitiveMapping;
         }
@@ -19,7 +19,7 @@ namespace ParquetSharp
         /// <summary>
         /// Get the mapping from the C# types to the Parquet logical and physical types.
         /// </summary>
-        public virtual bool TryGetParquetTypes(Type logicalSystemType, out (LogicalType logicalType, Repetition repetition, PhysicalType physicalType) entry)
+        public virtual bool TryGetParquetTypes(Type logicalSystemType, out (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType) entry)
         {
             return _primitiveMapping.TryGetValue(logicalSystemType, out entry);
         }
@@ -28,7 +28,7 @@ namespace ParquetSharp
         /// Get the mapping from a column descriptor to the actual C# physical and logical element types.
         /// If we know the exact column logical type, use that instead (i.e. user custom types).
         /// </summary>
-        public virtual (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type columnLogicalTypeHint)
+        public virtual (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeHint)
         {
             var types = GetSystemTypes(descriptor);
             return (types.physicalType, columnLogicalTypeHint ?? types.logicalType);
@@ -116,11 +116,12 @@ namespace ParquetSharp
         /// Get a new pair of (LogicalType, PhysicalType) taking into account an optional logical type override.
         /// </summary>
         public virtual (LogicalType logicalType, PhysicalType physicalType) GetTypesOverride(
-            LogicalType logicalTypeOverride, LogicalType logicalType, PhysicalType physicalType)
+            LogicalType? logicalTypeOverride, LogicalType? logicalType, PhysicalType physicalType)
         {
             // By default, return the first listed logical type.
-            if (logicalTypeOverride == null || logicalTypeOverride is NoneLogicalType)
+            if (logicalTypeOverride is null or NoneLogicalType)
             {
+                if (logicalType == null) throw new ArgumentNullException(nameof(logicalType), $"both {nameof(logicalType)} and {nameof(logicalTypeOverride)} are null");
                 return (logicalType, physicalType);
             }
 
@@ -137,8 +138,8 @@ namespace ParquetSharp
         /// <summary>
         /// List of default mapping for each supported C# type.
         /// </summary>
-        public static readonly IReadOnlyDictionary<Type, (LogicalType logicalType, Repetition repetition, PhysicalType physicalType)>
-            DefaultPrimitiveMapping = new Dictionary<Type, (LogicalType logicalType, Repetition repetition, PhysicalType physicalType)>
+        public static readonly IReadOnlyDictionary<Type, (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType)>
+            DefaultPrimitiveMapping = new Dictionary<Type, (LogicalType?, Repetition, PhysicalType)>
             {
                 {typeof(bool), (LogicalType.None(), Repetition.Required, PhysicalType.Boolean)},
                 {typeof(bool?), (LogicalType.None(), Repetition.Optional, PhysicalType.Boolean)},
@@ -197,6 +198,6 @@ namespace ParquetSharp
 
         public static readonly LogicalTypeFactory Default = new();
 
-        private readonly IReadOnlyDictionary<Type, (LogicalType logicalType, Repetition repetition, PhysicalType physicalType)> _primitiveMapping;
+        private readonly IReadOnlyDictionary<Type, (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType)> _primitiveMapping;
     }
 }

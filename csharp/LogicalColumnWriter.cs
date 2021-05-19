@@ -201,7 +201,8 @@ namespace ParquetSharp
         {
             ReadOnlySpan<TLogical> valuesSpan = (TLogical[])values;
 
-            if (DefLevels == null) throw new ArgumentException("internal error: DefLevels should not be null.");
+            if (DefLevels == null) throw new InvalidOperationException("DefLevels should not be null.");
+            if (RepLevels == null) throw new InvalidOperationException("RepLevels should not be null.");
 
             var rowsWritten = 0;
             var columnWriter = (ColumnWriter<TPhysical>) Source;
@@ -268,7 +269,7 @@ namespace ParquetSharp
             }
         }
 
-        private readonly ByteBuffer _byteBuffer;
+        private readonly ByteBuffer? _byteBuffer;
         private readonly LogicalWrite<TLogical, TPhysical>.Converter _converter;
     }
 }

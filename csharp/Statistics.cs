@@ -5,7 +5,7 @@ namespace ParquetSharp
 {
     public abstract class Statistics : IDisposable
     {
-        internal static Statistics Create(IntPtr handle)
+        internal static Statistics? Create(IntPtr handle)
         {
             if (handle == IntPtr.Zero)
             {
@@ -18,27 +18,18 @@ namespace ParquetSharp
             {
                 var type = ExceptionInfo.Return<PhysicalType>(handle, Statistics_Physical_Type);
 
-                switch (type)
+                return type switch
                 {
-                    case PhysicalType.Boolean:
-                        return new Statistics<bool>(parquetHandle);
-                    case PhysicalType.Int32:
-                        return new Statistics<int>(parquetHandle);
-                    case PhysicalType.Int64:
-                        return new Statistics<long>(parquetHandle);
-                    case PhysicalType.Int96:
-                        return new Statistics<Int96>(parquetHandle);
-                    case PhysicalType.Float:
-                        return new Statistics<float>(parquetHandle);
-                    case PhysicalType.Double:
-                        return new Statistics<double>(parquetHandle);
-                    case PhysicalType.ByteArray:
-                        return new Statistics<ByteArray>(parquetHandle);
-                    case PhysicalType.FixedLenByteArray:
-                        return new Statistics<FixedLenByteArray>(parquetHandle);
-                    default:
-                        throw new NotSupportedException($"Physical type {type} is not supported");
-                }
+                    PhysicalType.Boolean => new Statistics<bool>(parquetHandle),
+                    PhysicalType.Int32 => new Statistics<int>(parquetHandle),
+                    PhysicalType.Int64 => new Statistics<long>(parquetHandle),
+                    PhysicalType.Int96 => new Statistics<Int96>(parquetHandle),
+                    PhysicalType.Float => new Statistics<float>(parquetHandle),
+                    PhysicalType.Double => new Statistics<double>(parquetHandle),
+                    PhysicalType.ByteArray => new Statistics<ByteArray>(parquetHandle),
+                    PhysicalType.FixedLenByteArray => new Statistics<FixedLenByteArray>(parquetHandle),
+                    _ => throw new NotSupportedException($"Physical type {type} is not supported")
+                };
             }
 
             catch

@@ -56,7 +56,7 @@ namespace ParquetSharp.Test
                 new Decimal128(1e+027M, multiplier: 100);
             });
 
-            Assert.AreEqual("value 1.000000E+027 is too large for decimal scale 2", exception.Message);
+            Assert.AreEqual("value 1.000000E+027 is too large for decimal scale 2", exception?.Message);
         }
 
         [Test]

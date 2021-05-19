@@ -11,10 +11,10 @@ namespace ParquetSharp
             _handle = schemaDescriptorHandle;
         }
 
-        public GroupNode GroupNode => (GroupNode) Node.Create(ExceptionInfo.Return<IntPtr>(_handle, SchemaDescriptor_Group_Node));
+        public GroupNode GroupNode => (GroupNode) (Node.Create(ExceptionInfo.Return<IntPtr>(_handle, SchemaDescriptor_Group_Node)) ?? throw new InvalidOperationException());
         public string Name => Marshal.PtrToStringAnsi(ExceptionInfo.Return<IntPtr>(_handle, SchemaDescriptor_Name));
         public int NumColumns => ExceptionInfo.Return<int>(_handle, SchemaDescriptor_Num_Columns);
-        public Node SchemaRoot => Node.Create(ExceptionInfo.Return<IntPtr>(_handle, SchemaDescriptor_Schema_Root));
+        public Node SchemaRoot => Node.Create(ExceptionInfo.Return<IntPtr>(_handle, SchemaDescriptor_Schema_Root)) ?? throw new InvalidOperationException();
 
         public ColumnDescriptor Column(int i)
         {
@@ -35,7 +35,7 @@ namespace ParquetSharp
 
         public Node ColumnRoot(int i)
         {
-            return Node.Create(ExceptionInfo.Return<int, IntPtr>(_handle, i, SchemaDescriptor_Get_Column_Root));
+            return Node.Create(ExceptionInfo.Return<int, IntPtr>(_handle, i, SchemaDescriptor_Get_Column_Root)) ?? throw new InvalidOperationException();
         }
 
         [DllImport(ParquetDll.Name)]

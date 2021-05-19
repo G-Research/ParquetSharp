@@ -45,7 +45,7 @@ namespace ParquetSharp.Test
             //Assert.False(Column.IsSupported(typeof(TestColumn)));
 
             var exception = Assert.Throws<ArgumentException>(() => new Column<object>("unsupported").CreateSchemaNode());
-            Assert.AreEqual("unsupported logical type System.Object", exception.Message);
+            Assert.AreEqual("unsupported logical type System.Object", exception?.Message);
         }
 
         [Test]
@@ -55,7 +55,7 @@ namespace ParquetSharp.Test
                 new Column<DateTime>("DateTime", LogicalType.Json()).CreateSchemaNode());
 
             Assert.That(
-                exception.Message,
+                exception?.Message,
                 Contains.Substring("JSON can not be applied to primitive type INT64"));
         }
 
@@ -63,280 +63,238 @@ namespace ParquetSharp.Test
         {
             return new[]
             {
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(bool))
                 {
-                    Type = typeof(bool),
                     PhysicalType = PhysicalType.Boolean
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(sbyte))
                 {
-                    Type = typeof(sbyte),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(8, isSigned: true)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(byte))
                 {
-                    Type = typeof(byte),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(8, isSigned: false)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(short))
                 {
-                    Type = typeof(short),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(16, isSigned: true)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(ushort))
                 {
-                    Type = typeof(ushort),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(16, isSigned: false)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(int))
                 {
-                    Type = typeof(int),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(32, isSigned: true)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(uint))
                 {
-                    Type = typeof(uint),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(32, isSigned: false)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(long))
                 {
-                    Type = typeof(long),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Int(64, isSigned: true)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(ulong))
                 {
-                    Type = typeof(ulong),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Int(64, isSigned: false)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(float))
                 {
-                    Type = typeof(float),
                     PhysicalType = PhysicalType.Float
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(double))
                 {
-                    Type = typeof(double),
                     PhysicalType = PhysicalType.Double
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(decimal))
                 {
-                    Type = typeof(decimal),
                     PhysicalType = PhysicalType.FixedLenByteArray,
                     LogicalType = LogicalType.Decimal(29, 3),
                     LogicalTypeOverride = LogicalType.Decimal(29, 3),
                     Length = 16
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(Date))
                 {
-                    Type = typeof(Date),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Date()
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(DateTime))
                 {
-                    Type = typeof(DateTime),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Timestamp(true, TimeUnit.Micros)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(DateTime))
                 {
-                    Type = typeof(DateTime),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Timestamp(true, TimeUnit.Millis),
                     LogicalTypeOverride = LogicalType.Timestamp(true, TimeUnit.Millis)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(DateTimeNanos))
                 {
-                    Type = typeof(DateTimeNanos),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Timestamp(true, TimeUnit.Nanos)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(TimeSpan))
                 {
-                    Type = typeof(TimeSpan),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Time(true, TimeUnit.Micros)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(TimeSpan))
                 {
-                    Type = typeof(TimeSpan),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Time(true, TimeUnit.Millis),
                     LogicalTypeOverride = LogicalType.Time(true, TimeUnit.Millis)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(TimeSpanNanos))
                 {
-                    Type = typeof(TimeSpanNanos),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Time(true, TimeUnit.Nanos)
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(string))
                 {
-                    Type = typeof(string),
                     PhysicalType = PhysicalType.ByteArray,
                     LogicalType = LogicalType.String(),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(string))
                 {
-                    Type = typeof(string),
                     PhysicalType = PhysicalType.ByteArray,
                     LogicalType = LogicalType.Json(),
                     LogicalTypeOverride = LogicalType.Json(),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(byte[]))
                 {
-                    Type = typeof(byte[]),
                     PhysicalType = PhysicalType.ByteArray,
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(byte[]))
                 {
-                    Type = typeof(byte[]),
                     PhysicalType = PhysicalType.ByteArray,
                     LogicalType = LogicalType.Bson(),
                     LogicalTypeOverride = LogicalType.Bson(),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(bool?))
                 {
-                    Type = typeof(bool?),
                     PhysicalType = PhysicalType.Boolean,
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(sbyte?))
                 {
-                    Type = typeof(sbyte?),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(8, isSigned: true),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(byte?))
                 {
-                    Type = typeof(byte?),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(8, isSigned: false),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(short?))
                 {
-                    Type = typeof(short?),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(16, isSigned: true),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(ushort?))
                 {
-                    Type = typeof(ushort?),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(16, isSigned: false),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(int?))
                 {
-                    Type = typeof(int?),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(32, isSigned: true),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(uint?))
                 {
-                    Type = typeof(uint?),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Int(32, isSigned: false),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(long?))
                 {
-                    Type = typeof(long?),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Int(64, isSigned: true),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(ulong?))
                 {
-                    Type = typeof(ulong?),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Int(64, isSigned: false),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(float?))
                 {
-                    Type = typeof(float?),
                     PhysicalType = PhysicalType.Float,
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(double?))
                 {
-                    Type = typeof(double?),
                     PhysicalType = PhysicalType.Double,
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(decimal?))
                 {
-                    Type = typeof(decimal?),
                     PhysicalType = PhysicalType.FixedLenByteArray,
                     LogicalType = LogicalType.Decimal(29, 2),
                     LogicalTypeOverride = LogicalType.Decimal(29, 2),
                     Repetition = Repetition.Optional,
                     Length = 16
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(Date?))
                 {
-                    Type = typeof(Date?),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Date(),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(DateTime?))
                 {
-                    Type = typeof(DateTime?),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Timestamp(true, TimeUnit.Micros),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(DateTime?))
                 {
-                    Type = typeof(DateTime?),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Timestamp(true, TimeUnit.Millis),
                     LogicalTypeOverride = LogicalType.Timestamp(true, TimeUnit.Millis),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(DateTimeNanos?))
                 {
-                    Type = typeof(DateTimeNanos?),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Timestamp(true, TimeUnit.Nanos),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(TimeSpan?))
                 {
-                    Type = typeof(TimeSpan?),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Time(true, TimeUnit.Micros),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(TimeSpan?))
                 {
-                    Type = typeof(TimeSpan?),
                     PhysicalType = PhysicalType.Int32,
                     LogicalType = LogicalType.Time(true, TimeUnit.Millis),
                     LogicalTypeOverride = LogicalType.Time(true, TimeUnit.Millis),
                     Repetition = Repetition.Optional
                 },
-                new ExpectedPrimitive
+                new ExpectedPrimitive(typeof(TimeSpanNanos?))
                 {
-                    Type = typeof(TimeSpanNanos?),
                     PhysicalType = PhysicalType.Int64,
                     LogicalType = LogicalType.Time(true, TimeUnit.Nanos),
                     Repetition = Repetition.Optional
@@ -346,7 +304,12 @@ namespace ParquetSharp.Test
 
         private sealed class ExpectedPrimitive
         {
-            public Type Type;
+            public ExpectedPrimitive(Type type)
+            {
+                Type = type;
+            }
+
+            public Type Type { get; }
             public LogicalType LogicalType = LogicalType.None();
             public LogicalType LogicalTypeOverride = LogicalType.None();
             public string Name = "MyName";

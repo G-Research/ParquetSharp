@@ -7,7 +7,7 @@ namespace ParquetSharp
     /// Represents a Parquet Timestamp with Nanoseconds time unit.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct DateTimeNanos : IEquatable<DateTimeNanos>
+    public readonly struct DateTimeNanos : IEquatable<DateTimeNanos>, IComparable<DateTimeNanos>
     {
         public DateTimeNanos(long ticks)
         {
@@ -32,6 +32,11 @@ namespace ParquetSharp
         public bool Equals(DateTimeNanos other)
         {
             return Ticks == other.Ticks;
+        }
+
+        public int CompareTo(DateTimeNanos other)
+        {
+            return Ticks.CompareTo(other.Ticks);
         }
 
         public override string ToString()

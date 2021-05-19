@@ -14,27 +14,27 @@ namespace ParquetSharp.RowOriented
     {
         internal delegate void ReadAction(ParquetRowReader<TTuple> parquetRowReader, TTuple[] rows, int length);
 
-        internal ParquetRowReader(string path, ReadAction readAction, (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+        internal ParquetRowReader(string path, ReadAction readAction, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
             : this(new ParquetFileReader(path), readAction, fields)
         {
         }
 
-        internal ParquetRowReader(string path, ReaderProperties readerProperties, ReadAction readAction, (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+        internal ParquetRowReader(string path, ReaderProperties readerProperties, ReadAction readAction, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
             : this(new ParquetFileReader(path, readerProperties), readAction, fields)
         {
         }
 
-        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReadAction readAction, (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReadAction readAction, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
             : this(new ParquetFileReader(randomAccessFile), readAction, fields)
         {
         }
 
-        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReaderProperties readerProperties, ReadAction readAction, (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReaderProperties readerProperties, ReadAction readAction, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
             : this(new ParquetFileReader(randomAccessFile, readerProperties), readAction, fields)
         {
         }
 
-        internal ParquetRowReader(ParquetFileReader parquetFileReader, ReadAction readAction, (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+        internal ParquetRowReader(ParquetFileReader parquetFileReader, ReadAction readAction, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
         {
             _parquetFileReader = parquetFileReader;
             _readAction = readAction;
@@ -60,6 +60,8 @@ namespace ParquetSharp.RowOriented
 
         internal void ReadColumn<TValue>(int column, TValue[] values, int length)
         {
+            if (_rowGroupReader == null) throw new InvalidOperationException("row group reader has not been initialized");
+
             using (var columnReader = _rowGroupReader.Column(_columnMapping?.Get(column) ?? column).LogicalReader<TValue>())
             {
                 var read = columnReader.ReadBatch(values, 0, length);
@@ -70,7 +72,7 @@ namespace ParquetSharp.RowOriented
             }
         }
 
-        private static bool HasExplicitColumndMapping((string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+        private static bool HasExplicitColumndMapping((string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
         {
             var noneMapped = Array.TrueForAll(fields, f => f.mappedColumn == null);
             var allMapped = Array.TrueForAll(fields, f => f.mappedColumn != null);
@@ -88,7 +90,7 @@ namespace ParquetSharp.RowOriented
         /// </summary>
         private sealed class ExplicitColumnMapping
         {
-            public ExplicitColumnMapping(ParquetRowReader<TTuple> parquetRowReader, (string name, string mappedColumn, Type type, MemberInfo info)[] fields)
+            public ExplicitColumnMapping(ParquetRowReader<TTuple> parquetRowReader, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
             {
                 var allUnique = fields.GroupBy(x => x.mappedColumn).All(g => g.Count() == 1);
                 if (!allUnique)
@@ -106,7 +108,9 @@ namespace ParquetSharp.RowOriented
 
                 for (var fieldIndex = 0; fieldIndex < fields.Length; ++fieldIndex)
                 {
-                    if (!fileColumns.TryGetValue(fields[fieldIndex].mappedColumn, out _))
+                    var mappedColumn = fields[fieldIndex].mappedColumn ?? throw new InvalidOperationException("mapped column name is null");
+
+                    if (!fileColumns.TryGetValue(mappedColumn, out _))
                     {
                         throw new ArgumentException(
                             $"{typeof(TTuple)} maps field '{fields[fieldIndex].name}' to parquet column " +
@@ -114,7 +118,7 @@ namespace ParquetSharp.RowOriented
                         );
                     }
 
-                    _fileColumnIndex[fieldIndex] = fileColumns[fields[fieldIndex].mappedColumn];
+                    _fileColumnIndex[fieldIndex] = fileColumns[mappedColumn];
                 }
             }
 
@@ -125,7 +129,7 @@ namespace ParquetSharp.RowOriented
 
         private readonly ParquetFileReader _parquetFileReader;
         private readonly ReadAction _readAction;
-        private readonly ExplicitColumnMapping _columnMapping;
-        private RowGroupReader _rowGroupReader;
+        private readonly ExplicitColumnMapping? _columnMapping;
+        private RowGroupReader? _rowGroupReader;
     }
 }
