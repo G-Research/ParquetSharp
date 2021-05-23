@@ -111,11 +111,6 @@ extern "C"
 		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::None());)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Unknown(const std::shared_ptr<const LogicalType>** logical_type)
-	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::Unknown());)
-	}
-
 	// Typed properties
 	PARQUETSHARP_EXPORT ExceptionInfo* DecimalLogicalType_Precision(const std::shared_ptr<const DecimalLogicalType>* logical_type, int32_t* precision)
 	{

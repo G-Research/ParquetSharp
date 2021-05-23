@@ -2,9 +2,8 @@ include(GenerateExportHeader)
 
 find_package(Arrow REQUIRED)
 find_package(Boost COMPONENTS filesystem regex system REQUIRED)
-find_package(Brotli REQUIRED)
+find_package(unofficial-brotli CONFIG REQUIRED)
 find_package(BZip2 REQUIRED)
-find_package(double-conversion CONFIG REQUIRED)
 find_package(gflags CONFIG REQUIRED)
 find_package(glog CONFIG REQUIRED)
 find_package(lz4 CONFIG REQUIRED)
@@ -86,14 +85,13 @@ include_directories(
 	${PROJECT_BINARY_DIR}
 	${ParquetCpp_INCLUDE_DIRS})
 
-target_link_libraries(ParquetSharpNative 
+target_link_libraries(ParquetSharpNative PRIVATE
 	${ParquetCpp_LIBRARIES}
 	${Arrow_LIBRARIES}
 	${Boost_LIBRARIES}
-	${Brotli_LIBRARIES}
+	unofficial::brotli::brotlidec-static unofficial::brotli::brotlienc-static unofficial::brotli::brotlicommon-static
 	BZip2::BZip2
 	${Crypto_LIBRARIES}
-	double-conversion::double-conversion
 	glog::glog
 	lz4::lz4
 	${SSL_LIBRARIES}
