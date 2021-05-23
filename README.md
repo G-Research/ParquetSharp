@@ -6,7 +6,7 @@ ParquetSharp is a cross-platform .NET library for reading and writing Apache [Pa
 
 It is implemented in C# as a [PInvoke][2] wrapper around [Apache Parquet C++][3] to provide high performance and compatibility.
 
-Supported platforms are Linux, Windows, and macOS.
+Supported platforms are x64 processor architectures on Linux, Windows, and macOS.
 
 [1]: https://github.com/apache/parquet-format
 [2]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
@@ -118,6 +118,8 @@ The following benchmarks can be reproduced by running `ParquetSharp.Benchmark.cs
 Because this library is a thin wrapper around the Parquet C++ library, misuse can cause native memory access violations.
 
 Typically this can arise when attempting to access an instance whose owner has been disposed. Because some objects and properties are exposed by Parquet C++ via regular pointers (instead of consistently using `std::shared_ptr`), dereferencing these after the owner class instance has been destructed will lead to an invalid pointer access.
+
+As only x64 runtimes are available, ParquetSharp cannot be referenced by a 32-bit project.  For example, using the library from F# Interactive requires running `fsiAnyCpu.exe` rather than `fsi.exe`.
 
 ## Building
 
