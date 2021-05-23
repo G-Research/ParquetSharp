@@ -8,6 +8,7 @@ find_package(gflags CONFIG REQUIRED)
 find_package(glog CONFIG REQUIRED)
 find_package(lz4 CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(re2 CONFIG REQUIRED)
 find_package(Snappy CONFIG REQUIRED)
 find_package(Thrift CONFIG REQUIRED)
 find_package(utf8proc REQUIRED)
@@ -95,6 +96,7 @@ target_link_libraries(ParquetSharpNative PRIVATE
 	glog::glog
 	lz4::lz4
 	${SSL_LIBRARIES}
+	re2::re2
 	Snappy::snappy
 	thrift::thrift
 	${utf8proc_LIBRARIES}
