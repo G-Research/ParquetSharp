@@ -1,1 +1,1 @@
-https://github.com/ianmcook/vcpkg.git 53a50dd26e818177ac71e6104dd0399c25ebaa24
+https://github.com/ianmcook/vcpkg.git aa81d301f3f712a082261864088f67a612339594
