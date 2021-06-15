@@ -62,7 +62,7 @@ namespace ParquetSharp.Test
         {
             var expected = Enumerable.Range(0, 100).ToArray();
             using var outStream = new BufferOutputStream();
-            
+
             // Write out a single column
             using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("int_field")}))
             {

@@ -19,6 +19,7 @@ namespace ParquetSharp
         }
 
         public bool EncryptedFooter => ExceptionInfo.Return<bool>(Handle, FileEncryptionProperties_Encrypted_Footer);
+
         //public EncryptionAlgorithm Algorithm => TODO
         public byte[] FooterKey => ExceptionInfo.Return<AesKey>(Handle, FileEncryptionProperties_Footer_Key).ToBytes();
         public string FooterKeyMetadata => ExceptionInfo.ReturnString(Handle, FileEncryptionProperties_Footer_Key_Metadata, FileEncryptionProperties_Footer_Key_Metadata_Free);
@@ -55,7 +56,7 @@ namespace ParquetSharp
         private static extern void FileEncryptionProperties_File_Aad_Free(IntPtr fileAad);
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr FileEncryptionProperties_Column_Encryption_Properties(IntPtr properties,  string columnPath, out IntPtr columnEncryptionProperties);
+        private static extern IntPtr FileEncryptionProperties_Column_Encryption_Properties(IntPtr properties, string columnPath, out IntPtr columnEncryptionProperties);
 
         internal readonly ParquetHandle Handle;
     }

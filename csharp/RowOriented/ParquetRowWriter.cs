@@ -82,7 +82,7 @@ namespace ParquetSharp.RowOriented
         public void StartNewRowGroup()
         {
             if (_rowGroupWriter == null) throw new InvalidOperationException("writer has been closed or disposed");
-            
+
             _writeAction(this, _rows, _pos);
             _pos = 0;
 

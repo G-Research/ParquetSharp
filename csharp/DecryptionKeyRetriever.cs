@@ -29,6 +29,7 @@ namespace ParquetSharp
         }
 
         internal delegate void FreeGcHandleFunc(IntPtr handle);
+
         internal delegate void GetKeyFunc(IntPtr handle, IntPtr keyMetadata, out AesKey key, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
 
         internal static readonly FreeGcHandleFunc FreeGcHandleCallback = FreeGcHandle;

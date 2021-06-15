@@ -1,4 +1,3 @@
-
 namespace ParquetSharp.Schema
 {
     public enum NodeType

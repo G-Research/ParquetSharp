@@ -35,7 +35,6 @@ namespace ParquetSharp
             var types = GetSystemTypes();
             var visitorApply = VisitorCache.GetOrAdd((types.physicalType, types.logicalType, types.elementType, typeof(TReturn)), t =>
             {
-
                 var iface = typeof(IColumnDescriptorVisitor<TReturn>);
                 var genericMethod = iface.GetMethod(nameof(visitor.OnColumnDescriptor));
                 if (genericMethod == null)

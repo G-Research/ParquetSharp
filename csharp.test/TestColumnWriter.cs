@@ -17,7 +17,7 @@ namespace ParquetSharp.Test
                 using var writer = new ParquetFileWriter(outStream, new Column[] {new Column<int?>("int32?")});
                 using var rowGroupWriter = writer.AppendRowGroup();
                 using var colWriter = (ColumnWriter<int>) rowGroupWriter.NextColumn();
-                        
+
                 var defLevels = new short[] {1, 0, 1};
                 var values = new[] {1, 2};
 
@@ -43,7 +43,7 @@ namespace ParquetSharp.Test
             using var buffer = new ResizableBuffer();
             using var outStream = new BufferOutputStream(buffer);
 
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 new ParquetFileWriter(outStream, new Column[] {new Column<object>("unsupported")}));
 
             Assert.AreEqual("unsupported logical type System.Object", exception?.Message);

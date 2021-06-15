@@ -30,6 +30,7 @@ namespace ParquetSharp
         }
 
         internal delegate void FreeGcHandleFunc(IntPtr handle);
+
         internal delegate void VerifyFunc(IntPtr handle, IntPtr aadPrefix, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
 
         internal static readonly FreeGcHandleFunc FreeGcHandleCallback = FreeGcHandle;

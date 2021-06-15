@@ -22,7 +22,7 @@ namespace ParquetSharp
             _handle = handle;
         }
 
-		[DllImport(ParquetDll.Name)]
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr MemoryPool_Default_Memory_Pool(out IntPtr memoryPool);
 
         [DllImport(ParquetDll.Name)]

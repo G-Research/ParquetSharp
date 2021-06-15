@@ -232,7 +232,7 @@ namespace ParquetSharp.RowOriented
             var initAssign = Expression.Assign(loopVar, initValue);
             var breakLabel = Expression.Label("LoopBreak");
 
-            return Expression.Block(new[] { loopVar },
+            return Expression.Block(new[] {loopVar},
                 initAssign,
                 Expression.Loop(
                     Expression.IfThenElse(

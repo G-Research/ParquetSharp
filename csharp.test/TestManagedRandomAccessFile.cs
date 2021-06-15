@@ -109,7 +109,6 @@ namespace ParquetSharp.Test
                 using var input = new ManagedRandomAccessFile(buffer);
                 using (new ParquetFileReader(input))
                 {
-
                 }
             });
 

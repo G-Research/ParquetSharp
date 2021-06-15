@@ -50,5 +50,4 @@ namespace ParquetSharp
             public readonly IntPtr BuildInfo;
         };
     }
-
 }

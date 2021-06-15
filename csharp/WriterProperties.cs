@@ -62,7 +62,7 @@ namespace ParquetSharp
         }
 
         internal readonly ParquetHandle Handle;
-        
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Get_Default_Writer_Properties(out IntPtr writerProperties);
 

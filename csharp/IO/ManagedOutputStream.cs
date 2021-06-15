@@ -138,6 +138,7 @@ namespace ParquetSharp.IO
                 exception = _exceptionMessage = null;
                 return 1;
             }
+
             if (error is IOException)
             {
                 exception = _exceptionMessage = error.ToString();
@@ -159,9 +160,13 @@ namespace ParquetSharp.IO
 
 
         private delegate byte WriteDelegate(IntPtr buffer, long nbyte, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
+
         private delegate byte TellDelegate(IntPtr position, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
+
         private delegate byte FlushDelegate([MarshalAs(UnmanagedType.LPStr)] out string? exception);
+
         private delegate byte CloseDelegate([MarshalAs(UnmanagedType.LPStr)] out string? exception);
+
         private delegate bool ClosedDelegate();
 
         private readonly Stream _stream;
@@ -173,6 +178,7 @@ namespace ParquetSharp.IO
         private readonly TellDelegate _tell;
         private readonly FlushDelegate _flush;
         private readonly CloseDelegate _close;
+
         private readonly ClosedDelegate _closed;
         // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
 

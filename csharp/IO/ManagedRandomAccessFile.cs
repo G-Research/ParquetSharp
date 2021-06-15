@@ -69,7 +69,7 @@ namespace ParquetSharp.IO
         {
             try
             {
-                if(!_leaveOpen)
+                if (!_leaveOpen)
                 {
                     _stream.Close();
                 }
@@ -144,6 +144,7 @@ namespace ParquetSharp.IO
                 exception = _exceptionMessage = null;
                 return 1;
             }
+
             if (error is IOException)
             {
                 exception = _exceptionMessage = error.ToString();
@@ -165,10 +166,15 @@ namespace ParquetSharp.IO
             out IntPtr randomAccessFile);
 
         private delegate byte ReadDelegate(long nbyte, IntPtr bytesRead, IntPtr dest, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
+
         private delegate byte CloseDelegate([MarshalAs(UnmanagedType.LPStr)] out string? exception);
+
         private delegate byte GetSizeDelegate(IntPtr size, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
+
         private delegate byte TellDelegate(IntPtr position, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
+
         private delegate byte SeekDelegate(long position, [MarshalAs(UnmanagedType.LPStr)] out string? exception);
+
         private delegate bool ClosedDelegate();
 
         private readonly Stream _stream;
@@ -181,6 +187,7 @@ namespace ParquetSharp.IO
         private readonly GetSizeDelegate _getSize;
         private readonly TellDelegate _tell;
         private readonly SeekDelegate _seek;
+
         private readonly ClosedDelegate _closed;
         // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
 

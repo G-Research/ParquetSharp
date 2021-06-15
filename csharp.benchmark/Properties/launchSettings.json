@@ -1,8 +1,8 @@
 {
-  "profiles": {
-    "ParquetCppSharp.Test": {
-      "commandName": "Project",
-      "nativeDebugging": true 
+    "profiles": {
+        "ParquetCppSharp.Test": {
+            "commandName": "Project",
+            "nativeDebugging": true
+        }
     }
-  }
 }

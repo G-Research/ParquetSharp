@@ -525,8 +525,6 @@ namespace ParquetSharp
                 }
             }
         }
-
-
     }
 
     /// <summary>

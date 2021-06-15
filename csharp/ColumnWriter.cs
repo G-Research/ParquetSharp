@@ -185,56 +185,56 @@ namespace ParquetSharp
             {
                 if (type == typeof(bool))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Bool(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Bool(Handle,
                         numValues, pDefLevels, pRepLevels, (bool*) pValues));
                     return;
                 }
 
                 if (type == typeof(int))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Int32(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Int32(Handle,
                         numValues, pDefLevels, pRepLevels, (int*) pValues));
                     return;
                 }
 
                 if (type == typeof(long))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Int64(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Int64(Handle,
                         numValues, pDefLevels, pRepLevels, (long*) pValues));
                     return;
                 }
 
                 if (type == typeof(Int96))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Int96(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Int96(Handle,
                         numValues, pDefLevels, pRepLevels, (Int96*) pValues));
                     return;
                 }
 
                 if (type == typeof(float))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Float(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Float(Handle,
                         numValues, pDefLevels, pRepLevels, (float*) pValues));
                     return;
                 }
 
                 if (type == typeof(double))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Double(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_Double(Handle,
                         numValues, pDefLevels, pRepLevels, (double*) pValues));
                     return;
                 }
 
                 if (type == typeof(ByteArray))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_ByteArray(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_ByteArray(Handle,
                         numValues, pDefLevels, pRepLevels, (ByteArray*) pValues));
                     return;
                 }
 
                 if (type == typeof(FixedLenByteArray))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_FixedLenByteArray(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatch_FixedLenByteArray(Handle,
                         numValues, pDefLevels, pRepLevels, (FixedLenByteArray*) pValues));
                     return;
                 }
@@ -244,7 +244,7 @@ namespace ParquetSharp
         }
 
         public unsafe void WriteBatchSpaced(
-            int numValues, ReadOnlySpan<short> defLevels, ReadOnlySpan<short> repLevels, 
+            int numValues, ReadOnlySpan<short> defLevels, ReadOnlySpan<short> repLevels,
             ReadOnlySpan<byte> validBits, long validBitsOffset, ReadOnlySpan<TValue> values)
         {
             if (values == null) throw new ArgumentNullException(nameof(values));
@@ -273,49 +273,49 @@ namespace ParquetSharp
 
                 if (type == typeof(int))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_Int32(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_Int32(Handle,
                         numValues, pDefLevels, pRepLevels, pValidBits, validBitsOffset, (int*) pValues));
                     return;
                 }
 
                 if (type == typeof(long))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_Int64(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_Int64(Handle,
                         numValues, pDefLevels, pRepLevels, pValidBits, validBitsOffset, (long*) pValues));
                     return;
                 }
 
                 if (type == typeof(Int96))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_Int96(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_Int96(Handle,
                         numValues, pDefLevels, pRepLevels, pValidBits, validBitsOffset, (Int96*) pValues));
                     return;
                 }
 
                 if (type == typeof(float))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_Float(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_Float(Handle,
                         numValues, pDefLevels, pRepLevels, pValidBits, validBitsOffset, (float*) pValues));
                     return;
                 }
 
                 if (type == typeof(double))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_Double(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_Double(Handle,
                         numValues, pDefLevels, pRepLevels, pValidBits, validBitsOffset, (double*) pValues));
                     return;
                 }
 
                 if (type == typeof(ByteArray))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_ByteArray(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_ByteArray(Handle,
                         numValues, pDefLevels, pRepLevels, pValidBits, validBitsOffset, (ByteArray*) pValues));
                     return;
                 }
 
                 if (type == typeof(FixedLenByteArray))
                 {
-                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_FixedLenByteArray(Handle, 
+                    ExceptionInfo.Check(TypedColumnWriter_WriteBatchSpaced_FixedLenByteArray(Handle,
                         numValues, pDefLevels, pRepLevels, pValidBits, validBitsOffset, (FixedLenByteArray*) pValues));
                     return;
                 }

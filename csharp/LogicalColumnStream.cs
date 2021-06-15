@@ -35,6 +35,7 @@ namespace ParquetSharp
             {
                 schemaNodes.Add(n);
             }
+
             schemaNodes.RemoveAt(schemaNodes.Count - 1); // we don't need the schema root
             schemaNodes.Reverse(); // root to leaf
             return schemaNodes;

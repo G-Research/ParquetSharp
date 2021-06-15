@@ -53,7 +53,7 @@ namespace ParquetSharp
 
         private bool FillBuffer()
         {
-            var columnReader = (ColumnReader<TPhysicalvalue>)_columnReader;
+            var columnReader = (ColumnReader<TPhysicalvalue>) _columnReader;
 
             if (_levelIndex < _numLevels || _valueIndex < _numValues)
             {

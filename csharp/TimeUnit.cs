@@ -1,5 +1,4 @@
-﻿
-namespace ParquetSharp
+﻿namespace ParquetSharp
 {
     public enum TimeUnit
     {

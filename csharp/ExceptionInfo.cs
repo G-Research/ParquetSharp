@@ -1,4 +1,3 @@
-
 using System;
 using System.Runtime.InteropServices;
 
@@ -10,9 +9,13 @@ namespace ParquetSharp
     internal sealed class ExceptionInfo
     {
         public delegate IntPtr GetAction<TValue>(out TValue value);
+
         public delegate IntPtr GetAction<in TArg0, TValue>(TArg0 arg0, out TValue value);
+
         public delegate IntPtr GetAction<in TArg0, in TArg1, TValue>(TArg0 arg0, TArg1 arg1, out TValue value);
+
         public delegate IntPtr GetFunction<TValue>(IntPtr handle, out TValue value);
+
         public delegate IntPtr GetFunction<in TArg0, TValue>(IntPtr handle, TArg0 arg0, out TValue value);
 
         public static void Check(IntPtr exceptionInfo)

@@ -30,7 +30,7 @@ namespace ParquetSharp.Benchmark
                 .OrderBy(i => i)
                 .ToArray();
 
-            var values = dates.Select(d => objectIds.Select(o => (float)rand.NextDouble()).ToArray()).ToArray();
+            var values = dates.Select(d => objectIds.Select(o => (float) rand.NextDouble()).ToArray()).ToArray();
             var numRows = values.Select(v => v.Length).Aggregate(0, (sum, l) => sum + l);
 
             return (dates, objectIds, values, numRows);

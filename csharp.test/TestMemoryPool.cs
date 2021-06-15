@@ -18,7 +18,7 @@ namespace ParquetSharp.Test
             using (var buffer = new ResizableBuffer())
             {
                 using var stream = new BufferOutputStream(buffer);
-                using var fileWriter = new ParquetFileWriter(stream, new Column[] { new Column<int>("Index") });
+                using var fileWriter = new ParquetFileWriter(stream, new Column[] {new Column<int>("Index")});
 
                 Assert.Greater(pool.BytesAllocated, 0);
                 Assert.Greater(pool.MaxMemory, 0);

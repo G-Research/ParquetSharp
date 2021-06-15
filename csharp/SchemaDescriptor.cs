@@ -61,7 +61,7 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr SchemaDescriptor_Schema_Root(IntPtr descriptor, out IntPtr schemaRoot);
- 
+
         private readonly IntPtr _handle;
     }
 }

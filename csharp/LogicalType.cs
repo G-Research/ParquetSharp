@@ -1,4 +1,3 @@
-
 using System;
 using System.Runtime.InteropServices;
 
@@ -169,27 +168,37 @@ namespace ParquetSharp
 
     public sealed class StringLogicalType : LogicalType
     {
-        internal StringLogicalType(IntPtr handle) : base(handle) { }
+        internal StringLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 
     public sealed class MapLogicalType : LogicalType
     {
-        internal MapLogicalType(IntPtr handle) : base(handle) { }
+        internal MapLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 
     public sealed class ListLogicalType : LogicalType
     {
-        internal ListLogicalType(IntPtr handle) : base(handle) { }
+        internal ListLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 
     public sealed class EnumLogicalType : LogicalType
     {
-        internal EnumLogicalType(IntPtr handle) : base(handle) { }
+        internal EnumLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 
     public sealed class DecimalLogicalType : LogicalType
     {
-        internal DecimalLogicalType(IntPtr handle) : base(handle) { }
+        internal DecimalLogicalType(IntPtr handle) : base(handle)
+        {
+        }
 
         public int Precision => ExceptionInfo.Return<int>(Handle, DecimalLogicalType_Precision);
         public int Scale => ExceptionInfo.Return<int>(Handle, DecimalLogicalType_Scale);
@@ -203,12 +212,16 @@ namespace ParquetSharp
 
     public sealed class DateLogicalType : LogicalType
     {
-        internal DateLogicalType(IntPtr handle) : base(handle) { }
+        internal DateLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 
     public sealed class TimeLogicalType : LogicalType
     {
-        internal TimeLogicalType(IntPtr handle) : base(handle) { }
+        internal TimeLogicalType(IntPtr handle) : base(handle)
+        {
+        }
 
         public bool IsAdjustedToUtc => ExceptionInfo.Return<bool>(Handle, TimeLogicalType_IsAdjustedToUtc);
         public TimeUnit TimeUnit => ExceptionInfo.Return<TimeUnit>(Handle, TimeLogicalType_TimeUnit);
@@ -222,7 +235,9 @@ namespace ParquetSharp
 
     public sealed class TimestampLogicalType : LogicalType
     {
-        internal TimestampLogicalType(IntPtr handle) : base(handle) { }
+        internal TimestampLogicalType(IntPtr handle) : base(handle)
+        {
+        }
 
         public bool IsAdjustedToUtc => ExceptionInfo.Return<bool>(Handle, TimestampLogicalType_IsAdjustedToUtc);
         public TimeUnit TimeUnit => ExceptionInfo.Return<TimeUnit>(Handle, TimestampLogicalType_TimeUnit);
@@ -236,12 +251,16 @@ namespace ParquetSharp
 
     public sealed class IntervalLogicalType : LogicalType
     {
-        internal IntervalLogicalType(IntPtr handle) : base(handle) { }
+        internal IntervalLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 
     public sealed class IntLogicalType : LogicalType
     {
-        internal IntLogicalType(IntPtr handle) : base(handle) { }
+        internal IntLogicalType(IntPtr handle) : base(handle)
+        {
+        }
 
         public int BitWidth => ExceptionInfo.Return<int>(Handle, IntLogicalType_BitWidth);
         public bool IsSigned => ExceptionInfo.Return<bool>(Handle, IntLogicalType_IsSigned);
@@ -255,31 +274,43 @@ namespace ParquetSharp
 
     public sealed class NullLogicalType : LogicalType
     {
-        internal NullLogicalType(IntPtr handle) : base(handle) { }
+        internal NullLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 
     public sealed class JsonLogicalType : LogicalType
     {
-        internal JsonLogicalType(IntPtr handle) : base(handle) { }
+        internal JsonLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 
     public sealed class BsonLogicalType : LogicalType
     {
-        internal BsonLogicalType(IntPtr handle) : base(handle) { }
+        internal BsonLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 
     public sealed class UuidLogicalType : LogicalType
     {
-        internal UuidLogicalType(IntPtr handle) : base(handle) { }
+        internal UuidLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 
     public sealed class NoneLogicalType : LogicalType
     {
-        internal NoneLogicalType(IntPtr handle) : base(handle) { }
+        internal NoneLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 
     public sealed class UnknownLogicalType : LogicalType
     {
-        internal UnknownLogicalType(IntPtr handle) : base(handle) { }
+        internal UnknownLogicalType(IntPtr handle) : base(handle)
+        {
+        }
     }
 }
