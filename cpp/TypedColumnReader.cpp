@@ -29,32 +29,6 @@ extern "C"
 				values_read);)																	\
 	}																							\
 																								\
-	PARQUETSHARP_EXPORT ExceptionInfo* TypedColumnReader_ReadBatchSpaced_##ParquetType(			\
-		std::shared_ptr<ColumnReader>* columnReader,											\
-		int64_t batch_size, 																	\
-		int16_t* def_levels, 																	\
-		int16_t* rep_levels,																	\
-		NativeType* values, 																	\
-		uint8_t* valid_bits,																	\
-		int64_t valid_bits_offset,																\
-		int64_t* levels_read,																	\
-		int64_t* values_read,																	\
-		int64_t* null_count,																	\
-		int64_t* return_value)																	\
-	{																							\
-        TRYCATCH(																				\
-			*levels_read = static_cast<ParquetType##Reader&>(**columnReader).ReadBatchSpaced(	\
-				batch_size,																		\
-				def_levels,																		\
-				rep_levels,																		\
-				values,																			\
-				valid_bits,																		\
-				valid_bits_offset,																\
-				levels_read,																	\
-				values_read,																	\
-				null_count);)																	\
-	}																							\
-																								\
 	PARQUETSHARP_EXPORT ExceptionInfo* TypedColumnReader_Skip_##ParquetType(					\
 		std::shared_ptr<ColumnReader>* columnReader,											\
 		int64_t num_rows_to_skip,																\

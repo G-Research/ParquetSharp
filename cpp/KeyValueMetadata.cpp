@@ -2,6 +2,7 @@
 #include "cpp/ParquetSharpExport.h"
 #include "ExceptionInfo.h"
 
+#include <arrow/util/key_value_metadata.h>
 #include <parquet/metadata.h>
 
 using namespace parquet;
@@ -76,7 +77,7 @@ extern "C"
 
 	PARQUETSHARP_EXPORT void KeyValueMetadata_Free_Entries(const std::shared_ptr<const KeyValueMetadata>* key_value_metadata, const char** keys, const char** values)
 	{
-		int64_t size = (*key_value_metadata)->size();
+		const int64_t size = (*key_value_metadata)->size();
 
 		for (int i = 0; i != size; ++i)
 		{

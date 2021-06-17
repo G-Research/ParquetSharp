@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <parquet/encryption.h>
+#include <parquet/encryption/encryption.h>
 #include <stdexcept>
 
 using namespace parquet;
@@ -35,7 +35,7 @@ public:
 		free_gc_handle_(Handle);
 	}
 
-	std::string GetKey(const std::string& key_metadata) const override
+	std::string GetKey(const std::string& key_metadata) override
 	{
 		const char* exception = nullptr;
 		AesKey key;
