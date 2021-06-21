@@ -23,18 +23,18 @@ namespace ParquetSharp
         public bool EncryptedWithFooterKey => ExceptionInfo.Return<bool>(_handle, ColumnCryptoMetaData_Encrypted_With_Footer_Key);
         public string KeyMetadata => Marshal.PtrToStringAnsi(ExceptionInfo.Return<IntPtr>(_handle, ColumnCryptoMetaData_Key_Metadata));
 
-        [DllImport(ParquetDll.Name)] 
+        [DllImport(ParquetDll.Name)]
         private static extern void ColumnCryptoMetaData_Free(IntPtr columnCryptoMetaData);
 
-        [DllImport(ParquetDll.Name)] 
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnCryptoMetaData_Path_In_Schema(IntPtr columnCryptoMetaData, out IntPtr columnPath);
 
-        [DllImport(ParquetDll.Name)] 
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnCryptoMetaData_Encrypted_With_Footer_Key(IntPtr columnCryptoMetaData, [MarshalAs(UnmanagedType.I1)] out bool encryptedWithFooterKey);
 
-        [DllImport(ParquetDll.Name)] 
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnCryptoMetaData_Key_Metadata(IntPtr columnCryptoMetaData, out IntPtr keyMetadata);
 
-	    private readonly ParquetHandle _handle;
+        private readonly ParquetHandle _handle;
     }
 }

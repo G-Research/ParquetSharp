@@ -89,43 +89,43 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Bool(
-            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, bool* values, 
+            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, bool* values,
             out long valuesRead, out long levelsRead);
 
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Int32(
-            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, int* values, 
+            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, int* values,
             out long valuesRead, out long levelsRead);
 
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Int64(
-            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, long* values, 
+            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, long* values,
             out long valuesRead, out long levelsRead);
 
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Int96(
-            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, Int96* values, 
+            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, Int96* values,
             out long valuesRead, out long levelsRead);
 
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Float(
-            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, float* values, 
+            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, float* values,
             out long valuesRead, out long levelsRead);
 
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Double(
-            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, double* values, 
+            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, double* values,
             out long valuesRead, out long levelsRead);
 
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_ByteArray(
-            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, ByteArray* values, 
+            IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, ByteArray* values,
             out long valuesRead, out long levelsRead);
 
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_FixedLenByteArray(
             IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, FixedLenByteArray* values, out long valuesRead, out long levelsRead);
-        
+
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedColumnReader_Skip_Bool(IntPtr columnReader, long numRowsToSkip, out long levelsSkipped);
 
@@ -157,7 +157,7 @@ namespace ParquetSharp
     /// <inheritdoc />
     public sealed class ColumnReader<TValue> : ColumnReader where TValue : unmanaged
     {
-        internal ColumnReader(ParquetHandle handle, ColumnChunkMetaData columnChunkMetaData) 
+        internal ColumnReader(ParquetHandle handle, ColumnChunkMetaData columnChunkMetaData)
             : base(handle, columnChunkMetaData)
         {
         }
@@ -189,7 +189,7 @@ namespace ParquetSharp
             {
                 if (type == typeof(bool))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Bool(Handle.IntPtr, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Bool(Handle.IntPtr,
                         batchSize, pDefLevels, pRepLevels, (bool*) pValues, out valuesRead, out var levelsRead));
                     GC.KeepAlive(Handle);
                     return levelsRead;
@@ -197,7 +197,7 @@ namespace ParquetSharp
 
                 if (type == typeof(int))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int32(Handle.IntPtr, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int32(Handle.IntPtr,
                         batchSize, pDefLevels, pRepLevels, (int*) pValues, out valuesRead, out var levelsRead));
                     GC.KeepAlive(Handle);
                     return levelsRead;
@@ -205,7 +205,7 @@ namespace ParquetSharp
 
                 if (type == typeof(long))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int64(Handle.IntPtr, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int64(Handle.IntPtr,
                         batchSize, pDefLevels, pRepLevels, (long*) pValues, out valuesRead, out var levelsRead));
                     GC.KeepAlive(Handle);
                     return levelsRead;
@@ -213,7 +213,7 @@ namespace ParquetSharp
 
                 if (type == typeof(Int96))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int96(Handle.IntPtr, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Int96(Handle.IntPtr,
                         batchSize, pDefLevels, pRepLevels, (Int96*) pValues, out valuesRead, out var levelsRead));
                     GC.KeepAlive(Handle);
                     return levelsRead;
@@ -221,7 +221,7 @@ namespace ParquetSharp
 
                 if (type == typeof(float))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Float(Handle.IntPtr, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Float(Handle.IntPtr,
                         batchSize, pDefLevels, pRepLevels, (float*) pValues, out valuesRead, out var levelsRead));
                     GC.KeepAlive(Handle);
                     return levelsRead;
@@ -229,7 +229,7 @@ namespace ParquetSharp
 
                 if (type == typeof(double))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Double(Handle.IntPtr, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_Double(Handle.IntPtr,
                         batchSize, pDefLevels, pRepLevels, (double*) pValues, out valuesRead, out var levelsRead));
                     GC.KeepAlive(Handle);
                     return levelsRead;
@@ -245,7 +245,7 @@ namespace ParquetSharp
 
                 if (type == typeof(FixedLenByteArray))
                 {
-                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_FixedLenByteArray(Handle.IntPtr, 
+                    ExceptionInfo.Check(TypedColumnReader_ReadBatch_FixedLenByteArray(Handle.IntPtr,
                         batchSize, pDefLevels, pRepLevels, (FixedLenByteArray*) pValues, out valuesRead, out var levelsRead));
                     GC.KeepAlive(Handle);
                     return levelsRead;

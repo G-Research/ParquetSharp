@@ -54,7 +54,7 @@ namespace ParquetSharp.Test
 
             // When reading back the file, we expect the duplicate strings to point to the same memory instances.
             Assert.That(
-                readValues.Distinct(new StringReferenceComparer()).Count(), 
+                readValues.Distinct(new StringReferenceComparer()).Count(),
                 enableDictionary ? Is.EqualTo(100) : Is.EqualTo(numRows));
         }
 

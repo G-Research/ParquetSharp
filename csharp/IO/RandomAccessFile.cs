@@ -13,7 +13,7 @@ namespace ParquetSharp.IO
             Handle = null;
         }
 
-        protected RandomAccessFile(IntPtr handle) 
+        protected RandomAccessFile(IntPtr handle)
         {
             Handle = new ParquetHandle(handle, RandomAccessFile_Free);
         }

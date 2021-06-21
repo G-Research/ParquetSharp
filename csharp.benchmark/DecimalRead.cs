@@ -21,10 +21,10 @@ namespace ParquetSharp.Benchmark
             {
                 var n = rand.Next();
                 var sign = rand.NextDouble() < 0.5 ? -1M : +1M;
-                return sign * ((decimal)n * n * n) / 1000M;
+                return sign * ((decimal) n * n * n) / 1000M;
             }).ToArray();
 
-            using (var fileWriter = new ParquetFileWriter(Filename, new Column[] { new Column<decimal>("Value", LogicalType.Decimal(precision: 29, scale: 3)) }))
+            using (var fileWriter = new ParquetFileWriter(Filename, new Column[] {new Column<decimal>("Value", LogicalType.Decimal(precision: 29, scale: 3))}))
             {
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>();

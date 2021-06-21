@@ -55,7 +55,7 @@ namespace ParquetSharp
         private static extern void FileEncryptionProperties_File_Aad_Free(IntPtr fileAad);
 
         [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr FileEncryptionProperties_Column_Encryption_Properties(IntPtr properties,  string columnPath, out IntPtr columnEncryptionProperties);
+        private static extern IntPtr FileEncryptionProperties_Column_Encryption_Properties(IntPtr properties, string columnPath, out IntPtr columnEncryptionProperties);
 
         internal readonly ParquetHandle Handle;
     }

@@ -88,7 +88,7 @@ namespace ParquetSharp
             : base(columnWriter, bufferLength)
         {
             _byteBuffer = typeof(TPhysical) == typeof(ByteArray) || typeof(TPhysical) == typeof(FixedLenByteArray)
-                ? new ByteBuffer(bufferLength) 
+                ? new ByteBuffer(bufferLength)
                 : null;
         }
 
@@ -119,7 +119,7 @@ namespace ParquetSharp
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                if (schemaNodes.Length >= 2 && 
+                if (schemaNodes.Length >= 2 &&
                     schemaNodes[0] is GroupNode {LogicalType: ListLogicalType _, Repetition: Repetition.Optional} &&
                     schemaNodes[1] is GroupNode {LogicalType: NoneLogicalType _, Repetition: Repetition.Repeated})
                 {
@@ -145,8 +145,8 @@ namespace ParquetSharp
             {
                 bool isOptional = schemaNodes[0].Repetition == Repetition.Optional;
 
-                short leafDefinitionLevel = isOptional ? (short)(nullDefinitionLevel + 1) : nullDefinitionLevel;
-                short leafNullDefinitionLevel = isOptional ? nullDefinitionLevel : (short)-1;
+                short leafDefinitionLevel = isOptional ? (short) (nullDefinitionLevel + 1) : nullDefinitionLevel;
+                short leafNullDefinitionLevel = isOptional ? nullDefinitionLevel : (short) -1;
 
                 WriteArrayFinalLevel(array, repetitionLevel, firstLeafRepLevel, leafDefinitionLevel, converter, leafNullDefinitionLevel);
 
@@ -158,7 +158,7 @@ namespace ParquetSharp
 
         private void WriteArrayIntermediateLevel(Array values, ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalWrite<TLogical, TPhysical>.Converter converter, short nullDefinitionLevel, short repetitionLevel, short firstLeafRepLevel)
         {
-            var columnWriter = (ColumnWriter<TPhysical>)Source;
+            var columnWriter = (ColumnWriter<TPhysical>) Source;
 
             for (var i = 0; i < values.Length; i++)
             {
@@ -175,18 +175,18 @@ namespace ParquetSharp
                     if (a.Length > 0)
                     {
                         // We have a positive length array, call the top level array writer on its values
-                        WriteArray(a, schemaNodes, elementType, converter, (short)(repetitionLevel + 1), (short)(nullDefinitionLevel + 2), currentLeafRepLevel);
+                        WriteArray(a, schemaNodes, elementType, converter, (short) (repetitionLevel + 1), (short) (nullDefinitionLevel + 2), currentLeafRepLevel);
                     }
                     else
                     {
                         // Write that we have a zero length array
-                        columnWriter.WriteBatchSpaced(1, new[] { (short)(nullDefinitionLevel + 1) }, new[] { currentLeafRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
+                        columnWriter.WriteBatchSpaced(1, new[] {(short) (nullDefinitionLevel + 1)}, new[] {currentLeafRepLevel}, new byte[] {0}, 0, new TPhysical[] { });
                     }
                 }
                 else
                 {
                     // Write that this item is null
-                    columnWriter.WriteBatchSpaced(1, new[] { nullDefinitionLevel }, new[] { currentLeafRepLevel }, new byte[] { 0 }, 0, new TPhysical[] { });
+                    columnWriter.WriteBatchSpaced(1, new[] {nullDefinitionLevel}, new[] {currentLeafRepLevel}, new byte[] {0}, 0, new TPhysical[] { });
                 }
             }
         }
@@ -195,13 +195,13 @@ namespace ParquetSharp
         /// Write implementation for writing the deepest level array.
         /// </summary>
         private void WriteArrayFinalLevel(
-            Array values, 
-            short repetitionLevel, short leafFirstRepLevel, 
-            short leafDefinitionLevel, 
-            LogicalWrite<TLogical, TPhysical>.Converter converter, 
+            Array values,
+            short repetitionLevel, short leafFirstRepLevel,
+            short leafDefinitionLevel,
+            LogicalWrite<TLogical, TPhysical>.Converter converter,
             short nullDefinitionLevel)
         {
-            ReadOnlySpan<TLogical> valuesSpan = (TLogical[])values;
+            ReadOnlySpan<TLogical> valuesSpan = (TLogical[]) values;
 
             if (converter == null) throw new ArgumentNullException(nameof(converter));
             if (DefLevels == null) throw new InvalidOperationException("DefLevels should not be null.");

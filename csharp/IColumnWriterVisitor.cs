@@ -1,5 +1,4 @@
-﻿
-namespace ParquetSharp
+﻿namespace ParquetSharp
 {
     /// <summary>
     /// Visitor on ColumnWriter to discover the derived writer type in a type safe manner.

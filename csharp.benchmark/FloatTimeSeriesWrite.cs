@@ -66,7 +66,7 @@ namespace ParquetSharp.Benchmark
 
             return new FileInfo("float_timeseries.csv.gz").Length;
         }
-        
+
         [Benchmark(Baseline = true, Description = "Baseline")]
         public long Parquet()
         {

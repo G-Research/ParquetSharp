@@ -51,7 +51,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestUnsupportedLogicalTypeOverride()
         {
-            var exception = Assert.Throws<ParquetException>(() => 
+            var exception = Assert.Throws<ParquetException>(() =>
                 new Column<DateTime>("DateTime", LogicalType.Json()).CreateSchemaNode());
 
             Assert.That(
