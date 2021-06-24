@@ -40,7 +40,7 @@ namespace ParquetSharp
 
         public override bool Equals(object obj)
         {
-            return !(obj is null) && obj is Date date && Equals(date);
+            return obj is Date date && Equals(date);
         }
 
         public override int GetHashCode()
