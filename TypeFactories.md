@@ -8,7 +8,7 @@ This means that:
 
 ### API
 
-The API at the core of this PR is encompassed by `LogicalTypeFactory`, `LogicalReadConverterFactory` and `LogicalWriteConverterFactory`.
+The API at the core of this is encompassed by `LogicalTypeFactory`, `LogicalReadConverterFactory` and `LogicalWriteConverterFactory`.
 
 Whenever the user uses a custom type to read or write values to a Parquet file, a `LogicalRead/WriteConverterFactory` needs to be provided. This converter factory tells to the `LogicalColumnReader/Writer` how to convert the user custom type into a physical type that is understood by Parquet.
 
