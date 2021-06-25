@@ -16,6 +16,9 @@ namespace ParquetSharp
         /// <summary>
         /// Return a converter delegate that converts a TLogical readonly-span to a TPhysical span.
         /// </summary>
+        /// <returns>
+        /// A delegate of type LogicalWrite&lt;TLogical, TPhysical&gt;.Converter
+        /// </returns>
         /// <param name="columnDescriptor">The descriptor of the column to be converted.</param>
         /// <param name="byteBuffer">The ByteBuffer allocation pool for efficiently handling byte arrays.</param>
         public virtual Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ByteBuffer? byteBuffer)

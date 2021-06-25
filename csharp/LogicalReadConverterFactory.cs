@@ -13,6 +13,9 @@ namespace ParquetSharp
         /// Otherwise return null. This is an optimisation to avoid needless memory copies between buffers (i.e. otherwise we have to use the
         /// identity converter).
         /// </summary>
+        /// <returns>
+        /// A delegate of type LogicalRead&lt;TLogical, TPhysical&gt;.DirectReader
+        /// </returns>
         public virtual Delegate? GetDirectReader<TLogical, TPhysical>() 
             where TPhysical : unmanaged
         {
@@ -22,6 +25,9 @@ namespace ParquetSharp
         /// <summary>
         /// Return a converter delegate that converts a TPhysical readonly-span to a TLogical span.
         /// </summary>
+        /// <returns>
+        /// A delegate of type LogicalRead&lt;TLogical, TPhysical&gt;.Converter
+        /// </returns>
         /// <param name="columnDescriptor">The descriptor of the column to be converted.</param>
         /// <param name="columnChunkMetaData">The metadata of the column-chunk to be converted.</param>
         public virtual Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ColumnChunkMetaData columnChunkMetaData)
