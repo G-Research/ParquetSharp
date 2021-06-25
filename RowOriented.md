@@ -1,4 +1,3 @@
-
 ## Row-oriented API (Advanced)
 
 ### Explicit column mapping
