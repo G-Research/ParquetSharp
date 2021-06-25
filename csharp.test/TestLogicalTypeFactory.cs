@@ -138,15 +138,15 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestWriteNoColumnHint()
+        public static void TestWriteNoColumnOverride()
         {
-            TestWriteNoColumnHint(Values, CustomValues);
+            TestWriteNoColumnOverride(Values, CustomValues);
         }
 
         [Test]
-        public static void TestWriteNoColumnHint_Array()
+        public static void TestWriteNoColumnOverride_Array()
         {
-            TestWriteNoColumnHint(ArrayValues, ArrayCustomValues);
+            TestWriteNoColumnOverride(ArrayValues, ArrayCustomValues);
         }
 
         [Test]
@@ -162,15 +162,15 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestWriteNoColumnHintNorWriterOverride()
+        public static void TestWriteNoColumnNorWriterOverride()
         {
-            TestWriteNoColumnHintNorWriterOverride(Values, CustomValues);
+            TestWriteNoColumnNorWriterOverride(Values, CustomValues);
         }
 
         [Test]
-        public static void TestWriteNoColumnHintNorWriterOverride_Array()
+        public static void TestWriteNoColumnNorWriterOverride_Array()
         {
-            TestWriteNoColumnHintNorWriterOverride(ArrayValues, ArrayCustomValues);
+            TestWriteNoColumnNorWriterOverride(ArrayValues, ArrayCustomValues);
         }
 
         // Reader tests.
@@ -206,7 +206,7 @@ namespace ParquetSharp.Test
             using var input = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(input)
             {
-                LogicalTypeFactory = new ReadTypeFactoryNoHint(),
+                LogicalTypeFactory = new ReadTypeFactoryNoOverride(),
                 LogicalReadConverterFactory = new ReadConverterFactory()
             };
             using var groupReader = fileReader.RowGroup(0);
@@ -244,7 +244,7 @@ namespace ParquetSharp.Test
             CheckWrittenValues(buffer, expected);
         }
 
-        private static void TestWriteNoColumnHint<TValue, TCustom>(TValue[] expected, TCustom[] written)
+        private static void TestWriteNoColumnOverride<TValue, TCustom>(TValue[] expected, TCustom[] written)
         {
             using var buffer = new ResizableBuffer();
 
@@ -296,7 +296,7 @@ namespace ParquetSharp.Test
             CheckWrittenValues(buffer, expected);
         }
 
-        private static void TestWriteNoColumnHintNorWriterOverride<TValue, TCustom>(TValue[] expected, TCustom[] written)
+        private static void TestWriteNoColumnNorWriterOverride<TValue, TCustom>(TValue[] expected, TCustom[] written)
         {
             using var buffer = new ResizableBuffer();
 
@@ -313,7 +313,7 @@ namespace ParquetSharp.Test
                 using var writerProperties = CreateWriterProperties();
                 using var fileWriter = new ParquetFileWriter(output, schema, writerProperties)
                 {
-                    LogicalTypeFactory = new WriteTypeFactoryNoHint(),
+                    LogicalTypeFactory = new WriteTypeFactoryNoOverride(),
                     LogicalWriteConverterFactory = new WriteConverterFactory()
                 };
                 using var groupWriter = fileWriter.AppendRowGroup();
@@ -391,14 +391,14 @@ namespace ParquetSharp.Test
         }
 
         /// <summary>
-        /// A logical type factory that supports our user custom type (for the read tests only). Ignore hints (used by unit tests that cannot provide a columnLogicalTypeHint).
+        /// A logical type factory that supports our user custom type (for the read tests only). Ignore overrides (used by unit tests that cannot provide a columnLogicalTypeOverride).
         /// </summary>
-        private sealed class ReadTypeFactoryNoHint : LogicalTypeFactory
+        private sealed class ReadTypeFactoryNoOverride : LogicalTypeFactory
         {
-            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeHint)
+            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeOverride)
             {
                 // We have to use the column name to know what type to expose.
-                Assert.IsNull(columnLogicalTypeHint);
+                Assert.IsNull(columnLogicalTypeOverride);
                 return base.GetSystemTypes(descriptor, descriptor.Path.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null);
             }
         }
@@ -425,7 +425,7 @@ namespace ParquetSharp.Test
         }
 
         /// <summary>
-        /// A logical type factory that supports our user custom type (for the write tests only). Rely on hints (used by unit tests that can provide a columnLogicalTypeHint).
+        /// A logical type factory that supports our user custom type (for the write tests only). Rely on overrides (used by unit tests that can provide a columnLogicalTypeOverride).
         /// </summary>
         private sealed class WriteTypeFactory : LogicalTypeFactory
         {
@@ -437,9 +437,9 @@ namespace ParquetSharp.Test
         }
 
         /// <summary>
-        /// A logical type factory that supports our user custom type (for the write tests only). Ignore hints (used by unit tests that cannot provide a columnLogicalTypeHint).
+        /// A logical type factory that supports our user custom type (for the write tests only). Ignore overrides (used by unit tests that cannot provide a columnLogicalTypeOverride).
         /// </summary>
-        private sealed class WriteTypeFactoryNoHint : LogicalTypeFactory
+        private sealed class WriteTypeFactoryNoOverride : LogicalTypeFactory
         {
             public override bool TryGetParquetTypes(Type logicalSystemType, out (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType) entry)
             {
@@ -447,10 +447,10 @@ namespace ParquetSharp.Test
                 return base.TryGetParquetTypes(logicalSystemType, out entry);
             }
 
-            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeHint)
+            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeOverride)
             {
                 // We have to use the column name to know what type to expose.
-                Assert.IsNull(columnLogicalTypeHint);
+                Assert.IsNull(columnLogicalTypeOverride);
                 return base.GetSystemTypes(descriptor, descriptor.Path.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null);
             }
         }

@@ -14,24 +14,24 @@ namespace ParquetSharp
         {
         }
 
-        internal static LogicalColumnWriter Create(ColumnWriter columnWriter, int bufferLength, Type? elementTypeHint)
+        internal static LogicalColumnWriter Create(ColumnWriter columnWriter, int bufferLength, Type? elementTypeOverride)
         {
             if (columnWriter == null) throw new ArgumentNullException(nameof(columnWriter));
 
-            // If the file writer was constructed with a Columns[] argument, or if an elementTypeHint is given,
+            // If the file writer was constructed with a Columns[] argument, or if an elementTypeOverride is given,
             // then we already know what the column writer logical system type should be.
             var columns = columnWriter.RowGroupWriter.ParquetFileWriter.Columns;
-            var columnLogicalTypeHint = GetLeafElementType(elementTypeHint ?? columns?[columnWriter.ColumnIndex].LogicalSystemType);
+            var columnLogicalTypeOverride = GetLeafElementType(elementTypeOverride ?? columns?[columnWriter.ColumnIndex].LogicalSystemType);
 
             return columnWriter.ColumnDescriptor.Apply(
                 columnWriter.LogicalTypeFactory, 
-                columnLogicalTypeHint, 
+                columnLogicalTypeOverride, 
                 new Creator(columnWriter, bufferLength));
         }
 
-        internal static LogicalColumnWriter<TElementType> Create<TElementType>(ColumnWriter columnWriter, int bufferLength, Type? elementTypeHint)
+        internal static LogicalColumnWriter<TElementType> Create<TElementType>(ColumnWriter columnWriter, int bufferLength, Type? elementTypeOverride)
         {
-            var writer = Create(columnWriter, bufferLength, elementTypeHint);
+            var writer = Create(columnWriter, bufferLength, elementTypeOverride);
 
             try
             {

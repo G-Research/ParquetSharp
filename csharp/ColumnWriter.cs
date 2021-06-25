@@ -67,12 +67,12 @@ namespace ParquetSharp
 
         public LogicalColumnWriter LogicalWriter(int bufferLength = 4 * 1024)
         {
-            return LogicalColumnWriter.Create(this, bufferLength, elementTypeHint: null);
+            return LogicalColumnWriter.Create(this, bufferLength, elementTypeOverride: null);
         }
 
         public LogicalColumnWriter<TElement> LogicalWriter<TElement>(int bufferLength = 4 * 1024)
         {
-            return LogicalColumnWriter.Create<TElement>(this, bufferLength, elementTypeHint: null);
+            return LogicalColumnWriter.Create<TElement>(this, bufferLength, elementTypeOverride: null);
         }
 
         public LogicalColumnWriter<TElement> LogicalWriterOverride<TElement>(int bufferLength = 4 * 1024)

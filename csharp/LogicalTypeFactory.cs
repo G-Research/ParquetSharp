@@ -28,10 +28,10 @@ namespace ParquetSharp
         /// Get the mapping from a column descriptor to the actual C# physical and logical element types.
         /// If we know the exact column logical type, use that instead (i.e. user custom types).
         /// </summary>
-        public virtual (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeHint)
+        public virtual (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeOverride)
         {
             var types = GetSystemTypes(descriptor);
-            return (types.physicalType, columnLogicalTypeHint ?? types.logicalType);
+            return (types.physicalType, columnLogicalTypeOverride ?? types.logicalType);
         }
 
         /// <summary>

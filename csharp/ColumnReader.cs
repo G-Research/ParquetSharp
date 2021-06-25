@@ -74,12 +74,12 @@ namespace ParquetSharp
 
         public LogicalColumnReader LogicalReader(int bufferLength = 4 * 1024)
         {
-            return LogicalColumnReader.Create(this, bufferLength, elementTypeHint: null);
+            return LogicalColumnReader.Create(this, bufferLength, elementTypeOverride: null);
         }
 
         public LogicalColumnReader<TElement> LogicalReader<TElement>(int bufferLength = 4 * 1024)
         {
-            return LogicalColumnReader.Create<TElement>(this, bufferLength, elementTypeHint: null);
+            return LogicalColumnReader.Create<TElement>(this, bufferLength, elementTypeOverride: null);
         }
 
         public LogicalColumnReader<TElement> LogicalReaderOverride<TElement>(int bufferLength = 4 * 1024)

@@ -35,9 +35,9 @@ namespace ParquetSharp
             return Apply(typeFactory, null, visitor);
         }
 
-        public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? columnLogicalTypeHint, IColumnDescriptorVisitor<TReturn> visitor)
+        public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride, IColumnDescriptorVisitor<TReturn> visitor)
         {
-            var types = GetSystemTypes(typeFactory, columnLogicalTypeHint);
+            var types = GetSystemTypes(typeFactory, columnLogicalTypeOverride);
             var visitorApply = VisitorCache.GetOrAdd((types.physicalType, types.logicalType, types.elementType, typeof(TReturn)), t =>
             {
 
@@ -64,9 +64,9 @@ namespace ParquetSharp
         /// LogicalType is the most nested logical type (e.g. string).
         /// ElementType is the type represented by the column (e.g. string[][][]).
         /// </summary>
-        public (Type physicalType, Type logicalType, Type elementType) GetSystemTypes(LogicalTypeFactory typeFactory, Type? columnLogicalTypeHint)
+        public (Type physicalType, Type logicalType, Type elementType) GetSystemTypes(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride)
         {
-            var (physicalType, logicalType) = typeFactory.GetSystemTypes(this, columnLogicalTypeHint);
+            var (physicalType, logicalType) = typeFactory.GetSystemTypes(this, columnLogicalTypeOverride);
             var elementType = logicalType;
 
             for (var node = SchemaNode; node != null; node = node.Parent)
