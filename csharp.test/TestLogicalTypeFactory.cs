@@ -35,7 +35,7 @@ namespace ParquetSharp.Test
 
             var exception = Assert.Throws<InvalidCastException>(() =>
             {
-                var reader = (LogicalColumnReader<VolumeInDollars>) groupReader.Column(0).LogicalReader();
+                var reader = groupReader.Column(0).LogicalReader<VolumeInDollars>();
             });
             StringAssert.StartsWith("Unable to cast object of type 'ParquetSharp.LogicalColumnReader`3[System.Single,System.Single,System.Single]", exception?.Message);
         }
@@ -53,7 +53,53 @@ namespace ParquetSharp.Test
             StringAssert.StartsWith("unsupported logical system type", exception?.Message);
         }
 
-        // TODO Same for writer
+        [Test]
+        public static void TestWriteNoTypeFactory()
+        {
+            // Test that we cannot create a writer using a custom type without providing a factory.
+            using var buffer = new ResizableBuffer();
+            using var output = new BufferOutputStream(buffer);
+            
+            var exception = Assert.Throws<ArgumentException>(() =>
+            {
+                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<VolumeInDollars>("value")});
+            });
+
+            StringAssert.StartsWith("unsupported logical type", exception?.Message);
+        }
+
+        [Test]
+        public static void TestWriteExplicitSchemaNoTypeFactory()
+        {
+            // Test that we cannot write values using a custom type without providing a factory.
+            using var buffer = new ResizableBuffer();
+            using var output = new BufferOutputStream(buffer);
+            using var schema = Column.CreateSchemaNode(new Column[] {new Column<float>("values")});
+            using var writerProperties = CreateWriterProperties();
+            using var fileWriter = new ParquetFileWriter(output, schema, writerProperties);
+            using var groupWriter = fileWriter.AppendRowGroup();
+
+            var exception = Assert.Throws<InvalidCastException>(() =>
+            {
+                var writer = groupWriter.NextColumn().LogicalWriter<VolumeInDollars>();
+            });
+            StringAssert.StartsWith("Unable to cast object of type 'ParquetSharp.LogicalColumnWriter`3[System.Single,System.Single,System.Single]", exception?.Message);
+        }
+
+        [Test]
+        public static void TestWriteNoConverterFactory()
+        {
+            // Test that we cannot writer values using a custom type without providing a factory.
+            using var buffer = new ResizableBuffer();
+            using var output = new BufferOutputStream(buffer);
+            using var schema = Column.CreateSchemaNode(new Column[] {new Column<float>("values")});
+            using var writerProperties = CreateWriterProperties();
+            using var fileWriter = new ParquetFileWriter(output, schema, writerProperties);
+            using var groupWriter = fileWriter.AppendRowGroup();
+
+            var exception = Assert.Throws<NotSupportedException>(() => groupWriter.NextColumn().LogicalWriterOverride<VolumeInDollars>());
+            StringAssert.StartsWith("unsupported logical system type", exception?.Message);
+        }
 
         [Test]
         public static void TestRead()
