@@ -40,8 +40,6 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestUnsupportedType()
         {
-            //Assert.False(Column.IsSupported(typeof(TestColumn)));
-
             var exception = Assert.Throws<ArgumentException>(() => new Column<object>("unsupported").CreateSchemaNode());
             Assert.AreEqual("unsupported logical type System.Object", exception?.Message);
         }
