@@ -16,8 +16,6 @@ namespace ParquetSharp.Test
             {
                 Console.WriteLine("Testing primitive type {0}", expected.Type);
 
-                //Assert.True(Column.IsSupported(expected.Type));
-
                 var type = expected.Type;
                 var column = new Column(type, expected.Name, expected.LogicalTypeOverride);
 
