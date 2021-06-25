@@ -55,11 +55,7 @@ namespace ParquetSharp.Test
                 }
             });
 
-            Assert.AreEqual(
-                "Unable to cast object of type " +
-                "'DirectReader[System.Int32,System.Int32]'" +
-                " to type 'DirectReader[System.Single,System.Int32]'.",
-                exception?.Message);
+            StringAssert.StartsWith("Unable to cast object of type", exception?.Message);
         }
 
         [Test]
