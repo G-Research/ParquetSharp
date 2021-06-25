@@ -3,7 +3,7 @@
 #include "CString.h"
 #include "ExceptionInfo.h"
 
-#include <parquet/encryption.h>
+#include <parquet/encryption/encryption.h>
 
 using namespace parquet;
 

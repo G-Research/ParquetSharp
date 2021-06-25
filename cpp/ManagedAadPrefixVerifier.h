@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <parquet/encryption.h>
+#include <parquet/encryption/encryption.h>
 
 using namespace parquet;
 

@@ -6,7 +6,7 @@ namespace ParquetSharp
 {
     public enum LogicalTypeEnum
     {
-        Unknown = 0,
+        Undefined = 0,
         String = 1,
         Map = 2,
         List = 3,
@@ -68,7 +68,6 @@ namespace ParquetSharp
         public static LogicalType Bson() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_BSON));
         public static LogicalType Uuid() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_UUID));
         public static LogicalType None() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_None));
-        public static LogicalType Unknown() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Unknown));
 
         internal static LogicalType Create(IntPtr handle)
         {
@@ -96,7 +95,6 @@ namespace ParquetSharp
                 LogicalTypeEnum.Bson => new BsonLogicalType(handle),
                 LogicalTypeEnum.Uuid => new UuidLogicalType(handle),
                 LogicalTypeEnum.None => new NoneLogicalType(handle),
-                LogicalTypeEnum.Unknown => new UnknownLogicalType(handle),
                 _ => throw new ArgumentOutOfRangeException($"unknown logical type {type}")
             };
         }
@@ -160,9 +158,6 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr LogicalType_None(out IntPtr logicalType);
-
-        [DllImport(ParquetDll.Name)]
-        private static extern IntPtr LogicalType_Unknown(out IntPtr logicalType);
 
         internal readonly ParquetHandle Handle;
     }
@@ -276,10 +271,5 @@ namespace ParquetSharp
     public sealed class NoneLogicalType : LogicalType
     {
         internal NoneLogicalType(IntPtr handle) : base(handle) { }
-    }
-
-    public sealed class UnknownLogicalType : LogicalType
-    {
-        internal UnknownLogicalType(IntPtr handle) : base(handle) { }
     }
 }

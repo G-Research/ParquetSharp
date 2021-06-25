@@ -35,7 +35,7 @@ namespace
 		static_assert(Encoding::BYTE_STREAM_SPLIT == 9);
 		static_assert(Encoding::UNDEFINED == 10);
 
-		static_assert(LogicalType::Type::UNKNOWN == 0);
+		static_assert(LogicalType::Type::UNDEFINED == 0);
 		static_assert(LogicalType::Type::STRING == 1);
 		static_assert(LogicalType::Type::MAP == 2);
 		static_assert(LogicalType::Type::LIST == 3);

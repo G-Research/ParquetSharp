@@ -5,7 +5,7 @@
 #include "ManagedAadPrefixVerifier.h"
 #include "ManagedDecryptionKeyRetriever.h"
 
-#include <parquet/encryption.h>
+#include <parquet/encryption/encryption.h>
 
 using namespace parquet;
 
