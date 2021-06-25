@@ -72,7 +72,12 @@ namespace ParquetSharp
 
         public LogicalColumnWriter<TElement> LogicalWriter<TElement>(int bufferLength = 4 * 1024)
         {
-            return LogicalColumnWriter.Create<TElement>(this, bufferLength);
+            return LogicalColumnWriter.Create<TElement>(this, bufferLength, elementTypeHint: null);
+        }
+
+        public LogicalColumnWriter<TElement> LogicalWriterOverride<TElement>(int bufferLength = 4 * 1024)
+        {
+            return LogicalColumnWriter.Create<TElement>(this, bufferLength, typeof(TElement));
         }
 
         [DllImport(ParquetDll.Name)]

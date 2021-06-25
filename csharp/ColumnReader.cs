@@ -79,7 +79,12 @@ namespace ParquetSharp
 
         public LogicalColumnReader<TElement> LogicalReader<TElement>(int bufferLength = 4 * 1024)
         {
-            return LogicalColumnReader.Create<TElement>(this, bufferLength);
+            return LogicalColumnReader.Create<TElement>(this, bufferLength, elementTypeHint: null);
+        }
+
+        public LogicalColumnReader<TElement> LogicalReaderOverride<TElement>(int bufferLength = 4 * 1024)
+        {
+            return LogicalColumnReader.Create<TElement>(this, bufferLength, typeof(TElement));
         }
 
         [DllImport(ParquetDll.Name)]

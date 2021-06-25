@@ -49,7 +49,7 @@ namespace ParquetSharp.Test
             using var fileReader = new ParquetFileReader(input);
             using var groupReader = fileReader.RowGroup(0);
 
-            var exception = Assert.Throws<NotSupportedException>(() => groupReader.Column(0).LogicalReader<VolumeInDollars>());
+            var exception = Assert.Throws<NotSupportedException>(() => groupReader.Column(0).LogicalReaderOverride<VolumeInDollars>());
             StringAssert.StartsWith("unsupported logical system type", exception?.Message);
         }
 
@@ -68,15 +68,15 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestReadNoReaderHint()
+        public static void TestReadNoOverride()
         {
-            TestReadNoReaderHint(CustomValues, Values);
+            TestReadNoOverride(CustomValues, Values);
         }
 
         [Test]
-        public static void TestReadNoReaderHint_Array()
+        public static void TestReadNoOverride_Array()
         {
-            TestReadNoReaderHint(ArrayCustomValues, ArrayValues);
+            TestReadNoOverride(ArrayCustomValues, ArrayValues);
         }
 
         [Test]
@@ -104,27 +104,27 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestWriteNoWriterHint()
+        public static void TestWriteNoWriterOverride()
         {
-            TestWriteNoWriterHint(Values, CustomValues);
+            TestWriteNoWriterOverride(Values, CustomValues);
         }
 
         [Test]
-        public static void TestWriteNoWriterHint_Array()
+        public static void TestWriteNoWriterOverride_Array()
         {
-            TestWriteNoWriterHint(ArrayValues, ArrayCustomValues);
+            TestWriteNoWriterOverride(ArrayValues, ArrayCustomValues);
         }
 
         [Test]
-        public static void TestWriteNoColumnNorWriterHint()
+        public static void TestWriteNoColumnHintNorWriterOverride()
         {
-            TestWriteNoColumnNorWriterHint(Values, CustomValues);
+            TestWriteNoColumnHintNorWriterOverride(Values, CustomValues);
         }
 
         [Test]
-        public static void TestWriteNoColumnNorWriterHint_Array()
+        public static void TestWriteNoColumnHintNorWriterOverride_Array()
         {
-            TestWriteNoColumnNorWriterHint(ArrayValues, ArrayCustomValues);
+            TestWriteNoColumnHintNorWriterOverride(ArrayValues, ArrayCustomValues);
         }
 
         // Reader tests.
@@ -133,6 +133,7 @@ namespace ParquetSharp.Test
         {
             // Read float values into a custom user-type:
             // - Provide a converter factory such that float values can be written as VolumeInDollars.
+            // - Explicitly override the expected type when accessing the LogicalColumnReader.
 
             using var buffer = WriteTestValues(written);
             using var input = new BufferReader(buffer);
@@ -141,19 +142,19 @@ namespace ParquetSharp.Test
                 LogicalReadConverterFactory = new ReadConverterFactory()
             };
             using var groupReader = fileReader.RowGroup(0);
-            using var columnReader = groupReader.Column(0).LogicalReader<TCustom>();
+            using var columnReader = groupReader.Column(0).LogicalReaderOverride<TCustom>();
 
             var values = columnReader.ReadAll(checked((int) groupReader.MetaData.NumRows));
 
             Assert.AreEqual(expected, values);
         }
 
-        private static void TestReadNoReaderHint<TCustom, TValue>(TCustom[] expected, TValue[] written)
+        private static void TestReadNoOverride<TCustom, TValue>(TCustom[] expected, TValue[] written)
         {
             // Read float values into a custom user-type:
             // - Provide a type factory such that Column("values") is known to be of type VolumeInDollars.
             // - Provide a converter factory such that float values can be written as VolumeInDollars.
-            // - Do not explicitly state the expected type when accessing the LogicalColumnReader.
+            // - Do not explicitly override the expected type when accessing the LogicalColumnReader.
 
             using var buffer = WriteTestValues(written);
             using var input = new BufferReader(buffer);
@@ -163,7 +164,7 @@ namespace ParquetSharp.Test
                 LogicalReadConverterFactory = new ReadConverterFactory()
             };
             using var groupReader = fileReader.RowGroup(0);
-            using var columnReader = (LogicalColumnReader<TCustom>) groupReader.Column(0).LogicalReader();
+            using var columnReader = groupReader.Column(0).LogicalReader<TCustom>();
 
             var values = columnReader.ReadAll(checked((int) groupReader.MetaData.NumRows));
 
@@ -179,6 +180,7 @@ namespace ParquetSharp.Test
             // Write float values using a custom user-type:
             // - Provide a type factory such that Column<VolumeInDollars> can be converted to the right schema node.
             // - Provide a converter factory such that VolumeInDollars values can be written as floats.
+            // - Explicitly override the expected type when accessing the LogicalColumnWriter.
 
             using (var output = new BufferOutputStream(buffer))
             {
@@ -187,7 +189,7 @@ namespace ParquetSharp.Test
                     LogicalWriteConverterFactory = new WriteConverterFactory()
                 };
                 using var groupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = groupWriter.NextColumn().LogicalWriter<TCustom>();
+                using var columnWriter = groupWriter.NextColumn().LogicalWriterOverride<TCustom>();
 
                 columnWriter.WriteBatch(written);
                 fileWriter.Close();
@@ -203,12 +205,38 @@ namespace ParquetSharp.Test
             // Write float values using a custom user-type:
             // - Provide an explicit schema definition that knows nothing about VolumeInDollars, and states that it's a float column.
             // - Provide a converter factory such that VolumeInDollars values can be written as floats.
+            // - Explicitly override the expected type when accessing the LogicalColumnWriter.
 
             using (var output = new BufferOutputStream(buffer))
             {
                 using var schema = Column.CreateSchemaNode(new Column[] {new Column<TValue>("values")});
                 using var writerProperties = CreateWriterProperties();
                 using var fileWriter = new ParquetFileWriter(output, schema, writerProperties)
+                {
+                    LogicalWriteConverterFactory = new WriteConverterFactory()
+                };
+                using var groupWriter = fileWriter.AppendRowGroup();
+                using var columnWriter = groupWriter.NextColumn().LogicalWriterOverride<TCustom>();
+
+                columnWriter.WriteBatch(written);
+                fileWriter.Close();
+            }
+
+            CheckWrittenValues(buffer, expected);
+        }
+
+        private static void TestWriteNoWriterOverride<TValue, TCustom>(TValue[] expected, TCustom[] written)
+        {
+            using var buffer = new ResizableBuffer();
+
+            // Write float values using a custom user-type:
+            // - Provide a type factory such that Column<VolumeInDollars> can be converted to the right schema node.
+            // - Provide a converter factory such that VolumeInDollars values can be written as floats.
+            // - Do not explicitly override the expected type when accessing the LogicalColumnWriter.
+
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<TCustom>("values")}, new WriteTypeFactory())
                 {
                     LogicalWriteConverterFactory = new WriteConverterFactory()
                 };
@@ -222,32 +250,7 @@ namespace ParquetSharp.Test
             CheckWrittenValues(buffer, expected);
         }
 
-        private static void TestWriteNoWriterHint<TValue, TCustom>(TValue[] expected, TCustom[] written)
-        {
-            using var buffer = new ResizableBuffer();
-
-            // Write float values using a custom user-type:
-            // - Provide a type factory such that Column<VolumeInDollars> can be converted to the right schema node.
-            // - Provide a converter factory such that VolumeInDollars values can be written as floats.
-            // - Do not explicitly state the expected type when accessing the LogicalColumnWriter.
-
-            using (var output = new BufferOutputStream(buffer))
-            {
-                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<TCustom>("values")}, new WriteTypeFactory())
-                {
-                    LogicalWriteConverterFactory = new WriteConverterFactory()
-                };
-                using var groupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = (LogicalColumnWriter<TCustom>) groupWriter.NextColumn().LogicalWriter();
-
-                columnWriter.WriteBatch(written);
-                fileWriter.Close();
-            }
-
-            CheckWrittenValues(buffer, expected);
-        }
-
-        private static void TestWriteNoColumnNorWriterHint<TValue, TCustom>(TValue[] expected, TCustom[] written)
+        private static void TestWriteNoColumnHintNorWriterOverride<TValue, TCustom>(TValue[] expected, TCustom[] written)
         {
             using var buffer = new ResizableBuffer();
 
@@ -256,6 +259,7 @@ namespace ParquetSharp.Test
             // - Provide a type factory such that Column("values") is known to be of VolumeInDollars,
             //   as we do not explicitly state the expected type when accessing the LogicalColumnWriter.
             // - Provide a converter factory such that VolumeInDollars values can be written as floats.
+            // - Do not explicitly override the expected type when accessing the LogicalColumnWriter.
 
             using (var output = new BufferOutputStream(buffer))
             {
@@ -267,7 +271,7 @@ namespace ParquetSharp.Test
                     LogicalWriteConverterFactory = new WriteConverterFactory()
                 };
                 using var groupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = (LogicalColumnWriter<TCustom>) groupWriter.NextColumn().LogicalWriter();
+                using var columnWriter = groupWriter.NextColumn().LogicalWriter<TCustom>();
 
                 columnWriter.WriteBatch(written);
                 fileWriter.Close();

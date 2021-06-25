@@ -29,9 +29,9 @@ namespace ParquetSharp
                 new Creator(columnWriter, bufferLength));
         }
 
-        internal static LogicalColumnWriter<TElementType> Create<TElementType>(ColumnWriter columnWriter, int bufferLength)
+        internal static LogicalColumnWriter<TElementType> Create<TElementType>(ColumnWriter columnWriter, int bufferLength, Type? elementTypeHint)
         {
-            var writer = Create(columnWriter, bufferLength, typeof(TElementType));
+            var writer = Create(columnWriter, bufferLength, elementTypeHint);
 
             try
             {

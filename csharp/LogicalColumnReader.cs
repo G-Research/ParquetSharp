@@ -29,11 +29,9 @@ namespace ParquetSharp
                 new Creator(columnReader, bufferLength));
         }
 
-        internal static LogicalColumnReader<TElement> Create<TElement>(
-            ColumnReader columnReader, 
-            int bufferLength)
+        internal static LogicalColumnReader<TElement> Create<TElement>(ColumnReader columnReader, int bufferLength, Type? elementTypeHint)
         {
-            var reader = Create(columnReader, bufferLength, typeof(TElement));
+            var reader = Create(columnReader, bufferLength, elementTypeHint);
 
             try
             {
