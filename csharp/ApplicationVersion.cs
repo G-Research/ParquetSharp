@@ -7,16 +7,16 @@ namespace ParquetSharp
     {
         internal ApplicationVersion(CStruct cstruct)
         {
-            Application = Marshal.PtrToStringAnsi(cstruct.Application);
-            Build = Marshal.PtrToStringAnsi(cstruct.Build);
+            Application = StringUtil.PtrToStringUtf8(cstruct.Application);
+            Build = StringUtil.PtrToStringUtf8(cstruct.Build);
 
             Major = cstruct.Major;
             Minor = cstruct.Minor;
             Patch = cstruct.Patch;
 
-            Unknown = Marshal.PtrToStringAnsi(cstruct.Unknown);
-            PreRelease = Marshal.PtrToStringAnsi(cstruct.PreRelease);
-            BuildInfo = Marshal.PtrToStringAnsi(cstruct.BuildInfo);
+            Unknown = StringUtil.PtrToStringUtf8(cstruct.Unknown);
+            PreRelease = StringUtil.PtrToStringUtf8(cstruct.PreRelease);
+            BuildInfo = StringUtil.PtrToStringUtf8(cstruct.BuildInfo);
         }
 
         public readonly string Application;

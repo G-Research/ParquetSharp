@@ -21,7 +21,7 @@ namespace ParquetSharp
 
         public ColumnPath ColumnPath => new ColumnPath(ExceptionInfo.Return<IntPtr>(_handle, ColumnCryptoMetaData_Path_In_Schema));
         public bool EncryptedWithFooterKey => ExceptionInfo.Return<bool>(_handle, ColumnCryptoMetaData_Encrypted_With_Footer_Key);
-        public string KeyMetadata => Marshal.PtrToStringAnsi(ExceptionInfo.Return<IntPtr>(_handle, ColumnCryptoMetaData_Key_Metadata));
+        public string KeyMetadata => ExceptionInfo.ReturnString(_handle, ColumnCryptoMetaData_Key_Metadata);
 
         [DllImport(ParquetDll.Name)] 
         private static extern void ColumnCryptoMetaData_Free(IntPtr columnCryptoMetaData);

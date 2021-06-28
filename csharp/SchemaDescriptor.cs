@@ -12,7 +12,7 @@ namespace ParquetSharp
         }
 
         public GroupNode GroupNode => (GroupNode) (Node.Create(ExceptionInfo.Return<IntPtr>(_handle, SchemaDescriptor_Group_Node)) ?? throw new InvalidOperationException());
-        public string Name => Marshal.PtrToStringAnsi(ExceptionInfo.Return<IntPtr>(_handle, SchemaDescriptor_Name));
+        public string Name => ExceptionInfo.ReturnString(_handle, SchemaDescriptor_Name);
         public int NumColumns => ExceptionInfo.Return<int>(_handle, SchemaDescriptor_Num_Columns);
         public Node SchemaRoot => Node.Create(ExceptionInfo.Return<IntPtr>(_handle, SchemaDescriptor_Schema_Root)) ?? throw new InvalidOperationException();
 
