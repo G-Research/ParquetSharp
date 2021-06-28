@@ -44,8 +44,8 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr SchemaDescriptor_ColumnIndex_ByNode(IntPtr descriptor, IntPtr node, out int columnIndex);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr SchemaDescriptor_ColumnIndex_ByPath(IntPtr descriptor, string path, out int columnIndex);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr SchemaDescriptor_ColumnIndex_ByPath(IntPtr descriptor, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, out int columnIndex);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr SchemaDescriptor_Get_Column_Root(IntPtr descriptor, int i, out IntPtr columnRoot);

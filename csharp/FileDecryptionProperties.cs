@@ -50,8 +50,8 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern void FileDecryptionProperties_Free(IntPtr properties);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr FileDecryptionProperties_Column_Key(IntPtr properties, string columnPath, out AesKey columnKey);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr FileDecryptionProperties_Column_Key(IntPtr properties, [MarshalAs(UnmanagedType.LPUTF8Str)] string columnPath, out AesKey columnKey);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileDecryptionProperties_Footer_Key(IntPtr properties, out AesKey footerKey);

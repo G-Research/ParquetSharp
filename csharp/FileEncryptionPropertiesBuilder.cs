@@ -74,7 +74,7 @@ namespace ParquetSharp
 
         public FileEncryptionProperties Build() => new FileEncryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, FileEncryptionPropertiesBuilder_Build));
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileEncryptionPropertiesBuilder_Create(in AesKey footerKey, out IntPtr builder);
 
         [DllImport(ParquetDll.Name)]
@@ -86,14 +86,14 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileEncryptionPropertiesBuilder_Algorithm(IntPtr builder, ParquetCipher parquetCipher);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr FileEncryptionPropertiesBuilder_Footer_Key_Id(IntPtr builder, string footerKeyId);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr FileEncryptionPropertiesBuilder_Footer_Key_Id(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string footerKeyId);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr FileEncryptionPropertiesBuilder_Footer_Key_Metadata(IntPtr builder, string footerKeyMetadata);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr FileEncryptionPropertiesBuilder_Footer_Key_Metadata(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string footerKeyMetadata);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr FileEncryptionPropertiesBuilder_Aad_Prefix(IntPtr builder, string aadPrefix);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr FileEncryptionPropertiesBuilder_Aad_Prefix(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string aadPrefix);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileEncryptionPropertiesBuilder_Disable_Aad_Prefix_Storage(IntPtr builder);

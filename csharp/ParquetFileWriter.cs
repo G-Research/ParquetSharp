@@ -193,10 +193,10 @@ namespace ParquetSharp
             return builder.Build();
         }
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr ParquetFileWriter_OpenFile(string path, IntPtr schema, IntPtr writerProperties, IntPtr keyValueMetadata, out IntPtr writer);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileWriter_OpenFile([MarshalAs(UnmanagedType.LPUTF8Str)] string path, IntPtr schema, IntPtr writerProperties, IntPtr keyValueMetadata, out IntPtr writer);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr ParquetFileWriter_Open(IntPtr outputStream, IntPtr schema, IntPtr writerProperties, IntPtr keyValueMetadata, out IntPtr writer);
 
         [DllImport(ParquetDll.Name)]

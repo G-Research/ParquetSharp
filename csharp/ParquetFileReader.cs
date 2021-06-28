@@ -57,8 +57,8 @@ namespace ParquetSharp
             return new RowGroupReader(ExceptionInfo.Return<int, IntPtr>(_handle, i, ParquetFileReader_RowGroup));
         }
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr ParquetFileReader_OpenFile(string path, IntPtr readerProperties, out IntPtr reader);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileReader_OpenFile([MarshalAs(UnmanagedType.LPUTF8Str)] string path, IntPtr readerProperties, out IntPtr reader);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ParquetFileReader_Open(IntPtr readableFileInterface, IntPtr readerProperties, out IntPtr reader);
