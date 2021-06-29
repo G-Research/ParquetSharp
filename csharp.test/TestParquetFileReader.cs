@@ -55,11 +55,7 @@ namespace ParquetSharp.Test
                 }
             });
 
-            Assert.AreEqual(
-                "Unable to cast object of type " +
-                "'ParquetSharp.LogicalColumnReader`3[System.Int32,System.Int32,System.Int32]'" +
-                " to type 'ParquetSharp.LogicalColumnReader`1[System.Single]'.",
-                exception?.Message);
+            StringAssert.StartsWith("Unable to cast object of type", exception?.Message);
         }
 
         [Test]

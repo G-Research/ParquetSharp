@@ -5,9 +5,10 @@ namespace ParquetSharp
 {
     public sealed class RowGroupWriter : IDisposable
     {
-        internal RowGroupWriter(IntPtr handle)
+        internal RowGroupWriter(IntPtr handle, ParquetFileWriter parquetFileWriter)
         {
             _handle = handle;
+            ParquetFileWriter = parquetFileWriter;
         }
 
         public void Dispose()
@@ -29,12 +30,12 @@ namespace ParquetSharp
 
         public ColumnWriter Column(int i)
         {
-            return ColumnWriter.Create(ExceptionInfo.Return<int, IntPtr>(_handle, i, RowGroupWriter_Column));
+            return ColumnWriter.Create(ExceptionInfo.Return<int, IntPtr>(_handle, i, RowGroupWriter_Column), this, i);
         }
 
         public ColumnWriter NextColumn()
         {
-            return ColumnWriter.Create(ExceptionInfo.Return<IntPtr>(_handle, RowGroupWriter_NextColumn));
+            return ColumnWriter.Create(ExceptionInfo.Return<IntPtr>(_handle, RowGroupWriter_NextColumn), this, CurrentColumn);
         }
 
         [DllImport(ParquetDll.Name)]
@@ -62,5 +63,6 @@ namespace ParquetSharp
         private static extern IntPtr RowGroupWriter_Total_Compressed_Bytes(IntPtr rowGroupWriter, out long totalCompressedBytes);
 
         private readonly IntPtr _handle;
+        internal readonly ParquetFileWriter ParquetFileWriter;
     }
 }

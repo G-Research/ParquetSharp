@@ -6,10 +6,10 @@ using System.Runtime.CompilerServices;
 namespace ParquetSharp
 {
     /// <summary>
-    /// Cache duplicate ByteArray / FixedByteArray values when reading and converting them to their logical form.
+    /// Cache duplicated ByteArray / FixedByteArray values when reading and converting them to their logical form.
     /// This is particularly useful when reading a lot of duplicate strings.
     /// </summary>
-    internal sealed class ByteArrayReaderCache<TPhysical, TLogical>
+    public sealed class ByteArrayReaderCache<TPhysical, TLogical>
         where TPhysical : unmanaged
     {
         public ByteArrayReaderCache(ColumnChunkMetaData columnChunkMetaData)
