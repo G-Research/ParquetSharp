@@ -93,6 +93,10 @@ using (var valueWriter = rowGroup.NextColumn().LogicalWriter<float>())
 file.Close();
 ```
 
+### Custom Types
+
+ParquetSharp allows the user to override the mapping between C# and Parquet types. Check the [Type Factories documentation](TypeFactories.md) for more information.
+
 ## Rationale
 
 We desired a Parquet implementation with the following properties:
