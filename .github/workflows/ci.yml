@@ -5,7 +5,8 @@ on:
   pull_request:
 
 env:
-  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true  
   dotnet_3_version: '3.1.407'
   dotnet_5_version: '5.0.201'
 
