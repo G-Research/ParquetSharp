@@ -7,13 +7,13 @@ namespace ParquetSharp
     {
         public static unsafe IntPtr ToCStringUtf8(string str, ByteBuffer byteBuffer)
         {
-            var ascii = System.Text.Encoding.UTF8;
-            var byteCount = ascii.GetByteCount(str);
+            var utf8 = System.Text.Encoding.UTF8;
+            var byteCount = utf8.GetByteCount(str);
             var byteArray = byteBuffer.Allocate(byteCount + 1);
 
             fixed (char* chars = str)
             {
-                ascii.GetBytes(chars, str.Length, (byte*)byteArray.Pointer, byteCount);
+                utf8.GetBytes(chars, str.Length, (byte*)byteArray.Pointer, byteCount);
             }
 
             return byteArray.Pointer;
