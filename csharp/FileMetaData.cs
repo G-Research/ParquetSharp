@@ -17,7 +17,7 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
-        public string CreatedBy => Marshal.PtrToStringAnsi(ExceptionInfo.Return<IntPtr>(_handle, FileMetaData_Created_By));
+        public string CreatedBy => ExceptionInfo.ReturnString(_handle, FileMetaData_Created_By);
 
         public IReadOnlyDictionary<string, string> KeyValueMetadata
         {

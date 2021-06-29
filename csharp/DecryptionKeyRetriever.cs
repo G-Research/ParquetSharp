@@ -46,7 +46,7 @@ namespace ParquetSharp
             try
             {
                 var obj = (DecryptionKeyRetriever) GCHandle.FromIntPtr(handle).Target;
-                var keyMetadataStr = Marshal.PtrToStringAnsi(keyMetadata);
+                var keyMetadataStr = StringUtil.PtrToStringUtf8(keyMetadata);
                 key = new AesKey(obj.GetKey(keyMetadataStr));
             }
             catch (Exception ex)

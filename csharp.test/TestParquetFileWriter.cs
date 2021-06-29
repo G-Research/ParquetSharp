@@ -33,7 +33,8 @@ namespace ParquetSharp.Test
 
             var kvm = (IReadOnlyDictionary<string, string>) new Dictionary<string, string>
             {
-                {"some key", "some value"}
+                {"some key", "some value"},
+                {"α ∧ ¬β", "2H₂ + O₂ ⇌ 2H₂O, R = 4.7 kΩ, ⌀ 200 mm"}
             };
 
             using var buffer = new ResizableBuffer();

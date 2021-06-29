@@ -110,13 +110,13 @@ namespace ParquetSharp
 
         public FileDecryptionProperties Build() => new FileDecryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, FileDecryptionPropertiesBuilder_Build));
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileDecryptionPropertiesBuilder_Create(out IntPtr builder);
 
         [DllImport(ParquetDll.Name)]
         private static extern void FileDecryptionPropertiesBuilder_Free(IntPtr builder);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileDecryptionPropertiesBuilder_Footer_Key(IntPtr builder, in AesKey footerKey);
 
         [DllImport(ParquetDll.Name)]

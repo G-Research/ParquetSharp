@@ -52,8 +52,8 @@ namespace ParquetSharp
             return handle;
         }
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr ColumnDecryptionPropertiesBuilder_Create(string name, out IntPtr builder);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ColumnDecryptionPropertiesBuilder_Create([MarshalAs(UnmanagedType.LPUTF8Str)] string name, out IntPtr builder);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnDecryptionPropertiesBuilder_Create_From_Column_Path(IntPtr path, out IntPtr builder);
@@ -61,7 +61,7 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern void ColumnDecryptionPropertiesBuilder_Free(IntPtr builder);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnDecryptionPropertiesBuilder_Key(IntPtr builder, in AesKey key);
 
         [DllImport(ParquetDll.Name)]

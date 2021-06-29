@@ -10,8 +10,8 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestDeepClone()
         {
-            var node = new ExampleSchemaBuilder().Build();
-            var cloned = node.DeepClone();
+            using var node = new ExampleSchemaBuilder().Build();
+            using var cloned = node.DeepClone();
 
             Assert.AreEqual(node, cloned);
 
@@ -21,53 +21,64 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestEquality()
         {
-            var exampleSchema = new ExampleSchemaBuilder().Build();
+            using var exampleSchema = new ExampleSchemaBuilder().Build();
 
-            var exampleSchemaDuplicate = new ExampleSchemaBuilder().Build();
+            using var exampleSchemaDuplicate = new ExampleSchemaBuilder().Build();
             Assert.AreEqual(exampleSchema, exampleSchemaDuplicate);
 
-            var schemaWithDifferentName = new ExampleSchemaBuilder().WithDifferentPrimitiveName().Build();
+            using var schemaWithDifferentName = new ExampleSchemaBuilder().WithDifferentPrimitiveName().Build();
             Assert.AreNotEqual(exampleSchema, schemaWithDifferentName);
 
-            var schemaWithDifferentPhysicalType = new ExampleSchemaBuilder().WithDifferentPhysicalType().Build();
+            using var schemaWithDifferentPhysicalType = new ExampleSchemaBuilder().WithDifferentPhysicalType().Build();
             Assert.AreNotEqual(exampleSchema, schemaWithDifferentPhysicalType);
 
-            var schemaWithDifferentLogicalType = new ExampleSchemaBuilder().WithDifferentPrimitiveLogicalType().Build();
+            using var schemaWithDifferentLogicalType = new ExampleSchemaBuilder().WithDifferentPrimitiveLogicalType().Build();
             Assert.AreNotEqual(exampleSchema, schemaWithDifferentLogicalType);
 
-            var schemaWithDifferentRepetition = new ExampleSchemaBuilder().WithDifferentPrimitiveRepetition().Build();
+            using var schemaWithDifferentRepetition = new ExampleSchemaBuilder().WithDifferentPrimitiveRepetition().Build();
             Assert.AreNotEqual(exampleSchema, schemaWithDifferentRepetition);
 
-            var schemaWithDifferentLength = new ExampleSchemaBuilder().WithDifferentLength().Build();
+            using var schemaWithDifferentLength = new ExampleSchemaBuilder().WithDifferentLength().Build();
             Assert.AreNotEqual(exampleSchema, schemaWithDifferentLength);
 
-            var schemaWithDifferentPrecision = new ExampleSchemaBuilder().WithDifferentPrecision().Build();
+            using var schemaWithDifferentPrecision = new ExampleSchemaBuilder().WithDifferentPrecision().Build();
             Assert.AreNotEqual(exampleSchema, schemaWithDifferentPrecision);
 
-            var schemaWithDifferentScale = new ExampleSchemaBuilder().WithDifferentScale().Build();
+            using var schemaWithDifferentScale = new ExampleSchemaBuilder().WithDifferentScale().Build();
             Assert.AreNotEqual(exampleSchema, schemaWithDifferentScale);
 
-            var schemaWithAdditionalField = new ExampleSchemaBuilder().WithAdditionalField().Build();
+            using var schemaWithAdditionalField = new ExampleSchemaBuilder().WithAdditionalField().Build();
             Assert.AreNotEqual(exampleSchema, schemaWithAdditionalField);
 
-            var schemaWithDifferentGroupName = new ExampleSchemaBuilder().WithDifferentGroupName().Build();
+            using var schemaWithDifferentGroupName = new ExampleSchemaBuilder().WithDifferentGroupName().Build();
             Assert.AreNotEqual(exampleSchema, schemaWithDifferentGroupName);
 
-            var schemaWithDifferentGroupRepetition = new ExampleSchemaBuilder().WithDifferentGroupRepetition().Build();
+            using var schemaWithDifferentGroupRepetition = new ExampleSchemaBuilder().WithDifferentGroupRepetition().Build();
             Assert.AreNotEqual(exampleSchema, schemaWithDifferentGroupRepetition);
 
-            var schemaWithDifferentGroupLogicalType = new ExampleSchemaBuilder().WithDifferentGroupLogicalType().Build();
+            using var schemaWithDifferentGroupLogicalType = new ExampleSchemaBuilder().WithDifferentGroupLogicalType().Build();
             Assert.AreNotEqual(exampleSchema, schemaWithDifferentGroupLogicalType);
         }
 
         [Test]
         public static void TestEqualityWithDifferentNodeTypes()
         {
-            var groupNode = new GroupNode("group", Repetition.Required, new Node[0]);
-            var primitiveNode = new PrimitiveNode("primitive", Repetition.Required, LogicalType.Int(32, true), PhysicalType.Int32);
+            using var groupNode = new GroupNode("group", Repetition.Required, new Node[0]);
+            using var primitiveNode = new PrimitiveNode("primitive", Repetition.Required, LogicalType.Int(32, true), PhysicalType.Int32);
 
             Assert.AreNotEqual(groupNode, primitiveNode);
             Assert.AreNotEqual(primitiveNode, groupNode);
+        }
+
+        [Test]
+        public static void TestNodeUtf8Name()
+        {
+            const string name = "2H₂ + O₂ ⇌ 2H₂O, R = 4.7 kΩ, ⌀ 200 mm";
+            using var groupNode = new GroupNode(name, Repetition.Required, new Node[0]);
+            using var primitiveNode = new PrimitiveNode(name, Repetition.Required, LogicalType.Int(32, true), PhysicalType.Int32);
+
+            Assert.AreEqual(name, groupNode.Name);
+            Assert.AreEqual(name, primitiveNode.Name);
         }
 
         /// <summary>

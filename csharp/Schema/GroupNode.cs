@@ -57,9 +57,9 @@ namespace ParquetSharp.Schema
             }
         }
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr GroupNode_Make(
-            string name, Repetition repetition, IntPtr fields, int numFields, IntPtr logicalType, out IntPtr groupNode);
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string name, Repetition repetition, IntPtr fields, int numFields, IntPtr logicalType, out IntPtr groupNode);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr GroupNode_Field(IntPtr groupNode, int i, out IntPtr field);
@@ -67,8 +67,8 @@ namespace ParquetSharp.Schema
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr GroupNode_Field_Count(IntPtr groupNode, out int fieldCount);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr GroupNode_Field_Index_By_Name(IntPtr groupNode, string name, out int index);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr GroupNode_Field_Index_By_Name(IntPtr groupNode, [MarshalAs(UnmanagedType.LPUTF8Str)] string name, out int index);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr GroupNode_Field_Index_By_Node(IntPtr groupNode, IntPtr node, out int index);
