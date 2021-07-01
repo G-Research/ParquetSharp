@@ -247,8 +247,8 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Disable_Dictionary(IntPtr builder);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr WriterPropertiesBuilder_Disable_Dictionary_By_Path(IntPtr builder, string path);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Disable_Dictionary_By_Path(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Disable_Dictionary_By_ColumnPath(IntPtr builder, IntPtr path);
@@ -256,8 +256,8 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Enable_Dictionary(IntPtr builder);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr WriterPropertiesBuilder_Enable_Dictionary_By_Path(IntPtr builder, string path);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Enable_Dictionary_By_Path(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Enable_Dictionary_By_ColumnPath(IntPtr builder, IntPtr path);
@@ -267,8 +267,8 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Disable_Statistics(IntPtr builder);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr WriterPropertiesBuilder_Disable_Statistics_By_Path(IntPtr builder, string path);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Disable_Statistics_By_Path(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Disable_Statistics_By_ColumnPath(IntPtr builder, IntPtr path);
@@ -276,8 +276,8 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Enable_Statistics(IntPtr builder);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr WriterPropertiesBuilder_Enable_Statistics_By_Path(IntPtr builder, string path);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Enable_Statistics_By_Path(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Enable_Statistics_By_ColumnPath(IntPtr builder, IntPtr path);
@@ -287,8 +287,8 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Compression(IntPtr builder, Compression codec);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr WriterPropertiesBuilder_Compression_By_Path(IntPtr builder, string path, Compression codec);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Compression_By_Path(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, Compression codec);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Compression_By_ColumnPath(IntPtr builder, IntPtr path, Compression codec);
@@ -296,14 +296,14 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Compression_Level(IntPtr builder, int compressionLevel);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr WriterPropertiesBuilder_Compression_Level_By_Path(IntPtr builder, string path, int compressionLevel);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Compression_Level_By_Path(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, int compressionLevel);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Compression_Level_By_ColumnPath(IntPtr builder, IntPtr path, int compressionLevel);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr WriterPropertiesBuilder_Created_By(IntPtr builder, string createdBy);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Created_By(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string createdBy);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Data_Pagesize(IntPtr builder, long pgSize);
@@ -314,8 +314,8 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Encoding(IntPtr builder, Encoding encodingType);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr WriterPropertiesBuilder_Encoding_By_Path(IntPtr builder, string path, Encoding encodingType);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Encoding_By_Path(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, Encoding encodingType);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Encoding_By_ColumnPath(IntPtr builder, IntPtr path, Encoding encodingType);

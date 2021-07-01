@@ -21,8 +21,8 @@ namespace ParquetSharp
                 return;
             }
 
-            var type = Marshal.PtrToStringAnsi(ExceptionInfo_Type(exceptionInfo));
-            var message = Marshal.PtrToStringAnsi(ExceptionInfo_Message(exceptionInfo));
+            var type = StringUtil.PtrToStringUtf8(ExceptionInfo_Type(exceptionInfo));
+            var message = StringUtil.PtrToStringUtf8(ExceptionInfo_Message(exceptionInfo));
 
             ExceptionInfo_Free(exceptionInfo);
 
@@ -94,14 +94,14 @@ namespace ParquetSharp
 
         private static string ConvertPtrToString(IntPtr handle, Action<IntPtr>? deleter, IntPtr value)
         {
-            var str = Marshal.PtrToStringAnsi(value);
+            var str = StringUtil.PtrToStringUtf8(value);
             deleter?.Invoke(value);
             return str;
         }
 
         private static string ConvertPtrToString(ParquetHandle handle, Action<IntPtr>? deleter, IntPtr value)
         {
-            var str = Marshal.PtrToStringAnsi(value);
+            var str = StringUtil.PtrToStringUtf8(value);
             deleter?.Invoke(value);
             GC.KeepAlive(handle);
             return str;

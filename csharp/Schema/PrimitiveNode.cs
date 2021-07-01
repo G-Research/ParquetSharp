@@ -54,9 +54,9 @@ namespace ParquetSharp.Schema
             return primitiveNode;
         }
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr PrimitiveNode_Make(
-            string name, Repetition repetition, IntPtr logicalType, PhysicalType type, int primitiveLength, out IntPtr primitiveNode);
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string name, Repetition repetition, IntPtr logicalType, PhysicalType type, int primitiveLength, out IntPtr primitiveNode);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr PrimitiveNode_Column_Order(IntPtr node, out ColumnOrder columnOrder);

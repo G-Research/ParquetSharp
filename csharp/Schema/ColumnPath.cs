@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace ParquetSharp.Schema
@@ -32,7 +33,7 @@ namespace ParquetSharp.Schema
 
         public ColumnPath Extend(string nodeName)
         {
-            return new ColumnPath(ExceptionInfo.Return<string, IntPtr>(Handle, nodeName, ColumnPath_Extend));
+            return new(ExceptionInfo.Return<string, IntPtr>(Handle, nodeName, ColumnPath_Extend));
         }
 
         public string ToDotString()
@@ -49,7 +50,7 @@ namespace ParquetSharp.Schema
 
             for (var i = 0; i != length; ++i)
             {
-                strings[i] = Marshal.PtrToStringAnsi(cstrings[i]);
+                strings[i] = StringUtil.PtrToStringUtf8(cstrings[i]);
             }
 
             ColumnPath_ToDotVector_Free(dotVector, length);
@@ -67,7 +68,10 @@ namespace ParquetSharp.Schema
 
         private static IntPtr Make(string[] dotVector)
         {
-            ExceptionInfo.Check(ColumnPath_Make(dotVector, dotVector.Length, out var handle));
+            using var byteBuffer = new ByteBuffer(1024);
+            var ptrs = dotVector.Select(s => StringUtil.ToCStringUtf8(s, byteBuffer)).ToArray();
+
+            ExceptionInfo.Check(ColumnPath_Make(ptrs, dotVector.Length, out var handle));
             return handle;
         }
 
@@ -85,17 +89,17 @@ namespace ParquetSharp.Schema
         [DllImport(ParquetDll.Name)]
         private static extern void ColumnPath_Free(IntPtr columnPath);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr ColumnPath_Make(string[] path, int length, out IntPtr columnPath);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ColumnPath_Make(IntPtr[] path, int length, out IntPtr columnPath);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr ColumnPath_MakeFromDotString(string dotString, out IntPtr columnPath);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ColumnPath_MakeFromDotString([MarshalAs(UnmanagedType.LPUTF8Str)] string dotString, out IntPtr columnPath);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnPath_MakeFromNode(IntPtr node, out IntPtr columnPath);
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr ColumnPath_Extend(IntPtr columnPath, string nodeName, out IntPtr newColumnPath);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ColumnPath_Extend(IntPtr columnPath, [MarshalAs(UnmanagedType.LPUTF8Str)] string nodeName, out IntPtr newColumnPath);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnPath_ToDotString(IntPtr columnPath, out IntPtr dotString);

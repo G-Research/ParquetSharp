@@ -28,6 +28,16 @@ namespace ParquetSharp
             Source.Dispose();
         }
 
+        protected static Type? GetLeafElementType(Type? type)
+        {
+            while (type != null && type != typeof(byte[]) && type.IsArray)
+            {
+                type = type.GetElementType();
+            }
+
+            return type;
+        }
+
         private static List<Schema.Node> GetSchemaNode(Schema.Node node)
         {
             var schemaNodes = new List<Schema.Node>();

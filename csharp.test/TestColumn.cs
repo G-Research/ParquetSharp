@@ -16,8 +16,6 @@ namespace ParquetSharp.Test
             {
                 Console.WriteLine("Testing primitive type {0}", expected.Type);
 
-                Assert.True(Column.IsSupported(expected.Type));
-
                 var type = expected.Type;
                 var column = new Column(type, expected.Name, expected.LogicalTypeOverride);
 
@@ -42,8 +40,6 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestUnsupportedType()
         {
-            Assert.False(Column.IsSupported(typeof(TestColumn)));
-
             var exception = Assert.Throws<ArgumentException>(() => new Column<object>("unsupported").CreateSchemaNode());
             Assert.AreEqual("unsupported logical type System.Object", exception?.Message);
         }

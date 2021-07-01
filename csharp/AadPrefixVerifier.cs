@@ -47,7 +47,7 @@ namespace ParquetSharp
             try
             {
                 var obj = (AadPrefixVerifier) GCHandle.FromIntPtr(handle).Target;
-                var aadPrefixStr = Marshal.PtrToStringAnsi(aadPrefix);
+                var aadPrefixStr = StringUtil.PtrToStringUtf8(aadPrefix);
                 obj.Verify(aadPrefixStr);
             }
             catch (Exception ex)

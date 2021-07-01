@@ -50,15 +50,17 @@ namespace ParquetSharp
             GC.KeepAlive(_handle);
         }
 
+        public LogicalTypeFactory LogicalTypeFactory { get; set; } = LogicalTypeFactory.Default; // TODO make this init only at some point when C# 9 is more widespread
+        public LogicalReadConverterFactory LogicalReadConverterFactory { get; set; } = LogicalReadConverterFactory.Default; // TODO make this init only at some point when C# 9 is more widespread
         public FileMetaData FileMetaData => _fileMetaData ??= new FileMetaData(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileReader_MetaData));
 
         public RowGroupReader RowGroup(int i)
         {
-            return new RowGroupReader(ExceptionInfo.Return<int, IntPtr>(_handle, i, ParquetFileReader_RowGroup));
+            return new(ExceptionInfo.Return<int, IntPtr>(_handle, i, ParquetFileReader_RowGroup), this);
         }
 
-        [DllImport(ParquetDll.Name, CharSet = CharSet.Ansi)]
-        private static extern IntPtr ParquetFileReader_OpenFile(string path, IntPtr readerProperties, out IntPtr reader);
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ParquetFileReader_OpenFile([MarshalAs(UnmanagedType.LPUTF8Str)] string path, IntPtr readerProperties, out IntPtr reader);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ParquetFileReader_Open(IntPtr readableFileInterface, IntPtr readerProperties, out IntPtr reader);
