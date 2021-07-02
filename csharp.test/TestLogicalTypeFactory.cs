@@ -59,7 +59,7 @@ namespace ParquetSharp.Test
             // Test that we cannot create a writer using a custom type without providing a factory.
             using var buffer = new ResizableBuffer();
             using var output = new BufferOutputStream(buffer);
-            
+
             var exception = Assert.Throws<ArgumentException>(() =>
             {
                 using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<VolumeInDollars>("value")});
@@ -358,7 +358,7 @@ namespace ParquetSharp.Test
             using var groupReader = fileReader.RowGroup(0);
             using var columnReader = groupReader.Column(0).LogicalReader<TValue>();
 
-            var values = columnReader.ReadAll(checked((int)groupReader.MetaData.NumRows));
+            var values = columnReader.ReadAll(checked((int) groupReader.MetaData.NumRows));
 
             Assert.AreEqual(expected, values);
         }
@@ -471,7 +471,8 @@ namespace ParquetSharp.Test
         private static readonly VolumeInDollars[] CustomValues = {new(1f), new(2f), new(3f)};
 
         private static readonly float[][] ArrayValues = {new[] {1f, 2f, 3f}, new[] {4f}};
-        private static readonly VolumeInDollars[][] ArrayCustomValues = {
+        private static readonly VolumeInDollars[][] ArrayCustomValues =
+        {
             new[] {new VolumeInDollars(1f), new VolumeInDollars(2f), new VolumeInDollars(3f)},
             new[] {new VolumeInDollars(4f)}
         };

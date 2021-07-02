@@ -1,0 +1,29 @@
+[*.{csproj,json,targets}]
+indent_size = 2
+resharper_xml_wrap_tags_and_pi = false
+
+[*.cs]
+csharp_new_line_before_members_in_object_initializers = false
+csharp_preserve_single_line_blocks = true
+resharper_blank_lines_after_block_statements = 0
+resharper_blank_lines_around_auto_property = 0
+resharper_blank_lines_around_single_line_type = 0
+resharper_csharp_blank_lines_around_field = 0
+resharper_csharp_insert_final_newline = true
+resharper_csharp_wrap_lines = false
+resharper_empty_block_style = multiline
+resharper_keep_existing_embedded_block_arrangement = false
+resharper_keep_existing_enum_arrangement = false
+resharper_max_attribute_length_for_same_line = 70
+resharper_place_accessorholder_attribute_on_same_line = false
+resharper_place_expr_accessor_on_single_line = true
+resharper_place_expr_method_on_single_line = true
+resharper_place_expr_property_on_single_line = true
+resharper_place_field_attribute_on_same_line = false
+resharper_place_simple_embedded_statement_on_same_line = true
+resharper_place_simple_initializer_on_single_line = false
+resharper_remove_blank_lines_near_braces_in_code = false
+resharper_remove_blank_lines_near_braces_in_declarations = false
+resharper_wrap_array_initializer_style = chop_if_long
+resharper_wrap_chained_binary_expressions = chop_if_long
+resharper_wrap_object_and_collection_initializer_style = chop_always

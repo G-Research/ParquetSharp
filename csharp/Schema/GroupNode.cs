@@ -12,7 +12,7 @@ namespace ParquetSharp.Schema
         {
         }
 
-        internal GroupNode(IntPtr handle) 
+        internal GroupNode(IntPtr handle)
             : base(handle)
         {
         }

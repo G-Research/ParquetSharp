@@ -1,5 +1,4 @@
-﻿
-//#define DUMP_EXPRESSION_TREES // uncomment in to get a dump on Console of the expression trees being created.
+﻿//#define DUMP_EXPRESSION_TREES // uncomment in to get a dump on Console of the expression trees being created.
 
 using System;
 using System.Collections.Generic;
@@ -128,11 +127,11 @@ namespace ParquetSharp.Test
         public static void TestCompressionArgument([Values(Compression.Uncompressed, Compression.Brotli)] Compression compression)
         {
             using var buffer = new ResizableBuffer();
-            
+
             using (var outputStream = new BufferOutputStream(buffer))
             {
                 using var writer = ParquetFile.CreateRowWriter<(int, float)>(outputStream, compression: compression);
-                
+
                 writer.WriteRows(new[] {(42, 3.14f)});
                 writer.Close();
             }
@@ -164,9 +163,9 @@ namespace ParquetSharp.Test
 
             var columnNames =
                 Enumerable.Range(1, typeof(TTuple).GetFields().Length + typeof(TTuple).GetProperties().Length)
-                          .Select(x => $"Col{x}")
-                          .ToArray();
-            
+                    .Select(x => $"Col{x}")
+                    .ToArray();
+
             RoundTripAndCompare(rows, rows, columnNames);
         }
 
@@ -228,7 +227,7 @@ namespace ParquetSharp.Test
         {
             // ReSharper disable once UnusedMember.Local
             // ReSharper disable once UnusedMember.Global
-            public MappedRow1(Row1 r) 
+            public MappedRow1(Row1 r)
             {
                 A = r.A;
                 B = r.B;
@@ -238,7 +237,7 @@ namespace ParquetSharp.Test
 
             // ReSharper disable once UnusedMember.Local
             // ReSharper disable once UnusedMember.Global
-            public MappedRow1(MappedRow2 r) 
+            public MappedRow1(MappedRow2 r)
             {
                 A = r.Q;
                 B = r.R;

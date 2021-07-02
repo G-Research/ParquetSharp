@@ -27,7 +27,7 @@ namespace ParquetSharp.Test
 
             var columns = new Column[]
             {
-                new Column<int>("Index"), 
+                new Column<int>("Index"),
                 new Column<float>("Value")
             };
 
@@ -63,7 +63,7 @@ namespace ParquetSharp.Test
 
                 using (var writer = groupWriter.NextColumn().LogicalWriter<int>())
                 {
-                    writer.WriteBatch(new[] { 1, 2, 3, 4, 5, 6 });
+                    writer.WriteBatch(new[] {1, 2, 3, 4, 5, 6});
                 }
 
                 Assert.AreEqual(0, fileWriter.NumRows);
@@ -72,7 +72,7 @@ namespace ParquetSharp.Test
 
                 using (var writer = groupWriter.NextColumn().LogicalWriter<float>())
                 {
-                    writer.WriteBatch(new[] { 1f, 2f, 3f, 4f, 5f, 6f });
+                    writer.WriteBatch(new[] {1f, 2f, 3f, 4f, 5f, 6f});
                 }
 
                 Assert.AreEqual(0, fileWriter.NumRows);
@@ -118,7 +118,7 @@ namespace ParquetSharp.Test
                 using var buffer = new ResizableBuffer();
                 using var outStream = new BufferOutputStream(buffer);
                 using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("Index"), new Column<float>("Value")});
-                
+
                 throw new Exception("this is the expected message");
             });
 
@@ -148,7 +148,7 @@ namespace ParquetSharp.Test
             {
                 using var buffer = new ResizableBuffer();
                 using var outStream = new BufferOutputStream(buffer);
-                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<int>("Index"), new Column<float>("Value") });
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("Index"), new Column<float>("Value")});
                 using var groupWriter = fileWriter.AppendRowGroup();
 
                 using (var writer = groupWriter.NextColumn().LogicalWriter<int>())

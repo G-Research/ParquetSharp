@@ -17,7 +17,7 @@ namespace ParquetSharp.Test
         [TestCaseSource(nameof(Scales))]
         public static void TestRoundTrip(int scale)
         {
-            var list = new List<decimal>{0, 1};
+            var list = new List<decimal> {0, 1};
             for (int i = 0; i != 28; ++i)
             {
                 list.Add(list.Last() * 10);
@@ -65,7 +65,7 @@ namespace ParquetSharp.Test
             var columns = new Column[] {new Column<decimal>("Decimal", LogicalType.Decimal(precision: 29, scale: 3))};
             var values = Enumerable.Range(0, 10_000)
                 .Select(i => ((decimal) i * i * i) / 1000 - 10)
-                .Concat(new [] {decimal.MinValue / 1000, decimal.MaxValue / 1000})
+                .Concat(new[] {decimal.MinValue / 1000, decimal.MaxValue / 1000})
                 .ToArray();
 
             using var buffer = new ResizableBuffer();

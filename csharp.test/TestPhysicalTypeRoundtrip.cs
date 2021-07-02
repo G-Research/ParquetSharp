@@ -42,7 +42,7 @@ namespace ParquetSharp.Test
         {
             var schema = CreateSchema(expectedColumns);
             var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
-            var keyValueMetadata = new Dictionary<string, string> { { "case", "Test" }, { "Awesome", "true" } };
+            var keyValueMetadata = new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}};
 
             using var buffer = new ResizableBuffer();
 
@@ -73,7 +73,7 @@ namespace ParquetSharp.Test
 
             var schema = CreateSchema(expectedColumns);
             var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
-            var keyValueMetadata = new Dictionary<string, string> { { "case", "Test" }, { "Awesome", "true" } };
+            var keyValueMetadata = new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}};
 
             using var buffer = new ResizableBuffer();
 
@@ -117,7 +117,7 @@ namespace ParquetSharp.Test
             using var fileMetaData = fileReader.FileMetaData;
 
             var numRows = expectedColumns.First().Values.Length;
-            
+
             Assert.AreEqual("parquet-cpp-arrow version 4.0.0", fileMetaData.CreatedBy);
             Assert.AreEqual(new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}}, fileMetaData.KeyValueMetadata);
             Assert.AreEqual(expectedColumns.Length, fileMetaData.NumColumns);
@@ -153,14 +153,14 @@ namespace ParquetSharp.Test
                 Assert.AreEqual(expected.TypeScale, descr.TypeScale);
 
                 Assert.AreEqual(
-                    expected.Encodings.Where(e => useDictionaryEncoding || e != Encoding.PlainDictionary).ToArray(), 
+                    expected.Encodings.Where(e => useDictionaryEncoding || e != Encoding.PlainDictionary).ToArray(),
                     chunkMetaData.Encodings.Distinct().ToArray());
 
                 Assert.AreEqual(expected.Compression, chunkMetaData.Compression);
                 Assert.AreEqual(expected.Values, columnReader.Apply(new PhysicalValueGetter(chunkMetaData.NumValues)).values);
             }
         }
-        
+
         private static GroupNode CreateSchema(ExpectedColumn[] expectedColumns)
         {
             var fields = expectedColumns
@@ -215,7 +215,7 @@ namespace ParquetSharp.Test
                     Name = "int96_field",
                     PhysicalType = PhysicalType.Int96,
                     SortOrder = SortOrder.Unknown,
-                    Values = Enumerable.Range(0, numRows).Select(i => new Int96(i, i*2, i*3)).ToArray()
+                    Values = Enumerable.Range(0, numRows).Select(i => new Int96(i, i * 2, i * 3)).ToArray()
                 },
                 new ExpectedColumn
                 {

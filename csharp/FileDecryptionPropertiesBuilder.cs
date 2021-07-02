@@ -19,7 +19,7 @@ namespace ParquetSharp
         {
             _handle.Dispose();
         }
-        
+
         public FileDecryptionPropertiesBuilder FooterKey(byte[] footerKey)
         {
             var footerAesKey = new AesKey(footerKey);
@@ -124,9 +124,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileDecryptionPropertiesBuilder_Key_Retriever(
-            IntPtr builder, 
+            IntPtr builder,
             IntPtr gcHandle,
-            DecryptionKeyRetriever.FreeGcHandleFunc freeGcHandle, 
+            DecryptionKeyRetriever.FreeGcHandleFunc freeGcHandle,
             DecryptionKeyRetriever.GetKeyFunc getKey);
 
         [DllImport(ParquetDll.Name)]

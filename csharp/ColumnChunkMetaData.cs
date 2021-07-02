@@ -36,7 +36,7 @@ namespace ParquetSharp
 
                 fixed (Encoding* dst = encodings)
                 {
-                    Buffer.MemoryCopy(src, dst, count*sizeof(Encoding), count*sizeof(Encoding));
+                    Buffer.MemoryCopy(src, dst, count * sizeof(Encoding), count * sizeof(Encoding));
                 }
 
                 return encodings;
@@ -50,10 +50,10 @@ namespace ParquetSharp
         public long TotalUncompressedSize => ExceptionInfo.Return<long>(_handle, ColumnChunkMetaData_Total_Uncompressed_Size);
         public Statistics? Statistics => Statistics.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnChunkMetaData_Statistics));
         public PhysicalType Type => ExceptionInfo.Return<PhysicalType>(_handle, ColumnChunkMetaData_Type);
-        
+
         [DllImport(ParquetDll.Name)]
         private static extern void ColumnChunkMetaData_Free(IntPtr columnChunkMetaData);
-        
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnChunkMetaData_Compression(IntPtr columnChunkMetaData, out Compression compression);
 

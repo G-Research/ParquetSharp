@@ -10,7 +10,7 @@ namespace ParquetSharp.Test
             _range = range ?? (0, values.Length);
         }
 
-        public Array OnColumnWriter<TValue>(ColumnWriter<TValue> columnWriter) 
+        public Array OnColumnWriter<TValue>(ColumnWriter<TValue> columnWriter)
             where TValue : unmanaged
         {
             var values = (TValue[]) _values;

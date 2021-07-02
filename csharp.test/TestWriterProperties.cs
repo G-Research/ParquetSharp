@@ -18,11 +18,11 @@ namespace ParquetSharp.Test
             Assert.AreEqual("parquet-cpp-arrow version 4.0.0", p.CreatedBy);
             Assert.AreEqual(Compression.Uncompressed, p.Compression(new ColumnPath("anypath")));
             Assert.AreEqual(int.MinValue, p.CompressionLevel(new ColumnPath("anypath")));
-            Assert.AreEqual(1024*1024, p.DataPageSize);
+            Assert.AreEqual(1024 * 1024, p.DataPageSize);
             Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryIndexEncoding);
             Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryPageEncoding);
-            Assert.AreEqual(1024*1024, p.DictionaryPagesizeLimit);
-            Assert.AreEqual(64*1024*1024, p.MaxRowGroupLength);
+            Assert.AreEqual(1024 * 1024, p.DictionaryPagesizeLimit);
+            Assert.AreEqual(64 * 1024 * 1024, p.MaxRowGroupLength);
             Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
             Assert.AreEqual(1024, p.WriteBatchSize);
         }

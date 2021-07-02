@@ -69,7 +69,7 @@ namespace ParquetSharp.IO
         {
             try
             {
-                if(!_leaveOpen)
+                if (!_leaveOpen)
                 {
                     _stream.Close();
                 }

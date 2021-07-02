@@ -17,9 +17,9 @@ namespace ParquetSharp.Benchmark
                 Console.WriteLine("Working directory: {0}", Environment.CurrentDirectory);
 
                 var config = DefaultConfig
-                    .Instance
-                    .AddColumn(new SizeInBytesColumn())
-                    .WithOptions(ConfigOptions.Default | ConfigOptions.StopOnFirstError)
+                        .Instance
+                        .AddColumn(new SizeInBytesColumn())
+                        .WithOptions(ConfigOptions.Default | ConfigOptions.StopOnFirstError)
                     ;
 
                 var summaries = BenchmarkRunner.Run(new[]
@@ -32,7 +32,7 @@ namespace ParquetSharp.Benchmark
 
                 // Re-print to the console all the summaries. 
                 var logger = ConsoleLogger.Default;
-                
+
                 logger.WriteLine();
 
                 foreach (var summary in summaries)

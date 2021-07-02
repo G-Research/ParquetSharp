@@ -2,7 +2,7 @@
   "profiles": {
     "ParquetCppSharp.Test": {
       "commandName": "Project",
-      "nativeDebugging": true 
+      "nativeDebugging": true
     }
   }
 }

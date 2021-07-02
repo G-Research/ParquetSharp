@@ -18,7 +18,7 @@ namespace ParquetSharp.Test
         )
         {
             var expectedColumns = CreateExpectedColumns();
-            var schemaColumns = expectedColumns         
+            var schemaColumns = expectedColumns
                 .Select(c => new Column(c.Values.GetType().GetElementType() ?? throw new InvalidOperationException(), c.Name, c.LogicalTypeOverride))
                 .ToArray();
 
@@ -72,7 +72,7 @@ namespace ParquetSharp.Test
                 using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
 
                 const int rangeLength = 9;
-                
+
                 for (int r = 0; r < NumRows; r += rangeLength)
                 {
                     for (var i = 0; i < expectedColumns.Length; i++)
@@ -185,7 +185,7 @@ namespace ParquetSharp.Test
             // Test a large amount of rows with a buffered row group to uncover any particular issue.
             const int numBatches = 64;
             const int batchSize = 8192;
-            
+
             using var buffer = new ResizableBuffer();
 
             using (var output = new BufferOutputStream(buffer))
@@ -236,7 +236,7 @@ namespace ParquetSharp.Test
                     var startIndex = batchSize * batchIndex;
 
                     Assert.AreEqual(Enumerable.Range(startIndex, batchSize).ToArray(), col0.ReadAll(batchSize));
-                    Assert.AreEqual(Enumerable.Range(startIndex, batchSize).Select(i => (double)i).ToArray(), col1.ReadAll(batchSize));
+                    Assert.AreEqual(Enumerable.Range(startIndex, batchSize).Select(i => (double) i).ToArray(), col1.ReadAll(batchSize));
                     Assert.AreEqual(Enumerable.Range(startIndex, batchSize).Select(i => i.ToString()).ToArray(), col2.ReadAll(batchSize));
                     Assert.AreEqual(Enumerable.Range(startIndex, batchSize).Select(i => i % 2 == 0).ToArray(), col3.ReadAll(batchSize));
                 }
@@ -604,7 +604,7 @@ namespace ParquetSharp.Test
                     Length = 16,
                     Values = Enumerable.Range(0, NumRows).Select(i => ((decimal) i * i * i) / 1000 - 10).ToArray(),
                     Min = -10m,
-                    Max = ((NumRows-1m) * (NumRows-1m) * (NumRows-1m)) / 1000 - 10,
+                    Max = ((NumRows - 1m) * (NumRows - 1m) * (NumRows - 1m)) / 1000 - 10,
                     Converter = v => LogicalRead.ToDecimal((FixedLenByteArray) v, 3)
                 },
                 new ExpectedColumn
@@ -618,7 +618,7 @@ namespace ParquetSharp.Test
                     NullCount = (NumRows + 10) / 11,
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = -9.999m,
-                    Max = ((NumRows-1m) * (NumRows-1m) * (NumRows-1m)) / 1000 - 10,
+                    Max = ((NumRows - 1m) * (NumRows - 1m) * (NumRows - 1m)) / 1000 - 10,
                     Converter = v => LogicalRead.ToDecimal((FixedLenByteArray) v, 3)
                 },
                 new ExpectedColumn

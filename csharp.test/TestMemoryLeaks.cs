@@ -155,7 +155,7 @@ namespace ParquetSharp.Test
                 .OrderBy(i => i)
                 .ToArray();
 
-            var values = dates.Select(d => objectIds.Select(o => (float)rand.NextDouble()).ToArray()).ToArray();
+            var values = dates.Select(d => objectIds.Select(o => (float) rand.NextDouble()).ToArray()).ToArray();
 
             return (dates, objectIds, values);
         }

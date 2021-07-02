@@ -1,5 +1,4 @@
-﻿
-namespace ParquetSharp
+﻿namespace ParquetSharp
 {
     /// <summary>
     /// Visitor on ColumnDescriptor to discover the system types in a type safe manner.

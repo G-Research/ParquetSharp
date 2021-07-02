@@ -1,5 +1,4 @@
-﻿
-namespace ParquetSharp
+﻿namespace ParquetSharp
 {
     /// <summary>
     /// Visitor on LogicalColumnReader to discover the derived reader type in a type safe manner.

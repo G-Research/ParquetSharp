@@ -11,16 +11,16 @@ namespace ParquetSharp.Schema
     public sealed class PrimitiveNode : Node
     {
         public PrimitiveNode(
-            string name, 
-            Repetition repetition, 
-            LogicalType logicalType, 
+            string name,
+            Repetition repetition,
+            LogicalType logicalType,
             PhysicalType physicalType,
             int primitiveLength = -1)
             : this(Make(name, repetition, logicalType, physicalType, primitiveLength))
         {
         }
 
-        internal PrimitiveNode(IntPtr handle) 
+        internal PrimitiveNode(IntPtr handle)
             : base(handle)
         {
         }

@@ -10,7 +10,7 @@ namespace ParquetSharp.Test
             _numValues = numValues;
         }
 
-        public (Array values, short[] definitionLevels, short[] repetitionLevels) OnColumnReader<TValue>(ColumnReader<TValue> columnReader) 
+        public (Array values, short[] definitionLevels, short[] repetitionLevels) OnColumnReader<TValue>(ColumnReader<TValue> columnReader)
             where TValue : unmanaged
         {
             var values = new TValue[_numValues];
@@ -22,11 +22,11 @@ namespace ParquetSharp.Test
             while (columnReader.HasNext)
             {
                 var levelsRead = columnReader.ReadBatch(
-                    _numValues - totalLevels, defLevels.AsSpan(totalLevels), repLevels.AsSpan(totalLevels), values.AsSpan(totalValues), 
+                    _numValues - totalLevels, defLevels.AsSpan(totalLevels), repLevels.AsSpan(totalLevels), values.AsSpan(totalValues),
                     out var valuesRead);
 
-                totalValues += (int)valuesRead;
-                totalLevels += (int)levelsRead;
+                totalValues += (int) valuesRead;
+                totalLevels += (int) levelsRead;
             }
 
             return (values.Where((v, i) => i < totalValues).ToArray(), defLevels.ToArray(), repLevels.ToArray());

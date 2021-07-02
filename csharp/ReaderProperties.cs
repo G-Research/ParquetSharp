@@ -65,7 +65,7 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern void ReaderProperties_Free(IntPtr readerProperties);
 
-        [DllImport(ParquetDll.Name)] 
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Is_Buffered_Stream_Enabled(IntPtr readerProperties, [MarshalAs(UnmanagedType.I1)] out bool isBufferedStreamEnabled);
 
         [DllImport(ParquetDll.Name)]
@@ -80,7 +80,7 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Get_Buffer_Size(IntPtr readerProperties, out long bufferSize);
 
-        [DllImport(ParquetDll.Name)] 
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Set_File_Decryption_Properties(IntPtr readerProperties, IntPtr fileDecryptionProperties);
 
         [DllImport(ParquetDll.Name)]
