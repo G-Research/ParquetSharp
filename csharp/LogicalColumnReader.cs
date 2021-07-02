@@ -22,10 +22,10 @@ namespace ParquetSharp
 
             // If an elementTypeOverride is given, then we already know what the column reader logical system type should be.
             var columnLogicalTypeOverride = GetLeafElementType(elementTypeOverride);
-            
+
             return columnReader.ColumnDescriptor.Apply(
-                columnReader.LogicalTypeFactory, 
-                columnLogicalTypeOverride, 
+                columnReader.LogicalTypeFactory,
+                columnLogicalTypeOverride,
                 new Creator(columnReader, bufferLength));
         }
 
@@ -162,8 +162,8 @@ namespace ParquetSharp
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                if (schemaNodes.Length >= 2 && 
-                    schemaNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} && 
+                if (schemaNodes.Length >= 2 &&
+                    schemaNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} &&
                     schemaNodes[1] is GroupNode {LogicalType: NoneLogicalType, Repetition: Repetition.Repeated})
                 {
                     return ReadArrayIntermediateLevel(schemaNodes, valueReader, elementType, converter, numArrayEntriesToRead, (short) repetitionLevel, (short) nullDefinitionLevel);

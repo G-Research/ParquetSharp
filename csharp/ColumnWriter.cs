@@ -56,7 +56,7 @@ namespace ParquetSharp
         public int ColumnIndex { get; }
         public LogicalTypeFactory LogicalTypeFactory => RowGroupWriter.ParquetFileWriter.LogicalTypeFactory;
         public LogicalWriteConverterFactory LogicalWriteConverterFactory => RowGroupWriter.ParquetFileWriter.LogicalWriteConverterFactory;
-        
+
         public ColumnDescriptor ColumnDescriptor => new(ExceptionInfo.Return<IntPtr>(Handle, ColumnWriter_Descr));
         public long RowWritten => ExceptionInfo.Return<long>(Handle, ColumnWriter_Rows_Written);
         public PhysicalType Type => ExceptionInfo.Return<PhysicalType>(Handle, ColumnWriter_Type);

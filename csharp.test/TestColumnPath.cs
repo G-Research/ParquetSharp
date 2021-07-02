@@ -85,7 +85,7 @@ namespace ParquetSharp.Test
 
             Assert.AreEqual("", schema.Path.ToDotString());
             Assert.AreEqual(name + "", schema.Field(0).Path.ToDotString());
-            Assert.AreEqual(name+ ".list", ((GroupNode) schema.Field(0)).Field(0).Path.ToDotString());
+            Assert.AreEqual(name + ".list", ((GroupNode) schema.Field(0)).Field(0).Path.ToDotString());
             Assert.AreEqual(name + ".list.item", ((GroupNode) ((GroupNode) schema.Field(0)).Field(0)).Field(0).Path.ToDotString());
         }
     }

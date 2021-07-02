@@ -24,8 +24,8 @@ namespace ParquetSharp
             var columnLogicalTypeOverride = GetLeafElementType(elementTypeOverride ?? columns?[columnWriter.ColumnIndex].LogicalSystemType);
 
             return columnWriter.ColumnDescriptor.Apply(
-                columnWriter.LogicalTypeFactory, 
-                columnLogicalTypeOverride, 
+                columnWriter.LogicalTypeFactory,
+                columnLogicalTypeOverride,
                 new Creator(columnWriter, bufferLength));
         }
 
@@ -127,8 +127,8 @@ namespace ParquetSharp
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                if (schemaNodes.Length >= 2 && 
-                    schemaNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} && 
+                if (schemaNodes.Length >= 2 &&
+                    schemaNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} &&
                     schemaNodes[1] is GroupNode {LogicalType: NoneLogicalType, Repetition: Repetition.Repeated})
                 {
                     var containedType = elementType.GetElementType();
@@ -182,7 +182,7 @@ namespace ParquetSharp
                     if (a.Length > 0)
                     {
                         // We have a positive length array, call the top level array writer on its values
-                        WriteArray(a, schemaNodes, elementType, (short)(repetitionLevel + 1), (short)(nullDefinitionLevel + 2), currentLeafRepLevel);
+                        WriteArray(a, schemaNodes, elementType, (short) (repetitionLevel + 1), (short) (nullDefinitionLevel + 2), currentLeafRepLevel);
                     }
                     else
                     {
@@ -202,9 +202,9 @@ namespace ParquetSharp
         /// Write implementation for writing the deepest level array.
         /// </summary>
         private void WriteArrayFinalLevel(
-            Array values, 
-            short repetitionLevel, short leafFirstRepLevel, 
-            short leafDefinitionLevel, 
+            Array values,
+            short repetitionLevel, short leafFirstRepLevel,
+            short leafDefinitionLevel,
             short nullDefinitionLevel)
         {
             ReadOnlySpan<TLogical> valuesSpan = (TLogical[]) values;
