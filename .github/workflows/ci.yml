@@ -14,6 +14,27 @@ jobs:
 
   # Note that vcpkg dependencies takes the majority of the build time.
   # We cache them using GitHub Actions cache and export, making the scripts below a bit more complex.
+  check-format:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.dotnet_5_version }} 
+      - name: Code formating check
+        run: |
+          dotnet tool restore
+          dotnet jb cleanupcode "csharp" "csharp.test" "csharp.benchmark" --profile="Built-in: Reformat Code" --settings="ParquetSharp.DotSettings" --dotnetcoresdk=${{ env.dotnet_5_version }} --verbosity=WARN
+
+          files=($(git diff --name-only))
+          if [ ${#files[@]} -gt 0 ]
+          then
+            for file in $files; do echo "::error file=$file::Code format check failed"; done
+            exit 1
+          fi
 
   # Build everything on all platorms (thus testing the developer workflow).
   # Upload the native shared libraries as artifacts.

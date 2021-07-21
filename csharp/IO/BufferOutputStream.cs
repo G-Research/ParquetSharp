@@ -8,7 +8,7 @@ namespace ParquetSharp.IO
     /// </summary>
     public sealed class BufferOutputStream : OutputStream
     {
-        public BufferOutputStream() 
+        public BufferOutputStream()
             : base(ExceptionInfo.Return<IntPtr>(BufferOutputStream_Create))
         {
         }

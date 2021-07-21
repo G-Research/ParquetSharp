@@ -22,10 +22,10 @@ namespace ParquetSharp
 
             // If an elementTypeOverride is given, then we already know what the column reader logical system type should be.
             var columnLogicalTypeOverride = GetLeafElementType(elementTypeOverride);
-            
+
             return columnReader.ColumnDescriptor.Apply(
-                columnReader.LogicalTypeFactory, 
-                columnLogicalTypeOverride, 
+                columnReader.LogicalTypeFactory,
+                columnLogicalTypeOverride,
                 new Creator(columnReader, bufferLength));
         }
 
@@ -142,8 +142,8 @@ namespace ParquetSharp
 
             // Otherwise deal with flat values.
             return ReadBatchSimple(
-                destination, 
-                _directReader as LogicalRead<TElement, TPhysical>.DirectReader, 
+                destination,
+                _directReader as LogicalRead<TElement, TPhysical>.DirectReader,
                 (_converter as LogicalRead<TElement, TPhysical>.Converter)!);
         }
 
@@ -157,16 +157,16 @@ namespace ParquetSharp
         }
 
         private static Array ReadArray(
-            ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalRead<TLogical, TPhysical>.Converter converter, 
+            ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalRead<TLogical, TPhysical>.Converter converter,
             BufferedReader<TPhysical> valueReader, int numArrayEntriesToRead, int repetitionLevel, int nullDefinitionLevel)
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                if (schemaNodes.Length >= 2 && 
-                    schemaNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} && 
+                if (schemaNodes.Length >= 2 &&
+                    schemaNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} &&
                     schemaNodes[1] is GroupNode {LogicalType: NoneLogicalType, Repetition: Repetition.Repeated})
                 {
-                    return ReadArrayIntermediateLevel(schemaNodes, valueReader, elementType, converter, numArrayEntriesToRead, (short)repetitionLevel, (short)nullDefinitionLevel);
+                    return ReadArrayIntermediateLevel(schemaNodes, valueReader, elementType, converter, numArrayEntriesToRead, (short) repetitionLevel, (short) nullDefinitionLevel);
                 }
 
                 throw new Exception("elementType is an array but schema does not match the expected layout");
@@ -176,13 +176,13 @@ namespace ParquetSharp
             {
                 bool optional = schemaNodes[0].Repetition == Repetition.Optional;
 
-                return ReadArrayLeafLevel(valueReader, converter, optional, (short)repetitionLevel, (short)nullDefinitionLevel);
+                return ReadArrayLeafLevel(valueReader, converter, optional, (short) repetitionLevel, (short) nullDefinitionLevel);
             }
 
             throw new Exception("ParquetSharp does not understand the schema used");
         }
 
-        private static Array ReadArrayIntermediateLevel(ReadOnlySpan<Node> schemaNodes, BufferedReader<TPhysical> valueReader, Type elementType, 
+        private static Array ReadArrayIntermediateLevel(ReadOnlySpan<Node> schemaNodes, BufferedReader<TPhysical> valueReader, Type elementType,
             LogicalRead<TLogical, TPhysical>.Converter converter, int numArrayEntriesToRead, short repetitionLevel, short nullDefinitionLevel)
         {
             var acc = new List<Array?>();
@@ -279,7 +279,7 @@ namespace ParquetSharp
         /// Fast implementation when a column contains only flat primitive values.
         /// </summary>
         private int ReadBatchSimple<TTLogical>(
-            Span<TTLogical> destination, 
+            Span<TTLogical> destination,
             LogicalRead<TTLogical, TPhysical>.DirectReader? directReader,
             LogicalRead<TTLogical, TPhysical>.Converter converter)
         {
@@ -287,7 +287,7 @@ namespace ParquetSharp
             if (directReader != null && DefLevels != null) throw new ArgumentException("direct reader cannot be provided if type is optional");
             if (converter == null) throw new ArgumentNullException(nameof(converter));
 
-            var columnReader = (ColumnReader<TPhysical>)Source;
+            var columnReader = (ColumnReader<TPhysical>) Source;
             var rowsRead = 0;
 
             // Fast path for logical types that directly map to the physical type in memory.

@@ -1,4 +1,3 @@
-
 namespace ParquetSharp
 {
     public enum ColumnOrder

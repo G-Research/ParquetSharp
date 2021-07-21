@@ -19,7 +19,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(new[] {"root", "part0", "part1"}, p1.ToDotVector());
 
             using var p2 = p0.Extend("part2");
-                
+
             Assert.AreEqual("root.part0.part1.part2", p2.ToDotString());
         }
 
@@ -85,7 +85,7 @@ namespace ParquetSharp.Test
 
             Assert.AreEqual("", schema.Path.ToDotString());
             Assert.AreEqual(name + "", schema.Field(0).Path.ToDotString());
-            Assert.AreEqual(name+ ".list", ((GroupNode) schema.Field(0)).Field(0).Path.ToDotString());
+            Assert.AreEqual(name + ".list", ((GroupNode) schema.Field(0)).Field(0).Path.ToDotString());
             Assert.AreEqual(name + ".list.item", ((GroupNode) ((GroupNode) schema.Field(0)).Field(0)).Field(0).Path.ToDotString());
         }
     }

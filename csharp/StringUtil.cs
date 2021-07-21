@@ -13,7 +13,7 @@ namespace ParquetSharp
 
             fixed (char* chars = str)
             {
-                utf8.GetBytes(chars, str.Length, (byte*)byteArray.Pointer, byteCount);
+                utf8.GetBytes(chars, str.Length, (byte*) byteArray.Pointer, byteCount);
             }
 
             return byteArray.Pointer;
@@ -36,7 +36,7 @@ namespace ParquetSharp
 
             unsafe
             {
-                var s = (byte*)ptr;
+                var s = (byte*) ptr;
                 int length;
                 for (length = 0; s[length] != '\0'; ++length)
                 {

@@ -47,9 +47,9 @@ namespace ParquetSharp.Test
         {
             const int numRows = 11;
 
-            var schemaColumns = new Column[] { new Column<int>("int32_field") };
+            var schemaColumns = new Column[] {new Column<int>("int32_field")};
             var values = Enumerable.Range(0, numRows).ToArray();
-            
+
             using var buffer = new ResizableBuffer();
 
             using (var outStream = new BufferOutputStream(buffer))

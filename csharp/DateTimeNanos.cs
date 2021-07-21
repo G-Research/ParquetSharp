@@ -16,7 +16,7 @@ namespace ParquetSharp
 
         public DateTimeNanos(DateTime dateTime)
         {
-            Ticks = (dateTime.Ticks - DateTimeOffset) * (1_000_000L / TimeSpan.TicksPerMillisecond); 
+            Ticks = (dateTime.Ticks - DateTimeOffset) * (1_000_000L / TimeSpan.TicksPerMillisecond);
         }
 
         /// <summary>

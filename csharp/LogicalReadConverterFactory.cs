@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 
 namespace ParquetSharp
 {
@@ -16,7 +15,7 @@ namespace ParquetSharp
         /// <returns>
         /// A delegate of type LogicalRead&lt;TLogical, TPhysical&gt;.DirectReader
         /// </returns>
-        public virtual Delegate? GetDirectReader<TLogical, TPhysical>() 
+        public virtual Delegate? GetDirectReader<TLogical, TPhysical>()
             where TPhysical : unmanaged
         {
             return LogicalRead<TLogical, TPhysical>.GetDirectReader();

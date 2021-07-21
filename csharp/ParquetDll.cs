@@ -1,4 +1,3 @@
-
 namespace ParquetSharp
 {
     internal static class ParquetDll

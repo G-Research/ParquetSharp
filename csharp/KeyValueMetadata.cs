@@ -81,7 +81,7 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr KeyValueMetadata_Size(IntPtr keyValueMetadata, out long size);
-        
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr KeyValueMetadata_Get_Entries(IntPtr keyValueMetadata, out IntPtr keys, out IntPtr values);
 

@@ -136,7 +136,7 @@ namespace ParquetSharp.Test
             {
                 using var fileReader = new ParquetFileReader(input);
                 using var groupReader = fileReader.RowGroup(0);
-                    
+
                 var numRows = (int) groupReader.MetaData.NumRows;
 
                 using (var idReader = groupReader.Column(0).LogicalReader<int>())
@@ -185,7 +185,7 @@ namespace ParquetSharp.Test
             using var builder = new FileEncryptionPropertiesBuilder(Key0);
             using var col1 = new ColumnEncryptionPropertiesBuilder("Value");
             using var col0 = new ColumnEncryptionPropertiesBuilder("Id");
-            
+
             return builder
                 .FooterKeyMetadata("Key0")
                 .SetPlaintextFooter()
@@ -201,7 +201,7 @@ namespace ParquetSharp.Test
         {
             using var builder = new FileEncryptionPropertiesBuilder(Key0);
             using var col1 = new ColumnEncryptionPropertiesBuilder("Value");
-            
+
             return builder
                 .FooterKeyMetadata("Key0")
                 .SetPlaintextFooter()
@@ -217,7 +217,7 @@ namespace ParquetSharp.Test
         private static FileDecryptionProperties CreateDecryptAllSameKeyProperties()
         {
             using var builder = new FileDecryptionPropertiesBuilder();
-            
+
             return builder
                 .FooterKey(Key0)
                 .Build();
@@ -226,7 +226,7 @@ namespace ParquetSharp.Test
         private static FileDecryptionProperties CreateDecryptWithKeyRetrieverProperties()
         {
             using var builder = new FileDecryptionPropertiesBuilder();
-            
+
             return builder
                 .KeyRetriever(new TestRetriever())
                 .Build();
@@ -234,7 +234,7 @@ namespace ParquetSharp.Test
 
         private static void AssertEncryptionRoundtrip(
             Func<FileEncryptionProperties?> createFileEncryptionProperties,
-            Func<FileDecryptionProperties?> createFileDecryptionProperties, 
+            Func<FileDecryptionProperties?> createFileDecryptionProperties,
             Action<RowGroupMetaData>? onGroupReader = null)
         {
             using var buffer = new ResizableBuffer();
@@ -257,7 +257,7 @@ namespace ParquetSharp.Test
             using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
             using var fileWriter = new ParquetFileWriter(output, Columns, writerProperties);
             using var groupWriter = fileWriter.AppendRowGroup();
-            
+
             using (var idWriter = groupWriter.NextColumn().LogicalWriter<int>())
             {
                 idWriter.WriteBatch(Ids);
@@ -274,7 +274,7 @@ namespace ParquetSharp.Test
             using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
             using var fileReader = new ParquetFileReader(input, readerProperties);
             using var groupReader = fileReader.RowGroup(0);
-            
+
             var metaData = groupReader.MetaData;
             var numRows = (int) metaData.NumRows;
 
@@ -294,7 +294,7 @@ namespace ParquetSharp.Test
         private static WriterProperties CreateWriterProperties(FileEncryptionProperties? fileEncryptionProperties)
         {
             using var builder = new WriterPropertiesBuilder();
-            
+
             return builder
                 .Compression(Compression.Snappy)
                 .Encryption(fileEncryptionProperties)
@@ -328,7 +328,7 @@ namespace ParquetSharp.Test
 
         public static readonly Column[] Columns =
         {
-            new Column<int>("Id"), 
+            new Column<int>("Id"),
             new Column<float>("Value")
         };
 
