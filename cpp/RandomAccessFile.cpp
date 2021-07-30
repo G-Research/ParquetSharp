@@ -1,6 +1,5 @@
 
 #include "cpp/ParquetSharpExport.h"
-#include "ExceptionInfo.h"
 
 #include <arrow/io/interfaces.h>
 

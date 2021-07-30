@@ -67,7 +67,7 @@ extern "C"
 		TRYCATCH
 		(
 			const auto s = column_chunk_meta_data->statistics();
-			*statistics = s ? new std::shared_ptr<Statistics>(s) : nullptr;
+			*statistics = s ? new std::shared_ptr(s) : nullptr;
 		)
 	}
 

@@ -73,7 +73,7 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_Properties(ParquetFileWriter* writer, const std::shared_ptr<WriterProperties>** properties)
 	{
-		TRYCATCH(*properties = new std::shared_ptr<WriterProperties>(writer->properties());)
+		TRYCATCH(*properties = new std::shared_ptr(writer->properties());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_Schema(ParquetFileWriter* writer, const SchemaDescriptor** schema)
@@ -90,8 +90,8 @@ extern "C"
 	{
 		TRYCATCH
 		(
-			const auto m = writer->key_value_metadata();
-			*key_value_metadata = m ? new std::shared_ptr<const KeyValueMetadata>(m) : nullptr;
+			const auto& m = writer->key_value_metadata();
+			*key_value_metadata = m ? new std::shared_ptr(m) : nullptr;
 		)
 	}
 
@@ -100,7 +100,7 @@ extern "C"
 		TRYCATCH
 		(
 			const auto m = writer->metadata();
-			*metadata = m ? new std::shared_ptr<FileMetaData>(m) : nullptr;
+			*metadata = m ? new std::shared_ptr(m) : nullptr;
 		)
 	}
 }

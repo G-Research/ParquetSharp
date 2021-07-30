@@ -66,6 +66,6 @@ extern "C"
 
     PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionPropertiesBuilder_Build(FileEncryptionProperties::Builder* builder, std::shared_ptr<FileEncryptionProperties>** properties)
     {
-        TRYCATCH(*properties = new std::shared_ptr<FileEncryptionProperties>(builder->build());)
+        TRYCATCH(*properties = new std::shared_ptr(builder->build());)
     }
 }

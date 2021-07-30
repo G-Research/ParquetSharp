@@ -42,7 +42,7 @@ extern "C"
 		TRYCATCH
 		(
 			const auto m = (*file_meta_data)->key_value_metadata();
-			*key_value_metadata = m ? new std::shared_ptr<const KeyValueMetadata>(m) : nullptr;
+			*key_value_metadata = m ? new std::shared_ptr(m) : nullptr;
 		)
 	}
 

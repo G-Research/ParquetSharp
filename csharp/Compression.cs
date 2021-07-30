@@ -10,6 +10,7 @@ namespace ParquetSharp
         Lz4 = 5,
         Lz4Frame = 6,
         Lzo = 7,
-        Bz2 = 8
+        Bz2 = 8,
+        Lz4Hadoop = 9
     }
 }
