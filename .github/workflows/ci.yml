@@ -5,7 +5,7 @@ on:
   pull_request:
 
 env:
-  VCPKG_DISABLE_METRICS: true 
+  VCPKG_DISABLE_METRICS: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
   dotnet_3_version: '3.1.407'
