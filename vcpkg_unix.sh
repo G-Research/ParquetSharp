@@ -36,6 +36,6 @@ cd build
 git clone $vcpkg_url vcpkg.$os
 cd vcpkg.$os
 git checkout $vcpkg_ref
-./bootstrap-vcpkg.sh -disableMetrics
+./bootstrap-vcpkg.sh
 
 ./vcpkg install arrow:$triplet
