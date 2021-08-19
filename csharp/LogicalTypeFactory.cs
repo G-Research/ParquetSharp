@@ -101,6 +101,7 @@ namespace ParquetSharp
 
                 return false;
             }
+        }
 
 
         /// <summary>
