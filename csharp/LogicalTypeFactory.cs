@@ -196,7 +196,7 @@ namespace ParquetSharp
             }
 
             // Milliseconds TimeSpan can be stored on Int32
-            if (logicalTypeOverride is TimeLogicalType { TimeUnit: TimeUnit.Millis })
+            if (logicalTypeOverride is TimeLogicalType {TimeUnit: TimeUnit.Millis})
             {
                 physicalType = PhysicalType.Int32;
             }
