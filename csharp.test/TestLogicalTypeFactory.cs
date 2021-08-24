@@ -173,15 +173,6 @@ namespace ParquetSharp.Test
             TestWriteNoColumnNorWriterOverride(ArrayValues, ArrayCustomValues);
         }
 
-        [Test]
-        public static void TestUnsupportedType()
-        {
-            Assert.False(LogicalTypeFactory.IsSupported(typeof(TestColumn)));
-
-            var exception = Assert.Throws<ArgumentException>(() => new Column<object>("unsupported").CreateSchemaNode());
-            Assert.AreEqual("unsupported logical type System.Object", exception?.Message);
-        }
-
         // Reader tests.
 
         private static void TestRead<TCustom, TValue>(TCustom[] expected, TValue[] written)
