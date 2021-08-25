@@ -35,6 +35,31 @@ namespace ParquetSharp
         }
 
         /// <summary>
+        /// Query whether the given C# type is supported and a schema node can potentially be created.
+        /// </summary>
+        public virtual bool IsSupported(Type type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+
+            while (true)
+            {
+                if (_primitiveMapping.ContainsKey(type))
+                {
+                    return true;
+                }
+
+                if (type.IsArray)
+                {
+                    type = type.GetElementType();
+                    continue;
+                }
+
+                return false;
+            }
+        }
+
+
+        /// <summary>
         /// Get the mapping from a column descriptor to the actual C# physical and logical element types.
         /// </summary>
         public virtual unsafe (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor)
