@@ -57,7 +57,7 @@ extern "C"
 
 			for (size_t i = 0; i != v.size(); ++i)
 			{
-				strings[i] = AllocateCString(AllocateCString(v[i]));
+				strings[i] = AllocateCString(v[i]);
 			}
 
 			*dot_vector = strings;

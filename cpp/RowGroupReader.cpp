@@ -15,7 +15,7 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* RowGroupReader_Column(const std::shared_ptr<RowGroupReader>* row_group_reader, int i, std::shared_ptr<ColumnReader>** column_reader)
 	{
-		TRYCATCH(*column_reader = new std::shared_ptr<ColumnReader>((*row_group_reader)->Column(i));)
+		TRYCATCH(*column_reader = new std::shared_ptr((*row_group_reader)->Column(i));)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* RowGroupReader_Metadata(const std::shared_ptr<RowGroupReader>* row_group_reader, const RowGroupMetaData** row_group_meta_data)

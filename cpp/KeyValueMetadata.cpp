@@ -9,7 +9,7 @@ using namespace parquet;
 
 extern "C"
 {
-	PARQUETSHARP_EXPORT ExceptionInfo* KeyValueMetadata_Make(int64_t size, const char** keys, const char** values, std::shared_ptr<const KeyValueMetadata>** key_value_metadata)
+	PARQUETSHARP_EXPORT ExceptionInfo* KeyValueMetadata_Make(const int64_t size, const char** keys, const char** values, std::shared_ptr<const KeyValueMetadata>** key_value_metadata)
 	{
 		TRYCATCH
 		(

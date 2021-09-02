@@ -1,6 +1,5 @@
 
 #include "cpp/ParquetSharpExport.h"
-#include "CString.h"
 #include "ExceptionInfo.h"
 
 #include <parquet/properties.h>
@@ -53,8 +52,8 @@ extern "C"
 	{
 		TRYCATCH
 		(
-			const auto p = reader_properties->file_decryption_properties();
-			*file_decryption_properties = p ? new std::shared_ptr<FileDecryptionProperties>(p) : nullptr;
+			const auto& p = reader_properties->file_decryption_properties();
+			*file_decryption_properties = p ? new std::shared_ptr(p) : nullptr;
 		)
 	}
 }

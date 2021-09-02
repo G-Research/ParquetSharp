@@ -41,6 +41,6 @@ extern "C"
 
     PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionPropertiesBuilder_Build(ColumnEncryptionProperties::Builder* builder, std::shared_ptr<ColumnEncryptionProperties>** properties)
     {
-        TRYCATCH(*properties = new std::shared_ptr<ColumnEncryptionProperties>(builder->build());)
+        TRYCATCH(*properties = new std::shared_ptr(builder->build());)
     }
 }

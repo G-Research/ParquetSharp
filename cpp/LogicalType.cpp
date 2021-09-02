@@ -38,77 +38,77 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_String(const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::String());)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::String());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Map(const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::Map());)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Map());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_List(const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::List());)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::List());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Enum(const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::Enum());)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Enum());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Decimal(const int32_t precision, const int32_t scale, const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::Decimal(precision, scale));)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Decimal(precision, scale));)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Date(const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::Date());)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Date());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Time(const bool is_adjusted_to_utc, const LogicalType::TimeUnit::unit time_unit, const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::Time(is_adjusted_to_utc, time_unit));)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Time(is_adjusted_to_utc, time_unit));)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Timestamp(const bool is_adjusted_to_utc, const LogicalType::TimeUnit::unit time_unit, const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::Timestamp(is_adjusted_to_utc, time_unit));)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Timestamp(is_adjusted_to_utc, time_unit));)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Interval(const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::Interval());)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Interval());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Int(const int32_t bit_width, const bool is_signed, const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::Int(bit_width, is_signed));)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Int(bit_width, is_signed));)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Null(const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::Null());)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Null());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_JSON(const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::JSON());)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::JSON());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_BSON(const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::BSON());)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::BSON());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_UUID(const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::UUID());)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::UUID());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_None(const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>(LogicalType::None());)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::None());)
 	}
 
 	// Typed properties

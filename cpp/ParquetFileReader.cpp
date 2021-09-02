@@ -36,11 +36,11 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileReader_MetaData(const ParquetFileReader* reader, std::shared_ptr<FileMetaData>** fileMetaData)
 	{
-		TRYCATCH(*fileMetaData = new std::shared_ptr<FileMetaData>(reader->metadata());)
+		TRYCATCH(*fileMetaData = new std::shared_ptr(reader->metadata());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileReader_RowGroup(ParquetFileReader* reader, int i, std::shared_ptr<RowGroupReader>** rowGroupReader)
 	{
-		TRYCATCH(*rowGroupReader = new std::shared_ptr<RowGroupReader>(reader->RowGroup(i));)
+		TRYCATCH(*rowGroupReader = new std::shared_ptr(reader->RowGroup(i));)
 	}
 }

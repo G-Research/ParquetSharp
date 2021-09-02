@@ -23,6 +23,7 @@ namespace
 		static_assert(Compression::LZ4_FRAME == 6);
 		static_assert(Compression::LZO == 7);
 		static_assert(Compression::BZ2 == 8);
+		static_assert(Compression::LZ4_HADOOP == 9);
 
 		static_assert(Encoding::PLAIN == 0);
 		static_assert(Encoding::PLAIN_DICTIONARY == 2);
@@ -71,6 +72,7 @@ namespace
 		static_assert(Repetition::REQUIRED == 0);
 		static_assert(Repetition::OPTIONAL == 1);
 		static_assert(Repetition::REPEATED == 2);
+		static_assert(Repetition::UNDEFINED == 3);
 
 		static_assert(SortOrder::SIGNED == 0);
 		static_assert(SortOrder::UNSIGNED == 1);

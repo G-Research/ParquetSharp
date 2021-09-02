@@ -21,7 +21,7 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Build(WriterProperties::Builder* builder, const std::shared_ptr<WriterProperties>** writerProperties)
 	{
-		TRYCATCH(*writerProperties = new std::shared_ptr<WriterProperties>(builder->build()););
+		TRYCATCH(*writerProperties = new std::shared_ptr(builder->build());)
 	}
 
 	// Dictonary enable/disable

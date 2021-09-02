@@ -25,13 +25,13 @@ extern "C"
 				nodes.push_back(*fields[i]);
 			}
 
-			*groupNode = new std::shared_ptr<schema::Node>(schema::GroupNode::Make(name, repetition, nodes, logical_type == nullptr ? nullptr : *logical_type));
+			*groupNode = new std::shared_ptr(schema::GroupNode::Make(name, repetition, nodes, logical_type == nullptr ? nullptr : *logical_type));
 		)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* GroupNode_Field(const std::shared_ptr<schema::GroupNode>* group_node, int i, std::shared_ptr<schema::Node>** field)
 	{
-		TRYCATCH(*field = new std::shared_ptr<schema::Node>((*group_node)->field(i));)
+		TRYCATCH(*field = new std::shared_ptr((*group_node)->field(i));)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* GroupNode_Field_Count(const std::shared_ptr<schema::GroupNode>* group_node, int* field_count)

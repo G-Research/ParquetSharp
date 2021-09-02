@@ -25,7 +25,7 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* Node_Logical_Type(const std::shared_ptr<const schema::Node>* node, const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr<const LogicalType>((*node)->logical_type());)
+		TRYCATCH(*logical_type = new std::shared_ptr((*node)->logical_type());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* Node_Name(const std::shared_ptr<const schema::Node>* node, const char** name)
