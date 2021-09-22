@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using ParquetSharp.IO;
 using NUnit.Framework;
@@ -243,6 +244,23 @@ namespace ParquetSharp.Test
 
                 fileReader.Close();
             }
+        }
+        
+        [Test]
+        public static void TestReadNestedList()
+        {
+            var directory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            Assert.IsNotNull(directory);
+            var path = Path.Combine(directory!, "Artifacts/nested.parquet");
+            
+            using var fileReader = new ParquetFileReader(path);
+            
+            var rowGroupReader = fileReader.RowGroup(0);
+            var listColumn = rowGroupReader.Column(0);
+
+            var listColumnAsReader = listColumn.LogicalReader<long?[]>();
+            var dataOut = listColumnAsReader.ReadAll(2);
+            Assert.IsNotEmpty(dataOut);
         }
 
         [Test]

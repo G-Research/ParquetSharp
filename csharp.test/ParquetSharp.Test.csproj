@@ -25,4 +25,10 @@
     <ProjectReference Include="..\csharp\ParquetSharp.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Artifacts\nested.parquet">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
