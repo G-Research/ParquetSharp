@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using ParquetSharp.IO;
 using NUnit.Framework;
+using ParquetSharp.Schema;
 
 namespace ParquetSharp.Test
 {
@@ -247,20 +248,46 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestReadNestedList()
+        public static void TestReadNestedArray()
         {
-            var directory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            Assert.IsNotNull(directory);
-            var path = Path.Combine(directory!, "Artifacts/nested.parquet");
+            // Create a 2d int array
+            const int arraySize = 100;
+            var ar = new int[arraySize][];
 
-            using var fileReader = new ParquetFileReader(path);
+            for (var i = 0; i < arraySize; i++)
+            {
+                ar[i] = Enumerable.Range(0, arraySize).ToArray();
+            }
+            
+            using var buffer = new ResizableBuffer();
 
-            var rowGroupReader = fileReader.RowGroup(0);
-            var listColumn = rowGroupReader.Column(0);
+            using (var output = new BufferOutputStream(buffer))
+            {
+                var element = new PrimitiveNode("element", Repetition.Required, LogicalType.None(), PhysicalType.Int32, -1);
+                var list = new GroupNode("list", Repetition.Repeated, new [] { element });
+                var ids = new GroupNode("ids", Repetition.Optional, new[] { list }, LogicalType.List());
+                var outer = new GroupNode("outer", Repetition.Optional, new[] { ids });
+                var schemaNode = new GroupNode("schema", Repetition.Required, new[] { outer });
 
-            var listColumnAsReader = listColumn.LogicalReader<long?[]>();
-            var dataOut = listColumnAsReader.ReadAll(2);
-            Assert.IsNotEmpty(dataOut);
+                using var builder = new WriterPropertiesBuilder();
+                using var fileWriter = new ParquetFileWriter(output, schemaNode, builder.Build());
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                using var col0 = rowGroupWriter.Column(0).LogicalWriter<int[]>();
+                col0.WriteBatch(ar);
+                fileWriter.Close();
+            }
+
+            using (var input = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(input);
+                using var rowGroupReader = fileReader.RowGroup(0);
+                using var col0 = rowGroupReader.Column(0).LogicalReader<int[]>();
+
+                Assert.AreEqual(ar, col0.ReadAll((int) rowGroupReader.MetaData.NumRows));
+                
+                fileReader.Close();
+            }
         }
 
         [Test]
