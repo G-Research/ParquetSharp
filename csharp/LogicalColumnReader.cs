@@ -167,6 +167,7 @@ namespace ParquetSharp
                     var slicedNodes = schemaNodes;
                     while (slicedNodes.Length > 2 && slicedNodes[0].LogicalType.Type != LogicalTypeEnum.List) // Our list may be nested in structs
                     {
+                        nullDefinitionLevel += (short) (slicedNodes[0].Repetition == Repetition.Optional ? 1 : 0);
                         slicedNodes = slicedNodes.Slice(1); // skip ahead to the first list node in hierarchy 
                     }
 
