@@ -129,7 +129,7 @@ namespace ParquetSharp
             {
                 if (schemaNodes.Length >= 2)
                 {
-                    
+
                     var slicedNodes = schemaNodes;
                     while (slicedNodes.Length > 2 && slicedNodes[0].LogicalType.Type != LogicalTypeEnum.List) // Our list may be nested in structs
                     {
@@ -154,7 +154,7 @@ namespace ParquetSharp
                         return;
                     }
                 }
-                
+
                 throw new Exception("elementType is an array but schema does not match the expected layout");
             }
 
