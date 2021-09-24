@@ -127,24 +127,34 @@ namespace ParquetSharp
         {
             if (elementType.IsArray && elementType != typeof(byte[]))
             {
-                if (schemaNodes.Length >= 2 &&
-                    schemaNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} &&
-                    schemaNodes[1] is GroupNode {LogicalType: NoneLogicalType, Repetition: Repetition.Repeated})
+                if (schemaNodes.Length >= 2)
                 {
-                    var containedType = elementType.GetElementType();
+                    
+                    var slicedNodes = schemaNodes;
+                    while (slicedNodes.Length > 2 && slicedNodes[0].LogicalType.Type != LogicalTypeEnum.List) // Our list may be nested in structs
+                    {
+                        nullDefinitionLevel += (short) (slicedNodes[0].Repetition == Repetition.Optional ? 1 : 0);
+                        slicedNodes = slicedNodes.Slice(1); // skip ahead to the first list node in hierarchy 
+                    }
 
-                    WriteArrayIntermediateLevel(
-                        array,
-                        schemaNodes.Slice(2),
-                        containedType,
-                        nullDefinitionLevel,
-                        repetitionLevel,
-                        firstLeafRepLevel
-                    );
+                    if (slicedNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} &&
+                        slicedNodes[1] is GroupNode {LogicalType: NoneLogicalType, Repetition: Repetition.Repeated})
+                    {
+                        var containedType = elementType.GetElementType() ?? throw new NullReferenceException("element type is null");
 
-                    return;
+                        WriteArrayIntermediateLevel(
+                            array,
+                            slicedNodes.Slice(2),
+                            containedType,
+                            nullDefinitionLevel,
+                            repetitionLevel,
+                            firstLeafRepLevel
+                        );
+
+                        return;
+                    }
                 }
-
+                
                 throw new Exception("elementType is an array but schema does not match the expected layout");
             }
 
