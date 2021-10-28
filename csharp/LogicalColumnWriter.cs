@@ -115,7 +115,7 @@ namespace ParquetSharp
             // Handle arrays separately
             if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
             {
-                WriteArray(values.ToArray(), ArraySchemaNodes, typeof(TElement), 0, 0, 0);
+                WriteArray(values.ToArray(), SchemaNodesPath, typeof(TElement), 0, 0, 0);
             }
             else
             {
