@@ -296,7 +296,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? default(TValue?) : source[src++];
+                destination[i] = defLevels.IsEmpty || defLevels[i] == definedLevel ? source[src++] : default(TValue?);
             }
         }
 
@@ -312,7 +312,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? default(sbyte?) : (sbyte) source[src++];
+                destination[i] = defLevels[i] != definedLevel ? default(sbyte?) : (sbyte) source[src++];
             }
         }
 
@@ -328,7 +328,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? default(byte?) : (byte) source[src++];
+                destination[i] = defLevels[i] != definedLevel ? default(byte?) : (byte) source[src++];
             }
         }
 
@@ -344,7 +344,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? default(short?) : (short) source[src++];
+                destination[i] = defLevels[i] != definedLevel ? default(short?) : (short) source[src++];
             }
         }
 
@@ -360,7 +360,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? default(ushort?) : (ushort) source[src++];
+                destination[i] = defLevels[i] != definedLevel ? default(ushort?) : (ushort) source[src++];
             }
         }
 
@@ -376,7 +376,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? default(decimal?) : ToDecimal(source[src++], multiplier);
+                destination[i] = defLevels[i] != definedLevel ? default(decimal?) : ToDecimal(source[src++], multiplier);
             }
         }
 
@@ -392,7 +392,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? default(Guid?) : ToUuid(source[src++]);
+                destination[i] = defLevels[i] != definedLevel ? default(Guid?) : ToUuid(source[src++]);
             }
         }
 
@@ -410,7 +410,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? default(DateTime?) : ToDateTimeMicros(source[src++]);
+                destination[i] = defLevels[i] != definedLevel ? default(DateTime?) : ToDateTimeMicros(source[src++]);
             }
         }
 
@@ -428,7 +428,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? default(DateTime?) : ToDateTimeMillis(source[src++]);
+                destination[i] = defLevels[i] != definedLevel ? default(DateTime?) : ToDateTimeMillis(source[src++]);
             }
         }
 
@@ -444,7 +444,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? default(TimeSpan?) : ToTimeSpanMicros(source[src++]);
+                destination[i] = defLevels[i] != definedLevel ? default(TimeSpan?) : ToTimeSpanMicros(source[src++]);
             }
         }
 
@@ -460,7 +460,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? default(TimeSpan?) : ToTimeSpanMillis(source[src++]);
+                destination[i] = defLevels[i] != definedLevel ? default(TimeSpan?) : ToTimeSpanMillis(source[src++]);
             }
         }
 
@@ -468,7 +468,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? null : ToString(source[src++], byteArrayCache);
+                destination[i] = defLevels[i] != definedLevel ? null : ToString(source[src++], byteArrayCache);
             }
         }
 
@@ -476,7 +476,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? null : ToString(source[src++]);
+                destination[i] = defLevels.IsEmpty || defLevels[i] == definedLevel ? ToString(source[src++]) : null;
             }
         }
 
@@ -484,7 +484,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels.IsEmpty || defLevels[i] != definedLevel ? null : ToByteArray(source[src++]);
+                destination[i] = defLevels.IsEmpty || defLevels[i] == definedLevel ? ToByteArray(source[src++]) : null;
             }
         }
 
