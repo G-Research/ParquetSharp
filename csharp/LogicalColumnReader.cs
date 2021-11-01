@@ -330,8 +330,7 @@ namespace ParquetSharp
 
             var columnReader = (ColumnReader<TPhysical>) Source;
             var rowsRead = 0;
-
-            // TODO: Check definitionLevel == DefLevel for each read!
+            
             definitionLevel += (short) (schemaNode.Repetition == Repetition.Optional ? 1 : 0);
 
             // Fast path for logical types that directly map to the physical type in memory.
