@@ -15,8 +15,8 @@ Supported platforms are x64 processor architectures on Linux, Windows, and macOS
 |     | Status |
 | ---: | --- |
 | **Release Nuget** | [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
-| **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
-| **CI Build** | [![CI Status](https://github.com/G-Research/ParquetSharp/workflows/CI/badge.svg)](https://github.com/G-Research/ParquetSharp/actions?query=workflow%3A%22CI%22) |
+| **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp/absoluteLatest) |
+| **CI Build** | [![CI Status](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml?query=branch%3Amaster+event%3Apush) |
 
 ## Examples
 
