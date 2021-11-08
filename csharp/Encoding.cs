@@ -11,6 +11,7 @@ namespace ParquetSharp
         DeltaByteArray = 7,
         RleDictionary = 8,
         ByteStreamSplit = 9,
-        Undefined = 10
+        Undefined = 10,
+        Unknown = 999
     }
 }

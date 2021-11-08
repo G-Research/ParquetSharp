@@ -35,6 +35,7 @@ namespace
 		static_assert(Encoding::RLE_DICTIONARY == 8);
 		static_assert(Encoding::BYTE_STREAM_SPLIT == 9);
 		static_assert(Encoding::UNDEFINED == 10);
+		static_assert(Encoding::UNKNOWN == 999);
 
 		static_assert(LogicalType::Type::UNDEFINED == 0);
 		static_assert(LogicalType::Type::STRING == 1);
@@ -57,7 +58,12 @@ namespace
 		static_assert(ParquetCipher::AES_GCM_CTR_V1 == 1);
 
 		static_assert(ParquetVersion::PARQUET_1_0 == 0);
+		ARROW_SUPPRESS_DEPRECATION_WARNING
 		static_assert(ParquetVersion::PARQUET_2_0 == 1);
+		ARROW_UNSUPPRESS_DEPRECATION_WARNING
+		static_assert(ParquetVersion::PARQUET_2_4 == 2);
+		static_assert(ParquetVersion::PARQUET_2_6 == 3);
+		static_assert(ParquetVersion::PARQUET_2_LATEST == 3);
 
 		static_assert(Type::BOOLEAN == 0);
 		static_assert(Type::INT32 == 1);
