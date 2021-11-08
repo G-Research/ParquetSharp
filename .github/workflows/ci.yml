@@ -249,8 +249,6 @@ jobs:
         dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
     - name: Build & Run .NET unit tests
       run: dotnet test csharp.test --configuration=Release --framework ${{ steps.dotnet.outputs.framework }}
-    outputs:
-      version: ${{ steps.get-version.outputs.version }}
 
   # Create a GitHub release and publish the NuGet packages to nuget.org when a tag is pushed.
   publish-release:
