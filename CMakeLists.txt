@@ -33,6 +33,8 @@ if (MSVC)
 
 	add_compile_options("/MP") # Compile files in parallel.
 	add_compile_options("/WX") # Threat warnings as errors.
+	# See https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
+	add_compile_options("/Zc:__cplusplus") # Enable standard __cplusplus macro.
 
 endif ()
 
