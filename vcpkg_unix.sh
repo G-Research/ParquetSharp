@@ -1,14 +1,27 @@
 #!/bin/bash
 set -e
 
+case $(uname -m) in
+  x86_64)
+    arch=x64
+    ;;
+  aarch64|arm64)
+    arch=arm64
+    ;;
+  *)
+    echo "Architecture not supported"
+    exit 1
+    ;;
+esac
+
 case $(uname) in
   Linux)
     os=Linux
-    triplet=x64-linux
+    triplet=$arch-linux
     ;;
   Darwin)
     os=macOS
-    triplet=x64-osx
+    triplet=$arch-osx
     if ! which brew >/dev/null || [ ! -x $(brew --prefix)/opt/bison/bin/bison ]
     then
       echo 'The version of bison provided with macOS is too old.'
