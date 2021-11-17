@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-case $(uname -m) in
-  x86_64)
+case ${1:-$(uname -m)} in
+  x86_64|x64)
     arch=x64
     ;;
   aarch64|arm64)
@@ -16,12 +16,10 @@ esac
 
 case $(uname) in
   Linux)
-    os=Linux
-    triplet=$arch-linux
+    os=linux
     ;;
   Darwin)
-    os=macOS
-    triplet=$arch-osx
+    os=osx
     if ! which brew >/dev/null || [ ! -x $(brew --prefix)/opt/bison/bin/bison ]
     then
       echo 'The version of bison provided with macOS is too old.'
@@ -38,6 +36,8 @@ case $(uname) in
     ;;
 esac
 
+triplet=$arch-$os
+
 # Make sure reading vcpkg_version.txt works even when it doesn't end with a newline
 read -r vcpkg_url vcpkg_ref << EOF
 $(cat vcpkg_version.txt)
@@ -46,8 +46,8 @@ EOF
 mkdir -p build
 cd build
 # Clone without checking out a branch, as vcpkg_ref could be a commit SHA
-git clone $vcpkg_url vcpkg.$os
-cd vcpkg.$os
+git clone $vcpkg_url vcpkg.$triplet
+cd vcpkg.$triplet
 git checkout $vcpkg_ref
 ./bootstrap-vcpkg.sh
 
