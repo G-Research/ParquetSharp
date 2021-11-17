@@ -36,5 +36,7 @@ case $(uname) in
     ;;
 esac
 
-cmake -B build/$os -S . -D VCPKG_TARGET_TRIPLET=$vcpkg_arch-$os -D CMAKE_TOOLCHAIN_FILE=../vcpkg.$os/scripts/buildsystems/vcpkg.cmake $options
-cmake --build build/$os -j
+triplet=$vcpkg_arch-$os
+
+cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=../vcpkg.$os/scripts/buildsystems/vcpkg.cmake $options
+cmake --build build/$triplet -j
