@@ -49,6 +49,16 @@ cd build
 git clone $vcpkg_url vcpkg.$triplet
 cd vcpkg.$triplet
 git checkout $vcpkg_ref
+
+# Only build release configuration in CI
+if [ "$GITHUB_ACTIONS" == "true" ]
+then
+  for triplet_file in triplets/{,community/}$triplet.cmake
+  do
+    [ -f "$triplet_file" ] && echo "set(VCPKG_BUILD_TYPE release)" >> "$triplet_file"
+  done
+fi
+
 ./bootstrap-vcpkg.sh
 
 ./vcpkg install arrow:$triplet
