@@ -23,7 +23,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: ${{ env.dotnet_5_version }} 
+          dotnet-version: ${{ env.dotnet_5_version }}
       - name: Code formating check
         run: |
           dotnet tool restore
@@ -53,7 +53,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-      
+
     # Find out which vcpkg version we are using.
     - name: Resolve vcpkg version
       id: resolve-vcpkg-version
@@ -64,7 +64,7 @@ jobs:
         if [ ${#vcpkg_ref} -eq 40 ]; then commit_id=$vcpkg_ref; else commit_id=$(git ls-remote $vcpkg_url $vcpkg_ref | cut -f1); fi
         echo "::set-output name=commit-id::$commit_id"
       shell: bash
-      
+
     # Check for cached vcpkg dependencies (use these if we can).
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
@@ -78,7 +78,7 @@ jobs:
         mkdir build
         mv cache/vcpkg build/vcpkg.$(echo ${{ runner.os }})
       shell: bash
-      
+
     # Build vcpkg dependencies (if no cach hit).
     - name: Install vcpkg build dependencies (Linux)
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Linux'
@@ -108,7 +108,7 @@ jobs:
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: build/vcpkg.$(echo ${{ runner.os }})/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
       shell: bash
-      
+
     # .NET Core Setup (and also MSBuild for Windows).
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
@@ -123,7 +123,7 @@ jobs:
     - name: Setup MSBuild
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1
-      
+
     # Compile ParquetSharp (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
@@ -140,7 +140,7 @@ jobs:
       with:
         name: ${{ runner.os }}-native-library
         path: bin
-        
+
   # Download all native shared libraries and create the nuget package.
   # Upload nuget package as an artifact.
   build-nuget:
@@ -173,7 +173,7 @@ jobs:
       run: dotnet new globaljson --sdk-version ${{ env.dotnet_5_version }}
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release
-    - name: Upload NuGet artifact 
+    - name: Upload NuGet artifact
       uses: actions/upload-artifact@v2
       with:
         name: nuget-package
