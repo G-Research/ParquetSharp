@@ -48,8 +48,12 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-latest, windows-latest]
+        arch: [x64, arm64]
+        exclude:
+        - os: windows-latest
+          arch: arm64
       fail-fast: false
-    name: Build native library (${{ matrix.os }})
+    name: Build native ${{ matrix.arch }} library (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
@@ -66,21 +70,47 @@ jobs:
         echo "::set-output name=commit-id::$commit_id"
       shell: bash
 
+    # Compute vcpkg triplet
+    - name: Compute vcpkg triplet
+      id: vcpkg-triplet
+      run: |
+        triplet="${{ matrix.arch }}-"
+        case ${{ runner.os }} in
+          Linux)
+            triplet+="linux"
+            ;;
+          macOS)
+            triplet+="osx"
+            ;;
+          Windows)
+            triplet+="windows-static"
+            ;;
+        esac
+        echo "::set-output name=triplet::$triplet"
+      shell: bash
+
     # Check for cached vcpkg dependencies (use these if we can).
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
       uses: actions/cache@v1
       with:
         path: cache/vcpkg
-        key: vcpkg-${{ runner.os }}-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
+        key: vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
     - name: Use cached vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
       run: |
         mkdir build
-        mv cache/vcpkg build/vcpkg.$(echo ${{ runner.os }})
+        mv cache/vcpkg build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}
       shell: bash
 
-    # Build vcpkg dependencies (if no cach hit).
+    # Install arm64 cross-compilation toolchain if required
+    - name: Install arm64 cross-compilation toolchain
+      if: runner.os == 'Linux' && matrix.arch == 'arm64'
+      run: |
+        sudo apt-get update
+        sudo apt-get --yes install g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu
+
+    # Build vcpkg dependencies (if no cache hit).
     - name: Install vcpkg build dependencies (Linux)
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |
@@ -91,7 +121,7 @@ jobs:
       run: brew install bison pkg-config
     - name: Compile vcpkg dependencies (Unix)
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
-      run: ./vcpkg_unix.sh
+      run: ./vcpkg_unix.sh ${{ matrix.arch }}
     - name: Compile vcpkg dependencies (Windows)
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Windows'
       run: ./vcpkg_windows.bat
@@ -99,15 +129,15 @@ jobs:
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ runner.os }}-vcpkg-arrow-logs
-        path: build/vcpkg.${{ runner.os }}/buildtrees/arrow/*.log
+        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-vcpkg-arrow-logs
+        path: build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/buildtrees/arrow/*.log
     - name: Cleanup vcpkg build
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: rm -rf build/vcpkg.$(echo ${{ runner.os }} | tr A-Z a-z)/{buildtrees,downloads}
+      run: rm -rf build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/{buildtrees,downloads}
       shell: bash
     - name: Export vcpkg dependencies
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: build/vcpkg.$(echo ${{ runner.os }})/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
+      run: build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
       shell: bash
 
     # .NET Core Setup (and also MSBuild for Windows).
@@ -128,44 +158,37 @@ jobs:
     # Compile ParquetSharp (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
-      run: ./build_unix.sh
+      run: ./build_unix.sh ${{ matrix.arch }}
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
       run: ./build_windows.bat
     - name: Build .NET benchmarks & unit tests
       run: |
-        dotnet build csharp.benchmark --configuration=Release
-        dotnet build csharp.test --configuration=Release
+        dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
+        dotnet build csharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ runner.os }}-native-library
+        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-native-library
         path: bin
 
   # Download all native shared libraries and create the nuget package.
   # Upload nuget package as an artifact.
   build-nuget:
     name: Build NuGet package
-    runs-on: windows-latest    
+    runs-on: ubuntu-latest
     needs: build-native
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Download native ParquetSharp library (Linux)
+    - name: Download all artifacts
       uses: actions/download-artifact@v2
       with:
-        name: Linux-native-library
-        path: bin
-    - name: Download native ParquetSharp library (Windows)
-      uses: actions/download-artifact@v2
-      with:
-        name: Windows-native-library
-        path: bin
-    - name: Download native ParquetSharp library (macOS)
-      uses: actions/download-artifact@v2
-      with:
-        name: macOS-native-library
-        path: bin
+        path: artifacts
+    - name: Copy native ParquetSharp libraries
+      run: |
+        mkdir bin
+        cp -rv artifacts/*-native-library/* bin/
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
