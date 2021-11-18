@@ -16,6 +16,7 @@ jobs:
   # We cache them using GitHub Actions cache and export, making the scripts below a bit more complex.
   check-format:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
+    name: Check format
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout
@@ -252,6 +253,7 @@ jobs:
 
   # Virtual job that can be configured as a required check before a PR can be merged.
   all-required-checks-done:
+    name: All required checks done
     needs:
       - check-format
       - test-nuget
