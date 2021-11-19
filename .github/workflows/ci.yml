@@ -209,11 +209,16 @@ jobs:
       matrix:
         os: [ubuntu-18.04, ubuntu-20.04, macos-latest, windows-latest]
         dotnet: [3, 5]
+        arch: [x64]
         include:
         - os: windows-latest
           dotnet: 4
+          arch: x64
+        - os: ubuntu-20.04
+          dotnet: 5
+          arch: arm64
       fail-fast: false
-    name: Test NuGet package (.NET ${{ matrix.dotnet }} on ${{ matrix.os }})
+    name: Test NuGet package (.NET ${{ matrix.dotnet }} ${{ matrix.arch }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     needs: build-nuget
     steps:
@@ -263,8 +268,17 @@ jobs:
       run: |
         dotnet remove csharp.test reference csharp/ParquetSharp.csproj
         dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
-    - name: Build & Run .NET unit tests
+    - name: Setup QEMU for arm64
+      if: matrix.arch == 'arm64'
+      uses: docker/setup-qemu-action@v1
+      with:
+        platforms: arm64
+    - name: Build & Run .NET unit tests (x64)
+      if: matrix.arch == 'x64'
       run: dotnet test csharp.test --configuration=Release --framework ${{ steps.dotnet.outputs.framework }}
+    - name: Build & Run .NET unit tests (arm64)
+      if: matrix.arch == 'arm64'
+      run: docker run --rm --platform linux/arm64/v8 -v $PWD:$PWD -w $PWD mcr.microsoft.com/dotnet/sdk:${{ steps.dotnet.outputs.version }} dotnet test csharp.test --configuration=Release --framework ${{ steps.dotnet.outputs.framework }}
 
   # Virtual job that can be configured as a required check before a PR can be merged.
   all-required-checks-done:
