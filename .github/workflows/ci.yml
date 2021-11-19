@@ -228,16 +228,6 @@ jobs:
       with:
         name: nuget-package
         path: nuget
-    - name: Create local NuGet feed (Unix)
-      if: runner.os == 'Linux' || runner.os == 'macOS'
-      run: |
-        curl -sLO https://dist.nuget.org/win-x86-commandline/v5.5.1/nuget.exe
-        mono nuget.exe add -source local nuget/ParquetSharp.${{ steps.get-version.outputs.version }}.nupkg
-    - name: Create local NuGet feed (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        choco install nuget.commandline
-        nuget add -source local nuget/ParquetSharp.${{ steps.get-version.outputs.version }}.nupkg
     - name: Setup .NET variables
       id: dotnet
       shell: bash
@@ -266,7 +256,9 @@ jobs:
     - name: Pin .NET Core SDK
       run: dotnet new globaljson --sdk-version ${{ steps.dotnet.outputs.version }}
     - name: Add local NuGet feed
-      run: dotnet nuget add source -n local $PWD/local
+      run: |
+        dotnet new nugetconfig
+        dotnet nuget add source -n local $PWD/nuget
     - name: Change test project references to use local NuGet package
       run: |
         dotnet remove csharp.test reference csharp/ParquetSharp.csproj
