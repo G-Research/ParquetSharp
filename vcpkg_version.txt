@@ -1,1 +1,1 @@
-https://github.com/microsoft/vcpkg.git 77c4e0cb087b3cecb5525dacd1fad18a0bb23573
+https://github.com/ianmcook/vcpkg.git arrow-6.0.0
