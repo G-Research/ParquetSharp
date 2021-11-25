@@ -6,8 +6,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ParquetSharp</AssemblyName>
     <RootNamespace>ParquetSharp</RootNamespace>
-    <Platforms>x64</Platforms>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget Condition="'$(TargetFramework)'=='net471'">x64</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -40,28 +39,41 @@
     <IsWindows Condition="'$(OS)' == 'Windows_NT'">true</IsWindows>
     <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
     <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
+    <OSArchitecture Condition="'$(OSArchitecture)' == ''">$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)</OSArchitecture>
   </PropertyGroup>
 
   <ItemGroup Label="Native Library">
-    <Content Include="..\bin\ParquetSharpNatived.dll" Link="ParquetSharpNatived.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug' AND '$(IsWindows)'=='true'">
+    <Content Include="..\bin\x64-windows-static\ParquetSharpNatived.dll" Link="ParquetSharpNatived.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug' AND ('$(IsWindows)'=='true' OR Exists('..\bin\x64-windows-static\ParquetSharpNatived.dll'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\ParquetSharpNatived.pdb" Link="ParquetSharpNatived.pdb" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug' AND '$(IsWindows)'=='true'">
+    <Content Include="..\bin\x64-windows-static\ParquetSharpNatived.pdb" Link="ParquetSharpNatived.pdb" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Debug' AND ('$(IsWindows)'=='true' OR Exists('..\bin\x64-windows-static\ParquetSharpNatived.pdb'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\ParquetSharpNative.dll" Link="ParquetSharpNative.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Release' AND '$(IsWindows)'=='true'">
+    <Content Include="..\bin\x64-windows-static\ParquetSharpNative.dll" Link="ParquetSharpNative.dll" PackagePath="runtimes/win-x64/native" Condition="'$(Configuration)'=='Release' AND ('$(IsWindows)'=='true' OR Exists('..\bin\x64-windows-static\ParquetSharpNative.dll'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\ParquetSharpNatived.so" Link="ParquetSharpNatived.so" PackagePath="runtimes/linux-x64/native" Condition="'$(Configuration)'=='Debug' AND ('$(IsLinux)'=='true' OR Exists('..\bin\ParquetSharpNatived.so'))">
+    <Content Include="..\bin\x64-linux\ParquetSharpNatived.so" Link="ParquetSharpNatived.so" PackagePath="runtimes/linux-x64/native" Condition="'$(Configuration)'=='Debug' AND (('$(IsLinux)'=='true' AND '$(OSArchitecture)'=='X64') OR Exists('..\bin\x64-linux\ParquetSharpNatived.so'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\ParquetSharpNative.so" Link="ParquetSharpNative.so" PackagePath="runtimes/linux-x64/native" Condition="'$(Configuration)'=='Release' AND ('$(IsLinux)'=='true' OR Exists('..\bin\ParquetSharpNative.so'))">
+    <Content Include="..\bin\x64-linux\ParquetSharpNative.so" Link="ParquetSharpNative.so" PackagePath="runtimes/linux-x64/native" Condition="'$(Configuration)'=='Release' AND (('$(IsLinux)'=='true' AND '$(OSArchitecture)'=='X64') OR Exists('..\bin\x64-linux\ParquetSharpNative.so'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\ParquetSharpNatived.dylib" Link="ParquetSharpNatived.dylib" PackagePath="runtimes/osx-x64/native" Condition="'$(Configuration)'=='Debug' AND ('$(IsOSX)'=='true' OR Exists('..\bin\ParquetSharpNatived.dylib'))">
+    <Content Include="..\bin\arm64-linux\ParquetSharpNatived.so" Link="ParquetSharpNatived.so" PackagePath="runtimes/linux-arm64/native" Condition="'$(Configuration)'=='Debug' AND (('$(IsLinux)'=='true' AND '$(OSArchitecture)'=='Arm64') OR Exists('..\bin\arm64-linux\ParquetSharpNatived.so'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\ParquetSharpNative.dylib" Link="ParquetSharpNative.dylib" PackagePath="runtimes/osx-x64/native" Condition="'$(Configuration)'=='Release' AND ('$(IsOSX)'=='true' OR Exists('..\bin\ParquetSharpNative.dylib'))">
+    <Content Include="..\bin\arm64-linux\ParquetSharpNative.so" Link="ParquetSharpNative.so" PackagePath="runtimes/linux-arm64/native" Condition="'$(Configuration)'=='Release' AND (('$(IsLinux)'=='true' AND '$(OSArchitecture)'=='Arm64') OR Exists('..\bin\arm64-linux\ParquetSharpNative.so'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\bin\x64-osx\ParquetSharpNatived.dylib" Link="ParquetSharpNatived.dylib" PackagePath="runtimes/osx-x64/native" Condition="'$(Configuration)'=='Debug' AND (('$(IsOSX)'=='true' AND '$(OSArchitecture)'=='X64') OR Exists('..\bin\x64-osx\ParquetSharpNatived.dylib'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\bin\x64-osx\ParquetSharpNative.dylib" Link="ParquetSharpNative.dylib" PackagePath="runtimes/osx-x64/native" Condition="'$(Configuration)'=='Release' AND (('$(IsOSX)'=='true' AND '$(OSArchitecture)'=='X64') OR Exists('..\bin\x64-osx\ParquetSharpNative.dylib'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\bin\arm64-osx\ParquetSharpNatived.dylib" Link="ParquetSharpNatived.dylib" PackagePath="runtimes/osx-arm64/native" Condition="'$(Configuration)'=='Debug' AND (('$(IsOSX)'=='true' AND '$(OSArchitecture)'=='Arm64') OR Exists('..\bin\arm64-osx\ParquetSharpNatived.dylib'))">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\bin\arm64-osx\ParquetSharpNative.dylib" Link="ParquetSharpNative.dylib" PackagePath="runtimes/osx-arm64/native" Condition="'$(Configuration)'=='Release' AND (('$(IsOSX)'=='true' AND '$(OSArchitecture)'=='Arm64') OR Exists('..\bin\arm64-osx\ParquetSharpNative.dylib'))">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
