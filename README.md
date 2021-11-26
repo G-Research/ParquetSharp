@@ -6,17 +6,22 @@ ParquetSharp is a cross-platform .NET library for reading and writing Apache [Pa
 
 It is implemented in C# as a [PInvoke][2] wrapper around [Apache Parquet C++][3] to provide high performance and compatibility.
 
-Supported platforms are x64 processor architectures on Linux, Windows, and macOS.
+Supported platforms:
+
+| Chip  | Linux    | Windows  | macOS    |
+| :---- | :------: | :------: | :------: |
+| x64   | &#x2714; | &#x2714; | &#x2714; |
+| arm64 | &#x2714; |          | &#x2714; |
 
 [1]: https://github.com/apache/parquet-format
 [2]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
 [3]: https://github.com/apache/arrow
 
-|     | Status |
-| ---: | --- |
-| **Release Nuget** | [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp) |
-| **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp/absoluteLatest) |
-| **CI Build** | [![CI Status](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml?query=branch%3Amaster+event%3Apush) |
+|                       | Status                                                                                                                                                                                                                         |
+| --------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Release Nuget**     | [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp)                                                                                                        |
+| **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp/absoluteLatest)                                                                                  |
+| **CI Build**          | [![CI Status](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml?query=branch%3Amaster+event%3Apush) |
 
 ## Examples
 
@@ -112,10 +117,10 @@ Not finding an existing solution meeting these requirements, we decided to imple
 
 The following benchmarks can be reproduced by running `ParquetSharp.Benchmark.csproj`. The relative performance of ParquetSharp 2.4.0-beta1 is compared to [Parquet.NET](https://github.com/aloneguid/parquet-dotnet) 3.8.6, an alternative open-source .NET library that is fully managed. The Decimal tests focus purely on handling the C# `decimal` type, while the TimeSeries tests benchmark three columns respectively of the types `{int, DateTime, float}`. Results are from a Ryzen 5950X on Windows 10.
 
-|  | Decimal (Read) | Decimal (Write) | TimeSeries (Read) | TimeSeries (Write) |
-| ------: | :------------: | :-------------: | :---------------: | :----------------: |
-| Parquet.NET | 1.0x | 1.0x | 1.0x | 1.0x |
-| ParquetSharp | 4.7x Faster | 3.7x Faster | 2.9x Faster | 8.5x Faster |
+|              | Decimal (Read) | Decimal (Write) | TimeSeries (Read) | TimeSeries (Write) |
+| -----------: | :------------: | :-------------: | :---------------: | :----------------: |
+| Parquet.NET  | 1.0x           | 1.0x            | 1.0x              | 1.0x               |
+| ParquetSharp | 4.7x Faster    | 3.7x Faster     | 2.9x Faster       | 8.5x Faster        |
 
 ## Known Limitations
 
@@ -123,7 +128,7 @@ Because this library is a thin wrapper around the Parquet C++ library, misuse ca
 
 Typically this can arise when attempting to access an instance whose owner has been disposed. Because some objects and properties are exposed by Parquet C++ via regular pointers (instead of consistently using `std::shared_ptr`), dereferencing these after the owner class instance has been destructed will lead to an invalid pointer access.
 
-As only x64 runtimes are available, ParquetSharp cannot be referenced by a 32-bit project.  For example, using the library from F# Interactive requires running `fsiAnyCpu.exe` rather than `fsi.exe`.
+As only 64-bit runtimes are available, ParquetSharp cannot be referenced by a 32-bit project.  For example, using the library from F# Interactive requires running `fsiAnyCpu.exe` rather than `fsi.exe`.
 
 In the 5.0.X beta versions, reading nested structures was introduced. However, nesting information about nulls is lost when reading columns with Repetition Level optional inside structs with Repetition Level optional. ParquetSharp does not provide information about whether the column or the enclosing struct is null.
 
