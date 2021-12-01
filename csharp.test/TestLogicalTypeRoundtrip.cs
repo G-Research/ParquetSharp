@@ -158,10 +158,7 @@ namespace ParquetSharp.Test
                         Assert.AreEqual(expected.NumValues, statistics?.NumValues);
                         Assert.AreEqual(expected.PhysicalType, statistics?.PhysicalType);
 
-                        // BUG Don't check for decimal until https://issues.apache.org/jira/browse/ARROW-6149 is fixed.
-                        var buggy = expected.LogicalType is DecimalLogicalType;
-
-                        if (expected.HasMinMax && !buggy)
+                        if (expected.HasMinMax)
                         {
                             Assert.AreEqual(expected.Min, expected.Converter(statistics!.MinUntyped));
                             Assert.AreEqual(expected.Max, expected.Converter(statistics!.MaxUntyped));
@@ -648,7 +645,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => ((decimal) i * i * i) / 1000 - 10).ToArray(),
                     Min = -10m,
                     Max = ((NumRows - 1m) * (NumRows - 1m) * (NumRows - 1m)) / 1000 - 10,
-                    Converter = v => LogicalRead.ToDecimal((FixedLenByteArray) v, 3)
+                    Converter = v => LogicalRead.ToDecimal((FixedLenByteArray) v, 1000)
                 },
                 new ExpectedColumn
                 {
@@ -662,7 +659,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = -9.999m,
                     Max = ((NumRows - 1m) * (NumRows - 1m) * (NumRows - 1m)) / 1000 - 10,
-                    Converter = v => LogicalRead.ToDecimal((FixedLenByteArray) v, 3)
+                    Converter = v => LogicalRead.ToDecimal((FixedLenByteArray) v, 1000)
                 },
                 new ExpectedColumn
                 {
