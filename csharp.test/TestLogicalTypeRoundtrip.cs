@@ -154,8 +154,8 @@ namespace ParquetSharp.Test
                     if (expected.HasStatistics)
                     {
                         Assert.AreEqual(expected.HasMinMax, statistics?.HasMinMax);
-                        //Assert.AreEqual(expected.NullCount, statistics?.NullCount);
-                        //Assert.AreEqual(expected.NumValues, statistics?.NumValues);
+                        Assert.AreEqual(expected.NullCount, statistics?.NullCount);
+                        Assert.AreEqual(expected.NumValues, statistics?.NumValues);
                         Assert.AreEqual(expected.PhysicalType, statistics?.PhysicalType);
 
                         // BUG Don't check for decimal until https://issues.apache.org/jira/browse/ARROW-6149 is fixed.
