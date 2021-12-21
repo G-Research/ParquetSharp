@@ -118,14 +118,14 @@ namespace ParquetSharp.Test
 
             var numRows = expectedColumns.First().Values.Length;
 
-            Assert.AreEqual("parquet-cpp-arrow version 6.0.0", fileMetaData.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 6.0.1", fileMetaData.CreatedBy);
             Assert.AreEqual(new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}}, fileMetaData.KeyValueMetadata);
             Assert.AreEqual(expectedColumns.Length, fileMetaData.NumColumns);
             Assert.AreEqual(numRows, fileMetaData.NumRows);
             Assert.AreEqual(1, fileMetaData.NumRowGroups);
             Assert.AreEqual(1 + expectedColumns.Length, fileMetaData.NumSchemaElements);
             Assert.AreEqual(ParquetVersion.PARQUET_1_0, fileMetaData.Version);
-            Assert.AreEqual("parquet-cpp-arrow version 6.0.0", fileMetaData.WriterVersion.ToString());
+            Assert.AreEqual("parquet-cpp-arrow version 6.0.1", fileMetaData.WriterVersion.ToString());
 
             using var rowGroupReader = fileReader.RowGroup(0);
             var rowGroupMetaData = rowGroupReader.MetaData;
