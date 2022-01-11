@@ -289,6 +289,49 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestLargeArraysEnumerator()
+        {
+            CheckEnumerator(Enumerable.Range(0, 4100).ToArray());
+            CheckEnumerator(Enumerable.Range(0, 4100).Select(i => new[] {$"row {i}"}).ToArray());
+        }
+
+        private static void CheckEnumerator<T>(T[] values)
+        {
+            using var buffer = new ResizableBuffer();
+
+            using (var output = new BufferOutputStream(buffer))
+            {
+                var columns = new Column[] {new Column<T>("col0")};
+
+                using var fileWriter = new ParquetFileWriter(output, columns);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                using var col = rowGroupWriter.Column(0).LogicalWriter<T>();
+                col.WriteBatch(values);
+
+                fileWriter.Close();
+            }
+
+            using (var input = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(input);
+                using var rowGroupReader = fileReader.RowGroup(0);
+
+                using var col = rowGroupReader.Column(0).LogicalReader<T>();
+
+                var enumerator = col.GetEnumerator();
+                for (var i = 0; i < values.Length; i++)
+                {
+                    Assert.IsTrue(enumerator.MoveNext());
+                    Assert.AreEqual(values[i], enumerator.Current);
+                }
+                Assert.IsFalse(enumerator.MoveNext());
+
+                fileReader.Close();
+            }
+        }
+
+        [Test]
         public static void TestBigArrayRoundtrip()
         {
             // Create a big array of float arrays. Try to detect buffer-size related issues.

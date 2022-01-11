@@ -44,7 +44,7 @@ namespace ParquetSharp
             }
         }
 
-        public bool HasNext => Source.HasNext;
+        public abstract bool HasNext { get; }
 
         public abstract TReturn Apply<TReturn>(ILogicalColumnReaderVisitor<TReturn> visitor);
 
@@ -152,6 +152,8 @@ namespace ParquetSharp
 
             return (definitionLevel, schemaSlice);
         }
+
+        public override bool HasNext => !_bufferedReader.IsEofDefinition;
 
         public override int ReadBatch(Span<TElement> destination)
         {
