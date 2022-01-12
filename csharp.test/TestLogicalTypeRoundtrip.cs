@@ -288,14 +288,19 @@ namespace ParquetSharp.Test
             fileReader.Close();
         }
 
+        /// <summary>
+        /// This checks that LogicalColumnReader's GetEnumerator() works correctly
+        /// when the column is longer than the buffer length but not an exact multiple
+        /// (see https://github.com/G-Research/ParquetSharp/issues/242).
+        /// </summary>
         [Test]
         public static void TestLargeArraysEnumerator()
         {
-            CheckEnumerator(Enumerable.Range(0, 4100).ToArray());
-            CheckEnumerator(Enumerable.Range(0, 4100).Select(i => new[] {$"row {i}"}).ToArray());
+            CheckEnumerator(4096, Enumerable.Range(0, 4100).ToArray());
+            CheckEnumerator(4096, Enumerable.Range(0, 4100).Select(i => new[] {$"row {i}"}).ToArray());
         }
 
-        private static void CheckEnumerator<T>(T[] values)
+        private static void CheckEnumerator<T>(int bufferLength, T[] values)
         {
             using var buffer = new ResizableBuffer();
 
@@ -306,7 +311,7 @@ namespace ParquetSharp.Test
                 using var fileWriter = new ParquetFileWriter(output, columns);
                 using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
 
-                using var col = rowGroupWriter.Column(0).LogicalWriter<T>();
+                using var col = rowGroupWriter.Column(0).LogicalWriter<T>(bufferLength);
                 col.WriteBatch(values);
 
                 fileWriter.Close();
@@ -317,7 +322,7 @@ namespace ParquetSharp.Test
                 using var fileReader = new ParquetFileReader(input);
                 using var rowGroupReader = fileReader.RowGroup(0);
 
-                using var col = rowGroupReader.Column(0).LogicalReader<T>();
+                using var col = rowGroupReader.Column(0).LogicalReader<T>(bufferLength);
 
                 var enumerator = col.GetEnumerator();
                 for (var i = 0; i < values.Length; i++)
