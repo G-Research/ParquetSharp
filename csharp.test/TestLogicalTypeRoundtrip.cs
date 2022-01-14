@@ -154,17 +154,14 @@ namespace ParquetSharp.Test
                     if (expected.HasStatistics)
                     {
                         Assert.AreEqual(expected.HasMinMax, statistics?.HasMinMax);
-                        //Assert.AreEqual(expected.NullCount, statistics?.NullCount);
-                        //Assert.AreEqual(expected.NumValues, statistics?.NumValues);
+                        Assert.AreEqual(expected.NullCount, statistics?.NullCount);
+                        Assert.AreEqual(expected.NumValues, statistics?.NumValues);
                         Assert.AreEqual(expected.PhysicalType, statistics?.PhysicalType);
 
-                        // BUG Don't check for decimal until https://issues.apache.org/jira/browse/ARROW-6149 is fixed.
-                        var buggy = expected.LogicalType is DecimalLogicalType;
-
-                        if (expected.HasMinMax && !buggy)
+                        if (expected.HasMinMax)
                         {
-                            Assert.AreEqual(expected.Min, expected.Converter(statistics!.MinUntyped));
-                            Assert.AreEqual(expected.Max, expected.Converter(statistics!.MaxUntyped));
+                            Assert.AreEqual(expected.Min, expected.Converter(statistics!.MinUntyped, descr));
+                            Assert.AreEqual(expected.Max, expected.Converter(statistics!.MaxUntyped, descr));
                         }
                     }
                     else
@@ -648,7 +645,8 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => ((decimal) i * i * i) / 1000 - 10).ToArray(),
                     Min = -10m,
                     Max = ((NumRows - 1m) * (NumRows - 1m) * (NumRows - 1m)) / 1000 - 10,
-                    Converter = v => LogicalRead.ToDecimal((FixedLenByteArray) v, 3)
+                    Converter = (v, descr) => LogicalRead.ToDecimal(
+                        (FixedLenByteArray) v, Decimal128.GetScaleMultiplier(descr.TypeScale))
                 },
                 new ExpectedColumn
                 {
@@ -662,7 +660,8 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = -9.999m,
                     Max = ((NumRows - 1m) * (NumRows - 1m) * (NumRows - 1m)) / 1000 - 10,
-                    Converter = v => LogicalRead.ToDecimal((FixedLenByteArray) v, 3)
+                    Converter = (v, descr) => LogicalRead.ToDecimal(
+                        (FixedLenByteArray) v, Decimal128.GetScaleMultiplier(descr.TypeScale))
                 },
                 new ExpectedColumn
                 {
@@ -674,7 +673,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => new Guid(i, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F)).ToArray(),
                     Min = new Guid(0, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F),
                     Max = new Guid(NumRows - 1, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F),
-                    Converter = v => LogicalRead.ToUuid((FixedLenByteArray) v)
+                    Converter = (v, _) => LogicalRead.ToUuid((FixedLenByteArray) v)
                 },
                 new ExpectedColumn
                 {
@@ -688,7 +687,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = new Guid(1, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F),
                     Max = new Guid(NumRows - 1, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F),
-                    Converter = v => LogicalRead.ToUuid((FixedLenByteArray) v)
+                    Converter = (v, _) => LogicalRead.ToUuid((FixedLenByteArray) v)
                 },
                 new ExpectedColumn
                 {
@@ -718,7 +717,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     Min = new DateTime(2018, 01, 01),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
-                    Converter = v => LogicalRead.ToDateTimeMicros((long) v)
+                    Converter = (v, _) => LogicalRead.ToDateTimeMicros((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -730,7 +729,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = new DateTime(2018, 01, 01) + TimeSpan.FromHours(1),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
-                    Converter = v => LogicalRead.ToDateTimeMicros((long) v)
+                    Converter = (v, _) => LogicalRead.ToDateTimeMicros((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -741,7 +740,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => new DateTime(2018, 01, 01) + TimeSpan.FromHours(i)).ToArray(),
                     Min = new DateTime(2018, 01, 01),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
-                    Converter = v => LogicalRead.ToDateTimeMillis((long) v)
+                    Converter = (v, _) => LogicalRead.ToDateTimeMillis((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -754,7 +753,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = new DateTime(2018, 01, 01) + TimeSpan.FromHours(1),
                     Max = new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1),
-                    Converter = v => LogicalRead.ToDateTimeMillis((long) v)
+                    Converter = (v, _) => LogicalRead.ToDateTimeMillis((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -764,7 +763,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(i))).ToArray(),
                     Min = new DateTimeNanos(new DateTime(2018, 01, 01)),
                     Max = new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1)),
-                    Converter = v => new DateTimeNanos((long) v)
+                    Converter = (v, _) => new DateTimeNanos((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -776,7 +775,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(1)),
                     Max = new DateTimeNanos(new DateTime(2018, 01, 01) + TimeSpan.FromHours(NumRows - 1)),
-                    Converter = v => new DateTimeNanos((long) v)
+                    Converter = (v, _) => new DateTimeNanos((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -786,7 +785,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     Min = TimeSpan.FromHours(-13),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
-                    Converter = v => LogicalRead.ToTimeSpanMicros((long) v)
+                    Converter = (v, _) => LogicalRead.ToTimeSpanMicros((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -798,7 +797,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = TimeSpan.FromHours(-13 + 1),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
-                    Converter = v => LogicalRead.ToTimeSpanMicros((long) v)
+                    Converter = (v, _) => LogicalRead.ToTimeSpanMicros((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -809,7 +808,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => TimeSpan.FromHours(-13) + TimeSpan.FromHours(i)).ToArray(),
                     Min = TimeSpan.FromHours(-13),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
-                    Converter = v => LogicalRead.ToTimeSpanMillis((int) v)
+                    Converter = (v, _) => LogicalRead.ToTimeSpanMillis((int) v)
                 },
                 new ExpectedColumn
                 {
@@ -822,7 +821,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = TimeSpan.FromHours(-13 + 1),
                     Max = TimeSpan.FromHours(-13 + NumRows - 1),
-                    Converter = v => LogicalRead.ToTimeSpanMillis((int) v)
+                    Converter = (v, _) => LogicalRead.ToTimeSpanMillis((int) v)
                 },
                 new ExpectedColumn
                 {
@@ -832,7 +831,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => new TimeSpanNanos(TimeSpan.FromHours(-13) + TimeSpan.FromHours(i))).ToArray(),
                     Min = new TimeSpanNanos(TimeSpan.FromHours(-13)),
                     Max = new TimeSpanNanos(TimeSpan.FromHours(-13 + NumRows - 1)),
-                    Converter = v => new TimeSpanNanos((long) v)
+                    Converter = (v, _) => new TimeSpanNanos((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -844,7 +843,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 10) / 11,
                     Min = new TimeSpanNanos(TimeSpan.FromHours(-13 + 1)),
                     Max = new TimeSpanNanos(TimeSpan.FromHours(-13 + NumRows - 1)),
-                    Converter = v => new TimeSpanNanos((long) v)
+                    Converter = (v, _) => new TimeSpanNanos((long) v)
                 },
                 new ExpectedColumn
                 {
@@ -856,7 +855,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 17) / 18,
                     Min = "",
                     Max = "Hello, 98!",
-                    Converter = v => LogicalRead.ToString((ByteArray) v)
+                    Converter = (v, _) => LogicalRead.ToString((ByteArray) v)
                 },
                 new ExpectedColumn
                 {
@@ -869,7 +868,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 8) / 9,
                     Min = "{ \"id\", 1 }",
                     Max = "{ \"id\", 98 }",
-                    Converter = v => LogicalRead.ToString((ByteArray) v)
+                    Converter = (v, _) => LogicalRead.ToString((ByteArray) v)
                 },
                 new ExpectedColumn
                 {
@@ -880,7 +879,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 5) / 6,
                     Min = new byte[0],
                     Max = BitConverter.GetBytes(NumRows - 1),
-                    Converter = v => LogicalRead.ToByteArray((ByteArray) v)
+                    Converter = (v, _) => LogicalRead.ToByteArray((ByteArray) v)
                 },
                 new ExpectedColumn
                 {
@@ -893,7 +892,7 @@ namespace ParquetSharp.Test
                     NumValues = NumRows - (NumRows + 2) / 3,
                     Min = BitConverter.GetBytes(1),
                     Max = BitConverter.GetBytes(NumRows - 1),
-                    Converter = v => LogicalRead.ToByteArray((ByteArray) v)
+                    Converter = (v, _) => LogicalRead.ToByteArray((ByteArray) v)
                 },
                 new ExpectedColumn
                 {
@@ -1006,7 +1005,7 @@ namespace ParquetSharp.Test
                     NumValues = (NumRows / 3 + 1) * 3,
                     Min = BitConverter.GetBytes(0),
                     Max = BitConverter.GetBytes(252),
-                    Converter = v => LogicalRead.ToByteArray((ByteArray) v)
+                    Converter = (v, _) => LogicalRead.ToByteArray((ByteArray) v)
                 }
             };
         }
@@ -1027,7 +1026,7 @@ namespace ParquetSharp.Test
             public long NullCount;
             public long NumValues = NumRows;
 
-            public Func<object, object> Converter = v => v;
+            public Func<object, ColumnDescriptor, object> Converter = (v, _) => v;
         }
 
         private const int NumRows = 119;
