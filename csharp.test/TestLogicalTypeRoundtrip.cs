@@ -285,6 +285,54 @@ namespace ParquetSharp.Test
             fileReader.Close();
         }
 
+        /// <summary>
+        /// This checks that LogicalColumnReader's GetEnumerator() works correctly
+        /// when the column is longer than the buffer length but not an exact multiple
+        /// (see https://github.com/G-Research/ParquetSharp/issues/242).
+        /// </summary>
+        [Test]
+        public static void TestLargeArraysEnumerator()
+        {
+            CheckEnumerator(4096, Enumerable.Range(0, 4100).ToArray());
+            CheckEnumerator(4096, Enumerable.Range(0, 4100).Select(i => new[] {$"row {i}"}).ToArray());
+        }
+
+        private static void CheckEnumerator<T>(int bufferLength, T[] values)
+        {
+            using var buffer = new ResizableBuffer();
+
+            using (var output = new BufferOutputStream(buffer))
+            {
+                var columns = new Column[] {new Column<T>("col0")};
+
+                using var fileWriter = new ParquetFileWriter(output, columns);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                using var col = rowGroupWriter.Column(0).LogicalWriter<T>(bufferLength);
+                col.WriteBatch(values);
+
+                fileWriter.Close();
+            }
+
+            using (var input = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(input);
+                using var rowGroupReader = fileReader.RowGroup(0);
+
+                using var col = rowGroupReader.Column(0).LogicalReader<T>(bufferLength);
+
+                var enumerator = col.GetEnumerator();
+                for (var i = 0; i < values.Length; i++)
+                {
+                    Assert.IsTrue(enumerator.MoveNext());
+                    Assert.AreEqual(values[i], enumerator.Current);
+                }
+                Assert.IsFalse(enumerator.MoveNext());
+
+                fileReader.Close();
+            }
+        }
+
         [Test]
         public static void TestBigArrayRoundtrip()
         {
