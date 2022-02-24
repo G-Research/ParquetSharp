@@ -9,7 +9,7 @@ using var fileReader = new ParquetFileReader("data.parquet");
 ```
 or
 ```csharp
-using var input = new ManagedRandomAccessFile(File.OpenRead("data.parquet");
+using var input = new ManagedRandomAccessFile(File.OpenRead("data.parquet"));
 using var fileReader = new ParquetFileReader(input);
 ```
 
@@ -34,7 +34,7 @@ and create a `RowGroupReader` for each one:
 ```csharp
 for (int rowGroup = 0; rowGroup < fileReader.FileMetaData.NumRowGroups; ++rowGroup) {
     using var rowGroupReader = fileReader.RowGroup(rowGroup);
-    var groupNumRows = rowGroupReader.MetaData.NumRows;
+    long groupNumRows = rowGroupReader.MetaData.NumRows;
 }
 ```
 

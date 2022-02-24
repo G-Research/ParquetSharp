@@ -25,12 +25,14 @@ using var file = new ParquetFileWriter("float_timeseries.parquet", columns);
 ```
 
 For more control over how values are represented in the Parquet file,
-you can provide the `logicalTypeOverride` parameter to the `Column` constructor which accepts a `LogicalType`.
+you can pass a `LogicalType` instance as the `logicalTypeOverride` parameter of the `Column` constructor.
 
 For example, you may wish to write times or timestamps with millisecond resolution rather than the default microsecond resolution:
 ```csharp
-var timestampColumn = new Column<DateTime>("Timestamp", LogicalType.Timestamp(isAdjustedToUtc: true, TimeUnit.Millis);
-var timeColumn = new Column<TimeSpan>("Time", LogicalType.Time(isAdjustedToUtc: true, TimeUnit.Millis);
+var timestampColumn = new Column<DateTime>(
+        "Timestamp", LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Millis));
+var timeColumn = new Column<TimeSpan>(
+        "Time", LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Millis));
 ```
 
 When writing decimal values, you must provide a `logicalTypeOverride` to define the precision and scale type parameters.
@@ -101,7 +103,7 @@ and can write definition level and repetition level data to support nullable and
 Rather than working with a `ColumnWriter` directly, it's usually more convenient to create a `LogicalColumnWriter`
 with the `ColumnWriter.LogicalWriter<TElement>` method.
 This allows writing an array or `ReadOnlySpan` of `TElement` to the column data,
-where `TElement` is the .NET type corresponding to the column's logical type.
+where `TElement` is the .NET type corresponding to the column's logical element type.
 
 There is also a `ColumnWriter.LogicalWriterOverride` method, which supports writing data using a different type
 to the default .NET type corresponding to the column's logical type. For more information on how to use this,
