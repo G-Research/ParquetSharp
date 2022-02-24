@@ -25,43 +25,17 @@ Supported platforms:
 | **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp/absoluteLatest)                                                                                  |
 | **CI Build**          | [![CI Status](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml?query=branch%3Amaster+event%3Apush) |
 
-## Examples
+## Quickstart
 
-Both examples below output a Parquet file with three columns representing a timeseries of object-value pairs ordered by datetime and object id.
+The following examples show how to write and then read a Parquet file with three columns representing a timeseries of object-value pairs.
+These use the low-level API, which is the recommended API and closely maps to the API of Apache Parquet C++.
 
-### Row-oriented API
-
-The row-oriented API offers a convenient way to abstract the column-oriented nature of Parquet files at the expense of memory, speed and flexibility. It lets one write a whole row in a single call, often resulting in more readable code.
-
-```csharp
-var timestamps = new DateTime[] { /* ... */ };
-var objectIds = new int[] { /* ... */ };
-var values = timestamps.Select(t => objectIds.Select(o => (float) rand.NextDouble()).ToArray()).ToArray();
-var columns = new[] {"Timestamp", "ObjectId", "Value"};
-
-using var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet", columns);
-
-for (int i = 0; i != timestamps.Length; ++i)
-{
-    for (int j = 0; j != objectIds.Length; ++j)
-    {
-        rowWriter.WriteRow((timestamps[i], objectIds[j], values[i][j]));
-    }
-}
-
-rowWriter.Close();
-```
-
-The column names can also be explicitly given, see [Row-oriented API (Advanced)](RowOriented.md) for more details.
-
-### Low-level API
-
-This closely maps to the API of Apache Parquet C++. It also provides reader and writer abstractions (`LogicalColumnReader` and `LogicalColumnWriter` respectively) to convert between .NET types and Parquet representations. This is the recommended API.
+Writing a Parquet File:
 
 ```csharp
 var timestamps = new DateTime[] { /* ... */ };
 var objectIds = new int[] { /* ... */ };
-var values = timestamps.Select(t => objectIds.Select(o => (float) rand.NextDouble()).ToArray()).ToArray();
+var values = new float[] { /* ... */ };
 
 var columns = new Column[]
 {
@@ -75,44 +49,46 @@ using var rowGroup = file.AppendRowGroup();
 
 using (var timestampWriter = rowGroup.NextColumn().LogicalWriter<DateTime>())
 {
-    for (int i = 0; i != timestamps.Length; ++i)
-    {
-        timestampWriter.WriteBatch(Enumerable.Repeat(timestamps[i], objectIds.Length).ToArray());
-    }
+    timestampWriter.WriteBatch(timestamps);
 }
-
 using (var objectIdWriter = rowGroup.NextColumn().LogicalWriter<int>())
 {
-    for (int i = 0; i != timestamps.Length; ++i)
-    {
-        objectIdWriter.WriteBatch(objectIds);
-    }
+    objectIdWriter.WriteBatch(objectIds);
 }
-
 using (var valueWriter = rowGroup.NextColumn().LogicalWriter<float>())
 {
-    for (int i = 0; i != timestamps.Length; ++i)
-    {
-        valueWriter.WriteBatch(values[i]);
-    }
+    valueWriter.WriteBatch(values);
 }
 
 file.Close();
 ```
 
-### Custom Types
+Reading the file back:
 
-ParquetSharp allows the user to override the mapping between C# and Parquet types. Check the [Type Factories documentation](TypeFactories.md) for more information.
+```csharp
+using var file = new ParquetFileReader("float_timeseries.parquet");
 
-### PowerShell
+for (int rowGroup = 0; rowGroup < file.FileMetaData.NumRowGroups; ++rowGroup) {
+    using var rowGroupReader = file.RowGroup(rowGroup);
+    var groupNumRows = checked((int) rowGroupReader.MetaData.NumRows);
 
-It's possible to use ParquetSharp from PowerShell.
-You can install ParquetSharp with the [NuGet command line interface](https://docs.microsoft.com/en-us/nuget/reference/nuget-exe-cli-reference),
-then use `Add-Type` to load `ParquetSharp.dll`.
-However, you must ensure that the appropriate `ParquetSharpNative.dll` for your architecture and OS can be loaded as required,
-either by putting it somewhere in your `PATH` or in the same directory as `ParquetSharp.dll`.
-For examples of how to use ParquetSharp from PowerShell,
-see [these scripts from Apteco](https://github.com/Apteco/HelperScripts/tree/master/scripts/parquet).
+    var groupTimestamps = rowGroupReader.Column(0).LogicalReader<DateTime>().ReadAll(groupNumRows);
+    var groupObjectIds = rowGroupReader.Column(1).LogicalReader<int>().ReadAll(groupNumRows);
+    var groupValues = rowGroupReader.Column(2).LogicalReader<float>().ReadAll(groupNumRows);
+}
+
+file.Close();
+```
+
+## Documentation
+
+For more detailed information on how to use ParquetSharp, see the following documentation:
+
+* [Writing parquet files](docs/Writing.md)
+* [Reading parquet files](docs/Reading.md)
+* [Row-oriented API](docs/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
+* [Custom types](docs/TypeFactories.md) &mdash; how to override the mapping between .NET and Parquet types
+* [Use from PowerShell](docs/PowerShell.md)
 
 ## Rationale
 
