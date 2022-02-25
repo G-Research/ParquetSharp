@@ -47,10 +47,10 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-latest, windows-latest]
+        os: [ubuntu-18.04, macos-latest, windows-2022]
         arch: [x64, arm64]
         exclude:
-        - os: windows-latest
+        - os: windows-2022
           arch: arm64
       fail-fast: false
     name: Build native ${{ matrix.arch }} library (${{ matrix.os }})
@@ -207,11 +207,11 @@ jobs:
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-18.04, ubuntu-20.04, macos-latest, windows-2022]
         dotnet: [3, 5]
         arch: [x64]
         include:
-        - os: windows-latest
+        - os: windows-2022
           dotnet: 4
           arch: x64
         - os: ubuntu-20.04
