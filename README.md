@@ -123,12 +123,12 @@ In the 5.0.X versions, reading nested structures was introduced. However, nestin
 ## Building
 
 Building ParquetSharp for Windows requires the following dependencies:
-- Visual Studio 2019 (16.4 or higher)
+- Visual Studio 2022 (17.0 or higher)
 - Apache Arrow (6.0.1)
 
 For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg). Note that the Windows build needs to be done in a Visual Studio x64 Native Tools Command Prompt for the build script to succeed.
 
-**Windows (Visual Studio 2019 Win64 solution)**
+**Windows (Visual Studio 2022 Win64 solution)**
 ```
 > vcpkg_windows.bat
 > build_windows.bat
