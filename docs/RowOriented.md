@@ -22,8 +22,24 @@ for (int i = 0; i != timestamps.Length; ++i)
     }
 }
 
+// Write a new row group (pretend we have new timestamps, objectIds and values)
+rowWriter.StartNewRowGroup();
+for (int i = 0; i != timestamps.Length; ++i)
+{
+    for (int j = 0; j != objectIds.Length; ++j)
+    {
+        rowWriter.WriteRow((timestamps[i], objectIds[j], values[i][j]));
+    }
+}
+
 rowWriter.Close();
 ```
+
+Internally, ParquetSharp will build up a buffer of row values and then write each column when the file
+is closed or a new row group is started.
+This means all values in a row group must be stored in memory at once,
+and the row values buffer must be resized and copied as it grows.
+Therefore, it's recommended to use the lower-level column oriented API if performance is a concern.
 
 ## Explicit column mapping
 
