@@ -42,15 +42,15 @@ namespace ParquetSharp.IO
         {
             try
             {
-#if !NETSTANDARD20
-                var buffer = new byte[(int) nbytes];
+#if !NETSTANDARD2_1
+                var buffer = new byte[(int) Math.Min(nbytes, int.MaxValue)];
 #endif
 
                 while (nbytes > 0)
                 {
-                    var ibytes = (int) nbytes;
+                    var ibytes = (int) Math.Min(nbytes, int.MaxValue);
 
-#if NETSTANDARD20
+#if NETSTANDARD2_1
                     unsafe
                     {
                         _stream.Write(new Span<byte>(src.ToPointer(), ibytes));
