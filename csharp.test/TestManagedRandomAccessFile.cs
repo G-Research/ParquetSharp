@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using ParquetSharp.IO;
@@ -118,6 +119,36 @@ namespace ParquetSharp.Test
                 Contains.Substring("this is an erroneous reader"));
         }
 
+        [Test]
+        public static void TestPartialStreamRead()
+        {
+            var expected = Enumerable.Range(0, 1024 * 1024).ToArray();
+            using var buffer = new PartialReadStream();
+
+            // Write test data.
+            using (var output = new ManagedOutputStream(buffer, leaveOpen: true))
+            {
+                using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+                using var groupWriter = writer.AppendRowGroup();
+                using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
+
+                columnWriter.WriteBatch(expected);
+
+                writer.Close();
+            }
+
+            // Seek back to start.
+            buffer.Seek(0, SeekOrigin.Begin);
+
+            // Read test data.
+            using var input = new ManagedRandomAccessFile(buffer, leaveOpen: true);
+            using var reader = new ParquetFileReader(input);
+            using var groupReader = reader.RowGroup(0);
+            using var columnReader = groupReader.Column(0).LogicalReader<int>();
+
+            Assert.AreEqual(expected, columnReader.ReadAll(expected.Length));
+        }
+
         private sealed class ErroneousReaderStream : MemoryStream
         {
             public override int Read(byte[] buffer, int offset, int count)
@@ -131,6 +162,19 @@ namespace ParquetSharp.Test
             public override void Write(byte[] buffer, int offset, int count)
             {
                 throw new IOException("this is an erroneous writer");
+            }
+        }
+
+        /// <summary>
+        /// Simulate a stream that only partially fulfills reads sometimes,
+        /// eg. for data streamed from a cloud service (see https://github.com/G-Research/ParquetSharp/issues/263)
+        /// </summary>
+        private sealed class PartialReadStream : MemoryStream
+        {
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                count = Math.Min(count, 1024 * 1024);
+                return base.Read(buffer, offset, count);
             }
         }
     }
