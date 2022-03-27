@@ -44,18 +44,32 @@ namespace ParquetSharp.IO
         {
             try
             {
-#if NETSTANDARD20
-                unsafe
-                {
-                    var read = Stream.Read(new Span<byte>(dest.ToPointer(), (int)nbytes));
-                    Marshal.WriteInt64(bytes_read, read);
-                }
-#else
-                var buffer = new byte[(int) nbytes];
-                var read = _stream.Read(buffer, 0, (int) nbytes);
-                Marshal.Copy(buffer, 0, dest, read);
-                Marshal.WriteInt64(bytesRead, read);
+#if !NETSTANDARD2_1
+                var buffer = new byte[(int) Math.Min(nbytes, int.MaxValue)];
 #endif
+                var totalRead = 0L;
+                while (totalRead < nbytes)
+                {
+                    var bytesToRead = (int) Math.Min(nbytes - totalRead, int.MaxValue);
+                    int read;
+#if NETSTANDARD2_1
+                    unsafe
+                    {
+                        read = _stream.Read(new Span<byte>(dest.ToPointer(), bytesToRead));
+                    }
+#else
+                    read = _stream.Read(buffer, 0, bytesToRead);
+                    Marshal.Copy(buffer, 0, dest, read);
+#endif
+                    if (read == 0)
+                    {
+                        break;
+                    }
+                    totalRead += read;
+                    dest = IntPtr.Add(dest, read);
+                }
+
+                Marshal.WriteInt64(bytesRead, totalRead);
                 exception = null;
                 return 0;
             }
