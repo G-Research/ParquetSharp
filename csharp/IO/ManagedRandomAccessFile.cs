@@ -44,7 +44,7 @@ namespace ParquetSharp.IO
         {
             try
             {
-#if !NETSTANDARD2_1
+#if !NETSTANDARD2_1_OR_GREATER
                 var buffer = new byte[(int) Math.Min(nbytes, int.MaxValue)];
 #endif
                 var totalRead = 0L;
@@ -52,7 +52,7 @@ namespace ParquetSharp.IO
                 {
                     var bytesToRead = (int) Math.Min(nbytes - totalRead, int.MaxValue);
                     int read;
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1_OR_GREATER
                     unsafe
                     {
                         read = _stream.Read(new Span<byte>(dest.ToPointer(), bytesToRead));

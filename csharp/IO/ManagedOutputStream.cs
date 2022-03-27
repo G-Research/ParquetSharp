@@ -42,7 +42,7 @@ namespace ParquetSharp.IO
         {
             try
             {
-#if !NETSTANDARD2_1
+#if !NETSTANDARD2_1_OR_GREATER
                 var buffer = new byte[(int) Math.Min(nbytes, int.MaxValue)];
 #endif
 
@@ -50,7 +50,7 @@ namespace ParquetSharp.IO
                 {
                     var ibytes = (int) Math.Min(nbytes, int.MaxValue);
 
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1_OR_GREATER
                     unsafe
                     {
                         _stream.Write(new Span<byte>(src.ToPointer(), ibytes));
