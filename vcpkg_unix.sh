@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+echo "VCPKG_BINARY_SOURCES: ${VCPKG_BINARY_SOURCES}"
+
 case ${1:-$(uname -m)} in
   x86_64|x64)
     arch=x64

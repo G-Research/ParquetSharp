@@ -117,12 +117,12 @@ jobs:
       if: runner.os == 'Linux' || runner.os == 'macOS'
       run: ./vcpkg_unix.sh ${{ matrix.arch }}
       env:
-        VCPKG_BINARY_SOURCES: clear;files,${GITHUB_WORKSPACE}/cache/vcpkg,readwrite
+        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
     - name: Compile vcpkg dependencies (Windows)
       if: runner.os == 'Windows'
       run: ./vcpkg_windows.bat
       env:
-        VCPKG_BINARY_SOURCES: clear;files,${GITHUB_WORKSPACE}/cache/vcpkg,readwrite
+        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
     - name: Upload vcpkg arrow logs
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
       uses: actions/upload-artifact@v2

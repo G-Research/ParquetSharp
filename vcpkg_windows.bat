@@ -1,3 +1,5 @@
+echo VCPKG_BINARY_SOURCES: %VCPKG_BINARY_SOURCES%
+
 for /f "tokens=1,2" %%a in (vcpkg_version.txt) do (
   set vcpkg_url=%%a
   set vcpkg_ref=%%b
