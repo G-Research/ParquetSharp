@@ -1,5 +1,3 @@
-echo VCPKG_BINARY_SOURCES: %VCPKG_BINARY_SOURCES%
-
 for /f "tokens=1,2" %%a in (vcpkg_version.txt) do (
   set vcpkg_url=%%a
   set vcpkg_ref=%%b
@@ -20,7 +18,7 @@ cd ..
 cd ..
 
 rem Install packages from vcpkg.json manifest file
-.\build\vcpkg.%triplet%\vcpkg.exe install --triplet=%triplet% --x-install-root=.\build\vcpkg.%triplet%\installed || goto :error
+.\build\vcpkg.%triplet%\vcpkg.exe install --triplet=%triplet% || goto :error
 
 exit /b
 

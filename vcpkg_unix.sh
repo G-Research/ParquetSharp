@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-echo "VCPKG_BINARY_SOURCES: ${VCPKG_BINARY_SOURCES}"
-
 case ${1:-$(uname -m)} in
   x86_64|x64)
     arch=x64
@@ -66,4 +64,4 @@ fi
 cd ../..
 
 # Install packages from vcpkg.json manifest file
-./build/vcpkg.$triplet/vcpkg install --triplet=$triplet --x-install-root=./build/vcpkg.$triplet/installed
+./build/vcpkg.$triplet/vcpkg install --triplet=$triplet
