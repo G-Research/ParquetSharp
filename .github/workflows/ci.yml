@@ -104,14 +104,14 @@ jobs:
         sudo apt-get update
         sudo apt-get --yes install g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu
 
-    # Build vcpkg dependencies (if no cache hit).
+    # Build vcpkg dependencies
     - name: Install vcpkg build dependencies (Linux)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get --yes install flex bison
     - name: Install vcpkg build dependencies (macOS)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'macOS'
+      if: runner.os == 'macOS'
       run: brew install bison pkg-config
     - name: Configure vcpkg (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
