@@ -153,9 +153,13 @@ jobs:
     - name: Compile native ParquetSharp library (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
       run: ./build_unix.sh ${{ matrix.arch }}
+      env:
+        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,read
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
       run: ./build_windows.bat
+      env:
+        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,read
     - name: Build .NET benchmarks & unit tests
       run: |
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
