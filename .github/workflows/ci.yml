@@ -92,16 +92,10 @@ jobs:
     # Check for cached vcpkg dependencies (use these if we can).
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: cache/vcpkg
         key: vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
-    - name: Use cached vcpkg dependencies
-      if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
-      run: |
-        mkdir build
-        mv cache/vcpkg build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}
-      shell: bash
 
     # Install arm64 cross-compilation toolchain if required
     - name: Install arm64 cross-compilation toolchain
@@ -120,11 +114,15 @@ jobs:
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'macOS'
       run: brew install bison pkg-config
     - name: Compile vcpkg dependencies (Unix)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
+      if: runner.os == 'Linux' || runner.os == 'macOS'
       run: ./vcpkg_unix.sh ${{ matrix.arch }}
+      env:
+        VCPKG_BINARY_SOURCES: clear;files,${GITHUB_WORKSPACE}/cache/vcpkg,readwrite
     - name: Compile vcpkg dependencies (Windows)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Windows'
+      if: runner.os == 'Windows'
       run: ./vcpkg_windows.bat
+      env:
+        VCPKG_BINARY_SOURCES: clear;files,${GITHUB_WORKSPACE}/cache/vcpkg,readwrite
     - name: Upload vcpkg arrow logs
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
       uses: actions/upload-artifact@v2
@@ -134,10 +132,6 @@ jobs:
     - name: Cleanup vcpkg build
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
       run: rm -rf build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/{buildtrees,downloads}
-      shell: bash
-    - name: Export vcpkg dependencies
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
       shell: bash
 
     # .NET Core Setup (and also MSBuild for Windows).
