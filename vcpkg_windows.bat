@@ -14,10 +14,11 @@ git checkout %vcpkg_ref% || goto :error
 if "%GITHUB_ACTIONS%"=="true" echo set(VCPKG_BUILD_TYPE release) >> triplets\%triplet%.cmake || goto :error
 call .\bootstrap-vcpkg.bat || goto :error
 
-.\vcpkg.exe install arrow:%triplet% || goto :error
+cd ..
+cd ..
 
-cd ..
-cd ..
+rem Install packages from vcpkg.json manifest file
+.\build\vcpkg.%triplet%\vcpkg.exe install --triplet=%triplet% --x-install-root=.\build\vcpkg.%triplet%\installed || goto :error
 
 exit /b
 

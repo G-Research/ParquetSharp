@@ -61,4 +61,7 @@ fi
 
 ./bootstrap-vcpkg.sh
 
-./vcpkg install arrow:$triplet
+cd ../..
+
+# Install packages from vcpkg.json manifest file
+./build/vcpkg.$triplet/vcpkg install --triplet=$triplet --x-install-root=./build/vcpkg.$triplet/installed

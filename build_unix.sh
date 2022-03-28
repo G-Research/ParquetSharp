@@ -38,5 +38,5 @@ esac
 
 triplet=$vcpkg_arch-$os
 
-cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=../vcpkg.$triplet/scripts/buildsystems/vcpkg.cmake $options
+cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=../vcpkg.$triplet/scripts/buildsystems/vcpkg.cmake -D VCPKG_INSTALLED_DIR=../vcpkg.$triplet/installed $options
 cmake --build build/$triplet -j
