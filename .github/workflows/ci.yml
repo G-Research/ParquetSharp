@@ -113,26 +113,12 @@ jobs:
     - name: Install vcpkg build dependencies (macOS)
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'macOS'
       run: brew install bison pkg-config
-    - name: Compile vcpkg dependencies (Unix)
+    - name: Configure vcpkg (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
       run: ./vcpkg_unix.sh ${{ matrix.arch }}
-      env:
-        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
-    - name: Compile vcpkg dependencies (Windows)
+    - name: Configure vcpkg (Windows)
       if: runner.os == 'Windows'
       run: ./vcpkg_windows.bat
-      env:
-        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
-    - name: Upload vcpkg arrow logs
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-vcpkg-arrow-logs
-        path: build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/buildtrees/arrow/*.log
-    - name: Cleanup vcpkg build
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: rm -rf build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/{buildtrees,downloads}
-      shell: bash
 
     # .NET Core Setup (and also MSBuild for Windows).
     - name: Setup .NET Core
@@ -149,17 +135,27 @@ jobs:
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1
 
-    # Compile ParquetSharp (and upload the native library as an artifact).
+    # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
       run: ./build_unix.sh ${{ matrix.arch }}
       env:
-        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,read
+        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
       run: ./build_windows.bat
       env:
-        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,read
+        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
+    - name: Upload vcpkg arrow logs
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-vcpkg-arrow-logs
+        path: build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/buildtrees/arrow/*.log
+    - name: Cleanup vcpkg build
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
+      run: rm -rf build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/{buildtrees,downloads}
+      shell: bash
     - name: Build .NET benchmarks & unit tests
       run: |
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}

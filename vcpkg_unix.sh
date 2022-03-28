@@ -60,8 +60,3 @@ then
 fi
 
 ./bootstrap-vcpkg.sh
-
-cd ../..
-
-# Install packages from vcpkg.json manifest file
-./build/vcpkg.$triplet/vcpkg install --triplet=$triplet
