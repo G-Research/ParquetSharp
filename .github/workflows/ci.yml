@@ -95,7 +95,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: cache/vcpkg
-        key: vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
+        key: vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ steps.resolve-vcpkg-version.outputs.commit-id }}-${{ hashFiles('vcpkg.json') }}
 
     # Install arm64 cross-compilation toolchain if required
     - name: Install arm64 cross-compilation toolchain
