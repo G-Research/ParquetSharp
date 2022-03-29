@@ -15,7 +15,7 @@ set options=""
 if "%GITHUB_ACTIONS%"=="true" (
   mkdir custom-triplets || goto :error
   copy "%VCPKG_INSTALLATION_ROOT%\triplets\%triplet%.cmake" "custom-triplets\%triplet%.cmake" || goto :error
-  echo set(VCPKG_BUILD_TYPE release) >> custom-triplets\%triplet%.cmake || goto :error
+  echo set(VCPKG_BUILD_TYPE release^) >> custom-triplets\%triplet%.cmake || goto :error
   set options="-D VCPKG_OVERLAY_TRIPLETS=%cd%/custom-triplets"
 )
 
