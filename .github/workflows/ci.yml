@@ -134,11 +134,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ steps.vcpkg-triplet.outputs.triplet }}-vcpkg-arrow-logs
-        path: build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/buildtrees/arrow/*.log
-    - name: Cleanup vcpkg build
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: rm -rf build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/{buildtrees,downloads}
-      shell: bash
+        path: $VCPKG_INSTALLATION_ROOT/buildtrees/arrow/*.log
     - name: Build .NET benchmarks & unit tests
       run: |
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
