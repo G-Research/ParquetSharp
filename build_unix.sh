@@ -47,6 +47,17 @@ esac
 
 triplet=$vcpkg_arch-$os
 
+# Find vcpkg or download it if required
+if [ -z "$VCPKG_INSTALLATION_ROOT" ]; then
+  if [ -n "$VCPKG_ROOT" ]; then
+    VCPKG_INSTALLATION_ROOT=$VCPKG_ROOT
+  else
+    VCPKG_INSTALLATION_ROOT=$PWD/build/vcpkg
+    git clone https://github.com/microsoft/vcpkg.git "$VCPKG_INSTALLATION_ROOT"
+    $VCPKG_INSTALLATION_ROOT/bootstrap-vcpkg.sh
+  fi
+fi
+
 # Only build release configuration in CI
 if [ "$GITHUB_ACTIONS" == "true" ]
 then

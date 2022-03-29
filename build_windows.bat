@@ -1,3 +1,14 @@
+rem Find vcpkg or download it if required
+if "%VCPKG_INSTALLATION_ROOT%"=="" (
+  if not "%VCPKG_ROOT%"=="" (
+    set VCPKG_INSTALLATION_ROOT="%VCPKG_ROOT%"
+  ) else (
+    set VCPKG_INSTALLATION_ROOT="%cd%\build\vcpkg"
+    git clone https://github.com/microsoft/vcpkg.git "%VCPKG_INSTALLATION_ROOT%" || goto :error
+    call "%VCPKG_INSTALLATION_ROOT%\bootstrap-vcpkg.bat" || goto :error
+  )
+)
+
 set triplet=x64-windows-static
 
 set options=""
