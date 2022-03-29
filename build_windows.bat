@@ -1,9 +1,17 @@
 set triplet=x64-windows-static
-cmake -B build/%triplet% -S . -D VCPKG_TARGET_TRIPLET=%triplet% -D CMAKE_TOOLCHAIN_FILE=../vcpkg.%triplet%/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022" -A "x64" || goto :error
+
+set options=""
+if "%GITHUB_ACTIONS%"=="true" (
+  mkdir custom-triplets || goto :error
+  copy "%VCPKG_INSTALLATION_ROOT%\triplets\%triplet%.cmake" "custom-triplets\%triplet%.cmake" || goto :error
+  echo set(VCPKG_BUILD_TYPE release) >> custom-triplets\%triplet%.cmake || goto :error
+  set options="-D VCPKG_OVERLAY_TRIPLETS=%cd%/custom-triplets"
+)
+
+cmake -B build/%triplet% -S . -D VCPKG_TARGET_TRIPLET=%triplet% -D CMAKE_TOOLCHAIN_FILE=%VCPKG_INSTALLATION_ROOT%/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022" -A "x64" %options% || goto :error
 msbuild build/%triplet%/ParquetSharp.sln -t:ParquetSharpNative:Rebuild -p:Configuration=Release || goto :error
 
 exit /b
-
 
 :error
 echo Failed with error #%errorlevel%.

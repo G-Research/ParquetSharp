@@ -13,7 +13,7 @@ env:
 jobs:
 
   # Note that vcpkg dependencies takes the majority of the build time.
-  # We cache them using GitHub Actions cache and export, making the scripts below a bit more complex.
+  # We cache them using GitHub Actions cache, making the scripts below a bit more complex.
   check-format:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     name: Check format
@@ -59,17 +59,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    # Find out which vcpkg version we are using.
-    - name: Resolve vcpkg version
-      id: resolve-vcpkg-version
-      run: |
-        read -r vcpkg_url vcpkg_ref << EOF
-        $(cat vcpkg_version.txt)
-        EOF
-        if [ ${#vcpkg_ref} -eq 40 ]; then commit_id=$vcpkg_ref; else commit_id=$(git ls-remote $vcpkg_url $vcpkg_ref | cut -f1); fi
-        echo "::set-output name=commit-id::$commit_id"
-      shell: bash
-
     # Compute vcpkg triplet
     - name: Compute vcpkg triplet
       id: vcpkg-triplet
@@ -95,7 +84,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: cache/vcpkg
-        key: vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ steps.resolve-vcpkg-version.outputs.commit-id }}-${{ hashFiles('vcpkg.json') }}
+        key: vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-${{ hashFiles('vcpkg.json') }}
 
     # Install arm64 cross-compilation toolchain if required
     - name: Install arm64 cross-compilation toolchain
@@ -113,12 +102,6 @@ jobs:
     - name: Install vcpkg build dependencies (macOS)
       if: runner.os == 'macOS'
       run: brew install bison pkg-config
-    - name: Configure vcpkg (Unix)
-      if: runner.os == 'Linux' || runner.os == 'macOS'
-      run: ./vcpkg_unix.sh ${{ matrix.arch }}
-    - name: Configure vcpkg (Windows)
-      if: runner.os == 'Windows'
-      run: ./vcpkg_windows.bat
 
     # .NET Core Setup (and also MSBuild for Windows).
     - name: Setup .NET Core
