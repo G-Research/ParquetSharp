@@ -4,8 +4,10 @@ if "%VCPKG_INSTALLATION_ROOT%"=="" (
     set VCPKG_INSTALLATION_ROOT="%VCPKG_ROOT%"
   ) else (
     set VCPKG_INSTALLATION_ROOT="%cd%\build\vcpkg"
-    git clone https://github.com/microsoft/vcpkg.git "%VCPKG_INSTALLATION_ROOT%" || goto :error
-    call "%VCPKG_INSTALLATION_ROOT%\bootstrap-vcpkg.bat" || goto :error
+    if not exist "%VCPKG_INSTALLATION_ROOT%" (
+      git clone https://github.com/microsoft/vcpkg.git "%VCPKG_INSTALLATION_ROOT%" || goto :error
+      call "%VCPKG_INSTALLATION_ROOT%\bootstrap-vcpkg.bat" || goto :error
+    )
   )
 )
 

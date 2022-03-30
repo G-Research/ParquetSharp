@@ -53,8 +53,10 @@ if [ -z "$VCPKG_INSTALLATION_ROOT" ]; then
     VCPKG_INSTALLATION_ROOT=$VCPKG_ROOT
   else
     VCPKG_INSTALLATION_ROOT=$PWD/build/vcpkg
-    git clone https://github.com/microsoft/vcpkg.git "$VCPKG_INSTALLATION_ROOT"
-    $VCPKG_INSTALLATION_ROOT/bootstrap-vcpkg.sh
+    if [ ! -d "$VCPKG_INSTALLATION_ROOT" ]; then
+        git clone https://github.com/microsoft/vcpkg.git "$VCPKG_INSTALLATION_ROOT"
+        $VCPKG_INSTALLATION_ROOT/bootstrap-vcpkg.sh
+    fi
   fi
 fi
 
