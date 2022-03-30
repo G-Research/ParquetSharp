@@ -2,4 +2,3 @@ bin
 build
 obj
 nuget
-vcpkg_installed
