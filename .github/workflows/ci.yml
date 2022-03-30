@@ -96,7 +96,7 @@ jobs:
     # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
       if: runner.os == 'macOS'
-      run: brew install bison pkg-config
+      run: brew install bison
     - name: Resolve vcpkg root
       id: resolve-vcpkg-root
       run: echo "::set-output name=path::$VCPKG_INSTALLATION_ROOT"
