@@ -93,7 +93,7 @@ jobs:
         sudo apt-get update
         sudo apt-get --yes install g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu
 
-    # Build vcpkg dependencies
+    # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -102,6 +102,10 @@ jobs:
     - name: Install vcpkg build dependencies (macOS)
       if: runner.os == 'macOS'
       run: brew install bison pkg-config
+    - name: Resolve vcpkg root
+      id: resolve-vcpkg-root
+      run: echo "::set-output name=path::$VCPKG_INSTALLATION_ROOT"
+      shell: bash
 
     # .NET Core Setup (and also MSBuild for Windows).
     - name: Setup .NET Core
@@ -134,7 +138,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ steps.vcpkg-triplet.outputs.triplet }}-vcpkg-arrow-logs
-        path: $VCPKG_INSTALLATION_ROOT/buildtrees/arrow/*.log
+        path: ${{ steps.resolve-vcpkg-root.outputs.path }}/buildtrees/arrow/*.log
     - name: Build .NET benchmarks & unit tests
       run: |
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
