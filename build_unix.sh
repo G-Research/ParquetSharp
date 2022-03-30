@@ -61,7 +61,7 @@ if [ -z "$VCPKG_INSTALLATION_ROOT" ]; then
 fi
 
 # Only build release configuration in CI
-if [ "$GITHUB_ACTIONS" == "true" ]
+if [ "$GITHUB_ACTIONS" = "true" ]
 then
   mkdir -p custom-triplets
   for triplet_file in {,community/}$triplet.cmake
