@@ -129,11 +129,11 @@ Building ParquetSharp for Windows requires the following dependencies:
 For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg).
 The build scripts will use an existing vcpkg installation if either of the `VCPKG_INSTALLATION_ROOT` or `VCPKG_ROOT` environment variables are defined,
 otherwise vcpkg will be downloaded.
-Note that the Windows build needs to be done in a Visual Studio x64 Native Tools Command Prompt for the build script to succeed.
+Note that the Windows build needs to be done in a Visual Studio Developer PowerShell for the build script to succeed.
 
 **Windows (Visual Studio 2022 Win64 solution)**
 ```
-> build_windows.bat
+> build_windows.ps1
 > dotnet build csharp.test --configuration=Release
 ```
 **Linux and macOS (Makefile)**

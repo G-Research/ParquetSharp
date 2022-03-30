@@ -125,7 +125,7 @@ jobs:
         VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
-      run: ./build_windows.bat
+      run: ./build_windows.ps1
       env:
         VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
     - name: Upload vcpkg arrow logs
