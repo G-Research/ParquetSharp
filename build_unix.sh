@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 case ${1:-$(uname -m)} in
@@ -63,17 +63,17 @@ fi
 # Only build release configuration in CI
 if [ "$GITHUB_ACTIONS" = "true" ]
 then
-  mkdir -p custom-triplets
-  for triplet_file in {,community/}$triplet.cmake
+  custom_triplets_dir=$PWD/build/custom-triplets
+  mkdir -p "$custom_triplets_dir"
+  for vcpkg_triplet_file in $VCPKG_INSTALLATION_ROOT/triplets/{,community/}$triplet.cmake
   do
-    vcpkg_triplet_file="$VCPKG_INSTALLATION_ROOT/triplets/$triplet_file"
     if [ -f "$vcpkg_triplet_file" ]; then
-        custom_triplet_file="custom-triplets/$triplet.cmake"
+        custom_triplet_file="$custom_triplets_dir/$triplet.cmake"
         cp "$vcpkg_triplet_file" "$custom_triplet_file"
         echo "set(VCPKG_BUILD_TYPE release)" >> "$custom_triplet_file"
     fi
   done
-  options="$options -D VCPKG_OVERLAY_TRIPLETS=$PWD/custom-triplets"
+  options+=" -D VCPKG_OVERLAY_TRIPLETS=$custom_triplets_dir"
 fi
 
 cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake $options
