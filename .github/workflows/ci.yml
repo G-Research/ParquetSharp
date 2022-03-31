@@ -59,9 +59,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    # Compute vcpkg triplet
-    - name: Compute vcpkg triplet
-      id: vcpkg-triplet
+    # Compute vcpkg triplet and root
+    - name: Compute vcpkg triplet and root
+      id: vcpkg-info
       run: |
         triplet="${{ matrix.arch }}-"
         case ${{ runner.os }} in
@@ -76,6 +76,7 @@ jobs:
             ;;
         esac
         echo "::set-output name=triplet::$triplet"
+        echo "::set-output name=root::$VCPKG_INSTALLATION_ROOT"
       shell: bash
 
     # Check for cached vcpkg dependencies (use these if we can).
@@ -84,10 +85,10 @@ jobs:
       uses: actions/cache@v3
       with:
         path: cache/vcpkg
-        key: vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-${{ hashFiles('vcpkg.json') }}
+        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-${{ hashFiles('vcpkg.json') }}
         restore-keys: |
-          vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-
-          vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-
 
     # Install arm64 cross-compilation toolchain if required
     - name: Install arm64 cross-compilation toolchain
@@ -100,10 +101,6 @@ jobs:
     - name: Install vcpkg build dependencies (macOS)
       if: runner.os == 'macOS'
       run: brew install bison
-    - name: Resolve vcpkg root
-      id: resolve-vcpkg-root
-      run: echo "::set-output name=path::$VCPKG_INSTALLATION_ROOT"
-      shell: bash
 
     # .NET Core Setup (and also MSBuild for Windows).
     - name: Setup .NET Core
@@ -136,7 +133,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ steps.vcpkg-triplet.outputs.triplet }}-vcpkg-arrow-logs
-        path: ${{ steps.resolve-vcpkg-root.outputs.path }}/buildtrees/arrow/*.log
+        path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
     - name: Build .NET benchmarks & unit tests
       run: |
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
