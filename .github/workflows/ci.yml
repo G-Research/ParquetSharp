@@ -85,6 +85,9 @@ jobs:
       with:
         path: cache/vcpkg
         key: vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-
+          vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-
 
     # Install arm64 cross-compilation toolchain if required
     - name: Install arm64 cross-compilation toolchain
