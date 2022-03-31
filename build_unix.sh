@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 case ${1:-$(uname -m)} in
@@ -29,6 +29,15 @@ case $(uname) in
   Darwin)
     os=osx
     options="-D CMAKE_OSX_ARCHITECTURES=$osx_arch"
+    if ! which brew >/dev/null || [ ! -x $(brew --prefix)/opt/bison/bin/bison ]
+    then
+      echo 'The version of bison provided with macOS is too old.'
+      echo 'Please install a newer version with Homebrew (https://brew.sh):'
+      echo '$ brew install bison'
+      exit 1
+    else
+      export PATH="$(brew --prefix)/opt/bison/bin:$PATH"
+    fi
     ;;
   *)
     echo "OS not supported"
@@ -38,5 +47,34 @@ esac
 
 triplet=$vcpkg_arch-$os
 
-cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=../vcpkg.$triplet/scripts/buildsystems/vcpkg.cmake $options
+# Find vcpkg or download it if required
+if [ -z "$VCPKG_INSTALLATION_ROOT" ]; then
+  if [ -n "$VCPKG_ROOT" ]; then
+    VCPKG_INSTALLATION_ROOT=$VCPKG_ROOT
+  else
+    VCPKG_INSTALLATION_ROOT=$PWD/build/vcpkg
+    if [ ! -d "$VCPKG_INSTALLATION_ROOT" ]; then
+        git clone https://github.com/microsoft/vcpkg.git "$VCPKG_INSTALLATION_ROOT"
+        $VCPKG_INSTALLATION_ROOT/bootstrap-vcpkg.sh
+    fi
+  fi
+fi
+
+# Only build release configuration in CI
+if [ "$GITHUB_ACTIONS" = "true" ]
+then
+  custom_triplets_dir=$PWD/build/custom-triplets
+  mkdir -p "$custom_triplets_dir"
+  for vcpkg_triplet_file in $VCPKG_INSTALLATION_ROOT/triplets/{,community/}$triplet.cmake
+  do
+    if [ -f "$vcpkg_triplet_file" ]; then
+        custom_triplet_file="$custom_triplets_dir/$triplet.cmake"
+        cp "$vcpkg_triplet_file" "$custom_triplet_file"
+        echo "set(VCPKG_BUILD_TYPE release)" >> "$custom_triplet_file"
+    fi
+  done
+  options+=" -D VCPKG_OVERLAY_TRIPLETS=$custom_triplets_dir"
+fi
+
+cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake $options
 cmake --build build/$triplet -j
