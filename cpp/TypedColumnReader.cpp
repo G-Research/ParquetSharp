@@ -4,7 +4,19 @@
 
 #include <parquet/column_reader.h>
 
-using namespace parquet;
+using parquet::BoolReader;
+using parquet::ByteArray;
+using parquet::ByteArrayReader;
+using parquet::ColumnReader;
+using parquet::DoubleReader;
+using parquet::FixedLenByteArray;
+using parquet::FixedLenByteArrayReader;
+using parquet::FloatReader;
+using parquet::Int32Reader;
+using parquet::Int64Reader;
+using parquet::Int96;
+using parquet::Int96Reader;
+using parquet::TypedColumnReader;
 
 extern "C"
 {

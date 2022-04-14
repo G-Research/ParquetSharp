@@ -5,7 +5,11 @@
 #include <arrow/io/file.h>
 #include <parquet/properties.h>
 
-using namespace parquet;
+using parquet::Compression;
+using parquet::Encoding;
+using parquet::FileEncryptionProperties;
+using parquet::ParquetVersion;
+using parquet::WriterProperties;
 
 extern "C"
 {
@@ -36,7 +40,7 @@ extern "C"
 		TRYCATCH(builder->disable_dictionary(path);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Disable_Dictionary_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<schema::ColumnPath>* path)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Disable_Dictionary_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<parquet::schema::ColumnPath>* path)
 	{
 		TRYCATCH(builder->disable_dictionary(*path);)
 	}
@@ -51,7 +55,7 @@ extern "C"
 		TRYCATCH(builder->enable_dictionary(path);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Enable_Dictionary_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<schema::ColumnPath>* path)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Enable_Dictionary_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<parquet::schema::ColumnPath>* path)
 	{
 		TRYCATCH(builder->enable_dictionary(*path);)
 	}
@@ -68,7 +72,7 @@ extern "C"
 		TRYCATCH(builder->disable_statistics(path);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Disable_Statistics_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<schema::ColumnPath>* path)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Disable_Statistics_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<parquet::schema::ColumnPath>* path)
 	{
 		TRYCATCH(builder->disable_statistics(*path);)
 	}
@@ -83,7 +87,7 @@ extern "C"
 		TRYCATCH(builder->enable_statistics(path);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Enable_Statistics_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<schema::ColumnPath>* path)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Enable_Statistics_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<parquet::schema::ColumnPath>* path)
 	{
 		TRYCATCH(builder->enable_statistics(*path);)
 	}
@@ -100,7 +104,7 @@ extern "C"
 		TRYCATCH(builder->compression(path, codec);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Compression_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<schema::ColumnPath>* path, Compression::type codec)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Compression_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<parquet::schema::ColumnPath>* path, Compression::type codec)
 	{
 		TRYCATCH(builder->compression(*path, codec);)
 	}
@@ -115,7 +119,7 @@ extern "C"
 		TRYCATCH(builder->compression_level(path, compression_level);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Compression_Level_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<schema::ColumnPath>* path, int32_t compression_level)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Compression_Level_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<parquet::schema::ColumnPath>* path, int32_t compression_level)
 	{
 		TRYCATCH(builder->compression_level(*path, compression_level);)
 	}
@@ -145,7 +149,7 @@ extern "C"
 		TRYCATCH(builder->encoding(path, encoding_type);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Encoding_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<schema::ColumnPath>* path, Encoding::type encoding_type)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Encoding_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<parquet::schema::ColumnPath>* path, Encoding::type encoding_type)
 	{
 		TRYCATCH(builder->encoding(*path, encoding_type);)
 	}

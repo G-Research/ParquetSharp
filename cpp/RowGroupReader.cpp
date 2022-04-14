@@ -4,7 +4,9 @@
 
 #include <parquet/file_reader.h>
 
-using namespace parquet;
+using parquet::ColumnReader;
+using parquet::RowGroupMetaData;
+using parquet::RowGroupReader;
 
 extern "C"
 {

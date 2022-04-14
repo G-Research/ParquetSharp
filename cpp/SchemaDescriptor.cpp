@@ -4,7 +4,8 @@
 
 #include <parquet/schema.h>
 
-using namespace parquet;
+using parquet::ColumnDescriptor;
+using parquet::SchemaDescriptor;
 
 extern "C"
 {
@@ -13,7 +14,7 @@ extern "C"
 		TRYCATCH(*column_descriptor = descriptor->Column(i);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_ColumnIndex_ByNode(const SchemaDescriptor* descriptor, std::shared_ptr<const schema::Node>* node, int* column_index)
+	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_ColumnIndex_ByNode(const SchemaDescriptor* descriptor, std::shared_ptr<const parquet::schema::Node>* node, int* column_index)
 	{
 		TRYCATCH(*column_index = descriptor->ColumnIndex(**node);)
 	}
@@ -23,16 +24,16 @@ extern "C"
 		TRYCATCH(*column_index = descriptor->ColumnIndex(path);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_Get_Column_Root(const SchemaDescriptor* descriptor, int i, std::shared_ptr<const schema::Node>** column_root)
+	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_Get_Column_Root(const SchemaDescriptor* descriptor, int i, std::shared_ptr<const parquet::schema::Node>** column_root)
 	{
 		// Take a no-op ownership of the node, as all the rest of the API uses shared_ptr.
-		TRYCATCH(*column_root = new std::shared_ptr<const schema::Node>(descriptor->GetColumnRoot(i), [](const schema::Node* ptr) {});)
+		TRYCATCH(*column_root = new std::shared_ptr<const parquet::schema::Node>(descriptor->GetColumnRoot(i), [](const parquet::schema::Node* ptr) {});)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_Group_Node(const SchemaDescriptor* descriptor, std::shared_ptr<const schema::GroupNode>** group_node)
+	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_Group_Node(const SchemaDescriptor* descriptor, std::shared_ptr<const parquet::schema::GroupNode>** group_node)
 	{
 		// Take a no-op ownership of the node, as all the rest of the API uses shared_ptr.
-		TRYCATCH(*group_node = new std::shared_ptr<const schema::GroupNode>(descriptor->group_node(), [](const schema::GroupNode* ptr) {});)
+		TRYCATCH(*group_node = new std::shared_ptr<const parquet::schema::GroupNode>(descriptor->group_node(), [](const parquet::schema::GroupNode* ptr) {});)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_Name(const SchemaDescriptor* descriptor, const char** name)
@@ -45,8 +46,8 @@ extern "C"
 		TRYCATCH(*num_columns = descriptor->num_columns();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_Schema_Root(const SchemaDescriptor* descriptor, std::shared_ptr<const schema::Node>** schema_root)
+	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_Schema_Root(const SchemaDescriptor* descriptor, std::shared_ptr<const parquet::schema::Node>** schema_root)
 	{
-		TRYCATCH(*schema_root = new std::shared_ptr<const schema::Node>(descriptor->schema_root());)
+		TRYCATCH(*schema_root = new std::shared_ptr<const parquet::schema::Node>(descriptor->schema_root());)
 	}
 }

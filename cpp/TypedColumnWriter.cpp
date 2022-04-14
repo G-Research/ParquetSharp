@@ -4,7 +4,18 @@
 
 #include <parquet/column_writer.h>
 
-using namespace parquet;
+using parquet::BoolWriter;
+using parquet::ByteArray;
+using parquet::ByteArrayWriter;
+using parquet::ColumnWriter;
+using parquet::DoubleWriter;
+using parquet::FixedLenByteArray;
+using parquet::FixedLenByteArrayWriter;
+using parquet::FloatWriter;
+using parquet::Int32Writer;
+using parquet::Int64Writer;
+using parquet::Int96;
+using parquet::Int96Writer;
 
 extern "C"
 {

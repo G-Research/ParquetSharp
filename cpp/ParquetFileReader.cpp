@@ -4,7 +4,10 @@
 
 #include <parquet/file_reader.h>
 
-using namespace parquet;
+using parquet::FileMetaData;
+using parquet::ParquetFileReader;
+using parquet::ReaderProperties;
+using parquet::RowGroupReader;
 
 extern "C"
 {

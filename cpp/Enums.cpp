@@ -1,7 +1,15 @@
 
 #include <parquet/properties.h>
 
-using namespace parquet;
+using parquet::ColumnOrder;
+using parquet::Compression;
+using parquet::Encoding;
+using parquet::LogicalType;
+using parquet::ParquetCipher;
+using parquet::ParquetVersion;
+using parquet::Repetition;
+using parquet::SortOrder;
+using parquet::Type;
 
 namespace
 {

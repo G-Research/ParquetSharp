@@ -5,7 +5,7 @@
 #include <arrow/util/key_value_metadata.h>
 #include <parquet/metadata.h>
 
-using namespace parquet;
+using parquet::KeyValueMetadata;
 
 extern "C"
 {

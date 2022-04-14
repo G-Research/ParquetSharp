@@ -5,7 +5,7 @@
 
 #include <parquet/encryption/encryption.h>
 
-using namespace parquet;
+using parquet::ColumnEncryptionProperties;
 
 extern "C"
 {

@@ -4,7 +4,7 @@
 #include <parquet/encryption/encryption.h>
 #include <stdexcept>
 
-using namespace parquet;
+using parquet::DecryptionKeyRetriever;
 
 // Derived DecryptionKeyRetriever that can callback into managed code.
 // This class maintains a GC reference, such that the managed instance cannot get collected if this class is still alive.

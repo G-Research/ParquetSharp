@@ -4,7 +4,10 @@
 
 #include <parquet/metadata.h>
 
-using namespace parquet;
+using parquet::FileMetaData;
+using parquet::KeyValueMetadata;
+using parquet::ParquetVersion;
+using parquet::SchemaDescriptor;
 
 extern "C"
 {

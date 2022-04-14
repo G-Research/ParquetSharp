@@ -4,7 +4,9 @@
 
 #include <parquet/properties.h>
 
-using namespace parquet;
+using parquet::default_reader_properties;
+using parquet::FileDecryptionProperties;
+using parquet::ReaderProperties;
 
 extern "C"
 {
