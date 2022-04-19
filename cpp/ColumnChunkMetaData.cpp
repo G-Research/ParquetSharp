@@ -5,18 +5,13 @@
 #include <parquet/metadata.h>
 #include <parquet/statistics.h>
 
-using parquet::ColumnChunkMetaData;
-using parquet::ColumnCryptoMetaData;
-using parquet::Compression;
-using parquet::Encoding;
-using parquet::Statistics;
-using parquet::Type;
+using namespace parquet;
 
 extern "C"
 {
 	// TODO native API that still needs to be ported.
 	//const std::string& file_path() const;
-	//std::shared_ptr<parquet::schema::ColumnPath> path_in_schema() const;
+	//std::shared_ptr<schema::ColumnPath> path_in_schema() const;
 
 	//int64_t has_dictionary_page() const;
 	//int64_t dictionary_page_offset() const;

@@ -4,10 +4,7 @@
 
 #include <parquet/column_writer.h>
 
-using parquet::ColumnDescriptor;
-using parquet::ColumnWriter;
-using parquet::Type;
-using parquet::WriterProperties;
+using namespace parquet;
 
 extern "C"
 {

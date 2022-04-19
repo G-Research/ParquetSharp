@@ -5,19 +5,13 @@
 #include <arrow/io/file.h>
 #include <parquet/file_writer.h>
 
-using parquet::ColumnDescriptor;
-using parquet::FileMetaData;
-using parquet::KeyValueMetadata;
-using parquet::ParquetFileWriter;
-using parquet::RowGroupWriter;
-using parquet::SchemaDescriptor;
-using parquet::WriterProperties;
+using namespace parquet;
 
 extern "C"
 {
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_OpenFile(
 		const char* const path, 
-		const std::shared_ptr<parquet::schema::GroupNode>* schema, 
+		const std::shared_ptr<schema::GroupNode>* schema, 
 		const std::shared_ptr<WriterProperties>* writer_properties, 
 		const std::shared_ptr<const KeyValueMetadata>* key_value_metadata,
 		ParquetFileWriter** writer)
@@ -34,7 +28,7 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_Open(
 		std::shared_ptr<::arrow::io::OutputStream>* output_stream,
-		const std::shared_ptr<parquet::schema::GroupNode>* schema, 
+		const std::shared_ptr<schema::GroupNode>* schema, 
 		const std::shared_ptr<WriterProperties>* writer_properties, 
 		const std::shared_ptr<const KeyValueMetadata>* key_value_metadata,
 		ParquetFileWriter** writer)

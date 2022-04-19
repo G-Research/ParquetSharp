@@ -4,11 +4,7 @@
 
 #include <parquet/schema.h>
 
-using parquet::ColumnDescriptor;
-using parquet::ColumnOrder;
-using parquet::LogicalType;
-using parquet::SortOrder;
-using parquet::Type;
+using namespace parquet;
 
 extern "C"
 {
@@ -47,14 +43,14 @@ extern "C"
 		TRYCATCH(*name = column_descriptor->name().c_str();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnDescriptor_Path(const ColumnDescriptor* column_descriptor, std::shared_ptr<parquet::schema::ColumnPath>** path)
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnDescriptor_Path(const ColumnDescriptor* column_descriptor, std::shared_ptr<schema::ColumnPath>** path)
 	{
-		TRYCATCH(*path = new std::shared_ptr<parquet::schema::ColumnPath>(column_descriptor->path());)
+		TRYCATCH(*path = new std::shared_ptr<schema::ColumnPath>(column_descriptor->path());)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnDescriptor_Schema_Node(const ColumnDescriptor* column_descriptor, std::shared_ptr<parquet::schema::Node>** schema_node)
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnDescriptor_Schema_Node(const ColumnDescriptor* column_descriptor, std::shared_ptr<schema::Node>** schema_node)
 	{
-		TRYCATCH(*schema_node = new std::shared_ptr<parquet::schema::Node>(column_descriptor->schema_node());)
+		TRYCATCH(*schema_node = new std::shared_ptr<schema::Node>(column_descriptor->schema_node());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ColumnDescriptor_Type_Length(const ColumnDescriptor* column_descriptor, int* type_length)
@@ -72,5 +68,5 @@ extern "C"
 		TRYCATCH(*type_scale = column_descriptor->type_scale();)
 	}
 
-	//const std::shared_ptr<parquet::schema::ColumnPath> path() const;
+	//const std::shared_ptr<schema::ColumnPath> path() const;
 }

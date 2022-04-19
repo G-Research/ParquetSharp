@@ -4,19 +4,7 @@
 
 #include <parquet/statistics.h>
 
-using parquet::BoolStatistics;
-using parquet::ByteArray;
-using parquet::ByteArrayStatistics;
-using parquet::DoubleStatistics;
-using parquet::FixedLenByteArray;
-using parquet::FLBAStatistics;
-using parquet::FloatStatistics;
-using parquet::Int32Statistics;
-using parquet::Int64Statistics;
-using parquet::Int96;
-using parquet::Int96Type;
-using parquet::Statistics;
-using parquet::TypedStatistics;
+using namespace parquet;
 
 extern "C"
 {

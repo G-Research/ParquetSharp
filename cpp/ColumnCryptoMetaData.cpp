@@ -4,7 +4,7 @@
 
 #include <parquet/metadata.h>
 
-using parquet::ColumnCryptoMetaData;
+using namespace parquet;
 
 extern "C"
 {
@@ -13,9 +13,9 @@ extern "C"
 		delete column_crypto_meta_data;
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnCryptoMetaData_Path_In_Schema(const std::shared_ptr<const ColumnCryptoMetaData>* column_crypto_meta_data, const std::shared_ptr<const parquet::schema::ColumnPath>** column_path)
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnCryptoMetaData_Path_In_Schema(const std::shared_ptr<const ColumnCryptoMetaData>* column_crypto_meta_data, const std::shared_ptr<const schema::ColumnPath>** column_path)
 	{
-		TRYCATCH(*column_path = new std::shared_ptr<const parquet::schema::ColumnPath>((*column_crypto_meta_data)->path_in_schema());)
+		TRYCATCH(*column_path = new std::shared_ptr<const schema::ColumnPath>((*column_crypto_meta_data)->path_in_schema());)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ColumnCryptoMetaData_Encrypted_With_Footer_Key(const std::shared_ptr<const ColumnCryptoMetaData>* column_crypto_meta_data, bool* encrypted_with_footer_key)

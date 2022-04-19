@@ -5,7 +5,7 @@
 
 #include <parquet/encryption/encryption.h>
 
-using parquet::ColumnEncryptionProperties;
+using namespace parquet;
 
 extern "C"
 {
@@ -14,7 +14,7 @@ extern "C"
         TRYCATCH(*builder = new ColumnEncryptionProperties::Builder(name);)
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionPropertiesBuilder_Create_From_Column_Path(const std::shared_ptr<parquet::schema::ColumnPath>* path, ColumnEncryptionProperties::Builder** builder)
+    PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionPropertiesBuilder_Create_From_Column_Path(const std::shared_ptr<schema::ColumnPath>* path, ColumnEncryptionProperties::Builder** builder)
     {
         TRYCATCH(*builder = new ColumnEncryptionProperties::Builder(*path);)
     }

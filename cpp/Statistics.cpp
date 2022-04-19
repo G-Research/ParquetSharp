@@ -4,8 +4,7 @@
 
 #include <parquet/statistics.h>
 
-using parquet::Statistics;
-using parquet::Type;
+using namespace parquet;
 
 extern "C"
 {

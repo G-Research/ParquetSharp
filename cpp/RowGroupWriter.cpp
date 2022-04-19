@@ -4,8 +4,7 @@
 
 #include <parquet/file_writer.h>
 
-using parquet::ColumnWriter;
-using parquet::RowGroupWriter;
+using namespace parquet;
 
 extern "C"
 {

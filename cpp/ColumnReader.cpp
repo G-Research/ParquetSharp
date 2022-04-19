@@ -4,9 +4,7 @@
 
 #include <parquet/column_reader.h>
 
-using parquet::ColumnDescriptor;
-using parquet::ColumnReader;
-using parquet::Type;
+using namespace parquet;
 
 extern "C"
 {

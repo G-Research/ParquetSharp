@@ -5,11 +5,7 @@
 
 #include <parquet/types.h>
 
-using parquet::DecimalLogicalType;
-using parquet::IntLogicalType;
-using parquet::LogicalType;
-using parquet::TimeLogicalType;
-using parquet::TimestampLogicalType;
+using namespace parquet;
 
 extern "C"
 {

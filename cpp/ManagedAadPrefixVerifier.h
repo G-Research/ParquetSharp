@@ -3,7 +3,7 @@
 
 #include <parquet/encryption/encryption.h>
 
-using parquet::AADPrefixVerifier;
+using namespace parquet;
 
 // Derived AADPrefixVerifier that can callback into managed code.
 // This class maintains a GC reference, such that the managed instance cannot get collected if this class is still alive.

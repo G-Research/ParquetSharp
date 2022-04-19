@@ -7,9 +7,7 @@
 
 #include <parquet/encryption/encryption.h>
 
-using parquet::ColumnDecryptionProperties;
-using parquet::ColumnPathToDecryptionPropertiesMap;
-using parquet::FileDecryptionProperties;
+using namespace parquet;
 
 extern "C"
 {

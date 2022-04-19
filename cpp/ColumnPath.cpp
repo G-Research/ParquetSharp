@@ -5,38 +5,40 @@
 
 #include <parquet/schema.h>
 
+using namespace parquet;
+
 extern "C"
 {
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_Make(const char** path, int length, std::shared_ptr<const parquet::schema::ColumnPath>** column_path)
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_Make(const char** path, int length, std::shared_ptr<const schema::ColumnPath>** column_path)
 	{
 		TRYCATCH
 		(
 			const std::vector<std::string> v(path, path + length);
-			*column_path = new std::shared_ptr<const parquet::schema::ColumnPath>(new parquet::schema::ColumnPath(v));
+			*column_path = new std::shared_ptr<const schema::ColumnPath>(new schema::ColumnPath(v));
 		)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_MakeFromDotString(const char* const dot_string, std::shared_ptr<const parquet::schema::ColumnPath>** column_path)
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_MakeFromDotString(const char* const dot_string, std::shared_ptr<const schema::ColumnPath>** column_path)
 	{
-		TRYCATCH(*column_path = new std::shared_ptr<const parquet::schema::ColumnPath>(parquet::schema::ColumnPath::FromDotString(dot_string));)
+		TRYCATCH(*column_path = new std::shared_ptr<const schema::ColumnPath>(schema::ColumnPath::FromDotString(dot_string));)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_MakeFromNode(const std::shared_ptr<const parquet::schema::Node>* const node, std::shared_ptr<const parquet::schema::ColumnPath>** column_path)
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_MakeFromNode(const std::shared_ptr<const schema::Node>* const node, std::shared_ptr<const schema::ColumnPath>** column_path)
 	{
-		TRYCATCH(*column_path = new std::shared_ptr<const parquet::schema::ColumnPath>(parquet::schema::ColumnPath::FromNode(**node));)
+		TRYCATCH(*column_path = new std::shared_ptr<const schema::ColumnPath>(schema::ColumnPath::FromNode(**node));)
 	}
 
-	PARQUETSHARP_EXPORT void ColumnPath_Free(const std::shared_ptr<const parquet::schema::ColumnPath>* column_path)
+	PARQUETSHARP_EXPORT void ColumnPath_Free(const std::shared_ptr<const schema::ColumnPath>* column_path)
 	{
 		delete column_path;
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_Extend(const std::shared_ptr<const parquet::schema::ColumnPath>* const column_path, const char* const node_name, std::shared_ptr<const parquet::schema::ColumnPath>** new_column_path)
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_Extend(const std::shared_ptr<const schema::ColumnPath>* const column_path, const char* const node_name, std::shared_ptr<const schema::ColumnPath>** new_column_path)
 	{
-		TRYCATCH(*new_column_path = new std::shared_ptr<const parquet::schema::ColumnPath>((*column_path)->extend(node_name));)
+		TRYCATCH(*new_column_path = new std::shared_ptr<const schema::ColumnPath>((*column_path)->extend(node_name));)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_ToDotString(const std::shared_ptr<const parquet::schema::ColumnPath>* const column_path, const char** dot_string)
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_ToDotString(const std::shared_ptr<const schema::ColumnPath>* const column_path, const char** dot_string)
 	{
 		TRYCATCH(*dot_string = AllocateCString((*column_path)->ToDotString());)
 	}
@@ -46,7 +48,7 @@ extern "C"
 		FreeCString(dot_string);
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_ToDotVector(const std::shared_ptr<const parquet::schema::ColumnPath>* const column_path, char*** dot_vector, int* length)
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnPath_ToDotVector(const std::shared_ptr<const schema::ColumnPath>* const column_path, char*** dot_vector, int* length)
 	{
 		TRYCATCH
 		(

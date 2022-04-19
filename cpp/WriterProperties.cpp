@@ -5,12 +5,7 @@
 
 #include <parquet/properties.h>
 
-using parquet::Compression;
-using parquet::default_writer_properties;
-using parquet::Encoding;
-using parquet::FileEncryptionProperties;
-using parquet::ParquetVersion;
-using parquet::WriterProperties;
+using namespace parquet;
 
 extern "C"
 {
@@ -71,27 +66,27 @@ extern "C"
 
 	// ColumnPath taking methods.
 
-	//PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Column_Properties(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<parquet::schema::ColumnPath>* path, const ColumnProperties** columnProperties)
+	//PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Column_Properties(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, const ColumnProperties** columnProperties)
 	//{
 	//	TRYCATCH(*columnProperties = &(*writer_properties)->column_properties(*path);)
 	//}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Compression(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<parquet::schema::ColumnPath>* path, Compression::type* compression)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Compression(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, Compression::type* compression)
 	{
 		TRYCATCH(*compression = (*writer_properties)->compression(*path);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Compression_Level(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<parquet::schema::ColumnPath>* path, int32_t* compression_level)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Compression_Level(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, int32_t* compression_level)
 	{
 		TRYCATCH(*compression_level = (*writer_properties)->compression_level(*path);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Dictionary_Enabled(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<parquet::schema::ColumnPath>* path, bool* enabled)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Dictionary_Enabled(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, bool* enabled)
 	{
 		TRYCATCH(*enabled = (*writer_properties)->dictionary_enabled(*path);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Encoding(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<parquet::schema::ColumnPath>* path, Encoding::type* encoding)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Encoding(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, Encoding::type* encoding)
 	{
 		TRYCATCH(*encoding = (*writer_properties)->encoding(*path);)
 	}
@@ -101,12 +96,12 @@ extern "C"
 		TRYCATCH(*file_encryption_properties = new std::shared_ptr<FileEncryptionProperties>((*writer_properties)->file_encryption_properties());)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Statistics_Enabled(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<parquet::schema::ColumnPath>* path, bool* enabled)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Statistics_Enabled(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, bool* enabled)
 	{
 		TRYCATCH(*enabled = (*writer_properties)->statistics_enabled(*path);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Max_Statistics_Size(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<parquet::schema::ColumnPath>* path, size_t* max_statistics_size)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Max_Statistics_Size(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, size_t* max_statistics_size)
 	{
 		TRYCATCH(*max_statistics_size = (*writer_properties)->max_statistics_size(*path);)
 	}

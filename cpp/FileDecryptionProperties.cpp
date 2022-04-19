@@ -7,7 +7,7 @@
 
 #include <parquet/encryption/encryption.h>
 
-using parquet::FileDecryptionProperties;
+using namespace parquet;
 
 extern "C"
 {
