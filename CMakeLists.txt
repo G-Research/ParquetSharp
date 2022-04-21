@@ -15,7 +15,7 @@ set(CMAKE_DEBUG_POSTFIX d)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/${VCPKG_TARGET_TRIPLET})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/${VCPKG_TARGET_TRIPLET})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD 20)
 
 foreach (OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
     string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
@@ -33,8 +33,6 @@ if (MSVC)
 
 	add_compile_options("/MP") # Compile files in parallel.
 	add_compile_options("/WX") # Threat warnings as errors.
-	# See https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
-	add_compile_options("/Zc:__cplusplus") # Enable standard __cplusplus macro.
 
 endif ()
 

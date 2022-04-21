@@ -13,7 +13,7 @@ env:
 jobs:
 
   # Note that vcpkg dependencies takes the majority of the build time.
-  # We cache them using GitHub Actions cache and export, making the scripts below a bit more complex.
+  # We cache them using GitHub Actions cache, making the scripts below a bit more complex.
   check-format:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     name: Check format
@@ -59,20 +59,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    # Find out which vcpkg version we are using.
-    - name: Resolve vcpkg version
-      id: resolve-vcpkg-version
-      run: |
-        read -r vcpkg_url vcpkg_ref << EOF
-        $(cat vcpkg_version.txt)
-        EOF
-        if [ ${#vcpkg_ref} -eq 40 ]; then commit_id=$vcpkg_ref; else commit_id=$(git ls-remote $vcpkg_url $vcpkg_ref | cut -f1); fi
-        echo "::set-output name=commit-id::$commit_id"
-      shell: bash
-
-    # Compute vcpkg triplet
-    - name: Compute vcpkg triplet
-      id: vcpkg-triplet
+    # Compute vcpkg triplet and root
+    - name: Compute vcpkg triplet and root
+      id: vcpkg-info
       run: |
         triplet="${{ matrix.arch }}-"
         case ${{ runner.os }} in
@@ -87,21 +76,19 @@ jobs:
             ;;
         esac
         echo "::set-output name=triplet::$triplet"
+        echo "::set-output name=root::$VCPKG_INSTALLATION_ROOT"
       shell: bash
 
     # Check for cached vcpkg dependencies (use these if we can).
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: cache/vcpkg
-        key: vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
-    - name: Use cached vcpkg dependencies
-      if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
-      run: |
-        mkdir build
-        mv cache/vcpkg build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}
-      shell: bash
+        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-
 
     # Install arm64 cross-compilation toolchain if required
     - name: Install arm64 cross-compilation toolchain
@@ -110,35 +97,10 @@ jobs:
         sudo apt-get update
         sudo apt-get --yes install g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu
 
-    # Build vcpkg dependencies (if no cache hit).
-    - name: Install vcpkg build dependencies (Linux)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get --yes install flex bison
+    # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'macOS'
-      run: brew install bison pkg-config
-    - name: Compile vcpkg dependencies (Unix)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
-      run: ./vcpkg_unix.sh ${{ matrix.arch }}
-    - name: Compile vcpkg dependencies (Windows)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Windows'
-      run: ./vcpkg_windows.bat
-    - name: Upload vcpkg arrow logs
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-vcpkg-arrow-logs
-        path: build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/buildtrees/arrow/*.log
-    - name: Cleanup vcpkg build
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: rm -rf build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/{buildtrees,downloads}
-      shell: bash
-    - name: Export vcpkg dependencies
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
-      shell: bash
+      if: runner.os == 'macOS'
+      run: brew install bison
 
     # .NET Core Setup (and also MSBuild for Windows).
     - name: Setup .NET Core
@@ -155,13 +117,23 @@ jobs:
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1
 
-    # Compile ParquetSharp (and upload the native library as an artifact).
+    # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
       run: ./build_unix.sh ${{ matrix.arch }}
+      env:
+        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
-      run: ./build_windows.bat
+      run: ./build_windows.ps1
+      env:
+        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
+    - name: Upload vcpkg arrow logs
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-vcpkg-arrow-logs
+        path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
     - name: Build .NET benchmarks & unit tests
       run: |
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
