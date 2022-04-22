@@ -79,15 +79,22 @@ jobs:
         echo "::set-output name=root::$VCPKG_INSTALLATION_ROOT"
       shell: bash
 
+    # Get cmake version, which is used by vcpkg binary caching
+    - name: Get cmake version
+      id: cmake-info
+      run: echo "::set-output name=version::$(cmake --version | head -n1 | awk '{print $3}')"
+      shell: bash
+
     # Check for cached vcpkg dependencies (use these if we can).
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
       uses: actions/cache@v3
       with:
         path: cache/vcpkg
-        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-${{ hashFiles('vcpkg.json') }}
+        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake${{ steps.cmake-info.outputs.version }}-${{ hashFiles('vcpkg-configuration.json') }}-${{ hashFiles('vcpkg.json') }}
         restore-keys: |
-          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake${{ steps.cmake-info.outputs.version }}-${{ hashFiles('vcpkg-configuration.json') }}-
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake${{ steps.cmake-info.outputs.version }}-
           vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-
 
     # Install arm64 cross-compilation toolchain if required
