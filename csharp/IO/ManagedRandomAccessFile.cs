@@ -44,18 +44,32 @@ namespace ParquetSharp.IO
         {
             try
             {
-#if NETSTANDARD20
-                unsafe
-                {
-                    var read = Stream.Read(new Span<byte>(dest.ToPointer(), (int)nbytes));
-                    Marshal.WriteInt64(bytes_read, read);
-                }
-#else
-                var buffer = new byte[(int) nbytes];
-                var read = _stream.Read(buffer, 0, (int) nbytes);
-                Marshal.Copy(buffer, 0, dest, read);
-                Marshal.WriteInt64(bytesRead, read);
+#if !NETSTANDARD2_1_OR_GREATER
+                var buffer = new byte[(int) Math.Min(nbytes, MaxArraySize)];
 #endif
+                var totalRead = 0L;
+                while (totalRead < nbytes)
+                {
+                    var bytesToRead = (int) Math.Min(nbytes - totalRead, MaxArraySize);
+                    int read;
+#if NETSTANDARD2_1_OR_GREATER
+                    unsafe
+                    {
+                        read = _stream.Read(new Span<byte>(dest.ToPointer(), bytesToRead));
+                    }
+#else
+                    read = _stream.Read(buffer, 0, bytesToRead);
+                    Marshal.Copy(buffer, 0, dest, read);
+#endif
+                    if (read == 0)
+                    {
+                        break;
+                    }
+                    totalRead += read;
+                    dest = IntPtr.Add(dest, read);
+                }
+
+                Marshal.WriteInt64(bytesRead, totalRead);
                 exception = null;
                 return 0;
             }
@@ -188,5 +202,9 @@ namespace ParquetSharp.IO
         // ReSharper disable NotAccessedField.Local
         private string? _exceptionMessage;
         // ReSharper restore NotAccessedField.Local
+
+        // Maximum size of a byte array,
+        // see https://docs.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/runtime/gcallowverylargeobjects-element#remarks
+        private const long MaxArraySize = 2_147_483_591;
     }
 }
