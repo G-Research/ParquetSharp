@@ -98,6 +98,51 @@ namespace ParquetSharp.Test
             AssertReadRoundtrip(rowsPerBatch, readBufferLength, buffer, expectedColumns);
         }
 
+        [TestCase(DateTimeKind.Utc, TimeUnit.Micros)]
+        [TestCase(DateTimeKind.Utc, TimeUnit.Millis)]
+        [TestCase(DateTimeKind.Unspecified, TimeUnit.Micros)]
+        [TestCase(DateTimeKind.Unspecified, TimeUnit.Millis)]
+        public static void TestDateTimeRoundTrip(DateTimeKind kind, TimeUnit timeUnit)
+        {
+            // ParquetSharp doesn't know the DateTime values upfront,
+            // so we have to specify whether values are UTC in the logical type.
+            var isAdjustedToUtc = kind == DateTimeKind.Utc;
+            var schemaColumns = new Column[]
+            {
+                new Column<DateTime>("dateTime", LogicalType.Timestamp(isAdjustedToUtc, timeUnit)),
+            };
+
+            const int numRows = 100;
+            var startTime = new DateTime(2022, 3, 14, 10, 49, 0, kind);
+            var values = Enumerable.Range(0, numRows).Select(i => startTime + TimeSpan.FromSeconds(i)).ToArray();
+
+            using var buffer = new ResizableBuffer();
+
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var fileWriter = new ParquetFileWriter(outStream, schemaColumns);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+                using var columnWriter = rowGroupWriter.Column(0).LogicalWriter<DateTime>();
+                columnWriter.WriteBatch(values);
+                fileWriter.Close();
+            }
+
+            DateTime[] readValues;
+            using (var inStream = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(inStream);
+                using var rowGroupReader = fileReader.RowGroup(0);
+                using var columnReader = rowGroupReader.Column(0);
+                using var logicalReader = columnReader.LogicalReader<DateTime>();
+                readValues = logicalReader.ReadAll(numRows);
+            }
+
+            Assert.AreEqual(values, readValues);
+            var kinds = readValues.Select(v => v.Kind).ToHashSet();
+            Assert.AreEqual(1, kinds.Count);
+            Assert.AreEqual(kind, kinds.First());
+        }
+
         private static WriterProperties CreateWriterProperties(ExpectedColumn[] expectedColumns, bool useDictionaryEncoding)
         {
             var builder = new WriterPropertiesBuilder();
