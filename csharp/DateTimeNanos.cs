@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace ParquetSharp
@@ -59,9 +60,33 @@ namespace ParquetSharp
             return Ticks.CompareTo(other.Ticks);
         }
 
+        /// <summary>
+        /// Converts this DateTimeNanos object to a string using a default formatting string with nanosecond precision
+        /// and the current culture's formatting conventions.
+        /// </summary>
+        /// <returns>String representation of this DateTimeNanos object</returns>
         public override string ToString()
         {
-            return DateTime.ToString();
+            return ToString(null, null);
+        }
+
+        /// <summary>
+        /// Converts this DateTimeNanos object to a string using the specified format and culture-specific format
+        /// information.
+        /// </summary>
+        /// <param name="format">A standard or custom format string. This supports dotnet DateTime format specifiers
+        /// with the addition of "fffffffff" for the number of nanoseconds when using a custom format. If null, a
+        /// default formatting string with nanosecond precision is used.</param>
+        /// <param name="formatProvider">An object that supplies culture-specific formatting information. If null, the
+        /// current culture's formatting conventions are used.</param>
+        /// <returns>String representation of this DateTimeNanos object</returns>
+        public string ToString(string? format, IFormatProvider? formatProvider = null)
+        {
+            format ??= DefaultFormat;
+            const string nanosecondsFormat = "fffffffff";
+            var nanosString = (Ticks % 1_000_000_000).ToString("D9", CultureInfo.InvariantCulture);
+            var adjustedFormat = format.Replace(nanosecondsFormat, $"\"{nanosString}\"");
+            return DateTime.ToString(adjustedFormat, formatProvider);
         }
 
         /// <summary>
@@ -75,5 +100,7 @@ namespace ParquetSharp
         public static readonly DateTime MaxDateTimeValue = new DateTimeNanos(long.MaxValue).DateTime;
 
         private const long DateTimeOffset = 621355968000000000; // new DateTime(1970, 01, 01).Ticks
+
+        private const string DefaultFormat = "yyyy-MM-dd HH:mm:ss.fffffffff";
     }
 }
