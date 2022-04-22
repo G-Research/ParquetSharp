@@ -132,7 +132,7 @@ jobs:
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-vcpkg-arrow-logs
+        name: ${{ steps.vcpkg-info.outputs.triplet }}-vcpkg-arrow-logs
         path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
     - name: Build .NET benchmarks & unit tests
       run: |
@@ -141,7 +141,7 @@ jobs:
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-native-library
+        name: ${{ steps.vcpkg-info.outputs.triplet }}-native-library
         path: bin
 
   # Download all native shared libraries and create the nuget package.
