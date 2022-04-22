@@ -157,12 +157,14 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(DateTime))
             {
-                switch (((TimestampLogicalType) logicalType).TimeUnit)
+                var timestampType = (TimestampLogicalType) logicalType;
+                var kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+                switch (timestampType.TimeUnit)
                 {
                     case TimeUnit.Millis:
-                        return (LogicalRead<DateTime, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertDateTimeMillis(s, d));
+                        return (LogicalRead<DateTime, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertDateTimeMillis(s, d, kind));
                     case TimeUnit.Micros:
-                        return (LogicalRead<DateTime, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertDateTimeMicros(s, d));
+                        return (LogicalRead<DateTime, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertDateTimeMicros(s, d, kind));
                 }
             }
 
@@ -173,12 +175,16 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(DateTime?))
             {
-                switch (((TimestampLogicalType) logicalType).TimeUnit)
+                var timestampType = (TimestampLogicalType) logicalType;
+                var kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+                switch (timestampType.TimeUnit)
                 {
                     case TimeUnit.Millis:
-                        return (LogicalRead<DateTime?, long>.Converter) LogicalRead.ConvertDateTimeMillis;
+                        return (LogicalRead<DateTime?, long>.Converter) (
+                            (source, rep, dest, def) => LogicalRead.ConvertDateTimeMillis(source, rep, dest, def, kind));
                     case TimeUnit.Micros:
-                        return (LogicalRead<DateTime?, long>.Converter) LogicalRead.ConvertDateTimeMicros;
+                        return (LogicalRead<DateTime?, long>.Converter) (
+                            (source, rep, dest, def) => LogicalRead.ConvertDateTimeMicros(source, rep, dest, def, kind));
                     case TimeUnit.Nanos:
                         return (LogicalRead<TPhysical?, TPhysical>.Converter) LogicalRead.ConvertNative;
                 }
@@ -396,39 +402,35 @@ namespace ParquetSharp
             }
         }
 
-        public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination)
+        public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination, DateTimeKind kind = DateTimeKind.Unspecified)
         {
-            var dst = MemoryMarshal.Cast<DateTime, long>(destination);
-
             for (int i = 0; i < destination.Length; ++i)
             {
-                dst[i] = ToDateTimeMicrosTicks(source[i]);
+                destination[i] = new DateTime(ToDateTimeMicrosTicks(source[i]), kind);
             }
         }
 
-        public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short definedLevel)
+        public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short definedLevel, DateTimeKind kind = DateTimeKind.Unspecified)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] != definedLevel ? default(DateTime?) : ToDateTimeMicros(source[src++]);
+                destination[i] = defLevels[i] != definedLevel ? default(DateTime?) : new DateTime(ToDateTimeMicrosTicks(source[src++]), kind);
             }
         }
 
-        public static void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination)
+        public static void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination, DateTimeKind kind = DateTimeKind.Unspecified)
         {
-            var dst = MemoryMarshal.Cast<DateTime, long>(destination);
-
             for (int i = 0; i < destination.Length; ++i)
             {
-                dst[i] = ToDateTimeMillisTicks(source[i]);
+                destination[i] = new DateTime(ToDateTimeMillisTicks(source[i]), kind);
             }
         }
 
-        public static void ConvertDateTimeMillis(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short definedLevel)
+        public static void ConvertDateTimeMillis(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short definedLevel, DateTimeKind kind = DateTimeKind.Unspecified)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] != definedLevel ? default(DateTime?) : ToDateTimeMillis(source[src++]);
+                destination[i] = defLevels[i] != definedLevel ? default(DateTime?) : new DateTime(ToDateTimeMillisTicks(source[src++]), kind);
             }
         }
 
