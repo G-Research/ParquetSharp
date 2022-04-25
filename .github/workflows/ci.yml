@@ -79,15 +79,22 @@ jobs:
         echo "::set-output name=root::$VCPKG_INSTALLATION_ROOT"
       shell: bash
 
+    # Get cmake version, which is used by vcpkg binary caching
+    - name: Get cmake version
+      id: cmake-info
+      run: echo "::set-output name=version::$(cmake --version | head -n1 | awk '{print $3}')"
+      shell: bash
+
     # Check for cached vcpkg dependencies (use these if we can).
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
       uses: actions/cache@v3
       with:
         path: cache/vcpkg
-        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-${{ hashFiles('vcpkg.json') }}
+        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake${{ steps.cmake-info.outputs.version }}-${{ hashFiles('vcpkg-configuration.json') }}-${{ hashFiles('vcpkg.json') }}
         restore-keys: |
-          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-${{ hashFiles('vcpkg-configuration.json') }}-
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake${{ steps.cmake-info.outputs.version }}-${{ hashFiles('vcpkg-configuration.json') }}-
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake${{ steps.cmake-info.outputs.version }}-
           vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-
 
     # Install arm64 cross-compilation toolchain if required
@@ -132,7 +139,7 @@ jobs:
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-vcpkg-arrow-logs
+        name: ${{ steps.vcpkg-info.outputs.triplet }}-vcpkg-arrow-logs
         path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
     - name: Build .NET benchmarks & unit tests
       run: |
@@ -141,7 +148,7 @@ jobs:
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-native-library
+        name: ${{ steps.vcpkg-info.outputs.triplet }}-native-library
         path: bin
 
   # Download all native shared libraries and create the nuget package.
