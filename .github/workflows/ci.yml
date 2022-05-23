@@ -97,6 +97,17 @@ jobs:
           vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake${{ steps.cmake-info.outputs.version }}-
           vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-
 
+    # Setup a CentOS 7 container to build on Linux x64 for backwards compatibility.
+    - name: Start CentOS container and install toolchain
+      if: runner.os == 'Linux' && matrix.arch == 'x64'
+      run: |
+        docker run -d --name centos --entrypoint tail -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT centos:7 -f /dev/null
+        docker exec centos sh -c "yum install -y centos-release-scl epel-release && \
+                                  yum install -y devtoolset-7 rh-git227 flex bison && \
+                                  curl -fsSL -o /tmp/cmake.sh https://github.com/Kitware/CMake/releases/download/v${{ steps.cmake-info.outputs.version }}/cmake-${{ steps.cmake-info.outputs.version }}-linux-x86_64.sh && \
+                                  sh /tmp/cmake.sh --skip-license --prefix=/usr/local && \
+                                  rm /tmp/cmake.sh"
+
     # Install arm64 cross-compilation toolchain if required
     - name: Install arm64 cross-compilation toolchain
       if: runner.os == 'Linux' && matrix.arch == 'arm64'
@@ -127,7 +138,11 @@ jobs:
     # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
-      run: ./build_unix.sh ${{ matrix.arch }}
+      run: |
+        if [ "${{ runner.os }}" == "Linux" ] && [ "${{ matrix.arch }}" == "x64" ]; then
+          exec="docker exec -w $PWD -e GITHUB_ACTIONS -e VCPKG_BINARY_SOURCES -e VCPKG_INSTALLATION_ROOT centos scl enable devtoolset-7 rh-git227 --"
+        fi
+        $exec ./build_unix.sh ${{ matrix.arch }}
       env:
         VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
     - name: Compile native ParquetSharp library (Windows)
@@ -150,6 +165,10 @@ jobs:
       with:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-native-library
         path: bin
+
+    - name: Stop CentOS container
+      if: runner.os == 'Linux' && matrix.arch == 'x64'
+      run: docker rm -f centos
 
   # Download all native shared libraries and create the nuget package.
   # Upload nuget package as an artifact.

@@ -21,10 +21,11 @@ esac
 case $(uname) in
   Linux)
     os=linux
+    [ -f /etc/redhat-release ] && platform=redhat-linux || platform=linux-gnu
     options="-D CMAKE_SYSTEM_PROCESSOR=$linux_arch \
-             -D CMAKE_C_COMPILER=$(which $linux_arch-linux-gnu-gcc) \
-             -D CMAKE_CXX_COMPILER=$(which $linux_arch-linux-gnu-g++) \
-             -D CMAKE_STRIP=$(which $linux_arch-linux-gnu-strip)"
+             -D CMAKE_C_COMPILER=$(which $linux_arch-$platform-gcc) \
+             -D CMAKE_CXX_COMPILER=$(which $linux_arch-$platform-g++) \
+             -D CMAKE_STRIP=$(which $linux_arch-$platform-strip 2>/dev/null || which strip)"
     ;;
   Darwin)
     os=osx
