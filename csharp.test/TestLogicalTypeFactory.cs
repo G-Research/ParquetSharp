@@ -37,7 +37,8 @@ namespace ParquetSharp.Test
             {
                 using var reader = groupReader.Column(0).LogicalReader<VolumeInDollars>();
             });
-            StringAssert.StartsWith("Unable to cast object of type 'ParquetSharp.LogicalColumnReader`3[System.Single,System.Single,System.Single]", exception?.Message);
+            StringAssert.StartsWith("Tried to get a LogicalColumnReader for column 0", exception?.Message);
+            StringAssert.Contains("actual element type is 'System.Single'", exception?.Message);
         }
 
         [Test]
@@ -83,7 +84,8 @@ namespace ParquetSharp.Test
             {
                 using var writer = groupWriter.NextColumn().LogicalWriter<VolumeInDollars>();
             });
-            StringAssert.StartsWith("Unable to cast object of type 'ParquetSharp.LogicalColumnWriter`3[System.Single,System.Single,System.Single]", exception?.Message);
+            StringAssert.StartsWith("Tried to get a LogicalColumnWriter for column 0", exception?.Message);
+            StringAssert.Contains("actual element type is 'System.Single'", exception?.Message);
         }
 
         [Test]
