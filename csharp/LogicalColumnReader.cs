@@ -46,7 +46,6 @@ namespace ParquetSharp
                 {
                     throw;
                 }
-
                 var elementType = logicalReaderType.GetGenericArguments()[2];
                 var expectedElementType = typeof(TElement);
                 var message =
