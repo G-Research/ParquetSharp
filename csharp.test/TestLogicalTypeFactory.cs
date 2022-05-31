@@ -37,8 +37,8 @@ namespace ParquetSharp.Test
             {
                 using var reader = groupReader.Column(0).LogicalReader<VolumeInDollars>();
             });
-            StringAssert.StartsWith("Tried to get a LogicalColumnReader for column 0", exception?.Message);
-            StringAssert.Contains("actual element type is 'System.Single'", exception?.Message);
+            Assert.That(exception?.Message, Does.StartWith("Tried to get a LogicalColumnReader for column 0"));
+            Assert.That(exception?.Message, Does.Contain("actual element type is 'System.Single'"));
         }
 
         [Test]
@@ -51,7 +51,7 @@ namespace ParquetSharp.Test
             using var groupReader = fileReader.RowGroup(0);
 
             var exception = Assert.Throws<NotSupportedException>(() => groupReader.Column(0).LogicalReaderOverride<VolumeInDollars>());
-            StringAssert.StartsWith("unsupported logical system type", exception?.Message);
+            Assert.That(exception?.Message, Does.StartWith("unsupported logical system type"));
         }
 
         [Test]
@@ -66,7 +66,7 @@ namespace ParquetSharp.Test
                 using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<VolumeInDollars>("value")});
             });
 
-            StringAssert.StartsWith("unsupported logical type", exception?.Message);
+            Assert.That(exception?.Message, Does.StartWith("unsupported logical type"));
         }
 
         [Test]
@@ -84,8 +84,8 @@ namespace ParquetSharp.Test
             {
                 using var writer = groupWriter.NextColumn().LogicalWriter<VolumeInDollars>();
             });
-            StringAssert.StartsWith("Tried to get a LogicalColumnWriter for column 0", exception?.Message);
-            StringAssert.Contains("actual element type is 'System.Single'", exception?.Message);
+            Assert.That(exception?.Message, Does.StartWith("Tried to get a LogicalColumnWriter for column 0"));
+            Assert.That(exception?.Message, Does.Contain("actual element type is 'System.Single'"));
         }
 
         [Test]
@@ -100,7 +100,7 @@ namespace ParquetSharp.Test
             using var groupWriter = fileWriter.AppendRowGroup();
 
             var exception = Assert.Throws<NotSupportedException>(() => groupWriter.NextColumn().LogicalWriterOverride<VolumeInDollars>());
-            StringAssert.StartsWith("unsupported logical system type", exception?.Message);
+            Assert.That(exception?.Message, Does.StartWith("unsupported logical system type"));
         }
 
         [Test]

@@ -55,7 +55,7 @@ namespace ParquetSharp.Test
                 }
             });
 
-            StringAssert.StartsWith("Tried to get a LogicalColumnReader", exception?.Message);
+            Assert.That(exception?.Message, Does.StartWith("Tried to get a LogicalColumnReader"));
         }
 
         [Test]
