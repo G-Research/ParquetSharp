@@ -40,6 +40,7 @@ namespace ParquetSharp
             catch (InvalidCastException exception)
             {
                 var logicalWriterType = writer.GetType();
+                var colName = columnWriter.ColumnDescriptor.Name;
                 writer.Dispose();
                 if (logicalWriterType.GetGenericTypeDefinition() != typeof(LogicalColumnWriter<,,>))
                 {
@@ -48,7 +49,7 @@ namespace ParquetSharp
                 var elementType = logicalWriterType.GetGenericArguments()[2];
                 var expectedElementType = typeof(TElementType);
                 var message =
-                    $"Tried to get a LogicalColumnWriter for column {columnWriter.ColumnIndex} " +
+                    $"Tried to get a LogicalColumnWriter for column {columnWriter.ColumnIndex} ('{colName}') " +
                     $"with an element type of '{expectedElementType}' " +
                     $"but the actual element type is '{elementType}'.";
                 throw new InvalidCastException(message, exception);

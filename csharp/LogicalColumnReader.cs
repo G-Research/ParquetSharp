@@ -40,15 +40,17 @@ namespace ParquetSharp
             catch (InvalidCastException exception)
             {
                 var logicalReaderType = reader.GetType();
+                var colName = columnReader.ColumnDescriptor.Name;
                 reader.Dispose();
                 if (logicalReaderType.GetGenericTypeDefinition() != typeof(LogicalColumnReader<,,>))
                 {
                     throw;
                 }
+
                 var elementType = logicalReaderType.GetGenericArguments()[2];
                 var expectedElementType = typeof(TElement);
                 var message =
-                    $"Tried to get a LogicalColumnReader for column {columnReader.ColumnIndex} " +
+                    $"Tried to get a LogicalColumnReader for column {columnReader.ColumnIndex} ('{colName}') " +
                     $"with an element type of '{expectedElementType}' " +
                     $"but the actual element type is '{elementType}'.";
                 throw new InvalidCastException(message, exception);

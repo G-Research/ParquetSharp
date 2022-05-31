@@ -36,7 +36,7 @@ namespace ParquetSharp.Test
             var exception = Assert.Throws<InvalidCastException>(() => column.LogicalReader<int>())!;
 
             Assert.That(exception.Message, Is.EqualTo(
-                "Tried to get a LogicalColumnReader for column 0 with an element type of 'System.Int32' " +
+                "Tried to get a LogicalColumnReader for column 0 ('col') with an element type of 'System.Int32' " +
                 "but the actual element type is 'System.Nullable`1[System.Int32]'."));
         }
     }
