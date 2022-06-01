@@ -6,8 +6,8 @@ namespace ParquetSharp
 {
     internal sealed class KeyValueMetadata : IDisposable
     {
-        public KeyValueMetadata(IReadOnlyDictionary<string, string> keyValueMetadata)
-            : this(Make(keyValueMetadata))
+        public KeyValueMetadata(IReadOnlyDictionary<string, string>? keyValueMetadata)
+            : this(keyValueMetadata == null ? MakeEmpty() : Make(keyValueMetadata))
         {
         }
 
@@ -22,6 +22,14 @@ namespace ParquetSharp
         }
 
         public long Size => ExceptionInfo.Return<long>(Handle, KeyValueMetadata_Size);
+
+        public void Set(string key, string value)
+        {
+            using var byteBuffer = new ByteBuffer(1024);
+            var keyPtr = StringUtil.ToCStringUtf8(key, byteBuffer);
+            var valuePtr = StringUtil.ToCStringUtf8(value, byteBuffer);
+            ExceptionInfo.Check(KeyValueMetadata_Set(Handle.IntPtr, keyPtr, valuePtr));
+        }
 
         public unsafe IReadOnlyDictionary<string, string> ToDictionary()
         {
@@ -73,14 +81,26 @@ namespace ParquetSharp
             }
         }
 
+        private static IntPtr MakeEmpty()
+        {
+            ExceptionInfo.Check(KeyValueMetadata_MakeEmpty(out var handle));
+            return handle;
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr KeyValueMetadata_Make(long size, IntPtr keys, IntPtr values, out IntPtr keyValueMetadata);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr KeyValueMetadata_MakeEmpty(out IntPtr keyValueMetadata);
 
         [DllImport(ParquetDll.Name)]
         private static extern void KeyValueMetadata_Free(IntPtr keyValueMetadata);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr KeyValueMetadata_Size(IntPtr keyValueMetadata, out long size);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr KeyValueMetadata_Set(IntPtr keyValueMetadata, IntPtr key, IntPtr value);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr KeyValueMetadata_Get_Entries(IntPtr keyValueMetadata, out IntPtr keys, out IntPtr values);
