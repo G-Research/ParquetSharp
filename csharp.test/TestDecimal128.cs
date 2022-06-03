@@ -48,6 +48,7 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        [SetCulture("en-US")]
         public static void TestScaleOverflow()
         {
             var exception = Assert.Throws<OverflowException>(() =>
