@@ -71,9 +71,9 @@ extern "C"
 		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Time(is_adjusted_to_utc, time_unit));)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Timestamp(const bool is_adjusted_to_utc, const LogicalType::TimeUnit::unit time_unit, const std::shared_ptr<const LogicalType>** logical_type)
+	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Timestamp(const bool is_adjusted_to_utc, const LogicalType::TimeUnit::unit time_unit, const bool force_set_converted_type, const std::shared_ptr<const LogicalType>** logical_type)
 	{
-		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Timestamp(is_adjusted_to_utc, time_unit));)
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Timestamp(is_adjusted_to_utc, time_unit, /*is_from_converted_type*/ false, force_set_converted_type));)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Interval(const std::shared_ptr<const LogicalType>** logical_type)
@@ -135,6 +135,16 @@ extern "C"
 	PARQUETSHARP_EXPORT ExceptionInfo* TimestampLogicalType_IsAdjustedToUtc(const std::shared_ptr<const TimestampLogicalType>* logical_type, bool* is_adjusted_to_utc)
 	{
 		TRYCATCH(*is_adjusted_to_utc = (*logical_type)->is_adjusted_to_utc();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* TimestampLogicalType_ForceSetConvertedType(const std::shared_ptr<const TimestampLogicalType>* logical_type, bool* force_set_converted_type)
+	{
+		TRYCATCH(*force_set_converted_type = (*logical_type)->force_set_converted_type();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* TimestampLogicalType_IsFromConvertedType(const std::shared_ptr<const TimestampLogicalType>* logical_type, bool* is_from_converted_type)
+	{
+		TRYCATCH(*is_from_converted_type = (*logical_type)->is_from_converted_type();)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* TimestampLogicalType_TimeUnit(const std::shared_ptr<const TimestampLogicalType>* logical_type, LogicalType::TimeUnit::unit* time_unit)
