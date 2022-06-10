@@ -523,7 +523,7 @@ namespace ParquetSharp.Test
             var repLevels = new short[dataLength];
             for (var i = 0; i < dataLength; ++i)
             {
-                repLevels[i] = (short)(i % arrayLength == 0 ? 0 : 1);
+                repLevels[i] = (short) (i % arrayLength == 0 ? 0 : 1);
                 defLevels[i] = 3;
             }
 
@@ -540,7 +540,7 @@ namespace ParquetSharp.Test
                 propertiesBuilder.Compression(Compression.Snappy);
                 propertiesBuilder.DataPagesize(1024);
                 using var writerProperties = propertiesBuilder.Build();
-                
+
                 using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string[]>("a")},
                     writerProperties);
                 using var rowGroupWriter = fileWriter.AppendRowGroup();

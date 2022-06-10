@@ -189,7 +189,7 @@ namespace ParquetSharp
             // Handle arrays
             if (elementType != typeof(byte[]) && elementType.IsArray)
             {
-                var result = (Span<TElement>) (TElement[]) ReadArray(schemaNodes, typeof(TElement), _converter, _bufferedReader, destination.Length, 0, definitionLevel);
+                var result = (Span<TElement>) (TElement[]) ReadArray(schemaNodes, typeof(TElement), _bufferedReader, destination.Length, 0, definitionLevel);
                 result.CopyTo(destination);
                 return result.Length;
             }
@@ -208,8 +208,8 @@ namespace ParquetSharp
         }
 
         private static Array ReadArray(
-            ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalRead<TLogical, TPhysical>.Converter converter,
-            BufferedReader<TLogical, TPhysical> valueReader, int numArrayEntriesToRead, short repetitionLevel, short definitionLevel)
+            ReadOnlySpan<Node> schemaNodes, Type elementType, BufferedReader<TLogical, TPhysical> valueReader,
+            int numArrayEntriesToRead, short repetitionLevel, short definitionLevel)
         {
             // Handle structs
             var (definitionLevelDelta, schemaSlice) = StructSkip(schemaNodes);
@@ -223,7 +223,8 @@ namespace ParquetSharp
                     if (schemaNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} &&
                         schemaNodes[1] is GroupNode {LogicalType: NoneLogicalType, Repetition: Repetition.Repeated})
                     {
-                        return ReadArrayIntermediateLevel(schemaNodes, valueReader, elementType, converter, numArrayEntriesToRead, repetitionLevel, definitionLevel);
+                        return ReadArrayIntermediateLevel(
+                            schemaNodes, valueReader, elementType, numArrayEntriesToRead, repetitionLevel, definitionLevel);
                     }
                 }
 
@@ -238,8 +239,9 @@ namespace ParquetSharp
             throw new Exception("ParquetSharp does not understand the schema used");
         }
 
-        private static Array ReadArrayIntermediateLevel(ReadOnlySpan<Node> schemaNodes, BufferedReader<TLogical, TPhysical> valueReader, Type elementType,
-            LogicalRead<TLogical, TPhysical>.Converter converter, int numArrayEntriesToRead, short repetitionLevel, short definitionLevel)
+        private static Array ReadArrayIntermediateLevel(
+            ReadOnlySpan<Node> schemaNodes, BufferedReader<TLogical, TPhysical> valueReader, Type elementType,
+            int numArrayEntriesToRead, short repetitionLevel, short definitionLevel)
         {
             var acc = new List<Array?>();
 
@@ -251,7 +253,7 @@ namespace ParquetSharp
 
                 if (defn.DefLevel >= definitionLevel + 2)
                 {
-                    newItem = ReadArray(schemaNodes.Slice(2), elementType.GetElementType(), converter, valueReader, -1, (short) (repetitionLevel + 1), (short) (definitionLevel + 2));
+                    newItem = ReadArray(schemaNodes.Slice(2), elementType.GetElementType(), valueReader, -1, (short) (repetitionLevel + 1), (short) (definitionLevel + 2));
                 }
                 else
                 {
