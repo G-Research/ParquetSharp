@@ -494,6 +494,86 @@ namespace ParquetSharp.Test
             Assert.AreEqual(expected, allData);
         }
 
+        [Test]
+        public static void TestLargeStringArrays()
+        {
+            // This test was added after finding that when we buffer ByteArray values without immediately converting
+            // them, we can later get AccessViolationExceptions thrown due to trying to convert ByteArrays that end
+            // up pointing to memory that was freed when the internal Arrow library read a new page of data.
+            // This test didn't reproduce the AccessViolationExceptions but did read garbage data.
+
+            const int numArrays = 1_000;
+            const int arrayLength = 100;
+            const int dataLength = numArrays * arrayLength;
+
+            var chars = "0123456789abcdefghijklmnopqrstuvwxyz".ToArray();
+            var random = new Random(0);
+
+            string GetRandomString() => string.Join(
+                "", Enumerable.Range(0, random.Next(50, 101)).Select(_ => chars[random.Next(chars.Length)]));
+
+            var stringValues = Enumerable.Range(0, 10)
+                .Select(_ => GetRandomString())
+                .ToArray();
+            var stringData = Enumerable.Range(0, dataLength)
+                .Select(_ => stringValues[random.Next(0, stringValues.Length)])
+                .ToArray();
+
+            var defLevels = new short[dataLength];
+            var repLevels = new short[dataLength];
+            for (var i = 0; i < dataLength; ++i)
+            {
+                repLevels[i] = (short)(i % arrayLength == 0 ? 0 : 1);
+                defLevels[i] = 3;
+            }
+
+            var expected = Enumerable.Range(0, numArrays)
+                .Select(arrayIdx => stringData.AsSpan(arrayIdx * arrayLength, arrayLength).ToArray())
+                .ToArray();
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var propertiesBuilder = new WriterPropertiesBuilder();
+                propertiesBuilder.DisableDictionary();
+                propertiesBuilder.Encoding(Encoding.Plain);
+                propertiesBuilder.Compression(Compression.Snappy);
+                propertiesBuilder.DataPagesize(1024);
+                using var writerProperties = propertiesBuilder.Build();
+                
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string[]>("a")},
+                    writerProperties);
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var colWriter = (ColumnWriter<ByteArray>) rowGroupWriter.NextColumn();
+
+                // We write values with the low-level column writer rather than a LogicalColumnWriter, as due to
+                // the way the LogicalColumnWriter interacts with the ColumnWriter, all leaf-level arrays end up in
+                // the same data page and so data written with a ParquetSharp LogicalColumnWriter doesn't reproduce
+                // the issue with invalid data being read.
+                const int batchSize = 64;
+                for (var offset = 0; offset < dataLength; offset += batchSize)
+                {
+                    using var byteBuffer = new ByteBuffer(1024);
+                    var thisBatchSize = Math.Min(batchSize, dataLength - offset);
+                    var batchStringValues = stringData.AsSpan(offset, thisBatchSize);
+                    var batchDefLevels = defLevels.AsSpan(offset, thisBatchSize);
+                    var batchRepLevels = repLevels.AsSpan(offset, thisBatchSize);
+                    var batchPhysicalValues = batchStringValues.ToArray().Select(s => LogicalWrite.FromString(s, byteBuffer)).ToArray();
+                    colWriter.WriteBatch(thisBatchSize, batchDefLevels, batchRepLevels, batchPhysicalValues);
+                }
+
+                fileWriter.Close();
+            }
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var rowGroup = fileReader.RowGroup(0);
+            using var columnReader = rowGroup.Column(0).LogicalReader<string[]>();
+
+            var values = columnReader.ReadAll(expected.Length);
+            Assert.That(values, Is.EqualTo(expected));
+        }
+
         private static ExpectedColumn[] CreateExpectedColumns()
         {
             return new[]
