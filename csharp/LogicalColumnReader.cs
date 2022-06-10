@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using ParquetSharp.Schema;
 
 namespace ParquetSharp
@@ -144,9 +145,11 @@ namespace ParquetSharp
         {
             var converterFactory = columnReader.LogicalReadConverterFactory;
 
-            _bufferedReader = new BufferedReader<TPhysical>(Source, (TPhysical[]) Buffer, DefLevels, RepLevels);
-            _directReader = (LogicalRead<TLogical, TPhysical>.DirectReader?) converterFactory.GetDirectReader<TLogical, TPhysical>();
             _converter = (LogicalRead<TLogical, TPhysical>.Converter) converterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, columnReader.ColumnChunkMetaData);
+            var leafDefinitionLevel = (short) SchemaNodesPath!.Count(n => n.Repetition != Repetition.Required);
+            var nullableLeafValues = ColumnDescriptor.SchemaNode.Repetition == Repetition.Optional;
+            _bufferedReader = new BufferedReader<TLogical, TPhysical>(Source, _converter, (TPhysical[]) Buffer, DefLevels, RepLevels, leafDefinitionLevel, nullableLeafValues);
+            _directReader = (LogicalRead<TLogical, TPhysical>.DirectReader?) converterFactory.GetDirectReader<TLogical, TPhysical>();
         }
 
         /*
@@ -206,7 +209,7 @@ namespace ParquetSharp
 
         private static Array ReadArray(
             ReadOnlySpan<Node> schemaNodes, Type elementType, LogicalRead<TLogical, TPhysical>.Converter converter,
-            BufferedReader<TPhysical> valueReader, int numArrayEntriesToRead, short repetitionLevel, short definitionLevel)
+            BufferedReader<TLogical, TPhysical> valueReader, int numArrayEntriesToRead, short repetitionLevel, short definitionLevel)
         {
             // Handle structs
             var (definitionLevelDelta, schemaSlice) = StructSkip(schemaNodes);
@@ -229,13 +232,13 @@ namespace ParquetSharp
 
             if (schemaNodes.Length == 1)
             {
-                return ReadArrayLeafLevel(schemaNodes[0], valueReader, converter, repetitionLevel, definitionLevel);
+                return ReadArrayLeafLevel(schemaNodes[0], valueReader, repetitionLevel, definitionLevel);
             }
 
             throw new Exception("ParquetSharp does not understand the schema used");
         }
 
-        private static Array ReadArrayIntermediateLevel(ReadOnlySpan<Node> schemaNodes, BufferedReader<TPhysical> valueReader, Type elementType,
+        private static Array ReadArrayIntermediateLevel(ReadOnlySpan<Node> schemaNodes, BufferedReader<TLogical, TPhysical> valueReader, Type elementType,
             LogicalRead<TLogical, TPhysical>.Converter converter, int numArrayEntriesToRead, short repetitionLevel, short definitionLevel)
         {
             var acc = new List<Array?>();
@@ -270,10 +273,9 @@ namespace ParquetSharp
             return ListToArray(acc, elementType);
         }
 
-        private static Array ReadArrayLeafLevel(Node node, BufferedReader<TPhysical> valueReader, LogicalRead<TLogical, TPhysical>.Converter converter, short repetitionLevel, short definitionLevel)
+        private static Array ReadArrayLeafLevel(Node node, BufferedReader<TLogical, TPhysical> valueReader, short repetitionLevel, short definitionLevel)
         {
-            var defnLevel = new List<short>();
-            var values = new List<TPhysical>();
+            var values = new List<TLogical>();
             var firstValue = true;
             var innerNodeIsOptional = node.Repetition == Repetition.Optional;
             definitionLevel += (short) (innerNodeIsOptional ? 1 : 0);
@@ -287,28 +289,22 @@ namespace ParquetSharp
                     break;
                 }
 
-                if (defn.DefLevel == definitionLevel)
+                if (defn.DefLevel == definitionLevel || innerNodeIsOptional)
                 {
+                    // Note that when the inner node is optional,
+                    // the converter will handle definition levels and create null values.
                     values.Add(valueReader.ReadValue());
-                }
-                else if (innerNodeIsOptional && (defn.DefLevel != definitionLevel))
-                {
-                    // Value is null, skip
                 }
                 else
                 {
                     throw new Exception("Definition levels read from file do not match up with schema.");
                 }
 
-                defnLevel.Add(defn.DefLevel);
-
                 valueReader.NextDefinition();
                 firstValue = false;
             }
 
-            var dest = new TLogical[defnLevel.Count];
-            converter(values.ToArray(), defnLevel.ToArray(), dest, definitionLevel);
-            return dest;
+            return values.ToArray();
         }
 
         private static Array ListToArray(List<Array?> list, Type elementType)
@@ -379,7 +375,7 @@ namespace ParquetSharp
             return rowsRead;
         }
 
-        private readonly BufferedReader<TPhysical> _bufferedReader;
+        private readonly BufferedReader<TLogical, TPhysical> _bufferedReader;
         private readonly LogicalRead<TLogical, TPhysical>.DirectReader? _directReader;
         private readonly LogicalRead<TLogical, TPhysical>.Converter _converter;
     }
