@@ -510,7 +510,7 @@ namespace ParquetSharp.Test
             var random = new Random(0);
 
             string GetRandomString() => string.Join(
-                "", Enumerable.Range(0, random.Next(50, 101)).Select(_ => chars[random.Next(chars.Length)]));
+                "", Enumerable.Range(0, random!.Next(50, 101)).Select(_ => chars![random.Next(chars.Length)]));
 
             var stringValues = Enumerable.Range(0, 10)
                 .Select(_ => GetRandomString())
