@@ -56,5 +56,22 @@ namespace ParquetSharp.Test
             var column5Expected = new[] {new[] {"First String", "Second String"}, new[] {"Third String"}};
             Assert.AreEqual(column5Expected, column5Actual);
         }
+
+        [Test]
+        public static void TestLargeNestedStringArrayRead()
+        {
+            // This test was added after finding that when we buffer ByteArray values without immediately converting
+            // them, we can later get AccessViolationExceptions thrown due to trying to convert ByteArrays that end
+            // up pointing to memory that was freed when the internal Arrow library read a new page of data.
+
+            var directory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            var filePath = Path.Combine(directory!, "TestFiles/nested_string_arrays.parquet");
+
+            using var fileReader = new ParquetFileReader(filePath);
+            using var rowGroup = fileReader.RowGroup(0);
+            using var columnReader = rowGroup.Column(0).LogicalReader<string?[]?[]?>();
+
+            var _ = columnReader.ReadAll((int) rowGroup.MetaData.NumRows);
+        }
     }
 }
