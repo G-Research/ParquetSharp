@@ -55,7 +55,7 @@ namespace ParquetSharp.Test
                 }
             });
 
-            StringAssert.StartsWith("Unable to cast object of type", exception?.Message);
+            Assert.That(exception?.Message, Does.StartWith("Tried to get a LogicalColumnReader"));
         }
 
         [Test]
