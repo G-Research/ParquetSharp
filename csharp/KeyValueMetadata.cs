@@ -6,8 +6,7 @@ namespace ParquetSharp
 {
     internal sealed class KeyValueMetadata : IDisposable
     {
-        public KeyValueMetadata(IReadOnlyDictionary<string, string>? keyValueMetadata)
-            : this(keyValueMetadata == null ? MakeEmpty() : Make(keyValueMetadata))
+        public KeyValueMetadata() : this(MakeEmpty())
         {
         }
 
@@ -21,14 +20,17 @@ namespace ParquetSharp
             Handle.Dispose();
         }
 
-        public long Size => ExceptionInfo.Return<long>(Handle, KeyValueMetadata_Size);
+        private long Size => ExceptionInfo.Return<long>(Handle, KeyValueMetadata_Size);
 
-        public void Set(string key, string value)
+        public void SetData(IReadOnlyDictionary<string, string> keyValueMetadata)
         {
             using var byteBuffer = new ByteBuffer(1024);
-            var keyPtr = StringUtil.ToCStringUtf8(key, byteBuffer);
-            var valuePtr = StringUtil.ToCStringUtf8(value, byteBuffer);
-            ExceptionInfo.Check(KeyValueMetadata_Set(Handle.IntPtr, keyPtr, valuePtr));
+            foreach (var entry in keyValueMetadata)
+            {
+                var keyPtr = StringUtil.ToCStringUtf8(entry.Key, byteBuffer);
+                var valuePtr = StringUtil.ToCStringUtf8(entry.Value, byteBuffer);
+                ExceptionInfo.Check(KeyValueMetadata_Append(Handle.IntPtr, keyPtr, valuePtr));
+            }
         }
 
         public unsafe IReadOnlyDictionary<string, string> ToDictionary()
@@ -58,37 +60,11 @@ namespace ParquetSharp
             }
         }
 
-        private static unsafe IntPtr Make(IReadOnlyDictionary<string, string> keyValueMetadata)
-        {
-            using var byteBuffer = new ByteBuffer(1024);
-            var keys = new IntPtr[keyValueMetadata.Count];
-            var values = new IntPtr[keyValueMetadata.Count];
-            var i = 0;
-
-            foreach (var entry in keyValueMetadata)
-            {
-                keys[i] = StringUtil.ToCStringUtf8(entry.Key, byteBuffer);
-                values[i] = StringUtil.ToCStringUtf8(entry.Value, byteBuffer);
-
-                ++i;
-            }
-
-            fixed (IntPtr* pKeys = keys)
-            fixed (IntPtr* pValues = values)
-            {
-                ExceptionInfo.Check(KeyValueMetadata_Make(values.Length, new IntPtr(pKeys), new IntPtr(pValues), out var handle));
-                return handle;
-            }
-        }
-
         private static IntPtr MakeEmpty()
         {
             ExceptionInfo.Check(KeyValueMetadata_MakeEmpty(out var handle));
             return handle;
         }
-
-        [DllImport(ParquetDll.Name)]
-        private static extern IntPtr KeyValueMetadata_Make(long size, IntPtr keys, IntPtr values, out IntPtr keyValueMetadata);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr KeyValueMetadata_MakeEmpty(out IntPtr keyValueMetadata);
@@ -100,7 +76,7 @@ namespace ParquetSharp
         private static extern IntPtr KeyValueMetadata_Size(IntPtr keyValueMetadata, out long size);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr KeyValueMetadata_Set(IntPtr keyValueMetadata, IntPtr key, IntPtr value);
+        private static extern IntPtr KeyValueMetadata_Append(IntPtr keyValueMetadata, IntPtr key, IntPtr value);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr KeyValueMetadata_Get_Entries(IntPtr keyValueMetadata, out IntPtr keys, out IntPtr values);

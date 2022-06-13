@@ -46,6 +46,8 @@ namespace ParquetSharp.Test
             var columns = new Column[] {new Column<int>("values")};
             var values = Enumerable.Range(0, 100).ToArray();
 
+            var keyValueMetadata = new Dictionary<string, string>();
+
             var expectedKeyValueMetadata = new Dictionary<string, string>
             {
                 {"key1", "value1"},
@@ -55,7 +57,7 @@ namespace ParquetSharp.Test
             using var buffer = new ResizableBuffer();
             using (var output = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(output, columns);
+                using var fileWriter = new ParquetFileWriter(output, columns, keyValueMetadata: keyValueMetadata);
                 using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
 
                 using (var colWriter = rowGroupWriter.Column(0).LogicalWriter<int>())
@@ -63,16 +65,19 @@ namespace ParquetSharp.Test
                     colWriter.WriteBatch(values);
                 }
 
-                fileWriter.UpdateKeyValueMetadata(expectedKeyValueMetadata);
+                foreach (var kvp in expectedKeyValueMetadata)
+                {
+                    keyValueMetadata[kvp.Key] = kvp.Value;
+                }
 
                 fileWriter.Close();
             }
 
             using var input = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(input);
-            var keyValueMetadata = fileReader.FileMetaData.KeyValueMetadata;
+            var readKeyValueMetadata = fileReader.FileMetaData.KeyValueMetadata;
 
-            Assert.That(keyValueMetadata, Is.EqualTo(expectedKeyValueMetadata));
+            Assert.That(readKeyValueMetadata, Is.EqualTo(expectedKeyValueMetadata));
 
             fileReader.Close();
         }
@@ -83,7 +88,7 @@ namespace ParquetSharp.Test
             var columns = new Column[] {new Column<int>("values")};
             var values = Enumerable.Range(0, 100).ToArray();
 
-            var initialKeyValueMetadata = new Dictionary<string, string>
+            var keyValueMetadata = new Dictionary<string, string>
             {
                 {"key1", "value1"},
                 {"key2", "value2"},
@@ -103,7 +108,7 @@ namespace ParquetSharp.Test
             using var buffer = new ResizableBuffer();
             using (var output = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(output, columns, keyValueMetadata: initialKeyValueMetadata);
+                using var fileWriter = new ParquetFileWriter(output, columns, keyValueMetadata: keyValueMetadata);
                 using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
 
                 using (var colWriter = rowGroupWriter.Column(0).LogicalWriter<int>())
@@ -111,16 +116,19 @@ namespace ParquetSharp.Test
                     colWriter.WriteBatch(values);
                 }
 
-                fileWriter.UpdateKeyValueMetadata(keyValueMetadataUpdate);
+                foreach (var kvp in keyValueMetadataUpdate)
+                {
+                    keyValueMetadata[kvp.Key] = kvp.Value;
+                }
 
                 fileWriter.Close();
             }
 
             using var input = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(input);
-            var keyValueMetadata = fileReader.FileMetaData.KeyValueMetadata;
+            var readKeyValueMetadata = fileReader.FileMetaData.KeyValueMetadata;
 
-            Assert.That(keyValueMetadata, Is.EqualTo(expectedKeyValueMetadata));
+            Assert.That(readKeyValueMetadata, Is.EqualTo(expectedKeyValueMetadata));
 
             fileReader.Close();
         }
@@ -147,6 +155,38 @@ namespace ParquetSharp.Test
             var keyValueMetadata = fileReader.FileMetaData.KeyValueMetadata;
 
             Assert.That(keyValueMetadata, Is.Empty);
+
+            fileReader.Close();
+        }
+
+        [Test]
+        public static void TestWriterNotClosed()
+        {
+            var columns = new Column[] {new Column<int>("values")};
+            var values = Enumerable.Range(0, 100).ToArray();
+
+            var expectedKeyValueMetadata = new Dictionary<string, string>
+            {
+                {"key1", "value1"},
+                {"key2", "value2"},
+            };
+
+            using var buffer = new ResizableBuffer();
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var fileWriter = new ParquetFileWriter(output, columns, keyValueMetadata: expectedKeyValueMetadata);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<int>();
+                colWriter.WriteBatch(values);
+                // Don't close, rely on Dispose
+            }
+
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            var keyValueMetadata = fileReader.FileMetaData.KeyValueMetadata;
+
+            Assert.That(keyValueMetadata, Is.EqualTo(expectedKeyValueMetadata));
 
             fileReader.Close();
         }

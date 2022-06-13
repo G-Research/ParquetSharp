@@ -9,23 +9,6 @@ using namespace parquet;
 
 extern "C"
 {
-	PARQUETSHARP_EXPORT ExceptionInfo* KeyValueMetadata_Make(const int64_t size, const char** keys, const char** values, std::shared_ptr<KeyValueMetadata>** key_value_metadata)
-	{
-		TRYCATCH
-		(
-			std::vector<std::string> keys_vector(size);
-			std::vector<std::string> values_vector(size);
-
-			for (int64_t i = 0; i != size; ++i)
-			{
-				keys_vector[i] = keys[i];
-				values_vector[i] = values[i];
-			}
-
-			*key_value_metadata = new std::shared_ptr<KeyValueMetadata>(new KeyValueMetadata(keys_vector, values_vector));
-		)
-	}
-
 	PARQUETSHARP_EXPORT ExceptionInfo* KeyValueMetadata_MakeEmpty(std::shared_ptr<KeyValueMetadata>** key_value_metadata)
 	{
 		TRYCATCH(*key_value_metadata = new std::shared_ptr<KeyValueMetadata>(new KeyValueMetadata());)
@@ -41,15 +24,10 @@ extern "C"
 		TRYCATCH(*size = (*key_value_metadata)->size();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* KeyValueMetadata_Set(const std::shared_ptr<KeyValueMetadata>* key_value_metadata, const char* key, const char* value)
+	PARQUETSHARP_EXPORT ExceptionInfo* KeyValueMetadata_Append(const std::shared_ptr<KeyValueMetadata>* key_value_metadata, const char* key, const char* value)
 	{
-		TRYCATCH
-		(
-			::arrow::Status status = (*key_value_metadata)->Set(key, value);
-			if (!status.ok()) {
-				std::string code = status.CodeAsString();
-				return new ExceptionInfo(code.c_str(), status.message().c_str());
-			}
+		TRYCATCH(
+			(*key_value_metadata)->Append(key, value);
 		)
 	}
 
