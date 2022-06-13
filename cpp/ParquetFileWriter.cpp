@@ -86,15 +86,6 @@ extern "C"
 		TRYCATCH(*descr = writer->descr(i);)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_Key_Value_Metadata(ParquetFileWriter* writer, const std::shared_ptr<const KeyValueMetadata>** key_value_metadata)
-	{
-		TRYCATCH
-		(
-			const auto& m = writer->key_value_metadata();
-			*key_value_metadata = m ? new std::shared_ptr(m) : nullptr;
-		)
-	}
-
 	PARQUETSHARP_EXPORT ExceptionInfo* ParquetFileWriter_Metadata(ParquetFileWriter* writer, const std::shared_ptr<FileMetaData>** metadata)
 	{
 		TRYCATCH

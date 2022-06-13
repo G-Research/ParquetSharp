@@ -9,21 +9,9 @@ using namespace parquet;
 
 extern "C"
 {
-	PARQUETSHARP_EXPORT ExceptionInfo* KeyValueMetadata_Make(const int64_t size, const char** keys, const char** values, std::shared_ptr<const KeyValueMetadata>** key_value_metadata)
+	PARQUETSHARP_EXPORT ExceptionInfo* KeyValueMetadata_MakeEmpty(std::shared_ptr<KeyValueMetadata>** key_value_metadata)
 	{
-		TRYCATCH
-		(
-			std::vector<std::string> keys_vector(size);
-			std::vector<std::string> values_vector(size);
-
-			for (int64_t i = 0; i != size; ++i)
-			{
-				keys_vector[i] = keys[i];
-				values_vector[i] = values[i];
-			}
-
-			*key_value_metadata = new std::shared_ptr<const KeyValueMetadata>(new KeyValueMetadata(keys_vector, values_vector));
-		)
+		TRYCATCH(*key_value_metadata = new std::shared_ptr<KeyValueMetadata>(new KeyValueMetadata());)
 	}
 
 	PARQUETSHARP_EXPORT void KeyValueMetadata_Free(const std::shared_ptr<const KeyValueMetadata>* key_value_metadata)
@@ -34,6 +22,13 @@ extern "C"
 	PARQUETSHARP_EXPORT ExceptionInfo* KeyValueMetadata_Size(const std::shared_ptr<const KeyValueMetadata>* key_value_metadata, int64_t* size)
 	{
 		TRYCATCH(*size = (*key_value_metadata)->size();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* KeyValueMetadata_Append(const std::shared_ptr<KeyValueMetadata>* key_value_metadata, const char* key, const char* value)
+	{
+		TRYCATCH(
+			(*key_value_metadata)->Append(key, value);
+		)
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* KeyValueMetadata_Get_Entries(const std::shared_ptr<const KeyValueMetadata>* key_value_metadata, const char*** keys, const char*** values)
