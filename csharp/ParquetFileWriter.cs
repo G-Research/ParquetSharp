@@ -8,6 +8,14 @@ namespace ParquetSharp
 {
     public sealed class ParquetFileWriter : IDisposable
     {
+        /// <summary>
+        /// Open a new ParquetFileWriter
+        /// </summary>
+        /// <param name="path">Location to write to</param>
+        /// <param name="columns">Definitions of columns to be written</param>
+        /// <param name="compression">Compression to use for all columns</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
         public ParquetFileWriter(
             string path,
             Column[] columns,
@@ -25,6 +33,14 @@ namespace ParquetSharp
             Columns = columns;
         }
 
+        /// <summary>
+        /// Open a new ParquetFileWriter
+        /// </summary>
+        /// <param name="outputStream">Stream to write to</param>
+        /// <param name="columns">Definitions of columns to be written</param>
+        /// <param name="compression">Compression to use for all columns</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
         public ParquetFileWriter(
             OutputStream outputStream,
             Column[] columns,
@@ -42,6 +58,15 @@ namespace ParquetSharp
             Columns = columns;
         }
 
+        /// <summary>
+        /// Open a new ParquetFileWriter
+        /// </summary>
+        /// <param name="path">Location to write to</param>
+        /// <param name="columns">Definitions of columns to be written</param>
+        /// <param name="logicalTypeFactory">Custom type factory used to map from dotnet types to Parquet types</param>
+        /// <param name="compression">Compression to use for all columns</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
         public ParquetFileWriter(
             string path,
             Column[] columns,
@@ -60,6 +85,15 @@ namespace ParquetSharp
             Columns = columns;
         }
 
+        /// <summary>
+        /// Open a new ParquetFileWriter
+        /// </summary>
+        /// <param name="outputStream">Stream to write to</param>
+        /// <param name="columns">Definitions of columns to be written</param>
+        /// <param name="logicalTypeFactory">Custom type factory used to map from dotnet types to Parquet types</param>
+        /// <param name="compression">Compression to use for all columns</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
         public ParquetFileWriter(
             OutputStream outputStream,
             Column[] columns,
@@ -78,6 +112,14 @@ namespace ParquetSharp
             Columns = columns;
         }
 
+        /// <summary>
+        /// Open a new ParquetFileWriter
+        /// </summary>
+        /// <param name="path">Location to write to</param>
+        /// <param name="columns">Definitions of columns to be written</param>
+        /// <param name="writerProperties">Writer properties to use</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
         public ParquetFileWriter(
             string path,
             Column[] columns,
@@ -94,6 +136,14 @@ namespace ParquetSharp
             Columns = columns;
         }
 
+        /// <summary>
+        /// Open a new ParquetFileWriter
+        /// </summary>
+        /// <param name="outputStream">Stream to write to</param>
+        /// <param name="columns">Definitions of columns to be written</param>
+        /// <param name="writerProperties">Writer properties to use</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
         public ParquetFileWriter(
             OutputStream outputStream,
             Column[] columns,
@@ -110,6 +160,15 @@ namespace ParquetSharp
             Columns = columns;
         }
 
+        /// <summary>
+        /// Open a new ParquetFileWriter
+        /// </summary>
+        /// <param name="path">Location to write to</param>
+        /// <param name="columns">Definitions of columns to be written</param>
+        /// <param name="logicalTypeFactory">Custom type factory used to map from dotnet types to Parquet types</param>
+        /// <param name="writerProperties">Writer properties to use</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
         public ParquetFileWriter(
             string path,
             Column[] columns,
@@ -127,6 +186,15 @@ namespace ParquetSharp
             Columns = columns;
         }
 
+        /// <summary>
+        /// Open a new ParquetFileWriter
+        /// </summary>
+        /// <param name="outputStream">Stream to write to</param>
+        /// <param name="columns">Definitions of columns to be written</param>
+        /// <param name="logicalTypeFactory">Custom type factory used to map from dotnet types to Parquet types</param>
+        /// <param name="writerProperties">Writer properties to use</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
         public ParquetFileWriter(
             OutputStream outputStream,
             Column[] columns,
@@ -144,6 +212,14 @@ namespace ParquetSharp
             Columns = columns;
         }
 
+        /// <summary>
+        /// Open a new ParquetFileWriter
+        /// </summary>
+        /// <param name="path">Location to write to</param>
+        /// <param name="schema">Root schema node defining the structure of the file</param>
+        /// <param name="writerProperties">Writer properties to use</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
         public ParquetFileWriter(
             string path,
             GroupNode schema,
@@ -159,6 +235,14 @@ namespace ParquetSharp
             Columns = null;
         }
 
+        /// <summary>
+        /// Open a new ParquetFileWriter
+        /// </summary>
+        /// <param name="outputStream">Stream to write to</param>
+        /// <param name="schema">Root schema node defining the structure of the file</param>
+        /// <param name="writerProperties">Writer properties to use</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
         public ParquetFileWriter(
             OutputStream outputStream,
             GroupNode schema,
