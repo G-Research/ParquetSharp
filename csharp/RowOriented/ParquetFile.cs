@@ -97,19 +97,78 @@ namespace ParquetSharp.RowOriented
             return new ParquetRowWriter<TTuple>(outputStream, columns, writerProperties, keyValueMetadata, writeDelegate);
         }
 
-        private static ParquetRowReader<TTuple>.ReadAction GetOrCreateReadDelegate<TTuple>((string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
+        /// <summary>
+        /// Create a row-oriented writer to a file path using the specified column definitions.
+        /// Note that any MapToColumn or ParquetDecimalScale attributes will be overridden by the column definitions.
+        /// </summary>
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            string path,
+            Column[] columns,
+            Compression compression = Compression.Snappy,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
+            return new ParquetRowWriter<TTuple>(path, columnsToUse, compression, keyValueMetadata, writeDelegate);
+        }
+
+        /// <summary>
+        /// Create a row-oriented writer to a file path using the specified writerProperties and column definitions.
+        /// Note that any MapToColumn or ParquetDecimalScale attributes will be overridden by the column definitions.
+        /// </summary>
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            string path,
+            WriterProperties writerProperties,
+            Column[] columns,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
+            return new ParquetRowWriter<TTuple>(path, columnsToUse, writerProperties, keyValueMetadata, writeDelegate);
+        }
+
+        /// <summary>
+        /// Create a row-oriented writer to an output stream using the specified column definitions.
+        /// Note that any MapToColumn or ParquetDecimalScale attributes will be overridden by the column definitions.
+        /// </summary>
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            OutputStream outputStream,
+            Column[] columns,
+            Compression compression = Compression.Snappy,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
+            return new ParquetRowWriter<TTuple>(outputStream, columnsToUse, compression, keyValueMetadata, writeDelegate);
+        }
+
+        /// <summary>
+        /// Create a row-oriented writer to an output stream using the specified writerProperties and column definitions.
+        /// Note that any MapToColumn or ParquetDecimalScale attributes will be overridden by the column definitions.
+        /// </summary>
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            OutputStream outputStream,
+            WriterProperties writerProperties,
+            Column[] columns,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
+            return new ParquetRowWriter<TTuple>(outputStream, columnsToUse, writerProperties, keyValueMetadata, writeDelegate);
+        }
+
+        private static ParquetRowReader<TTuple>.ReadAction GetOrCreateReadDelegate<TTuple>(MappedField[] fields)
         {
             return (ParquetRowReader<TTuple>.ReadAction) ReadDelegatesCache.GetOrAdd(typeof(TTuple), k => CreateReadDelegate<TTuple>(fields));
         }
 
         private static (Column[] columns, ParquetRowWriter<TTuple>.WriteAction writeDelegate) GetOrCreateWriteDelegate<TTuple>(string[]? columnNames)
         {
-            var (columns, writeDelegate) = WriteDelegates.GetOrAdd(typeof(TTuple), k => CreateWriteDelegate<TTuple>());
+            var (fields, writeDelegate) = WriteDelegates.GetOrAdd(typeof(TTuple), k => CreateWriteDelegate<TTuple>());
+            var columns = fields.Select(GetColumn).ToArray();
             if (columnNames != null)
             {
                 if (columnNames.Length != columns.Length)
                 {
-                    throw new ArgumentException("the length of column names does not mach the number of public fields and properties", nameof(columnNames));
+                    throw new ArgumentException(
+                        $"The length of column names ({columnNames.Length}) does not mach the number of " +
+                        $"public fields and properties ({columns.Length})", nameof(columnNames));
                 }
 
                 columns = columns.Select((c, i) => new Column(c.LogicalSystemType, columnNames[i], c.LogicalTypeOverride, c.Length)).ToArray();
@@ -118,10 +177,31 @@ namespace ParquetSharp.RowOriented
             return (columns, (ParquetRowWriter<TTuple>.WriteAction) writeDelegate);
         }
 
+        private static (Column[] columns, ParquetRowWriter<TTuple>.WriteAction writeDelegate) GetOrCreateWriteDelegate<TTuple>(Column[] columns)
+        {
+            var (fields, writeDelegate) = WriteDelegates.GetOrAdd(typeof(TTuple), k => CreateWriteDelegate<TTuple>());
+            if (columns.Length != fields.Length)
+            {
+                throw new ArgumentException(
+                    $"The number of columns specified ({columns.Length}) does not mach the number of public " +
+                    $"fields and properties ({fields.Length})", nameof(columns));
+            }
+            for (var i = 0; i < columns.Length; ++i)
+            {
+                if (columns[i].LogicalSystemType != fields[i].Type)
+                {
+                    throw new ArgumentException(
+                        $"Expected a system type of '{fields[i].Type}' for column {i} ({columns[i].Name}) " +
+                        $"but received '{columns[i].LogicalSystemType}'", nameof(columns));
+                }
+            }
+            return (columns, (ParquetRowWriter<TTuple>.WriteAction) writeDelegate);
+        }
+
         /// <summary>
         /// Returns a delegate to read rows from individual Parquet columns.
         /// </summary>
-        private static ParquetRowReader<TTuple>.ReadAction CreateReadDelegate<TTuple>((string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
+        private static ParquetRowReader<TTuple>.ReadAction CreateReadDelegate<TTuple>(MappedField[] fields)
         {
             // Parameters
             var reader = Expression.Parameter(typeof(ParquetRowReader<TTuple>), "reader");
@@ -129,14 +209,14 @@ namespace ParquetSharp.RowOriented
             var length = Expression.Parameter(typeof(int), "length");
 
             // Use constructor or the property setters.
-            var ctor = typeof(TTuple).GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, fields.Select(f => f.type).ToArray(), null);
+            var ctor = typeof(TTuple).GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, fields.Select(f => f.Type).ToArray(), null);
 
             // Buffers.
-            var buffers = fields.Select(f => Expression.Variable(f.type.MakeArrayType(), $"buffer_{f.name}")).ToArray();
-            var bufferAssigns = fields.Select((f, i) => (Expression) Expression.Assign(buffers[i], Expression.NewArrayBounds(f.type, length))).ToArray();
+            var buffers = fields.Select(f => Expression.Variable(f.Type.MakeArrayType(), $"buffer_{f.Name}")).ToArray();
+            var bufferAssigns = fields.Select((f, i) => (Expression) Expression.Assign(buffers[i], Expression.NewArrayBounds(f.Type, length))).ToArray();
 
             // Read the columns from Parquet and populate the buffers.
-            var reads = buffers.Select((buffer, i) => Expression.Call(reader, GetReadMethod<TTuple>(fields[i].type), Expression.Constant(i), buffer, length)).ToArray();
+            var reads = buffers.Select((buffer, i) => Expression.Call(reader, GetReadMethod<TTuple>(fields[i].Type), Expression.Constant(i), buffer, length)).ToArray();
 
             // Loop over the tuples, constructing them from the column buffers.
             var index = Expression.Variable(typeof(int), "index");
@@ -144,7 +224,7 @@ namespace ParquetSharp.RowOriented
                 Expression.Assign(
                     Expression.ArrayAccess(tuples, index),
                     ctor == null
-                        ? Expression.MemberInit(Expression.New(typeof(TTuple)), fields.Select((f, i) => Expression.Bind(f.info, Expression.ArrayAccess(buffers[i], index))))
+                        ? Expression.MemberInit(Expression.New(typeof(TTuple)), fields.Select((f, i) => Expression.Bind(f.Info, Expression.ArrayAccess(buffers[i], index))))
                         : (Expression) Expression.New(ctor, fields.Select((f, i) => (Expression) Expression.ArrayAccess(buffers[i], index)))
                 )
             );
@@ -156,12 +236,11 @@ namespace ParquetSharp.RowOriented
         }
 
         /// <summary>
-        /// Return a delegate to write rows to individual Parquet columns, as well the column types and names.
+        /// Return a delegate to write rows to individual Parquet columns, as well the fields to be mapped to columns.
         /// </summary>
-        private static (Column[] columns, ParquetRowWriter<TTuple>.WriteAction writeDelegate) CreateWriteDelegate<TTuple>()
+        private static (MappedField[] fields, ParquetRowWriter<TTuple>.WriteAction writeDelegate) CreateWriteDelegate<TTuple>()
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
-            var columns = fields.Select(GetColumn).ToArray();
 
             // Parameters
             var writer = Expression.Parameter(typeof(ParquetRowWriter<TTuple>), "writer");
@@ -171,9 +250,9 @@ namespace ParquetSharp.RowOriented
             var columnBodies = fields.Select(f =>
             {
                 // Column buffer
-                var bufferType = f.type.MakeArrayType();
-                var buffer = Expression.Variable(bufferType, $"buffer_{f.name}");
-                var bufferAssign = Expression.Assign(buffer, Expression.NewArrayBounds(f.type, length));
+                var bufferType = f.Type.MakeArrayType();
+                var buffer = Expression.Variable(bufferType, $"buffer_{f.Name}");
+                var bufferAssign = Expression.Assign(buffer, Expression.NewArrayBounds(f.Type, length));
                 var bufferReset = Expression.Assign(buffer, Expression.Constant(null, bufferType));
 
                 // Loop over the tuples and fill the current column buffer.
@@ -181,7 +260,7 @@ namespace ParquetSharp.RowOriented
                 var loop = For(index, Expression.Constant(0), Expression.NotEqual(index, length), Expression.PreIncrementAssign(index),
                     Expression.Assign(
                         Expression.ArrayAccess(buffer, index),
-                        Expression.PropertyOrField(Expression.ArrayAccess(tuples, index), f.name)
+                        Expression.PropertyOrField(Expression.ArrayAccess(tuples, index), f.Name)
                     )
                 );
 
@@ -199,7 +278,7 @@ namespace ParquetSharp.RowOriented
             var body = Expression.Block(columnBodies);
             var lambda = Expression.Lambda<ParquetRowWriter<TTuple>.WriteAction>(body, writer, tuples, length);
             OnWriteExpressionCreated?.Invoke(lambda);
-            return (columns, lambda.Compile());
+            return (fields, lambda.Compile());
         }
 
         private static MethodInfo GetReadMethod<TTuple>(Type type)
@@ -245,9 +324,9 @@ namespace ParquetSharp.RowOriented
             );
         }
 
-        private static (string name, string? mappedColumn, Type type, MemberInfo info)[] GetFieldsAndProperties(Type type)
+        private static MappedField[] GetFieldsAndProperties(Type type)
         {
-            var list = new List<(string name, string? mappedColumn, Type type, MemberInfo info)>();
+            var list = new List<MappedField>();
             var flags = BindingFlags.Public | BindingFlags.Instance;
 
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTuple<,,,,,,,>))
@@ -258,13 +337,13 @@ namespace ParquetSharp.RowOriented
             foreach (var field in type.GetFields(flags))
             {
                 var mappedColumn = field.GetCustomAttribute<MapToColumnAttribute>()?.ColumnName;
-                list.Add((field.Name, mappedColumn, field.FieldType, field));
+                list.Add(new MappedField(field.Name, mappedColumn, field.FieldType, field));
             }
 
             foreach (var property in type.GetProperties(flags))
             {
                 var mappedColumn = property.GetCustomAttribute<MapToColumnAttribute>()?.ColumnName;
-                list.Add((property.Name, mappedColumn, property.PropertyType, property));
+                list.Add(new MappedField(property.Name, mappedColumn, property.PropertyType, property));
             }
 
             // The order in which fields are processed is important given that when a tuple type is used in
@@ -283,33 +362,33 @@ namespace ParquetSharp.RowOriented
             // Note that most of the time GetFields() and GetProperties() _do_ return in declaration order and the times when they don't
             // are determined at runtime and not by the type. As a resut it is pretty much impossible to cover this with a unit test. Hence this
             // rather long comment aimed at avoiding accidental removal!
-            return list.OrderBy(x => x.info.MetadataToken).ToArray();
+            return list.OrderBy(x => x.Info.MetadataToken).ToArray();
         }
 
-        private static Column GetColumn((string name, string? mappedColumn, Type type, MemberInfo info) field)
+        private static Column GetColumn(MappedField field)
         {
-            var isDecimal = field.type == typeof(decimal) || field.type == typeof(decimal?);
-            var decimalScale = field.info.GetCustomAttributes(typeof(ParquetDecimalScaleAttribute))
+            var isDecimal = field.Type == typeof(decimal) || field.Type == typeof(decimal?);
+            var decimalScale = field.Info.GetCustomAttributes(typeof(ParquetDecimalScaleAttribute))
                 .Cast<ParquetDecimalScaleAttribute>()
                 .SingleOrDefault();
 
             if (!isDecimal && decimalScale != null)
             {
-                throw new ArgumentException($"field '{field.name}' has a {nameof(ParquetDecimalScaleAttribute)} despite not being a decimal type");
+                throw new ArgumentException($"field '{field.Name}' has a {nameof(ParquetDecimalScaleAttribute)} despite not being a decimal type");
             }
 
             if (isDecimal && decimalScale == null)
             {
-                throw new ArgumentException($"field '{field.name}' has no {nameof(ParquetDecimalScaleAttribute)} despite being a decimal type");
+                throw new ArgumentException($"field '{field.Name}' has no {nameof(ParquetDecimalScaleAttribute)} despite being a decimal type");
             }
 
-            return new Column(field.type, field.mappedColumn ?? field.name, isDecimal ? LogicalType.Decimal(29, decimalScale!.Scale) : null);
+            return new Column(field.Type, field.MappedColumn ?? field.Name, isDecimal ? LogicalType.Decimal(29, decimalScale!.Scale) : null);
         }
 
         private static readonly ConcurrentDictionary<Type, Delegate> ReadDelegatesCache =
             new ConcurrentDictionary<Type, Delegate>();
 
-        private static readonly ConcurrentDictionary<Type, (Column[] columns, Delegate writeDelegate)> WriteDelegates =
-            new ConcurrentDictionary<Type, (Column[] columns, Delegate writeDelegate)>();
+        private static readonly ConcurrentDictionary<Type, (MappedField[] fields, Delegate writeDelegate)> WriteDelegates =
+            new ConcurrentDictionary<Type, (MappedField[] fields, Delegate writeDelegate)>();
     }
 }
