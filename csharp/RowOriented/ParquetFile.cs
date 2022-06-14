@@ -112,7 +112,7 @@ namespace ParquetSharp.RowOriented
         }
 
         /// <summary>
-        /// Create a row-oriented writer to a file path using the specified writerProperties and column definitions
+        /// Create a row-oriented writer to a file path using the specified writerProperties and column definitions.
         /// Note that any MapToColumn or ParquetDecimalScale attributes will be overridden by the column definitions.
         /// </summary>
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
@@ -126,7 +126,7 @@ namespace ParquetSharp.RowOriented
         }
 
         /// <summary>
-        /// Create a row-oriented writer to an output stream using the specified column definitions
+        /// Create a row-oriented writer to an output stream using the specified column definitions.
         /// Note that any MapToColumn or ParquetDecimalScale attributes will be overridden by the column definitions.
         /// </summary>
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
@@ -140,7 +140,7 @@ namespace ParquetSharp.RowOriented
         }
 
         /// <summary>
-        /// Create a row-oriented writer to an output stream using the specified writerProperties and column definitions
+        /// Create a row-oriented writer to an output stream using the specified writerProperties and column definitions.
         /// Note that any MapToColumn or ParquetDecimalScale attributes will be overridden by the column definitions.
         /// </summary>
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
@@ -236,7 +236,7 @@ namespace ParquetSharp.RowOriented
         }
 
         /// <summary>
-        /// Return a delegate to write rows to individual Parquet columns, as well the column types and names.
+        /// Return a delegate to write rows to individual Parquet columns, as well the fields to be mapped to columns.
         /// </summary>
         private static (MappedField[] fields, ParquetRowWriter<TTuple>.WriteAction writeDelegate) CreateWriteDelegate<TTuple>()
         {
