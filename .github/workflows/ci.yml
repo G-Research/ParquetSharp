@@ -103,7 +103,7 @@ jobs:
       run: |
         docker run -d --name centos --entrypoint tail -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT centos:7 -f /dev/null
         docker exec centos sh -c "yum install -y centos-release-scl epel-release && \
-                                  yum install -y devtoolset-7 rh-git227 flex bison && \
+                                  yum install -y devtoolset-7 rh-git227 flex bison perl-Data-Dumper perl-IPC-Cmd && \
                                   curl -fsSL -o /tmp/cmake.sh https://github.com/Kitware/CMake/releases/download/v${{ steps.cmake-info.outputs.version }}/cmake-${{ steps.cmake-info.outputs.version }}-linux-x86_64.sh && \
                                   sh /tmp/cmake.sh --skip-license --prefix=/usr/local && \
                                   rm /tmp/cmake.sh"
