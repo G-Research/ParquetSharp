@@ -15,7 +15,9 @@ namespace ParquetSharp.Test
             {
                 Console.WriteLine("Working directory: {0}", Environment.CurrentDirectory);
 
+#if NETFRAMEWORK
                 AppDomain.CurrentDomain.UnhandledException += UncaughtExceptionHandler;
+#endif
 
                 //TestColumn.TestPrimitives();
                 //TestParquetFileWriter.TestReadWriteParquetMultipleTasks();
@@ -35,7 +37,9 @@ namespace ParquetSharp.Test
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
+#if NETFRAMEWORK
                 AppDomain.CurrentDomain.UnhandledException -= UncaughtExceptionHandler;
+#endif
 
                 return 0;
             }
@@ -52,11 +56,13 @@ namespace ParquetSharp.Test
             return 1;
         }
 
+#if NETFRAMEWORK
         [HandleProcessCorruptedStateExceptions]
         private static void UncaughtExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             Console.Error.WriteLine("FATAL: UncaughtExceptionHandler: {0}", args.ExceptionObject);
             Environment.Exit(1);
         }
+#endif
     }
 }
