@@ -169,7 +169,6 @@ namespace ParquetSharp.Test
                 new Column<DateTime>("b", LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros)),
                 // Include a decimal column to check we handle not having a ParquetDecimalScale attribute
                 new Column<decimal>("c", LogicalType.Decimal(precision: 29, scale: 4)),
-
             };
             var rows = new[]
             {
