@@ -574,6 +574,78 @@ namespace ParquetSharp.Test
             Assert.That(values, Is.EqualTo(expected));
         }
 
+        [Test]
+        public static void TestForceSetConvertedTypeSetsConvertedType()
+        {
+            var expected = new DateTime[]
+            {
+                new DateTime(2000, 1, 1)
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<DateTime>("a", LogicalType.Timestamp(false, TimeUnit.Millis, forceSetConvertedType: true)) });
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>();
+
+                Assert.True((colWriter.ColumnDescriptor.LogicalType as TimestampLogicalType)?.ForceSetConvertedType);
+                Assert.AreEqual(ConvertedType.Timestamp_Millis, colWriter.ColumnDescriptor.SchemaNode.ConvertedType);
+                
+                colWriter.WriteBatch(expected);
+
+                fileWriter.Close();
+            }
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var rowGroup = fileReader.RowGroup(0);
+            using var columnReader = rowGroup.Column(0).LogicalReader<DateTime>();
+
+            Assert.AreEqual(1, rowGroup.MetaData.NumRows);
+            var allData = columnReader.ReadAll(1);
+            Assert.AreEqual(expected, allData);
+        }
+
+        [Test]
+        public static void TestTimestampLocalHasNoConvertedType()
+        {
+            // This test works in tandem with TestForceSetConvertedTypeSetsConvertedType
+            // They confirm that LogicalType.Timestamp(false) has no ConvertedType by default, but when you set forceSetConvertedType: true the ConvertedType is set.
+            // However it seems like we can only confirm this when writing, and reading ignores ConvertedType
+
+            var expected = new DateTime[]
+            {
+                new DateTime(2000, 1, 1)
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<DateTime>("a", LogicalType.Timestamp(false, TimeUnit.Millis)) });
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>();
+
+                Assert.False((colWriter.ColumnDescriptor.LogicalType as TimestampLogicalType)?.ForceSetConvertedType);
+                Assert.AreEqual(ConvertedType.None, colWriter.ColumnDescriptor.SchemaNode.ConvertedType);
+
+                colWriter.WriteBatch(expected);
+
+                fileWriter.Close();
+            }
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var rowGroup = fileReader.RowGroup(0);
+            using var columnReader = rowGroup.Column(0).LogicalReader<DateTime>();
+
+            Assert.AreEqual(1, rowGroup.MetaData.NumRows);
+            var allData = columnReader.ReadAll(1);
+            Assert.AreEqual(expected, allData);
+        }
+
         private static ExpectedColumn[] CreateExpectedColumns()
         {
             return new[]
