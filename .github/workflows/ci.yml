@@ -135,6 +135,10 @@ jobs:
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1
 
+    - name: connect with upterm
+      if: runner.os == 'macOS'
+      uses: lhotari/action-upterm@v1
+      
     # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
