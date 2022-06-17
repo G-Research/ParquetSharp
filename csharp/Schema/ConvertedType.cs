@@ -2,7 +2,7 @@
 {
     public enum ConvertedType
     {
-        None = 0,  // Not a real converted type, but means no converted type is specified
+        None = 0, // Not a real converted type, but means no converted type is specified
         UTF8 = 1,
         Map = 2,
         MapKeyValue = 3,
@@ -30,6 +30,6 @@
         // For writing, always emit LogicalType::Null instead.
         // See PARQUET-1990.
         NA = 25,
-        Undefined = 26  // Not a real converted type; should always be last element
+        Undefined = 26 // Not a real converted type; should always be last element
     }
 }

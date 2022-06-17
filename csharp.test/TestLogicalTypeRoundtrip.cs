@@ -586,13 +586,13 @@ namespace ParquetSharp.Test
 
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<DateTime>("a", LogicalType.Timestamp(false, TimeUnit.Millis, forceSetConvertedType: true)) });
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<DateTime>("a", LogicalType.Timestamp(false, TimeUnit.Millis, forceSetConvertedType: true))});
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>();
 
                 Assert.True((colWriter.ColumnDescriptor.LogicalType as TimestampLogicalType)?.ForceSetConvertedType);
                 Assert.AreEqual(ConvertedType.TimestampMillis, colWriter.ColumnDescriptor.SchemaNode.ConvertedType);
-                
+
                 colWriter.WriteBatch(expected);
 
                 fileWriter.Close();
@@ -624,7 +624,7 @@ namespace ParquetSharp.Test
 
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<DateTime>("a", LogicalType.Timestamp(false, TimeUnit.Millis)) });
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<DateTime>("a", LogicalType.Timestamp(false, TimeUnit.Millis))});
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>();
 
