@@ -591,7 +591,7 @@ namespace ParquetSharp.Test
                 using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>();
 
                 Assert.True((colWriter.ColumnDescriptor.LogicalType as TimestampLogicalType)?.ForceSetConvertedType);
-                Assert.AreEqual(ConvertedType.Timestamp_Millis, colWriter.ColumnDescriptor.SchemaNode.ConvertedType);
+                Assert.AreEqual(ConvertedType.TimestampMillis, colWriter.ColumnDescriptor.SchemaNode.ConvertedType);
                 
                 colWriter.WriteBatch(expected);
 
