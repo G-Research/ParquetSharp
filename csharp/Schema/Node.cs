@@ -22,6 +22,7 @@ namespace ParquetSharp.Schema
 
         public int FieldId => ExceptionInfo.Return<int>(Handle, Node_Field_Id);
         public LogicalType LogicalType => LogicalType.Create(ExceptionInfo.Return<IntPtr>(Handle, Node_Logical_Type));
+        public ConvertedType ConvertedType => ExceptionInfo.Return<ConvertedType>(Handle, Node_Converted_Type);
         public string Name => ExceptionInfo.ReturnString(Handle, Node_Name);
         public NodeType NodeType => ExceptionInfo.Return<NodeType>(Handle, Node_Node_Type);
         public Node? Parent => Create(ExceptionInfo.Return<IntPtr>(Handle, Node_Parent));
@@ -72,6 +73,9 @@ namespace ParquetSharp.Schema
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Node_Node_Type(IntPtr node, out NodeType nodeType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr Node_Converted_Type(IntPtr node, out ConvertedType convertedType);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Node_Parent(IntPtr node, out IntPtr parent);
