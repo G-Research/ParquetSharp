@@ -161,7 +161,7 @@ namespace ParquetSharp
 
                 DateTimeKind kind;
                 if (AppContext.TryGetSwitch("ParquetSharp.UseDateTimeKindUnspecified", out var useDateTimeKindUnspecified) && useDateTimeKindUnspecified)
-                { 
+                {
                     kind = DateTimeKind.Unspecified;
                 }
                 else
