@@ -59,7 +59,8 @@ namespace ParquetSharp
         public static LogicalType Decimal(int precision, int scale = 0) => Create(ExceptionInfo.Return<int, int, IntPtr>(precision, scale, LogicalType_Decimal));
         public static LogicalType Date() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Date));
         public static LogicalType Time(bool isAdjustedToUtc, TimeUnit timeUnit) => Create(ExceptionInfo.Return<bool, TimeUnit, IntPtr>(isAdjustedToUtc, timeUnit, LogicalType_Time));
-        public static LogicalType Timestamp(bool isAdjustedToUtc, TimeUnit timeUnit) => Create(ExceptionInfo.Return<bool, TimeUnit, IntPtr>(isAdjustedToUtc, timeUnit, LogicalType_Timestamp));
+        public static LogicalType Timestamp(bool isAdjustedToUtc, TimeUnit timeUnit) => Create(ExceptionInfo.Return<bool, TimeUnit, bool, IntPtr>(isAdjustedToUtc, timeUnit, false, LogicalType_Timestamp));
+        public static LogicalType Timestamp(bool isAdjustedToUtc, TimeUnit timeUnit, bool forceSetConvertedType) => Create(ExceptionInfo.Return<bool, TimeUnit, bool, IntPtr>(isAdjustedToUtc, timeUnit, forceSetConvertedType, LogicalType_Timestamp));
         public static LogicalType Interval() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Interval));
         public static LogicalType Int(int bitWidth, bool isSigned) => Create(ExceptionInfo.Return<int, bool, IntPtr>(bitWidth, isSigned, LogicalType_Int));
         public static LogicalType Null() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Null));
@@ -135,7 +136,7 @@ namespace ParquetSharp
         private static extern IntPtr LogicalType_Time([MarshalAs(UnmanagedType.I1)] bool isAdjustedToUtc, TimeUnit timeUnit, out IntPtr logicalType);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr LogicalType_Timestamp([MarshalAs(UnmanagedType.I1)] bool isAdjustedToUtc, TimeUnit timeUnit, out IntPtr logicalType);
+        private static extern IntPtr LogicalType_Timestamp([MarshalAs(UnmanagedType.I1)] bool isAdjustedToUtc, TimeUnit timeUnit, bool forceSetConvertedType, out IntPtr logicalType);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr LogicalType_Interval(out IntPtr logicalType);
@@ -219,10 +220,18 @@ namespace ParquetSharp
         internal TimestampLogicalType(IntPtr handle) : base(handle) { }
 
         public bool IsAdjustedToUtc => ExceptionInfo.Return<bool>(Handle, TimestampLogicalType_IsAdjustedToUtc);
+        public bool ForceSetConvertedType => ExceptionInfo.Return<bool>(Handle, TimestampLogicalType_ForceSetConvertedType);
+        public bool IsFromConvertedType => ExceptionInfo.Return<bool>(Handle, TimestampLogicalType_IsFromConvertedType);
         public TimeUnit TimeUnit => ExceptionInfo.Return<TimeUnit>(Handle, TimestampLogicalType_TimeUnit);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr TimestampLogicalType_IsAdjustedToUtc(IntPtr logicalType, [MarshalAs(UnmanagedType.I1)] out bool isAdjustedToUtc);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr TimestampLogicalType_ForceSetConvertedType(IntPtr logicalType, [MarshalAs(UnmanagedType.I1)] out bool forceSetConvertedType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr TimestampLogicalType_IsFromConvertedType(IntPtr logicalType, [MarshalAs(UnmanagedType.I1)] out bool isFromConvertedType);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr TimestampLogicalType_TimeUnit(IntPtr logicalType, out TimeUnit timeUnit);
