@@ -85,17 +85,33 @@ jobs:
       run: echo "::set-output name=version::$(cmake --version | head -n1 | awk '{print $3}')"
       shell: bash
 
+    - name: Runner-info
+      id: runner-info
+      run: |
+        env
+        echo "::set-output name=Info::$ImageOS-$ImageVersion"
+      shell: bash
+
     # Check for cached vcpkg dependencies (use these if we can).
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
       uses: actions/cache@v3
       with:
         path: cache/vcpkg
-        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake${{ steps.cmake-info.outputs.version }}-${{ hashFiles('vcpkg-configuration.json') }}-${{ hashFiles('vcpkg.json') }}
+        # https://vcpkg.readthedocs.io/en/stable/users/binarycaching/
+        # Binary caching relies on hashing everything that contributes to a particular package build. This includes:
+        # - The triplet file and name
+        # - The C and C++ compilers executable
+        # - The version of CMake used
+        # - Every file in the port directory
+        # - & more... (subject to change without notice)
+        #
+        # We use Vcpkg and C/C++ compilers which are preinstalled on the runner, so we include the runner's image identity as part of the hash key.
+        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}-Runner:${{ steps.runner-info.outputs.Info }}
         restore-keys: |
-          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake${{ steps.cmake-info.outputs.version }}-${{ hashFiles('vcpkg-configuration.json') }}-
-          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake${{ steps.cmake-info.outputs.version }}-
-          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}
 
     # Setup a CentOS 7 container to build on Linux x64 for backwards compatibility.
     - name: Start CentOS container and install toolchain
