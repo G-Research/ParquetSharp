@@ -151,8 +151,8 @@ namespace ParquetSharp.Test
 
             try
             {
-                // ParquetSharp doesn't know the DateTime values upfront,
-                // so we have to specify whether values are UTC in the logical type.
+                // We create two Timestamp columns with varying isAdjustedToUtc
+                // With the legacy switch enabled, both columns when read should output DateTime values with DateTimeKind.Unspecified
                 var schemaColumns = new Column[]
                 {
                     new Column<DateTime>("a", LogicalType.Timestamp(true, TimeUnit.Millis)),
