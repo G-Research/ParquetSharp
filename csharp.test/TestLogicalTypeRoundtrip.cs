@@ -143,6 +143,68 @@ namespace ParquetSharp.Test
             Assert.AreEqual(kind, kinds.First());
         }
 
+        [Test]
+        [NonParallelizable]
+        public static void TestAppSwitchDateTimeKindUnspecified()
+        {
+            AppContext.SetSwitch("ParquetSharp.UseDateTimeKindUnspecified", true);
+
+            try
+            {
+                // ParquetSharp doesn't know the DateTime values upfront,
+                // so we have to specify whether values are UTC in the logical type.
+                var schemaColumns = new Column[]
+                {
+                    new Column<DateTime>("a", LogicalType.Timestamp(true, TimeUnit.Millis)),
+                    new Column<DateTime>("b", LogicalType.Timestamp(false, TimeUnit.Millis)),
+                };
+
+                const int numRows = 100;
+                var startTime = new DateTime(2022, 3, 14, 10, 49, 0, DateTimeKind.Unspecified);
+                var values = Enumerable.Range(0, numRows).Select(i => startTime + TimeSpan.FromSeconds(i)).ToArray();
+
+                using var buffer = new ResizableBuffer();
+
+                using (var outStream = new BufferOutputStream(buffer))
+                {
+                    using var fileWriter = new ParquetFileWriter(outStream, schemaColumns);
+                    using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+                    using var columnWriterA = rowGroupWriter.Column(0).LogicalWriter<DateTime>();
+                    columnWriterA.WriteBatch(values);
+                    using var columnWriterB = rowGroupWriter.Column(1).LogicalWriter<DateTime>();
+                    columnWriterB.WriteBatch(values);
+
+                    fileWriter.Close();
+                }
+
+                DateTime[] readValuesA;
+                DateTime[] readValuesB;
+                using (var inStream = new BufferReader(buffer))
+                {
+                    using var fileReader = new ParquetFileReader(inStream);
+                    using var rowGroupReader = fileReader.RowGroup(0);
+                    using var columnReaderA = rowGroupReader.Column(0);
+                    using var logicalReaderA = columnReaderA.LogicalReader<DateTime>();
+                    readValuesA = logicalReaderA.ReadAll(numRows);
+
+                    using var columnReaderB = rowGroupReader.Column(0);
+                    using var logicalReaderB = columnReaderB.LogicalReader<DateTime>();
+                    readValuesB = logicalReaderB.ReadAll(numRows);
+                }
+
+                Assert.AreEqual(values, readValuesA);
+                Assert.AreEqual(values, readValuesB);
+
+                var kinds = readValuesA.Concat(readValuesB).Select(v => v.Kind).ToHashSet();
+                Assert.AreEqual(1, kinds.Count);
+                Assert.AreEqual(DateTimeKind.Unspecified, kinds.First());
+            }
+            finally
+            {
+                AppContext.SetSwitch("ParquetSharp.UseDateTimeKindUnspecified", false);
+            }
+        }
+
         private static WriterProperties CreateWriterProperties(ExpectedColumn[] expectedColumns, bool useDictionaryEncoding)
         {
             var builder = new WriterPropertiesBuilder();

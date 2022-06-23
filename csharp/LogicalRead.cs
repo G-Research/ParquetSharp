@@ -158,7 +158,17 @@ namespace ParquetSharp
             if (typeof(TLogical) == typeof(DateTime))
             {
                 var timestampType = (TimestampLogicalType) logicalType;
-                var kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+
+                DateTimeKind kind;
+                if (AppContext.TryGetSwitch("ParquetSharp.UseDateTimeKindUnspecified", out var useDateTimeKindUnspecified) && useDateTimeKindUnspecified)
+                { 
+                    kind = DateTimeKind.Unspecified;
+                }
+                else
+                {
+                    kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+                }
+
                 switch (timestampType.TimeUnit)
                 {
                     case TimeUnit.Millis:
@@ -176,7 +186,17 @@ namespace ParquetSharp
             if (typeof(TLogical) == typeof(DateTime?))
             {
                 var timestampType = (TimestampLogicalType) logicalType;
-                var kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+
+                DateTimeKind kind;
+                if (AppContext.TryGetSwitch("ParquetSharp.UseDateTimeKindUnspecified", out var useDateTimeKindUnspecified) && useDateTimeKindUnspecified)
+                {
+                    kind = DateTimeKind.Unspecified;
+                }
+                else
+                {
+                    kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+                }
+
                 switch (timestampType.TimeUnit)
                 {
                     case TimeUnit.Millis:
