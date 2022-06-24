@@ -90,7 +90,7 @@ jobs:
     - name: Runner-info
       id: runner-info
       run: |
-        echo "::set-output name=Info::$ImageOS-$ImageVersion"
+        echo "::set-output name=info::$ImageOS-$ImageVersion"
       shell: bash
 
     # Check for cached vcpkg dependencies (use these if we can).
