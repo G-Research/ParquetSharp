@@ -147,6 +147,10 @@ namespace ParquetSharp.Test
         [NonParallelizable]
         public static void TestAppSwitchDateTimeKindUnspecified()
         {
+            // This test cannot be parallelized as we use an AppContext switch to manipulate the internal behavior of ParquetSharp.
+            // If other test's run while this test is also running it may cause inconsistent results.
+
+            Assert.False(AppContext.TryGetSwitch("ParquetSharp.UseDateTimeKindUnspecified", out var existingValue) && existingValue);
             AppContext.SetSwitch("ParquetSharp.UseDateTimeKindUnspecified", true);
 
             try
