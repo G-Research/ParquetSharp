@@ -10,7 +10,7 @@ namespace ParquetSharp
     public static class LogicalRead<TLogical, TPhysical>
         where TPhysical : unmanaged
     {
-        private const string UseDateTimeKindUnspecifiedSwitchName = "ParquetSharp.UseDateTimeKindUnspecified";
+        private const string UseDateTimeKindUnspecifiedSwitchName = "ParquetSharp.ReadDateTimeKindAsUnspecified";
 
         public delegate long DirectReader(ColumnReader<TPhysical> columnReader, Span<TLogical> destination);
 

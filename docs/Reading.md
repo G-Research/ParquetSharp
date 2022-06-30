@@ -103,17 +103,17 @@ When reading Timestamp to a DateTime, ParquetSharp sets the DateTimeKind based o
 
 If `IsAdjustedToUtc` is `true` the DateTimeKind will be set to `DateTimeKind.Utc` otherwise it will be set to `DateTimeKind.Unspecified`.
 
-This behavior can be overwritten by setting the AppContext switch `ParquetSharp.UseDateTimeKindUnspecified` to `true`, so the DateTimeKind will be always set to `DateTimeKind.Unspecified` regardless of the value of `IsAdjustedToUtc`.
+This behavior can be overwritten by setting the AppContext switch `ParquetSharp.ReadDateTimeKindAsUnspecified` to `true`, so the DateTimeKind will be always set to `DateTimeKind.Unspecified` regardless of the value of `IsAdjustedToUtc`.
 This also matches the old behavior of [ParquetSharp > 6.0.0](https://github.com/G-Research/ParquetSharp/pull/261)
 
 ```csharp
-AppContext.SetSwitch("ParquetSharp.UseDateTimeKindUnspecified", true);
+AppContext.SetSwitch("ParquetSharp.ReadDateTimeKindAsUnspecified", true);
 ```
 
 or 
 
 ```xml
   <ItemGroup>
-    <RuntimeHostConfigurationOption Include="ParquetSharp.UseDateTimeKindUnspecified" Value="true" />
+    <RuntimeHostConfigurationOption Include="ParquetSharp.ReadDateTimeKindAsUnspecified" Value="true" />
   </ItemGroup>
 ```

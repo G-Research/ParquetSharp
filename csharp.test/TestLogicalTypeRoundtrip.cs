@@ -150,8 +150,8 @@ namespace ParquetSharp.Test
             // This test cannot be parallelized as we use an AppContext switch to manipulate the internal behavior of ParquetSharp.
             // If other test's run while this test is also running it may cause inconsistent results.
 
-            Assert.False(AppContext.TryGetSwitch("ParquetSharp.UseDateTimeKindUnspecified", out var existingValue) && existingValue);
-            AppContext.SetSwitch("ParquetSharp.UseDateTimeKindUnspecified", true);
+            Assert.False(AppContext.TryGetSwitch("ParquetSharp.ReadDateTimeKindAsUnspecified", out var existingValue) && existingValue);
+            AppContext.SetSwitch("ParquetSharp.ReadDateTimeKindAsUnspecified", true);
 
             try
             {
@@ -205,7 +205,7 @@ namespace ParquetSharp.Test
             }
             finally
             {
-                AppContext.SetSwitch("ParquetSharp.UseDateTimeKindUnspecified", false);
+                AppContext.SetSwitch("ParquetSharp.ReadDateTimeKindAsUnspecified", false);
             }
         }
 
