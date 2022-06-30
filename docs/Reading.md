@@ -99,7 +99,7 @@ The .NET type used to represent read values can optionally be overridden by usin
 For more details, see the [type factories documentation](TypeFactories.md).
 
 ## DateTimeKind when reading Timestamp's
-When reading Timestamp's to an DateTime, ParquetSharp will set the DateTimeKind based on the value of `IsAdjustedToUtc`.
+When reading Timestamp to a DateTime, ParquetSharp sets the DateTimeKind based on the value of `IsAdjustedToUtc`.
 
 If `IsAdjustedToUtc` is `true` the DateTimeKind will be set to `DateTimeKind.Utc` otherwise it will be set to `DateTimeKind.Unspecified`.
 
