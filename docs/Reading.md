@@ -98,7 +98,7 @@ while (logicalColumnReader.HasNext)
 The .NET type used to represent read values can optionally be overridden by using the `ColumnReader.LogicalReaderOverride<TElement>` method.
 For more details, see the [type factories documentation](TypeFactories.md).
 
-## DateTimeKind when reading Timestamp's
+## DateTimeKind when reading Timestamps
 When reading Timestamp to a DateTime, ParquetSharp sets the DateTimeKind based on the value of `IsAdjustedToUtc`.
 
 If `IsAdjustedToUtc` is `true` the DateTimeKind will be set to `DateTimeKind.Utc` otherwise it will be set to `DateTimeKind.Unspecified`.
