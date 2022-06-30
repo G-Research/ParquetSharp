@@ -10,6 +10,8 @@ namespace ParquetSharp
     public static class LogicalRead<TLogical, TPhysical>
         where TPhysical : unmanaged
     {
+        private const string UseDateTimeKindUnspecifiedSwitchName = "ParquetSharp.UseDateTimeKindUnspecified";
+
         public delegate long DirectReader(ColumnReader<TPhysical> columnReader, Span<TLogical> destination);
 
         public delegate void Converter(ReadOnlySpan<TPhysical> source, ReadOnlySpan<short> defLevels, Span<TLogical> destination, short definedLevel);
@@ -160,7 +162,7 @@ namespace ParquetSharp
                 var timestampType = (TimestampLogicalType) logicalType;
 
                 DateTimeKind kind;
-                if (AppContext.TryGetSwitch("ParquetSharp.UseDateTimeKindUnspecified", out var useDateTimeKindUnspecified) && useDateTimeKindUnspecified)
+                if (AppContext.TryGetSwitch(UseDateTimeKindUnspecifiedSwitchName, out var useDateTimeKindUnspecified) && useDateTimeKindUnspecified)
                 {
                     kind = DateTimeKind.Unspecified;
                 }
@@ -188,7 +190,7 @@ namespace ParquetSharp
                 var timestampType = (TimestampLogicalType) logicalType;
 
                 DateTimeKind kind;
-                if (AppContext.TryGetSwitch("ParquetSharp.UseDateTimeKindUnspecified", out var useDateTimeKindUnspecified) && useDateTimeKindUnspecified)
+                if (AppContext.TryGetSwitch(UseDateTimeKindUnspecifiedSwitchName, out var useDateTimeKindUnspecified) && useDateTimeKindUnspecified)
                 {
                     kind = DateTimeKind.Unspecified;
                 }
