@@ -69,11 +69,22 @@ namespace ParquetSharp
             var (physicalType, logicalType) = typeFactory.GetSystemTypes(this, columnLogicalTypeOverride);
             var elementType = logicalType;
 
-            for (var node = SchemaNode; node != null; node = node.Parent)
+            var node = SchemaNode;
+            while (node != null)
             {
-                if (node.LogicalType.Type == LogicalTypeEnum.List)
+                try
                 {
-                    elementType = elementType.MakeArrayType();
+                    using var nodeLogicalType = node.LogicalType;
+                    if (nodeLogicalType.Type == LogicalTypeEnum.List)
+                    {
+                        elementType = elementType.MakeArrayType();
+                    }
+                }
+                finally
+                {
+                    var prevNode = node;
+                    node = prevNode.Parent;
+                    prevNode.Dispose();
                 }
             }
 
