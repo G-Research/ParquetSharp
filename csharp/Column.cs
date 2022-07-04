@@ -140,7 +140,8 @@ namespace ParquetSharp
 
                 try
                 {
-                    return new GroupNode(name, Repetition.Optional, new[] {list}, LogicalType.List());
+                    using var listLogicalType = LogicalType.List();
+                    return new GroupNode(name, Repetition.Optional, new[] {list}, listLogicalType);
                 }
                 finally
                 {
