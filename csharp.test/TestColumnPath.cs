@@ -48,20 +48,28 @@ namespace ParquetSharp.Test
             var columns = new Column[] {new Column<int[]>("value")};
 
             using var schema = Column.CreateSchemaNode(columns);
+            using var valueNode = schema.Field(0);
+            using var listNode = ((GroupNode) valueNode).Field(0);
+            using var itemNode = ((GroupNode) listNode).Field(0);
+
             using var p0 = new ColumnPath(schema);
-            using var p1 = new ColumnPath(schema.Field(0));
-            using var p2 = new ColumnPath(((GroupNode) schema.Field(0)).Field(0));
-            using var p3 = new ColumnPath(((GroupNode) ((GroupNode) schema.Field(0)).Field(0)).Field(0));
+            using var p1 = new ColumnPath(valueNode);
+            using var p2 = new ColumnPath(listNode);
+            using var p3 = new ColumnPath(itemNode);
 
             Assert.AreEqual("", p0.ToDotString());
             Assert.AreEqual("value", p1.ToDotString());
             Assert.AreEqual("value.list", p2.ToDotString());
             Assert.AreEqual("value.list.item", p3.ToDotString());
 
-            Assert.AreEqual("", schema.Path.ToDotString());
-            Assert.AreEqual("value", schema.Field(0).Path.ToDotString());
-            Assert.AreEqual("value.list", ((GroupNode) schema.Field(0)).Field(0).Path.ToDotString());
-            Assert.AreEqual("value.list.item", ((GroupNode) ((GroupNode) schema.Field(0)).Field(0)).Field(0).Path.ToDotString());
+            using var schemaPath = schema.Path;
+            Assert.AreEqual("", schemaPath.ToDotString());
+            using var valuePath = valueNode.Path;
+            Assert.AreEqual("value", valuePath.ToDotString());
+            using var listPath = listNode.Path;
+            Assert.AreEqual("value.list", listPath.ToDotString());
+            using var itemPath = itemNode.Path;
+            Assert.AreEqual("value.list.item", itemPath.ToDotString());
         }
 
         [Test]
@@ -72,10 +80,13 @@ namespace ParquetSharp.Test
             var columns = new Column[] {new Column<int[]>(name)};
 
             using var schema = Column.CreateSchemaNode(columns);
+            using var colNode = schema.Field(0);
+            using var listNode = ((GroupNode) colNode).Field(0);
+            using var itemNode = ((GroupNode) listNode).Field(0);
             using var p0 = new ColumnPath(schema);
-            using var p1 = new ColumnPath(schema.Field(0));
-            using var p2 = new ColumnPath(((GroupNode) schema.Field(0)).Field(0));
-            using var p3 = new ColumnPath(((GroupNode) ((GroupNode) schema.Field(0)).Field(0)).Field(0));
+            using var p1 = new ColumnPath(colNode);
+            using var p2 = new ColumnPath(listNode);
+            using var p3 = new ColumnPath(itemNode);
 
             Assert.AreEqual("", p0.ToDotString());
             Assert.AreEqual(name, p1.ToDotString());
@@ -83,10 +94,14 @@ namespace ParquetSharp.Test
             Assert.AreEqual(name + ".list.item", p3.ToDotString());
             Assert.AreEqual(new[] {name, "list", "item"}, p3.ToDotVector());
 
-            Assert.AreEqual("", schema.Path.ToDotString());
-            Assert.AreEqual(name + "", schema.Field(0).Path.ToDotString());
-            Assert.AreEqual(name + ".list", ((GroupNode) schema.Field(0)).Field(0).Path.ToDotString());
-            Assert.AreEqual(name + ".list.item", ((GroupNode) ((GroupNode) schema.Field(0)).Field(0)).Field(0).Path.ToDotString());
+            using var schemaPath = schema.Path;
+            Assert.AreEqual("", schemaPath.ToDotString());
+            using var colPath = colNode.Path;
+            Assert.AreEqual(name + "", colPath.ToDotString());
+            using var listPath = listNode.Path;
+            Assert.AreEqual(name + ".list", listPath.ToDotString());
+            using var itemPath = itemNode.Path;
+            Assert.AreEqual(name + ".list.item", itemPath.ToDotString());
         }
     }
 }

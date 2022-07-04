@@ -13,13 +13,35 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestRoundTrip([Values(true, false)] bool useDictionaryEncoding)
         {
-            TestRoundTrip(CreateExpectedColumns(72), useDictionaryEncoding);
+            var expectedColumns = CreateExpectedColumns(72);
+            try
+            {
+                TestRoundTrip(expectedColumns, useDictionaryEncoding);
+            }
+            finally
+            {
+                foreach (var col in expectedColumns)
+                {
+                    col.Dispose();
+                }
+            }
         }
 
         [Test]
         public static void TestRoundTripBuffered([Values(true, false)] bool useDictionaryEncoding)
         {
-            TestRoundTripBuffered(CreateExpectedColumns(72), useDictionaryEncoding);
+            var expectedColumns = CreateExpectedColumns(72);
+            try
+            {
+                TestRoundTripBuffered(expectedColumns, useDictionaryEncoding);
+            }
+            finally
+            {
+                foreach (var col in expectedColumns)
+                {
+                    col.Dispose();
+                }
+            }
         }
 
         [Test]
@@ -27,7 +49,18 @@ namespace ParquetSharp.Test
         {
             // BUG: causes Encodings to return duplicated entries.
 
-            TestRoundTrip(CreateExpectedColumns(720_000), useDictionaryEncoding);
+            var expectedColumns = CreateExpectedColumns(720_000);
+            try
+            {
+                TestRoundTrip(expectedColumns, useDictionaryEncoding);
+            }
+            finally
+            {
+                foreach (var col in expectedColumns)
+                {
+                    col.Dispose();
+                }
+            }
         }
 
         [Test]
@@ -35,13 +68,24 @@ namespace ParquetSharp.Test
         {
             // BUG: causes Encodings to return duplicated entries.
 
-            TestRoundTripBuffered(CreateExpectedColumns(720_000), useDictionaryEncoding);
+            var expectedColumns = CreateExpectedColumns(720_000);
+            try
+            {
+                TestRoundTripBuffered(expectedColumns, useDictionaryEncoding);
+            }
+            finally
+            {
+                foreach (var col in expectedColumns)
+                {
+                    col.Dispose();
+                }
+            }
         }
 
         private static void TestRoundTrip(ExpectedColumn[] expectedColumns, bool useDictionaryEncoding)
         {
-            var schema = CreateSchema(expectedColumns);
-            var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
+            using var schema = CreateSchema(expectedColumns);
+            using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
             var keyValueMetadata = new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}};
 
             using var buffer = new ResizableBuffer();
@@ -71,8 +115,8 @@ namespace ParquetSharp.Test
         {
             // Same as the default round-trip test, but use buffered row groups.
 
-            var schema = CreateSchema(expectedColumns);
-            var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
+            using var schema = CreateSchema(expectedColumns);
+            using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
             var keyValueMetadata = new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}};
 
             using var buffer = new ResizableBuffer();
@@ -139,12 +183,13 @@ namespace ParquetSharp.Test
                 Console.WriteLine("Reading '{0}'", expected.Name);
 
                 var descr = columnReader.ColumnDescriptor;
-                var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
+                using var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
 
                 Assert.AreEqual(expected.MaxDefinitionlevel, descr.MaxDefinitionLevel);
                 Assert.AreEqual(expected.MaxRepetitionLevel, descr.MaxRepetitionLevel);
                 Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
-                Assert.AreEqual(expected.LogicalType, descr.LogicalType);
+                using var logicalType = descr.LogicalType;
+                Assert.AreEqual(expected.LogicalType, logicalType);
                 Assert.AreEqual(expected.ColumnOrder, descr.ColumnOrder);
                 Assert.AreEqual(expected.SortOrder, descr.SortOrder);
                 Assert.AreEqual(expected.Name, descr.Name);
@@ -163,16 +208,27 @@ namespace ParquetSharp.Test
 
         private static GroupNode CreateSchema(ExpectedColumn[] expectedColumns)
         {
+            using var noneLogicalType = LogicalType.None();
             var fields = expectedColumns
-                .Select(f => new PrimitiveNode(f.Name, Repetition.Required, LogicalType.None(), f.PhysicalType))
+                .Select(f => new PrimitiveNode(f.Name, Repetition.Required, noneLogicalType, f.PhysicalType))
                 .ToArray();
 
-            return new GroupNode("schema", Repetition.Required, fields);
+            try
+            {
+                return new GroupNode("schema", Repetition.Required, fields);
+            }
+            finally
+            {
+                foreach (var node in fields)
+                {
+                    node.Dispose();
+                }
+            }
         }
 
         private static WriterProperties CreateWriterProperties(ExpectedColumn[] expectedColumns, bool useDictionaryEncoding)
         {
-            var builder = new WriterPropertiesBuilder();
+            using var builder = new WriterPropertiesBuilder();
 
             builder.Compression(Compression.Snappy);
 
@@ -232,7 +288,7 @@ namespace ParquetSharp.Test
             };
         }
 
-        private sealed class ExpectedColumn
+        private sealed class ExpectedColumn : IDisposable
         {
             public string Name = ""; // TODO replace with init;
             public Array Values = new object[0]; // TODO replace with init;
@@ -240,15 +296,31 @@ namespace ParquetSharp.Test
             public int MaxDefinitionlevel = 0;
             public int MaxRepetitionLevel = 0;
             public PhysicalType PhysicalType;
-            public LogicalType LogicalType = LogicalType.None();
             public ColumnOrder ColumnOrder = ColumnOrder.TypeDefinedOrder;
             public SortOrder SortOrder = SortOrder.Signed;
             public int TypeLength = 0;
             public int TypePrecision = -1;
             public int TypeScale = -1;
 
+            private LogicalType _logicalType = LogicalType.None();
+
+            public LogicalType LogicalType
+            {
+                get => _logicalType;
+                set
+                {
+                    _logicalType.Dispose();
+                    _logicalType = value;
+                }
+            }
+
             public Encoding[] Encodings = {Encoding.PlainDictionary, Encoding.Plain, Encoding.Rle};
             public Compression Compression = Compression.Snappy;
+
+            public void Dispose()
+            {
+                _logicalType.Dispose();
+            }
         }
     }
 }

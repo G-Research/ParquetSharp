@@ -63,7 +63,8 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestAgainstThirdParty()
         {
-            var columns = new Column[] {new Column<decimal>("Decimal", LogicalType.Decimal(precision: 29, scale: 3))};
+            using var decimalType = LogicalType.Decimal(precision: 29, scale: 3);
+            var columns = new Column[] {new Column<decimal>("Decimal", decimalType)};
             var values = Enumerable.Range(0, 10_000)
                 .Select(i => ((decimal) i * i * i) / 1000 - 10)
                 .Concat(new[] {decimal.MinValue / 1000, decimal.MaxValue / 1000})

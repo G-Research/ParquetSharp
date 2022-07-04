@@ -48,11 +48,13 @@ namespace ParquetSharp.Test
                 using var crypto0 = colMetadata0.CryptoMetadata;
                 using var crypto1 = colMetadata1.CryptoMetadata;
 
-                Assert.AreEqual("", crypto0?.ColumnPath.ToDotString());
+                using var crypto0Path = crypto0?.ColumnPath;
+                Assert.AreEqual("", crypto0Path?.ToDotString());
                 Assert.AreEqual(true, crypto0?.EncryptedWithFooterKey);
                 Assert.AreEqual("", crypto0?.KeyMetadata);
 
-                Assert.AreEqual("", crypto1?.ColumnPath.ToDotString());
+                using var crypto1Path = crypto1?.ColumnPath;
+                Assert.AreEqual("", crypto1Path?.ToDotString());
                 Assert.AreEqual(true, crypto1?.EncryptedWithFooterKey);
                 Assert.AreEqual("", crypto1?.KeyMetadata);
             });
@@ -69,11 +71,13 @@ namespace ParquetSharp.Test
                 using var crypto0 = colMetadata0.CryptoMetadata;
                 using var crypto1 = colMetadata1.CryptoMetadata;
 
-                Assert.AreEqual("Id", crypto0?.ColumnPath.ToDotString());
+                using var path0 = crypto0?.ColumnPath;
+                Assert.AreEqual("Id", path0?.ToDotString());
                 Assert.AreEqual(false, crypto0?.EncryptedWithFooterKey);
                 Assert.AreEqual("Key1", crypto0?.KeyMetadata);
 
-                Assert.AreEqual("Value", crypto1?.ColumnPath.ToDotString());
+                using var path1 = crypto1?.ColumnPath;
+                Assert.AreEqual("Value", path1?.ToDotString());
                 Assert.AreEqual(false, crypto1?.EncryptedWithFooterKey);
                 Assert.AreEqual("Key2", crypto1?.KeyMetadata);
             });
@@ -90,11 +94,13 @@ namespace ParquetSharp.Test
                 using var crypto0 = colMetadata0.CryptoMetadata;
                 using var crypto1 = colMetadata1.CryptoMetadata;
 
-                Assert.AreEqual("Id", crypto0?.ColumnPath.ToDotString());
+                using var path0 = crypto0?.ColumnPath;
+                Assert.AreEqual("Id", path0?.ToDotString());
                 Assert.AreEqual(false, crypto0?.EncryptedWithFooterKey);
                 Assert.AreEqual("Key1", crypto0?.KeyMetadata);
 
-                Assert.AreEqual("Value", crypto1?.ColumnPath.ToDotString());
+                using var path1 = crypto1?.ColumnPath;
+                Assert.AreEqual("Value", path1?.ToDotString());
                 Assert.AreEqual(false, crypto1?.EncryptedWithFooterKey);
                 Assert.AreEqual("Key2", crypto1?.KeyMetadata);
             });
@@ -125,7 +131,8 @@ namespace ParquetSharp.Test
 
                     Assert.AreEqual(null, crypto0);
 
-                    Assert.AreEqual("Value", crypto1?.ColumnPath.ToDotString());
+                    using var path1 = crypto1?.ColumnPath;
+                    Assert.AreEqual("Value", path1?.ToDotString());
                     Assert.AreEqual(false, crypto1?.EncryptedWithFooterKey);
                     Assert.AreEqual("Key2", crypto1?.KeyMetadata);
                 });
@@ -169,13 +176,15 @@ namespace ParquetSharp.Test
             using var builder = new FileEncryptionPropertiesBuilder(Key0);
             using var col0 = new ColumnEncryptionPropertiesBuilder("Id");
             using var col1 = new ColumnEncryptionPropertiesBuilder("Value");
+            using var col0Properties = col0.Key(Key1).KeyMetadata("Key1").Build();
+            using var col1Properties = col1.Key(Key2).KeyMetadata("Key2").Build();
 
             return builder
                 .FooterKeyMetadata("Key0")
                 .EncryptedColumns(new[]
                 {
-                    col0.Key(Key1).KeyMetadata("Key1").Build(),
-                    col1.Key(Key2).KeyMetadata("Key2").Build()
+                    col0Properties,
+                    col1Properties,
                 })
                 .Build();
         }
@@ -185,14 +194,16 @@ namespace ParquetSharp.Test
             using var builder = new FileEncryptionPropertiesBuilder(Key0);
             using var col1 = new ColumnEncryptionPropertiesBuilder("Value");
             using var col0 = new ColumnEncryptionPropertiesBuilder("Id");
+            using var col0Properties = col0.Key(Key1).KeyMetadata("Key1").Build();
+            using var col1Properties = col1.Key(Key2).KeyMetadata("Key2").Build();
 
             return builder
                 .FooterKeyMetadata("Key0")
                 .SetPlaintextFooter()
                 .EncryptedColumns(new[]
                 {
-                    col0.Key(Key1).KeyMetadata("Key1").Build(),
-                    col1.Key(Key2).KeyMetadata("Key2").Build()
+                    col0Properties,
+                    col1Properties,
                 })
                 .Build();
         }
@@ -201,13 +212,14 @@ namespace ParquetSharp.Test
         {
             using var builder = new FileEncryptionPropertiesBuilder(Key0);
             using var col1 = new ColumnEncryptionPropertiesBuilder("Value");
+            using var colProperties = col1.Key(Key2).KeyMetadata("Key2").Build();
 
             return builder
                 .FooterKeyMetadata("Key0")
                 .SetPlaintextFooter()
                 .EncryptedColumns(new[]
                 {
-                    col1.Key(Key2).KeyMetadata("Key2").Build()
+                    colProperties,
                 })
                 .Build();
         }
