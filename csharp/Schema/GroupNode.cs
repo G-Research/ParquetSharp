@@ -45,7 +45,7 @@ namespace ParquetSharp.Schema
                 return new GroupNode(
                     Name,
                     Repetition,
-                    fields,
+                    clonedFields,
                     logicalType is NoneLogicalType ? null : logicalType);
             }
             finally
