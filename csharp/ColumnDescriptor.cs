@@ -72,20 +72,15 @@ namespace ParquetSharp
             var node = SchemaNode;
             while (node != null)
             {
-                try
+                using var nodeLogicalType = node.LogicalType;
+                if (nodeLogicalType.Type == LogicalTypeEnum.List)
                 {
-                    using var nodeLogicalType = node.LogicalType;
-                    if (nodeLogicalType.Type == LogicalTypeEnum.List)
-                    {
-                        elementType = elementType.MakeArrayType();
-                    }
+                    elementType = elementType.MakeArrayType();
                 }
-                finally
-                {
-                    var prevNode = node;
-                    node = prevNode.Parent;
-                    prevNode.Dispose();
-                }
+
+                var prevNode = node;
+                node = prevNode.Parent;
+                prevNode.Dispose();
             }
 
             return (physicalType, logicalType, elementType);
