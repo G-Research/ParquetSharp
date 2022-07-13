@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ParquetSharp.IO;
@@ -644,6 +645,51 @@ namespace ParquetSharp.Test
             Assert.AreEqual(1, rowGroup.MetaData.NumRows);
             var allData = columnReader.ReadAll(1);
             Assert.AreEqual(expected, allData);
+        }
+
+        /// <summary>
+        /// Test writing and then reading data with required strings by providing a custom type mapping
+        /// </summary>
+        [Test]
+        public static void TestRequiredStringRoundTrip()
+        {
+            var stringValues = Enumerable.Range(0, 100).Select(i => i.ToString()).ToArray();
+
+            using var stringType = LogicalType.String();
+            var typeMapping = new Dictionary<Type, (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType)>(
+                LogicalTypeFactory.DefaultPrimitiveMapping)
+            {
+                [typeof(string)] = (stringType, Repetition.Required, PhysicalType.ByteArray)
+            };
+            var logicalTypeFactory = new LogicalTypeFactory(typeMapping);
+
+            using var stringColumn = new PrimitiveNode("strings", Repetition.Required, stringType, PhysicalType.ByteArray);
+            using var schema = new GroupNode("schema", Repetition.Required, new[] {stringColumn});
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var builder = new WriterPropertiesBuilder();
+                using var properties = builder.Build();
+                using var fileWriter = new ParquetFileWriter(outStream, schema, properties)
+                {
+                    LogicalTypeFactory = logicalTypeFactory,
+                };
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<string>();
+                columnWriter.WriteBatch(stringValues);
+                fileWriter.Close();
+            }
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream)
+            {
+                LogicalTypeFactory = logicalTypeFactory,
+            };
+            using var rowGroupReader = fileReader.RowGroup(0);
+            using var columnReader = rowGroupReader.Column(0).LogicalReader<string>();
+            var readValues = columnReader.ReadAll(stringValues.Length);
+            Assert.That(readValues, Is.EqualTo(stringValues));
         }
 
         private static ExpectedColumn[] CreateExpectedColumns()
