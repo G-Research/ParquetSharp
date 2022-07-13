@@ -656,11 +656,9 @@ namespace ParquetSharp.Test
             var stringValues = Enumerable.Range(0, 100).Select(i => i.ToString()).ToArray();
 
             using var stringType = LogicalType.String();
-            var typeMapping = new Dictionary<Type, (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType)>(
-                LogicalTypeFactory.DefaultPrimitiveMapping)
-            {
-                [typeof(string)] = (stringType, Repetition.Required, PhysicalType.ByteArray)
-            };
+            var typeMapping = LogicalTypeFactory.DefaultPrimitiveMapping.ToDictionary(
+                entry => entry.Key, entry => entry.Value);
+            typeMapping[typeof(string)] = (stringType, Repetition.Required, PhysicalType.ByteArray);
             var logicalTypeFactory = new LogicalTypeFactory(typeMapping);
 
             using var stringColumn = new PrimitiveNode("strings", Repetition.Required, stringType, PhysicalType.ByteArray);
