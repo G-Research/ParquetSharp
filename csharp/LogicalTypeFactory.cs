@@ -124,6 +124,11 @@ namespace ParquetSharp
                 }
             }
 
+            if (logicalType.Type == LogicalTypeEnum.String)
+            {
+                return (typeof(ByteArray), typeof(string));
+            }
+
             if (logicalType.Type == LogicalTypeEnum.Json)
             {
                 return (typeof(ByteArray), typeof(string));
