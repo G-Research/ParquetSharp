@@ -161,6 +161,8 @@ namespace ParquetSharp.Test
                 {
                     new Column<DateTime>("a", LogicalType.Timestamp(true, TimeUnit.Millis)),
                     new Column<DateTime>("b", LogicalType.Timestamp(false, TimeUnit.Millis)),
+                    new Column<DateTime?>("c", LogicalType.Timestamp(true, TimeUnit.Millis)),
+                    new Column<DateTime?>("d", LogicalType.Timestamp(false, TimeUnit.Millis)),
                 };
 
                 const int numRows = 100;
@@ -175,14 +177,23 @@ namespace ParquetSharp.Test
                     using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
                     using var columnWriterA = rowGroupWriter.Column(0).LogicalWriter<DateTime>();
                     columnWriterA.WriteBatch(values);
+
                     using var columnWriterB = rowGroupWriter.Column(1).LogicalWriter<DateTime>();
                     columnWriterB.WriteBatch(values);
+
+                    using var columnWriterC = rowGroupWriter.Column(2).LogicalWriter<DateTime?>();
+                    columnWriterC.WriteBatch(values.Cast<DateTime?>().ToArray());
+
+                    using var columnWriterD = rowGroupWriter.Column(3).LogicalWriter<DateTime?>();
+                    columnWriterD.WriteBatch(values.Cast<DateTime?>().ToArray());
 
                     fileWriter.Close();
                 }
 
                 DateTime[] readValuesA;
                 DateTime[] readValuesB;
+                DateTime?[] readValuesC;
+                DateTime?[] readValuesD;
                 using (var inStream = new BufferReader(buffer))
                 {
                     using var fileReader = new ParquetFileReader(inStream);
@@ -191,15 +202,29 @@ namespace ParquetSharp.Test
                     using var logicalReaderA = columnReaderA.LogicalReader<DateTime>();
                     readValuesA = logicalReaderA.ReadAll(numRows);
 
-                    using var columnReaderB = rowGroupReader.Column(0);
+                    using var columnReaderB = rowGroupReader.Column(1);
                     using var logicalReaderB = columnReaderB.LogicalReader<DateTime>();
                     readValuesB = logicalReaderB.ReadAll(numRows);
+
+                    using var columnReaderC = rowGroupReader.Column(2);
+                    using var logicalReaderC = columnReaderC.LogicalReader<DateTime?>();
+                    readValuesC = logicalReaderC.ReadAll(numRows);
+
+                    using var columnReaderD = rowGroupReader.Column(3);
+                    using var logicalReaderD = columnReaderD.LogicalReader<DateTime?>();
+                    readValuesD = logicalReaderD.ReadAll(numRows);
                 }
 
                 Assert.AreEqual(values, readValuesA);
                 Assert.AreEqual(values, readValuesB);
+                Assert.AreEqual(values, readValuesC);
+                Assert.AreEqual(values, readValuesD);
 
-                var kinds = readValuesA.Concat(readValuesB).Select(v => v.Kind).ToHashSet();
+                var kinds = readValuesA.Select(v => v.Kind)
+                    .Concat(readValuesB.Select(v => v.Kind))
+                    .Concat(readValuesC.Select(v => v!.Value.Kind))
+                    .Concat(readValuesD.Select(v => v!.Value.Kind))
+                    .ToHashSet();
                 Assert.AreEqual(1, kinds.Count);
                 Assert.AreEqual(DateTimeKind.Unspecified, kinds.First());
             }
