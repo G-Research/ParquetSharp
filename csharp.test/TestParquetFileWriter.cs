@@ -45,15 +45,20 @@ namespace ParquetSharp.Test
             Assert.AreEqual(0, fileWriter.NumRows);
             Assert.AreEqual(0, fileWriter.NumRowGroups);
             Assert.IsNull(fileWriter.FileMetaData);
-            Assert.AreEqual(Column.CreateSchemaNode(columns), fileWriter.Schema.GroupNode);
-            Assert.AreEqual(Column.CreateSchemaNode(columns), fileWriter.Schema.SchemaRoot);
+            using var schemaFromColumns = Column.CreateSchemaNode(columns);
+            using var schemaGroupNode = fileWriter.Schema.SchemaRoot;
+            using var schemaRoot = fileWriter.Schema.GroupNode;
+            Assert.AreEqual(schemaFromColumns, schemaGroupNode);
+            Assert.AreEqual(schemaFromColumns, schemaRoot);
             Assert.AreEqual(columns[0].Name, fileWriter.ColumnDescriptor(0).Name);
             Assert.AreEqual(columns[1].Name, fileWriter.ColumnDescriptor(1).Name);
             Assert.AreEqual(kvm, fileWriter.KeyValueMetadata);
 
-            Assert.AreEqual(Compression.Zstd, fileWriter.WriterProperties.Compression(new ColumnPath("")));
-            Assert.AreEqual(false, fileWriter.WriterProperties.DictionaryEnabled(new ColumnPath("")));
-            Assert.AreEqual("Some crazy unit test", fileWriter.WriterProperties.CreatedBy);
+            using var fileWriterProperties = fileWriter.WriterProperties;
+            using var emptyPath = new ColumnPath("");
+            Assert.AreEqual(Compression.Zstd, fileWriterProperties.Compression(emptyPath));
+            Assert.AreEqual(false, fileWriterProperties.DictionaryEnabled(emptyPath));
+            Assert.AreEqual("Some crazy unit test", fileWriterProperties.CreatedBy);
 
             using (var groupWriter = fileWriter.AppendRowGroup())
             {
@@ -88,11 +93,12 @@ namespace ParquetSharp.Test
 
             //Assert.AreEqual(0, fileWriter.NumRows); // 2021-04-08: calling this results in a segfault when the writer has been closed
             //Assert.AreEqual(1, fileWriter.NumRowGroups); // 2021-04-08: calling this results in a segfault when the writer has been closed
-            Assert.IsNotNull(fileWriter.FileMetaData);
-            Assert.AreEqual(2, fileWriter.FileMetaData?.NumColumns);
-            Assert.AreEqual(6, fileWriter.FileMetaData?.NumRows);
-            Assert.AreEqual(1, fileWriter.FileMetaData?.NumRowGroups);
-            Assert.AreEqual(kvm, fileWriter.FileMetaData?.KeyValueMetadata);
+            using var fileMetaData = fileWriter.FileMetaData;
+            Assert.IsNotNull(fileMetaData);
+            Assert.AreEqual(2, fileMetaData?.NumColumns);
+            Assert.AreEqual(6, fileMetaData?.NumRows);
+            Assert.AreEqual(1, fileMetaData?.NumRowGroups);
+            Assert.AreEqual(kvm, fileMetaData?.KeyValueMetadata);
         }
 
         [Test]

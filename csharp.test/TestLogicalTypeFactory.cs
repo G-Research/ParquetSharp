@@ -50,7 +50,8 @@ namespace ParquetSharp.Test
             using var fileReader = new ParquetFileReader(input);
             using var groupReader = fileReader.RowGroup(0);
 
-            var exception = Assert.Throws<NotSupportedException>(() => groupReader.Column(0).LogicalReaderOverride<VolumeInDollars>());
+            using var colReader = groupReader.Column(0);
+            var exception = Assert.Throws<NotSupportedException>(() => colReader.LogicalReaderOverride<VolumeInDollars>());
             Assert.That(exception?.Message, Does.StartWith("unsupported logical system type"));
         }
 
@@ -401,7 +402,8 @@ namespace ParquetSharp.Test
             {
                 // We have to use the column name to know what type to expose.
                 Assert.IsNull(columnLogicalTypeOverride);
-                return base.GetSystemTypes(descriptor, descriptor.Path.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null);
+                using var descriptorPath = descriptor.Path;
+                return base.GetSystemTypes(descriptor, descriptorPath.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null);
             }
         }
 
@@ -453,7 +455,8 @@ namespace ParquetSharp.Test
             {
                 // We have to use the column name to know what type to expose.
                 Assert.IsNull(columnLogicalTypeOverride);
-                return base.GetSystemTypes(descriptor, descriptor.Path.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null);
+                using var descriptorPath = descriptor.Path;
+                return base.GetSystemTypes(descriptor, descriptorPath.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null);
             }
         }
 

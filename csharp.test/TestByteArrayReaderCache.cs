@@ -29,7 +29,8 @@ namespace ParquetSharp.Test
             // Write a file that contains a lot of duplicate strings.
             using (var output = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(output, columns, CreateWriterProperties(enableDictionary));
+                using var writerProperties = CreateWriterProperties(enableDictionary);
+                using var fileWriter = new ParquetFileWriter(output, columns, writerProperties);
                 using var groupWriter = fileWriter.AppendRowGroup();
 
                 using var dateWriter = groupWriter.NextColumn().LogicalWriter<DateTime>();

@@ -21,34 +21,45 @@ namespace ParquetSharp.Test
         )
         {
             var expectedColumns = CreateExpectedColumns();
-            var schemaColumns = expectedColumns
-                .Select(c => new Column(c.Values.GetType().GetElementType() ?? throw new InvalidOperationException(), c.Name, c.LogicalTypeOverride))
-                .ToArray();
 
-            using var buffer = new ResizableBuffer();
-
-            // Write our expected columns to the parquet in-memory file.
-            using (var outStream = new BufferOutputStream(buffer))
+            try
             {
-                using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
-                using var fileWriter = new ParquetFileWriter(outStream, schemaColumns, writerProperties);
-                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                var schemaColumns = expectedColumns
+                    .Select(c => new Column(c.Values.GetType().GetElementType() ?? throw new InvalidOperationException(), c.Name, c.LogicalTypeOverride))
+                    .ToArray();
 
-                foreach (var column in expectedColumns)
+                using var buffer = new ResizableBuffer();
+
+                // Write our expected columns to the parquet in-memory file.
+                using (var outStream = new BufferOutputStream(buffer))
                 {
-                    Console.WriteLine("Writing '{0}' ({1})", column.Name, column.Values.GetType().GetElementType());
+                    using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
+                    using var fileWriter = new ParquetFileWriter(outStream, schemaColumns, writerProperties);
+                    using var rowGroupWriter = fileWriter.AppendRowGroup();
 
-                    using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter(writeBufferLength);
-                    columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch));
+                    foreach (var column in expectedColumns)
+                    {
+                        Console.WriteLine("Writing '{0}' ({1})", column.Name, column.Values.GetType().GetElementType());
+
+                        using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter(writeBufferLength);
+                        columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch));
+                    }
+
+                    fileWriter.Close();
                 }
 
-                fileWriter.Close();
+                Console.WriteLine();
+
+                // Read back the columns and make sure they match.
+                AssertReadRoundtrip(rowsPerBatch, readBufferLength, buffer, expectedColumns);
             }
-
-            Console.WriteLine();
-
-            // Read back the columns and make sure they match.
-            AssertReadRoundtrip(rowsPerBatch, readBufferLength, buffer, expectedColumns);
+            finally
+            {
+                foreach (var col in expectedColumns)
+                {
+                    col.Dispose();
+                }
+            }
         }
 
         [Test]
@@ -61,42 +72,52 @@ namespace ParquetSharp.Test
         )
         {
             var expectedColumns = CreateExpectedColumns();
-            var schemaColumns = expectedColumns
-                .Select(c => new Column(c.Values.GetType().GetElementType() ?? throw new InvalidOperationException(), c.Name, c.LogicalTypeOverride))
-                .ToArray();
-
-            using var buffer = new ResizableBuffer();
-
-            // Write our expected columns to the parquet in-memory file.
-            using (var outStream = new BufferOutputStream(buffer))
+            try
             {
-                using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
-                using var fileWriter = new ParquetFileWriter(outStream, schemaColumns, writerProperties);
-                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+                var schemaColumns = expectedColumns
+                    .Select(c => new Column(c.Values.GetType().GetElementType() ?? throw new InvalidOperationException(), c.Name, c.LogicalTypeOverride))
+                    .ToArray();
 
-                const int rangeLength = 9;
+                using var buffer = new ResizableBuffer();
 
-                for (int r = 0; r < NumRows; r += rangeLength)
+                // Write our expected columns to the parquet in-memory file.
+                using (var outStream = new BufferOutputStream(buffer))
                 {
-                    for (var i = 0; i < expectedColumns.Length; i++)
+                    using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
+                    using var fileWriter = new ParquetFileWriter(outStream, schemaColumns, writerProperties);
+                    using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                    const int rangeLength = 9;
+
+                    for (int r = 0; r < NumRows; r += rangeLength)
                     {
-                        var column = expectedColumns[i];
-                        var range = (r, Math.Min(r + rangeLength, NumRows));
+                        for (var i = 0; i < expectedColumns.Length; i++)
+                        {
+                            var column = expectedColumns[i];
+                            var range = (r, Math.Min(r + rangeLength, NumRows));
 
-                        Console.WriteLine("Writing '{0}' (element type: {1}) (range: {2})", column.Name, column.Values.GetType().GetElementType(), range);
+                            Console.WriteLine("Writing '{0}' (element type: {1}) (range: {2})", column.Name, column.Values.GetType().GetElementType(), range);
 
-                        using var columnWriter = rowGroupWriter.Column(i).LogicalWriter(writeBufferLength);
-                        columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch, range));
+                            using var columnWriter = rowGroupWriter.Column(i).LogicalWriter(writeBufferLength);
+                            columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch, range));
+                        }
                     }
+
+                    fileWriter.Close();
                 }
 
-                fileWriter.Close();
+                Console.WriteLine();
+
+                // Read back the columns and make sure they match.
+                AssertReadRoundtrip(rowsPerBatch, readBufferLength, buffer, expectedColumns);
             }
-
-            Console.WriteLine();
-
-            // Read back the columns and make sure they match.
-            AssertReadRoundtrip(rowsPerBatch, readBufferLength, buffer, expectedColumns);
+            finally
+            {
+                foreach (var col in expectedColumns)
+                {
+                    col.Dispose();
+                }
+            }
         }
 
         [TestCase(DateTimeKind.Utc, TimeUnit.Micros)]
@@ -108,9 +129,10 @@ namespace ParquetSharp.Test
             // ParquetSharp doesn't know the DateTime values upfront,
             // so we have to specify whether values are UTC in the logical type.
             var isAdjustedToUtc = kind == DateTimeKind.Utc;
+            using var timestampType = LogicalType.Timestamp(isAdjustedToUtc, timeUnit);
             var schemaColumns = new Column[]
             {
-                new Column<DateTime>("dateTime", LogicalType.Timestamp(isAdjustedToUtc, timeUnit)),
+                new Column<DateTime>("dateTime", timestampType),
             };
 
             const int numRows = 100;
@@ -144,9 +166,100 @@ namespace ParquetSharp.Test
             Assert.AreEqual(kind, kinds.First());
         }
 
+        [Test]
+        [NonParallelizable]
+        public static void TestAppSwitchDateTimeKindUnspecified()
+        {
+            // This test cannot be parallelized as we use an AppContext switch to manipulate the internal behavior of ParquetSharp.
+            // If other test's run while this test is also running it may cause inconsistent results.
+
+            Assert.False(AppContext.TryGetSwitch("ParquetSharp.ReadDateTimeKindAsUnspecified", out var existingValue) && existingValue);
+            AppContext.SetSwitch("ParquetSharp.ReadDateTimeKindAsUnspecified", true);
+
+            try
+            {
+                // We create two Timestamp columns with varying isAdjustedToUtc
+                // With the legacy switch enabled, both columns when read should output DateTime values with DateTimeKind.Unspecified
+                var schemaColumns = new Column[]
+                {
+                    new Column<DateTime>("a", LogicalType.Timestamp(true, TimeUnit.Millis)),
+                    new Column<DateTime>("b", LogicalType.Timestamp(false, TimeUnit.Millis)),
+                    new Column<DateTime?>("c", LogicalType.Timestamp(true, TimeUnit.Millis)),
+                    new Column<DateTime?>("d", LogicalType.Timestamp(false, TimeUnit.Millis)),
+                };
+
+                const int numRows = 100;
+                var startTime = new DateTime(2022, 3, 14, 10, 49, 0, DateTimeKind.Unspecified);
+                var values = Enumerable.Range(0, numRows).Select(i => startTime + TimeSpan.FromSeconds(i)).ToArray();
+
+                using var buffer = new ResizableBuffer();
+
+                using (var outStream = new BufferOutputStream(buffer))
+                {
+                    using var fileWriter = new ParquetFileWriter(outStream, schemaColumns);
+                    using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+                    using var columnWriterA = rowGroupWriter.Column(0).LogicalWriter<DateTime>();
+                    columnWriterA.WriteBatch(values);
+
+                    using var columnWriterB = rowGroupWriter.Column(1).LogicalWriter<DateTime>();
+                    columnWriterB.WriteBatch(values);
+
+                    using var columnWriterC = rowGroupWriter.Column(2).LogicalWriter<DateTime?>();
+                    columnWriterC.WriteBatch(values.Cast<DateTime?>().ToArray());
+
+                    using var columnWriterD = rowGroupWriter.Column(3).LogicalWriter<DateTime?>();
+                    columnWriterD.WriteBatch(values.Cast<DateTime?>().ToArray());
+
+                    fileWriter.Close();
+                }
+
+                DateTime[] readValuesA;
+                DateTime[] readValuesB;
+                DateTime?[] readValuesC;
+                DateTime?[] readValuesD;
+                using (var inStream = new BufferReader(buffer))
+                {
+                    using var fileReader = new ParquetFileReader(inStream);
+                    using var rowGroupReader = fileReader.RowGroup(0);
+                    using var columnReaderA = rowGroupReader.Column(0);
+                    using var logicalReaderA = columnReaderA.LogicalReader<DateTime>();
+                    readValuesA = logicalReaderA.ReadAll(numRows);
+
+                    using var columnReaderB = rowGroupReader.Column(1);
+                    using var logicalReaderB = columnReaderB.LogicalReader<DateTime>();
+                    readValuesB = logicalReaderB.ReadAll(numRows);
+
+                    using var columnReaderC = rowGroupReader.Column(2);
+                    using var logicalReaderC = columnReaderC.LogicalReader<DateTime?>();
+                    readValuesC = logicalReaderC.ReadAll(numRows);
+
+                    using var columnReaderD = rowGroupReader.Column(3);
+                    using var logicalReaderD = columnReaderD.LogicalReader<DateTime?>();
+                    readValuesD = logicalReaderD.ReadAll(numRows);
+                }
+
+                Assert.AreEqual(values, readValuesA);
+                Assert.AreEqual(values, readValuesB);
+                Assert.AreEqual(values, readValuesC);
+                Assert.AreEqual(values, readValuesD);
+
+                var kinds = readValuesA.Select(v => v.Kind)
+                    .Concat(readValuesB.Select(v => v.Kind))
+                    .Concat(readValuesC.Select(v => v!.Value.Kind))
+                    .Concat(readValuesD.Select(v => v!.Value.Kind))
+                    .ToHashSet();
+                Assert.AreEqual(1, kinds.Count);
+                Assert.AreEqual(DateTimeKind.Unspecified, kinds.First());
+            }
+            finally
+            {
+                AppContext.SetSwitch("ParquetSharp.ReadDateTimeKindAsUnspecified", false);
+            }
+        }
+
         private static WriterProperties CreateWriterProperties(ExpectedColumn[] expectedColumns, bool useDictionaryEncoding)
         {
-            var builder = new WriterPropertiesBuilder();
+            using var builder = new WriterPropertiesBuilder();
 
             builder.Compression(Compression.Snappy);
 
@@ -181,16 +294,19 @@ namespace ParquetSharp.Test
                 using (var columnReader = rowGroupReader.Column(c).LogicalReader(readBufferLength))
                 {
                     var descr = columnReader.ColumnDescriptor;
-                    var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
-                    var statistics = chunkMetaData.Statistics;
+                    using var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
+                    using var statistics = chunkMetaData.Statistics;
 
                     Console.WriteLine("Reading '{0}'", expected.Name);
 
-                    Assert.AreEqual(expected.Name, fileMetaData.Schema.ColumnRoot(c).Name);
-                    Assert.AreEqual(expected.Name, descr.Path.ToDotVector().First());
-                    Assert.AreEqual(c, fileMetaData.Schema.ColumnIndex(descr.Path.ToDotString()));
+                    using var root = fileMetaData.Schema.ColumnRoot(c);
+                    Assert.AreEqual(expected.Name, root.Name);
+                    using var path = descr.Path;
+                    Assert.AreEqual(expected.Name, path.ToDotVector().First());
+                    Assert.AreEqual(c, fileMetaData.Schema.ColumnIndex(path.ToDotString()));
                     Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
-                    Assert.AreEqual(expected.LogicalType, descr.LogicalType);
+                    using var logicalType = descr.LogicalType;
+                    Assert.AreEqual(expected.LogicalType, logicalType);
                     Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalValueGetter(checked((int) numRows), rowsPerBatch)));
                     Assert.AreEqual(expected.Length, descr.TypeLength);
                     Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Precision ?? -1, descr.TypePrecision);
@@ -306,14 +422,17 @@ namespace ParquetSharp.Test
 
             using (var output = new BufferOutputStream(buffer))
             {
-                var element = new PrimitiveNode("element", Repetition.Required, LogicalType.None(), PhysicalType.Int32);
-                var list = new GroupNode("list", Repetition.Repeated, new[] {element});
-                var ids = new GroupNode("ids", Repetition.Optional, new[] {list}, LogicalType.List());
-                var outer = new GroupNode("struct", structRepetition, new[] {ids});
-                var schemaNode = new GroupNode("schema", Repetition.Required, new[] {outer});
+                using var noneType = LogicalType.None();
+                using var element = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Int32);
+                using var list = new GroupNode("list", Repetition.Repeated, new[] {element});
+                using var listType = LogicalType.List();
+                using var ids = new GroupNode("ids", Repetition.Optional, new[] {list}, listType);
+                using var outer = new GroupNode("struct", structRepetition, new[] {ids});
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {outer});
 
                 using var builder = new WriterPropertiesBuilder();
-                using var fileWriter = new ParquetFileWriter(output, schemaNode, builder.Build());
+                using var writerProperties = builder.Build();
+                using var fileWriter = new ParquetFileWriter(output, schemaNode, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
 
                 using var colWriter = rowGroupWriter.Column(0).LogicalWriter<int[]?>();
@@ -587,12 +706,15 @@ namespace ParquetSharp.Test
 
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<DateTime>("a", LogicalType.Timestamp(false, TimeUnit.Millis, forceSetConvertedType: true))});
+                using var timestampType = LogicalType.Timestamp(false, TimeUnit.Millis, forceSetConvertedType: true);
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<DateTime>("a", timestampType)});
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>();
 
-                Assert.True((colWriter.ColumnDescriptor.LogicalType as TimestampLogicalType)?.ForceSetConvertedType);
-                Assert.AreEqual(ConvertedType.TimestampMillis, colWriter.ColumnDescriptor.SchemaNode.ConvertedType);
+                using var logicalType = colWriter.ColumnDescriptor.LogicalType;
+                Assert.True((logicalType as TimestampLogicalType)?.ForceSetConvertedType);
+                using var schemaNode = colWriter.ColumnDescriptor.SchemaNode;
+                Assert.AreEqual(ConvertedType.TimestampMillis, schemaNode.ConvertedType);
 
                 colWriter.WriteBatch(expected);
 
@@ -625,12 +747,15 @@ namespace ParquetSharp.Test
 
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<DateTime>("a", LogicalType.Timestamp(false, TimeUnit.Millis))});
+                using var timestampType = LogicalType.Timestamp(false, TimeUnit.Millis);
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<DateTime>("a", timestampType)});
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>();
 
-                Assert.False((colWriter.ColumnDescriptor.LogicalType as TimestampLogicalType)?.ForceSetConvertedType);
-                Assert.AreEqual(ConvertedType.None, colWriter.ColumnDescriptor.SchemaNode.ConvertedType);
+                using var logicalType = colWriter.ColumnDescriptor.LogicalType;
+                Assert.False((logicalType as TimestampLogicalType)?.ForceSetConvertedType);
+                using var schemaNode = colWriter.ColumnDescriptor.SchemaNode;
+                Assert.AreEqual(ConvertedType.None, schemaNode.ConvertedType);
 
                 colWriter.WriteBatch(expected);
 
@@ -1288,13 +1413,11 @@ namespace ParquetSharp.Test
             };
         }
 
-        private sealed class ExpectedColumn
+        private sealed class ExpectedColumn : IDisposable
         {
             public string Name = ""; // TODO replace with init;
             public Array Values = new object[0]; // TODO replace with init;
             public PhysicalType PhysicalType;
-            public LogicalType LogicalType = LogicalType.None();
-            public LogicalType LogicalTypeOverride = LogicalType.None();
             public int Length;
 
             public bool HasStatistics = true;
@@ -1305,6 +1428,36 @@ namespace ParquetSharp.Test
             public long NumValues = NumRows;
 
             public Func<object, ColumnDescriptor, object> Converter = (v, _) => v;
+
+            private LogicalType _logicalType = LogicalType.None();
+
+            public LogicalType LogicalType
+            {
+                get => _logicalType;
+                set
+                {
+                    _logicalType.Dispose();
+                    _logicalType = value;
+                }
+            }
+
+            private LogicalType _logicalTypeOverride = LogicalType.None();
+
+            public LogicalType LogicalTypeOverride
+            {
+                get => _logicalTypeOverride;
+                set
+                {
+                    _logicalTypeOverride.Dispose();
+                    _logicalTypeOverride = value;
+                }
+            }
+
+            public void Dispose()
+            {
+                _logicalType.Dispose();
+                _logicalTypeOverride.Dispose();
+            }
         }
 
         private const int NumRows = 119;

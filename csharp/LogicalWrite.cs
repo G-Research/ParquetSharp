@@ -131,7 +131,7 @@ namespace ParquetSharp
                 return LogicalWrite.GetNullableNativeConverter<Date, int>();
             }
 
-            var logicalType = columnDescriptor.LogicalType;
+            using var logicalType = columnDescriptor.LogicalType;
 
             if (typeof(TLogical) == typeof(DateTime))
             {

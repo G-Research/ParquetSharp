@@ -141,8 +141,10 @@ namespace ParquetSharp.Test
             using var groupReader = reader.RowGroup(0);
 
             Assert.AreEqual(2, groupReader.MetaData.NumColumns);
-            Assert.AreEqual(compression, groupReader.MetaData.GetColumnChunkMetaData(0).Compression);
-            Assert.AreEqual(compression, groupReader.MetaData.GetColumnChunkMetaData(1).Compression);
+            using var col0Metadata = groupReader.MetaData.GetColumnChunkMetaData(0);
+            using var col1Metadata = groupReader.MetaData.GetColumnChunkMetaData(1);
+            Assert.AreEqual(compression, col0Metadata.Compression);
+            Assert.AreEqual(compression, col1Metadata.Compression);
         }
 
         [Test]
@@ -163,12 +165,14 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestColumnsSpecifiedForTuple()
         {
+            using var timestampType = LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros);
+            using var decimalType = LogicalType.Decimal(precision: 29, scale: 4);
             var columns = new Column[]
             {
                 new Column<int>("a"),
-                new Column<DateTime>("b", LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros)),
+                new Column<DateTime>("b", timestampType),
                 // Include a decimal column to check we handle not having a ParquetDecimalScale attribute
-                new Column<decimal>("c", LogicalType.Decimal(precision: 29, scale: 4)),
+                new Column<decimal>("c", decimalType),
             };
             var rows = new[]
             {
@@ -188,22 +192,29 @@ namespace ParquetSharp.Test
             var rowsRead = reader.ReadRows(0);
 
             Assert.That(rowsRead, Is.EqualTo(rows));
-            Assert.That(reader.FileMetaData.Schema.Column(1).LogicalType, Is.EqualTo(
-                LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros)));
-            Assert.That(reader.FileMetaData.Schema.Column(2).LogicalType, Is.EqualTo(
-                LogicalType.Decimal(precision: 29, scale: 4)));
+            using var fileMetaData = reader.FileMetaData;
+
+            using var logicalType1 = fileMetaData.Schema.Column(1).LogicalType;
+            using var expectedLogicalType1 = LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros);
+            Assert.That(logicalType1, Is.EqualTo(expectedLogicalType1));
+
+            using var logicalType2 = fileMetaData.Schema.Column(2).LogicalType;
+            using var expectedLogicalType2 = LogicalType.Decimal(precision: 29, scale: 4);
+            Assert.That(logicalType2, Is.EqualTo(expectedLogicalType2));
         }
 
         [Test]
         public static void TestColumnsSpecifiedForStruct()
         {
+            using var timestampType = LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros);
+            // Note: Scale here takes precedence over the scale from the ParquetDecimalScale attribute
+            using var decimalType = LogicalType.Decimal(precision: 29, scale: 4);
             var columns = new Column[]
             {
                 new Column<int>("a"),
                 new Column<float>("b"),
-                new Column<DateTime>("c", LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros)),
-                // Note: Scale here takes precedence over the scale from the ParquetDecimalScale attribute
-                new Column<decimal>("d", LogicalType.Decimal(precision: 29, scale: 4)),
+                new Column<DateTime>("c", timestampType),
+                new Column<decimal>("d", decimalType),
             };
             var rows = new[]
             {
@@ -223,19 +234,25 @@ namespace ParquetSharp.Test
             var rowsRead = reader.ReadRows(0);
 
             Assert.That(rowsRead, Is.EqualTo(rows));
-            Assert.That(reader.FileMetaData.Schema.Column(2).LogicalType, Is.EqualTo(
-                LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros)));
-            Assert.That(reader.FileMetaData.Schema.Column(3).LogicalType, Is.EqualTo(
-                LogicalType.Decimal(precision: 29, scale: 4)));
+            using var fileMetaData = reader.FileMetaData;
+
+            using var logicalType2 = fileMetaData.Schema.Column(2).LogicalType;
+            using var expectedLogicalType2 = LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros);
+            Assert.That(logicalType2, Is.EqualTo(expectedLogicalType2));
+
+            using var logicalType3 = fileMetaData.Schema.Column(3).LogicalType;
+            using var expectedLogicalType3 = LogicalType.Decimal(precision: 29, scale: 4);
+            Assert.That(logicalType3, Is.EqualTo(expectedLogicalType3));
         }
 
         [Test]
         public static void TestColumnLengthMismatch()
         {
+            using var timestampType = LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros);
             var columns = new Column[]
             {
                 new Column<int>("a"),
-                new Column<DateTime>("b", LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros)),
+                new Column<DateTime>("b", timestampType),
             };
             using var buffer = new ResizableBuffer();
             using var outputStream = new BufferOutputStream(buffer);
@@ -248,10 +265,11 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestColumnTypeMismatch()
         {
+            using var timestampType = LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros);
             var columns = new Column[]
             {
                 new Column<int>("a"),
-                new Column<DateTime>("b", LogicalType.Timestamp(isAdjustedToUtc: false, TimeUnit.Micros)),
+                new Column<DateTime>("b", timestampType),
             };
             using var buffer = new ResizableBuffer();
             using var outputStream = new BufferOutputStream(buffer);

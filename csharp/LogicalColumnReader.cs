@@ -161,8 +161,13 @@ namespace ParquetSharp
             short definitionLevel = 0;
             short schemaSlice = 0;
 
-            while (schemaNodes[schemaSlice] is GroupNode {LogicalType: NoneLogicalType})
+            while (schemaNodes[schemaSlice] is GroupNode groupNode)
             {
+                using var logicalType = groupNode.LogicalType;
+                if (logicalType is not NoneLogicalType)
+                {
+                    break;
+                }
                 if (schemaNodes[schemaSlice].Repetition == Repetition.Optional)
                 {
                     definitionLevel += 1;
@@ -220,8 +225,12 @@ namespace ParquetSharp
             {
                 if (schemaNodes.Length >= 2)
                 {
-                    if (schemaNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} &&
-                        schemaNodes[1] is GroupNode {LogicalType: NoneLogicalType, Repetition: Repetition.Repeated})
+                    using var node0LogicalType = schemaNodes[0].LogicalType;
+                    using var node1LogicalType = schemaNodes[1].LogicalType;
+                    if (schemaNodes[0] is GroupNode {Repetition: Repetition.Optional} &&
+                        node0LogicalType is ListLogicalType &&
+                        schemaNodes[1] is GroupNode {Repetition: Repetition.Repeated} &&
+                        node1LogicalType is NoneLogicalType)
                     {
                         return ReadArrayIntermediateLevel(
                             schemaNodes, valueReader, elementType, numArrayEntriesToRead, repetitionLevel, definitionLevel);

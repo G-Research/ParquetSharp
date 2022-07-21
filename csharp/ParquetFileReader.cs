@@ -7,33 +7,37 @@ namespace ParquetSharp
     public sealed class ParquetFileReader : IDisposable
     {
         public ParquetFileReader(string path)
-            : this(path, ReaderProperties.GetDefaultReaderProperties())
+            : this(path, null)
         {
         }
 
         public ParquetFileReader(RandomAccessFile randomAccessFile)
-            : this(randomAccessFile, ReaderProperties.GetDefaultReaderProperties())
+            : this(randomAccessFile, null)
         {
         }
 
-        public ParquetFileReader(string path, ReaderProperties readerProperties)
+        public ParquetFileReader(string path, ReaderProperties? readerProperties)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
-            if (readerProperties == null) throw new ArgumentNullException(nameof(readerProperties));
 
-            ExceptionInfo.Check(ParquetFileReader_OpenFile(path, readerProperties.Handle.IntPtr, out var reader));
+            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var properties = readerProperties ?? defaultProperties!;
+
+            ExceptionInfo.Check(ParquetFileReader_OpenFile(path, properties.Handle.IntPtr, out var reader));
             _handle = new ParquetHandle(reader, ParquetFileReader_Free);
 
             GC.KeepAlive(readerProperties);
         }
 
-        public ParquetFileReader(RandomAccessFile randomAccessFile, ReaderProperties readerProperties)
+        public ParquetFileReader(RandomAccessFile randomAccessFile, ReaderProperties? readerProperties)
         {
             if (randomAccessFile == null) throw new ArgumentNullException(nameof(randomAccessFile));
             if (randomAccessFile.Handle == null) throw new ArgumentNullException(nameof(randomAccessFile.Handle));
-            if (readerProperties == null) throw new ArgumentNullException(nameof(readerProperties));
 
-            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle, readerProperties.Handle.IntPtr, ParquetFileReader_Open), ParquetFileReader_Free);
+            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var properties = readerProperties ?? defaultProperties!;
+
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle, properties.Handle.IntPtr, ParquetFileReader_Open), ParquetFileReader_Free);
 
             GC.KeepAlive(readerProperties);
         }
