@@ -65,8 +65,9 @@ namespace ParquetSharp
         public virtual unsafe (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor)
         {
             var physicalType = descriptor.PhysicalType;
-            var logicalType = descriptor.LogicalType;
-            var repetition = descriptor.SchemaNode.Repetition;
+            using var logicalType = descriptor.LogicalType;
+            using var schemaNode = descriptor.SchemaNode;
+            var repetition = schemaNode.Repetition;
             var nullable = repetition == Repetition.Optional;
 
             // Check for an exact match in the default primitive mapping.

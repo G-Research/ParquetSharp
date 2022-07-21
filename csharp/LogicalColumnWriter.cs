@@ -148,14 +148,24 @@ namespace ParquetSharp
                 {
 
                     var slicedNodes = schemaNodes;
-                    while (slicedNodes.Length > 2 && slicedNodes[0].LogicalType.Type != LogicalTypeEnum.List) // Our list may be nested in structs
+                    // Our list may be nested in structs
+                    while (slicedNodes.Length > 2)
                     {
+                        using var logicalType = slicedNodes[0].LogicalType;
+                        if (logicalType.Type == LogicalTypeEnum.List)
+                        {
+                            break;
+                        }
                         nullDefinitionLevel += (short) (slicedNodes[0].Repetition == Repetition.Optional ? 1 : 0);
                         slicedNodes = slicedNodes.Slice(1); // skip ahead to the first list node in hierarchy 
                     }
 
-                    if (slicedNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} &&
-                        slicedNodes[1] is GroupNode {LogicalType: NoneLogicalType, Repetition: Repetition.Repeated})
+                    using var logicalType0 = slicedNodes[0].LogicalType;
+                    using var logicalType1 = slicedNodes[1].LogicalType;
+                    if (slicedNodes[0] is GroupNode {Repetition: Repetition.Optional} &&
+                        logicalType0 is ListLogicalType &&
+                        slicedNodes[1] is GroupNode {Repetition: Repetition.Repeated} &&
+                        logicalType1 is NoneLogicalType)
                     {
                         var containedType = elementType.GetElementType() ?? throw new NullReferenceException("element type is null");
 

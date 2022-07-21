@@ -12,29 +12,41 @@ namespace ParquetSharp.Test
         {
             var expectedPrimitives = CreateExpectedPrimitives();
 
-            foreach (var expected in expectedPrimitives)
+            try
             {
-                Console.WriteLine("Testing primitive type {0}", expected.Type);
+                foreach (var expected in expectedPrimitives)
+                {
+                    Console.WriteLine("Testing primitive type {0}", expected.Type);
 
-                Assert.True(LogicalTypeFactory.Default.IsSupported(expected.Type));
-                var type = expected.Type;
-                var column = new Column(type, expected.Name, expected.LogicalTypeOverride);
+                    Assert.True(LogicalTypeFactory.Default.IsSupported(expected.Type));
+                    var type = expected.Type;
+                    var column = new Column(type, expected.Name, expected.LogicalTypeOverride);
 
-                using var node = column.CreateSchemaNode();
+                    using var node = column.CreateSchemaNode();
 
-                Assert.AreEqual(expected.LogicalType, node.LogicalType);
-                Assert.AreEqual(-1, node.FieldId);
-                Assert.AreEqual(expected.Name, node.Name);
-                Assert.AreEqual(NodeType.Primitive, node.NodeType);
-                Assert.AreEqual(null, node.Parent);
-                Assert.AreEqual(expected.Repetition, node.Repetition);
+                    using var nodeLogicalType = node.LogicalType;
+                    Assert.AreEqual(expected.LogicalType, nodeLogicalType);
+                    Assert.AreEqual(-1, node.FieldId);
+                    Assert.AreEqual(expected.Name, node.Name);
+                    Assert.AreEqual(NodeType.Primitive, node.NodeType);
+                    Assert.AreEqual(null, node.Parent);
+                    Assert.AreEqual(expected.Repetition, node.Repetition);
 
-                var primitive = (PrimitiveNode) node;
+                    var primitive = (PrimitiveNode) node;
 
-                Assert.AreEqual(expected.ColumnOrder, primitive.ColumnOrder);
-                Assert.AreEqual(expected.PhysicalType, primitive.PhysicalType);
-                Assert.AreEqual(expected.Length, primitive.TypeLength);
-                Assert.AreEqual(expected.LogicalType, primitive.LogicalType);
+                    Assert.AreEqual(expected.ColumnOrder, primitive.ColumnOrder);
+                    Assert.AreEqual(expected.PhysicalType, primitive.PhysicalType);
+                    Assert.AreEqual(expected.Length, primitive.TypeLength);
+                    using var logicalType = primitive.LogicalType;
+                    Assert.AreEqual(expected.LogicalType, logicalType);
+                }
+            }
+            finally
+            {
+                foreach (var expected in expectedPrimitives)
+                {
+                    expected.Dispose();
+                }
             }
         }
 
@@ -49,8 +61,9 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestUnsupportedLogicalTypeOverride()
         {
+            using var jsonType = LogicalType.Json();
             var exception = Assert.Throws<ParquetException>(() =>
-                new Column<DateTime>("DateTime", LogicalType.Json()).CreateSchemaNode());
+                new Column<DateTime>("DateTime", jsonType).CreateSchemaNode());
 
             Assert.That(
                 exception?.Message,
@@ -300,7 +313,7 @@ namespace ParquetSharp.Test
             };
         }
 
-        private sealed class ExpectedPrimitive
+        private sealed class ExpectedPrimitive : IDisposable
         {
             public ExpectedPrimitive(Type type)
             {
@@ -308,13 +321,43 @@ namespace ParquetSharp.Test
             }
 
             public Type Type { get; }
-            public LogicalType LogicalType = LogicalType.None();
-            public LogicalType LogicalTypeOverride = LogicalType.None();
+
+            private LogicalType _logicalType = LogicalType.None();
+
+            public LogicalType LogicalType
+            {
+                get => _logicalType;
+                set
+                {
+                    _logicalType.Dispose();
+                    _logicalType = value;
+
+                }
+            }
+
+            private LogicalType _logicalTypeOverride = LogicalType.None();
+
+            public LogicalType LogicalTypeOverride
+            {
+                get => _logicalTypeOverride;
+                set
+                {
+                    _logicalTypeOverride.Dispose();
+                    _logicalTypeOverride = value;
+                }
+            }
+
             public string Name = "MyName";
             public Repetition Repetition = Repetition.Required;
             public ColumnOrder ColumnOrder = ColumnOrder.TypeDefinedOrder;
             public PhysicalType PhysicalType;
             public int Length = -1;
+
+            public void Dispose()
+            {
+                _logicalType.Dispose();
+                _logicalTypeOverride.Dispose();
+            }
         }
     }
 }
