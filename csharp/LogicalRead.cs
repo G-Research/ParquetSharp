@@ -10,6 +10,8 @@ namespace ParquetSharp
     public static class LogicalRead<TLogical, TPhysical>
         where TPhysical : unmanaged
     {
+        private const string UseDateTimeKindUnspecifiedSwitchName = "ParquetSharp.ReadDateTimeKindAsUnspecified";
+
         public delegate long DirectReader(ColumnReader<TPhysical> columnReader, Span<TLogical> destination);
 
         public delegate void Converter(ReadOnlySpan<TPhysical> source, ReadOnlySpan<short> defLevels, Span<TLogical> destination, short definedLevel);
@@ -158,7 +160,17 @@ namespace ParquetSharp
             if (typeof(TLogical) == typeof(DateTime))
             {
                 var timestampType = (TimestampLogicalType) logicalType;
-                var kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+
+                DateTimeKind kind;
+                if (AppContext.TryGetSwitch(UseDateTimeKindUnspecifiedSwitchName, out var useDateTimeKindUnspecified) && useDateTimeKindUnspecified)
+                {
+                    kind = DateTimeKind.Unspecified;
+                }
+                else
+                {
+                    kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+                }
+
                 switch (timestampType.TimeUnit)
                 {
                     case TimeUnit.Millis:
@@ -176,7 +188,17 @@ namespace ParquetSharp
             if (typeof(TLogical) == typeof(DateTime?))
             {
                 var timestampType = (TimestampLogicalType) logicalType;
-                var kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+
+                DateTimeKind kind;
+                if (AppContext.TryGetSwitch(UseDateTimeKindUnspecifiedSwitchName, out var useDateTimeKindUnspecified) && useDateTimeKindUnspecified)
+                {
+                    kind = DateTimeKind.Unspecified;
+                }
+                else
+                {
+                    kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+                }
+
                 switch (timestampType.TimeUnit)
                 {
                     case TimeUnit.Millis:
