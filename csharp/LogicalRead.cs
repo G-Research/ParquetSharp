@@ -492,7 +492,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] != definedLevel ? null : ToString(source[src++], byteArrayCache);
+                destination[i] = defLevels.IsEmpty || defLevels[i] == definedLevel ? ToString(source[src++], byteArrayCache) : null;
             }
         }
 

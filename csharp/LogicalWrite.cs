@@ -522,7 +522,10 @@ namespace ParquetSharp
                 else
                 {
                     destination[dst++] = FromString(value, byteBuffer);
-                    defLevels[i] = (short) (nullLevel + 1);
+                    if (!defLevels.IsEmpty)
+                    {
+                        defLevels[i] = (short) (nullLevel + 1);
+                    }
                 }
             }
         }
