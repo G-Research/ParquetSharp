@@ -49,7 +49,7 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-10.15, windows-2022]
+        os: [ubuntu-18.04, macos-11, windows-2022]
         arch: [x64, arm64]
         exclude:
         - os: windows-2022
@@ -214,7 +214,7 @@ jobs:
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, macos-10.15, macos-11.0, windows-2022]
+        os: [ubuntu-18.04, ubuntu-20.04, macos-11, macos-12, windows-2022]
         dotnet: [netcoreapp3.1, net5.0, net6.0]
         arch: [x64]
         include:
