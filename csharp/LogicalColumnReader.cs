@@ -286,36 +286,47 @@ namespace ParquetSharp
 
         private static Array ReadArrayLeafLevel(Node node, BufferedReader<TLogical, TPhysical> valueReader, short repetitionLevel, short definitionLevel)
         {
-            var values = new List<TLogical>();
-            var firstValue = true;
+            var valueChunks = new List<TLogical[]>();
             var innerNodeIsOptional = node.Repetition == Repetition.Optional;
             definitionLevel += (short) (innerNodeIsOptional ? 1 : 0);
 
+            var atArrayStart = true;
             while (!valueReader.IsEofDefinition)
             {
-                var defn = valueReader.GetCurrentDefinition();
-
-                if (!firstValue && defn.RepLevel < repetitionLevel)
+                var reachedArrayEnd =
+                    valueReader.ReadValuesAtRepetitionLevel(repetitionLevel, definitionLevel, atArrayStart,
+                        out var valuesSpan);
+                if (reachedArrayEnd && atArrayStart)
+                {
+                    return valuesSpan.ToArray();
+                }
+                atArrayStart = false;
+                valueChunks.Add(valuesSpan.ToArray());
+                if (reachedArrayEnd)
                 {
                     break;
                 }
-
-                if (defn.DefLevel == definitionLevel || innerNodeIsOptional)
-                {
-                    // Note that when the inner node is optional,
-                    // the converter will handle definition levels and create null values.
-                    values.Add(valueReader.ReadValue());
-                }
-                else
-                {
-                    throw new Exception("Definition levels read from file do not match up with schema.");
-                }
-
-                valueReader.NextDefinition();
-                firstValue = false;
             }
 
-            return values.ToArray();
+            if (valueChunks.Count == 1)
+            {
+                return valueChunks[0];
+            }
+
+            var totalSize = 0;
+            foreach (var chunk in valueChunks)
+            {
+                totalSize += chunk.Length;
+            }
+            var offset = 0;
+            var values = new TLogical[totalSize];
+            foreach (var chunk in valueChunks)
+            {
+                chunk.CopyTo(values, offset);
+                offset += chunk.Length;
+            }
+
+            return values;
         }
 
         private static Array ListToArray(List<Array?> list, Type elementType)

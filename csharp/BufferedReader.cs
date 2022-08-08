@@ -3,7 +3,7 @@
 namespace ParquetSharp
 {
     /// <summary>
-    /// Buffer the reads from the low-level Parquet API when dealing with multi-level structs.
+    /// Buffer the reads from the low-level Parquet API when dealing with array values and multi-level structs.
     /// </summary>
     internal sealed class BufferedReader<TLogical, TPhysical> where TPhysical : unmanaged
     {
@@ -26,9 +26,16 @@ namespace ParquetSharp
             _nullableLeafValues = nullableLeafValues;
         }
 
-        public TLogical ReadValue()
+        /// <summary>
+        /// Attempt to read a whole leaf-level array of values at the given repetition level.
+        /// Returns true if we reached the end of the array or false if the values array is incomplete.
+        /// </summary>
+        public bool ReadValuesAtRepetitionLevel(short repetitionLevel, short definitionLevel, bool atRepetitionStart, out ReadOnlySpan<TLogical> values)
         {
-            if (_valueIndex >= _numValues)
+            if (_defLevels == null) throw new InvalidOperationException("definition levels not defined");
+            if (_repLevels == null) throw new InvalidOperationException("repetition levels not defined");
+
+            if (_levelIndex >= _numLevels)
             {
                 if (!FillBuffer())
                 {
@@ -36,8 +43,31 @@ namespace ParquetSharp
                 }
             }
 
-            var valueIndex = _nullableLeafValues ? _valueIndex : _valueIndex++;
-            return _logicalValues[valueIndex];
+            // If we're reading from the start of an array, we skip the first element as we know
+            // the repetition level will be less than the specified level.
+            // Otherwise we need to start at the first element and may return an empty span.
+            var startLevel = atRepetitionStart ? _levelIndex + 1 : _levelIndex;
+            var endIndex = _numLevels;
+            for (var levelIndex = startLevel; levelIndex < _numLevels; ++levelIndex)
+            {
+                if (_repLevels[levelIndex] < repetitionLevel)
+                {
+                    endIndex = levelIndex;
+                    break;
+                }
+                if (!_nullableLeafValues && _defLevels[levelIndex] < definitionLevel)
+                {
+                    throw new Exception("Definition levels read from file do not match up with schema.");
+                }
+            }
+
+            var spanSize = (int) (endIndex - _levelIndex);
+            values = new ReadOnlySpan<TLogical>(_logicalValues, _valueIndex, spanSize);
+
+            _levelIndex = (int) endIndex;
+            _valueIndex += spanSize;
+
+            return endIndex < _numLevels;
         }
 
         public (short DefLevel, short RepLevel) GetCurrentDefinition()
