@@ -72,9 +72,6 @@ namespace ParquetSharp
 
         public (short DefLevel, short RepLevel) GetCurrentDefinition()
         {
-            if (_defLevels == null) throw new InvalidOperationException("definition levels not defined");
-            if (_repLevels == null) throw new InvalidOperationException("repetition levels not defined");
-
             if (_levelIndex >= _numLevels)
             {
                 if (!FillBuffer())
@@ -83,7 +80,7 @@ namespace ParquetSharp
                 }
             }
 
-            return (DefLevel: _defLevels[_levelIndex], RepLevel: _repLevels[_levelIndex]);
+            return (DefLevel: _defLevels?[_levelIndex] ?? 0, RepLevel: _repLevels?[_levelIndex] ?? 0);
         }
 
         public bool IsEofDefinition => _levelIndex >= _numLevels && !_columnReader.HasNext;
