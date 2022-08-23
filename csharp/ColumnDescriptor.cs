@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 
@@ -67,24 +68,64 @@ namespace ParquetSharp
         public (Type physicalType, Type logicalType, Type elementType) GetSystemTypes(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride)
         {
             var (physicalType, logicalType) = typeFactory.GetSystemTypes(this, columnLogicalTypeOverride);
-            var elementType = logicalType;
+            var elementType = NonNullable(logicalType);
 
             var node = SchemaNode;
             while (node != null)
             {
                 using var nodeLogicalType = node.LogicalType;
-                if (nodeLogicalType.Type == LogicalTypeEnum.List)
+                var parent = node.Parent;
+                using var parentType = parent?.LogicalType;
+
+                if (node.Repetition == Repetition.Repeated)
                 {
-                    elementType = elementType.MakeArrayType();
+                    if (parent != null &&
+                        parentType!.Type is LogicalTypeEnum.List or LogicalTypeEnum.Map &&
+                        parent.Repetition is Repetition.Optional or Repetition.Required)
+                    {
+                        // This node is the middle repeated group of a list, or the middle key_value
+                        // group in a map.
+                        // See https://github.com/apache/parquet-format/blob/master/LogicalTypes.md
+                        elementType = elementType.MakeArrayType();
+                        // Skip over the parent list or map node to avoid wrapping it in a Nested type
+                        node.Dispose();
+                        node = parent;
+                        parent = node.Parent;
+                    }
+                    else
+                    {
+                        using var nodePath = node.Path;
+                        throw new Exception(
+                            $"Invalid Parquet schema, found a repeated node '{nodePath.ToDotString()}' " +
+                            "that is not the child of a valid list or map annotated group.");
+                    }
+                }
+                else
+                {
+                    if (node is Schema.GroupNode && parent != null)
+                    {
+                        // This is a group node and not the root schema node, so we nest elements within the Nested type.
+                        elementType = typeof(Nested<>).MakeGenericType(elementType);
+                    }
+
+                    if (node.Repetition == Repetition.Optional &&
+                        elementType.BaseType != typeof(object) &&
+                        elementType.BaseType != typeof(Array))
+                    {
+                        // Node is optional and the element type is not already a nullable type
+                        elementType = typeof(Nullable<>).MakeGenericType(elementType);
+                    }
                 }
 
-                var prevNode = node;
-                node = prevNode.Parent;
-                prevNode.Dispose();
+                node.Dispose();
+                node = parent;
             }
 
             return (physicalType, logicalType, elementType);
         }
+
+        private static Type NonNullable(Type type) =>
+            type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) ? type.GetGenericArguments().Single() : type;
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnDescriptor_Max_Definition_Level(IntPtr columnDescriptor, out short maxDefinitionLevel);
