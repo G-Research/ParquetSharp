@@ -22,6 +22,8 @@
     <PackageTags>apache parquet gresearch g-research .net c#</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageOutputPath>..\nuget</PackageOutputPath>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>ParquetSharp-oss.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup Label="Additional nuget files">
