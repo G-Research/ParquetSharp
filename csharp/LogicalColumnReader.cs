@@ -146,10 +146,21 @@ namespace ParquetSharp
             var converterFactory = columnReader.LogicalReadConverterFactory;
 
             _converter = (LogicalRead<TLogical, TPhysical>.Converter) converterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, columnReader.ColumnChunkMetaData);
-            var leafDefinitionLevel = (short) SchemaNodesPath!.Count(n => n.Repetition != Repetition.Required);
-            var nullableLeafValues = ColumnDescriptor.SchemaNode.Repetition == Repetition.Optional;
-            _bufferedReader = new BufferedReader<TLogical, TPhysical>(Source, _converter, (TPhysical[]) Buffer, DefLevels, RepLevels, leafDefinitionLevel, nullableLeafValues);
-            _directReader = (LogicalRead<TLogical, TPhysical>.DirectReader?) converterFactory.GetDirectReader<TLogical, TPhysical>();
+            var schemaNodes = GetSchemaNodesPath(ColumnDescriptor.SchemaNode);
+            try
+            {
+                var leafDefinitionLevel = (short) schemaNodes.Count(n => n.Repetition != Repetition.Required);
+                var nullableLeafValues = schemaNodes.Last().Repetition == Repetition.Optional;
+                _bufferedReader = new BufferedReader<TLogical, TPhysical>(Source, _converter, (TPhysical[]) Buffer, DefLevels, RepLevels, leafDefinitionLevel, nullableLeafValues);
+                _directReader = (LogicalRead<TLogical, TPhysical>.DirectReader?) converterFactory.GetDirectReader<TLogical, TPhysical>();
+            }
+            finally
+            {
+                foreach (var node in schemaNodes)
+                {
+                    node.Dispose();
+                }
+            }
         }
 
         /*
@@ -183,33 +194,43 @@ namespace ParquetSharp
         public override int ReadBatch(Span<TElement> destination)
         {
             short definitionLevel = 0;
-            ReadOnlySpan<Node> schemaNodes = SchemaNodesPath;
-            Type elementType = typeof(TElement);
+            var elementType = typeof(TElement);
+            var schemaNodes = GetSchemaNodesPath(ColumnDescriptor.SchemaNode).AsSpan();
 
-            // Handle structs
-            var (definitionLevelDelta, schemaSlice) = StructSkip(schemaNodes);
-            definitionLevel += definitionLevelDelta;
-            schemaNodes = schemaNodes.Slice(schemaSlice);
-
-            // Handle arrays
-            if (elementType != typeof(byte[]) && elementType.IsArray)
+            try
             {
-                var result = (Span<TElement>) (TElement[]) ReadArray(schemaNodes, typeof(TElement), _bufferedReader, destination.Length, 0, definitionLevel);
-                result.CopyTo(destination);
-                return result.Length;
-            }
+                // Handle structs
+                var (definitionLevelDelta, schemaSlice) = StructSkip(schemaNodes);
+                definitionLevel += definitionLevelDelta;
+                schemaNodes = schemaNodes.Slice(schemaSlice);
 
-            if (schemaNodes.Length == 1)
+                // Handle arrays
+                if (elementType != typeof(byte[]) && elementType.IsArray)
+                {
+                    var result = (Span<TElement>) (TElement[]) ReadArray(schemaNodes, typeof(TElement), _bufferedReader, destination.Length, 0, definitionLevel);
+                    result.CopyTo(destination);
+                    return result.Length;
+                }
+
+                if (schemaNodes.Length == 1)
+                {
+                    // Handle flat values
+                    return ReadBatchSimple(
+                        schemaNodes[0],
+                        destination,
+                        _directReader as LogicalRead<TElement, TPhysical>.DirectReader,
+                        (_converter as LogicalRead<TElement, TPhysical>.Converter)!, definitionLevel);
+                }
+
+                throw new Exception("ParquetSharp does not understand the schema used");
+            }
+            finally
             {
-                // Handle flat values
-                return ReadBatchSimple(
-                    schemaNodes[0],
-                    destination,
-                    _directReader as LogicalRead<TElement, TPhysical>.DirectReader,
-                    (_converter as LogicalRead<TElement, TPhysical>.Converter)!, definitionLevel);
+                foreach (var node in schemaNodes)
+                {
+                    node.Dispose();
+                }
             }
-
-            throw new Exception("ParquetSharp does not understand the schema used");
         }
 
         private static Array ReadArray(
