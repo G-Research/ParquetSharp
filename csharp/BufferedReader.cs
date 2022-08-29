@@ -26,6 +26,19 @@ namespace ParquetSharp
             _nullableLeafValues = nullableLeafValues;
         }
 
+        public TLogical ReadValue()
+        {
+            if (_valueIndex >= _numValues)
+            {
+                if (!FillBuffer())
+                {
+                    throw new Exception("Attempt to read past end of column.");
+                }
+            }
+            var valueIndex = _nullableLeafValues ? _valueIndex : _valueIndex++;
+            return _logicalValues[valueIndex];
+        }
+
         /// <summary>
         /// Attempt to read a whole leaf-level array of values at the given repetition level.
         /// Returns true if we reached the end of the array or false if the values array is incomplete.
@@ -117,7 +130,7 @@ namespace ParquetSharp
                 // reader is at the end of a data page.
                 _converter(
                     _values.AsSpan(0, (int) _numValues),
-                    _defLevels.AsSpan(0, (int) _numLevels),
+                    _defLevels == null ? null : _defLevels.AsSpan(0, (int) _numLevels),
                     _logicalValues.AsSpan(0, (int) _numValues),
                     _leafDefinitionLevel);
             }

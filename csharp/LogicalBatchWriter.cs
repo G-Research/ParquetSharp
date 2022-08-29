@@ -30,7 +30,7 @@ namespace ParquetSharp
             LogicalWrite<TLogical, TPhysical>.Converter converter)
         {
             _physicalWriter = physicalWriter;
-            _buffers = new WriteBuffers<TPhysical>(buffer, defLevels, repLevels);
+            _buffers = new LogicalStreamBuffers<TPhysical>(buffer, defLevels, repLevels);
             _byteBuffer = byteBuffer;
             _converter = converter;
         }
@@ -77,7 +77,7 @@ namespace ParquetSharp
                         as ScalarWriter<TElement, TPhysical>)!;
             }
 
-            if (IsNullable(typeof(TElement), out var nullableType) && IsNested(nullableType, out var nestedType))
+            if (TypeUtils.IsNullable(typeof(TElement), out var nullableType) && TypeUtils.IsNested(nullableType, out var nestedType))
             {
                 if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode {Repetition: Repetition.Optional})
                 {
@@ -87,7 +87,7 @@ namespace ParquetSharp
                 throw new Exception("Unexpected schema for an optional nested element type");
             }
 
-            if (IsNested(typeof(TElement), out var requiredNestedType))
+            if (TypeUtils.IsNested(typeof(TElement), out var requiredNestedType))
             {
                 if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode {Repetition: Repetition.Required})
                 {
@@ -99,7 +99,7 @@ namespace ParquetSharp
 
             // Map values are treated the same as lists,
             // as the structure of the map keys and values matches that of lists.
-            if (typeof(TElement).IsArray && IsListOrMapSchema(schemaNodes))
+            if (typeof(TElement).IsArray && SchemaUtils.IsListOrMap(schemaNodes))
             {
                 return MakeArrayWriter<TElement>(schemaNodes, definitionLevel, repetitionLevel, firstRepetitionLevel);
             }
@@ -201,54 +201,11 @@ namespace ParquetSharp
                 schemaNodes, nullDefinitionLevel, repetitionLevel, firstRepetitionLevel
             });
         }
-        
-        private static bool IsNullable(Type type, out Type inner)
-        {
-            if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(Nullable<>))
-            {
-                inner = null!;
-                return false;
-            }
-            inner = type.GetGenericArguments().Single();
-            return true;
-        }
-
-        private static bool IsNested(Type type, out Type inner)
-        {
-            if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(Nested<>))
-            {
-                inner = null!;
-                return false;
-            }
-            inner = type.GetGenericArguments().Single();
-            return true;
-        }
-
-        private static bool IsListOrMapSchema(Node[] schemaNodes)
-        {
-            if (schemaNodes.Length < 2)
-            {
-                return false;
-            }
-
-            // See https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types
-            var rootNode = schemaNodes[0];
-            var childNode = schemaNodes[1];
-            using var rootLogicalType = rootNode.LogicalType;
-            using var childLogicalType = childNode.LogicalType;
-
-            return rootNode is GroupNode &&
-                   rootLogicalType is ListLogicalType or MapLogicalType &&
-                   rootNode.Repetition is Repetition.Optional or Repetition.Required &&
-                   childNode is GroupNode &&
-                   childLogicalType is NoneLogicalType &&
-                   childNode.Repetition is Repetition.Repeated;
-        }
 
         private readonly ByteBuffer? _byteBuffer;
         private readonly LogicalWrite<TLogical, TPhysical>.Converter _converter;
         private readonly ColumnWriter<TPhysical> _physicalWriter;
-        private readonly WriteBuffers<TPhysical> _buffers;
+        private readonly LogicalStreamBuffers<TPhysical> _buffers;
     }
 
     /// <summary>
@@ -260,7 +217,7 @@ namespace ParquetSharp
     {
         public ScalarWriter(
             ColumnWriter<TPhysical> physicalWriter,
-            WriteBuffers<TPhysical> buffers,
+            LogicalStreamBuffers<TPhysical> buffers,
             ByteBuffer? byteBuffer,
             LogicalWrite<TLogical, TPhysical>.Converter converter,
             short definitionLevel,
@@ -323,7 +280,7 @@ namespace ParquetSharp
         private readonly ByteBuffer? _byteBuffer;
         private readonly LogicalWrite<TLogical, TPhysical>.Converter _converter;
         private readonly ColumnWriter<TPhysical> _physicalWriter;
-        private readonly WriteBuffers<TPhysical> _buffers;
+        private readonly LogicalStreamBuffers<TPhysical> _buffers;
         private readonly short _definitionLevel;
         private readonly short _repetitionLevel;
         private readonly short _firstRepetitionLevel;
@@ -455,7 +412,7 @@ namespace ParquetSharp
             ILogicalBatchWriter<TItem> firstInnerWriter,
             ILogicalBatchWriter<TItem> innerWriter,
             ColumnWriter<TPhysical> physicalWriter,
-            WriteBuffers<TPhysical> buffers,
+            LogicalStreamBuffers<TPhysical> buffers,
             short definitionLevel,
             short repetitionLevel,
             short firstRepetitionLevel)
@@ -551,39 +508,10 @@ namespace ParquetSharp
         private readonly ILogicalBatchWriter<TItem> _firstInnerWriter;
         private readonly ILogicalBatchWriter<TItem> _innerWriter;
         private readonly ColumnWriter<TPhysical> _physicalWriter;
-        private readonly WriteBuffers<TPhysical> _buffers;
+        private readonly LogicalStreamBuffers<TPhysical> _buffers;
         private readonly short _definitionLevel;
         private readonly short _repetitionLevel;
         private readonly short _firstRepetitionLevel;
         private readonly TItem[] _buffer;
-    }
-
-    /// <summary>
-    /// Wrapper around the buffers of the logical column writer
-    /// </summary>
-    internal struct WriteBuffers<TPhysical>
-    {
-        public WriteBuffers(TPhysical[] values, short[]? defLevels, short[]? repLevels)
-        {
-            Values = values;
-            DefLevels = defLevels;
-            RepLevels = repLevels;
-            Length = values.Length;
-            if (defLevels != null && defLevels.Length != Length)
-            {
-                throw new Exception(
-                    $"Expected definition levels buffer length ({defLevels.Length}) to match values buffer length ({values.Length}");
-            }
-            if (repLevels != null && repLevels.Length != Length)
-            {
-                throw new Exception(
-                    $"Expected repetition levels buffer length ({repLevels.Length}) to match values buffer length ({values.Length}");
-            }
-        }
-
-        public readonly TPhysical[] Values;
-        public readonly short[]? DefLevels;
-        public readonly short[]? RepLevels;
-        public readonly int Length;
     }
 }
