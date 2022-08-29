@@ -86,6 +86,7 @@ For more detailed information on how to use ParquetSharp, see the following docu
 
 * [Writing parquet files](docs/Writing.md)
 * [Reading parquet files](docs/Reading.md)
+* [Working with nested data](docs/Nested.md)
 * [Row-oriented API](docs/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
 * [Custom types](docs/TypeFactories.md) &mdash; how to override the mapping between .NET and Parquet types
 * [Use from PowerShell](docs/PowerShell.md)
