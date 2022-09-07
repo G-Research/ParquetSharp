@@ -84,6 +84,10 @@ namespace ParquetSharp
 
             if (logicalType is NoneLogicalType or NullLogicalType)
             {
+                if (!nullable && logicalType is NullLogicalType)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(logicalType), "The null logical type may only be used with optional columns");
+                }
                 switch (physicalType)
                 {
                     case PhysicalType.Int32:
