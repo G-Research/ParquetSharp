@@ -804,6 +804,38 @@ namespace ParquetSharp.Test
             Assert.That(readValues, Is.EqualTo(stringValues));
         }
 
+        [Test]
+        public static void TestNullLogicalTypeRoundTrip()
+        {
+            var values = new int?[] {null, null};
+
+            using var nullType = LogicalType.Null();
+            using var nullColumn = new PrimitiveNode("nulls", Repetition.Optional, nullType, PhysicalType.Int32);
+            using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {nullColumn});
+
+            using var buffer = new ResizableBuffer();
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var builder = new WriterPropertiesBuilder();
+                using var writerProperties = builder.Build();
+                using var fileWriter = new ParquetFileWriter(output, schemaNode, writerProperties);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<int?>();
+                colWriter.WriteBatch(values);
+                fileWriter.Close();
+            }
+
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            using var rowGroupReader = fileReader.RowGroup(0);
+            using var colReader = rowGroupReader.Column(0).LogicalReader<int?>();
+
+            var readValues = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+
+            Assert.That(readValues, Is.EqualTo(values));
+        }
+
         private static ExpectedColumn[] CreateExpectedColumns()
         {
             return new[]
