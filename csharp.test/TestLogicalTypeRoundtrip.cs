@@ -804,13 +804,18 @@ namespace ParquetSharp.Test
             Assert.That(readValues, Is.EqualTo(stringValues));
         }
 
-        [Test]
-        public static void TestNullLogicalTypeRoundTrip()
+        [TestCaseGeneric(PhysicalType.Int32, TypeArguments = new[] {typeof(int)})]
+        [TestCaseGeneric(PhysicalType.Int64, TypeArguments = new[] {typeof(long)})]
+        [TestCaseGeneric(PhysicalType.Int96, TypeArguments = new[] {typeof(Int96)})]
+        [TestCaseGeneric(PhysicalType.Boolean, TypeArguments = new[] {typeof(bool)})]
+        [TestCaseGeneric(PhysicalType.Float, TypeArguments = new[] {typeof(float)})]
+        [TestCaseGeneric(PhysicalType.Double, TypeArguments = new[] {typeof(double)})]
+        public static void TestNullLogicalTypeRoundTrip<T>(PhysicalType physicalType) where T : struct
         {
-            var values = new int?[] {null, null};
+            var values = new T?[] {null, null};
 
             using var nullType = LogicalType.Null();
-            using var nullColumn = new PrimitiveNode("nulls", Repetition.Optional, nullType, PhysicalType.Int32);
+            using var nullColumn = new PrimitiveNode("nulls", Repetition.Optional, nullType, physicalType);
             using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {nullColumn});
 
             using var buffer = new ResizableBuffer();
@@ -821,7 +826,7 @@ namespace ParquetSharp.Test
                 using var fileWriter = new ParquetFileWriter(output, schemaNode, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
 
-                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<int?>();
+                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<T?>();
                 colWriter.WriteBatch(values);
                 fileWriter.Close();
             }
@@ -829,7 +834,7 @@ namespace ParquetSharp.Test
             using var input = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(input);
             using var rowGroupReader = fileReader.RowGroup(0);
-            using var colReader = rowGroupReader.Column(0).LogicalReader<int?>();
+            using var colReader = rowGroupReader.Column(0).LogicalReader<T?>();
 
             var readValues = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
 
