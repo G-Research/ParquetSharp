@@ -156,3 +156,73 @@ for (var i = 0; i < numRows; ++i)
     }
 }
 ```
+
+## Maps
+
+The Map logical type in Parquet represents a map from keys to values,
+and is a special case of nested data.
+The [map schema](https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#maps)
+uses a top-level group node annotated with the Map logical type,
+which contains repeated key-value pairs.
+
+ParquetSharp's API works with leaf-level columns,
+so in dotnet the map data cannot be represented as a column of
+`Dictionary` objects, and instead is read as two separate columns.
+The first contains arrays of the map keys,
+and the second contains arrays of the map values,
+and the arrays corresponding to the same row must have the same length.
+
+The following example shows how dotnet dictionary data might be written
+and then read from Parquet::
+
+```csharp
+// Start with a single column of dictionary data
+var dictionaries = new[]
+{
+    new Dictionary<string, int>{{"a", 0}, {"b", 1}, {"c", 2}},
+    new Dictionary<string, int>{{"d", 3}, {"e", 4}},
+    new Dictionary<string, int>{{"f", 5}, {"g", 6}, {"h", 7}},
+};
+
+// Split the data into key and value arrays
+var keys = dictionaries.Select(d => d.Keys.ToArray()).ToArray();
+var values = dictionaries.Select(d => d.Values.ToArray()).ToArray();
+
+// Create a Parquet file schema with a single map column
+using var keyNode = new PrimitiveNode("key", Repetition.Required, LogicalType.String(), PhysicalType.ByteArray);
+using var valueNode = new PrimitiveNode("value", Repetition.Required, LogicalType.None(), PhysicalType.Int32);
+using var keyValueNode = new GroupNode("key_value", Repetition.Repeated, new Node[] {keyNode, valueNode});
+using var mapNode = new GroupNode("map_column", Repetition.Required, new Node[] {keyValueNode}, LogicalType.Map());
+using var schema = new GroupNode("schema", Repetition.Required, new Node[] {mapNode});
+
+// Write data to a Parquet file using the map schema
+using var propertiesBuilder = new WriterPropertiesBuilder();
+using var writerProperties = propertiesBuilder.Build();
+using (var fileWriter = new ParquetFileWriter("map_data.parquet", schema, writerProperties))
+{
+    using var rowGroupWriter = fileWriter.AppendRowGroup();
+    using var keyWriter = rowGroupWriter.NextColumn().LogicalWriter<string[]>();
+    keyWriter.WriteBatch(keys);
+    using var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<int[]>();
+    valueWriter.WriteBatch(values);
+    fileWriter.Close();
+}
+
+// Read back key and value columns from the file
+string[][] readKeys;
+int[][] readValues;
+using (var fileReader = new ParquetFileReader("map_data.parquet"))
+{
+    using var rowGroupReader = fileReader.RowGroup(0);
+    using var keyReader = rowGroupReader.Column(0).LogicalReader<string[]>();
+    readKeys = keyReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+    using var valueReader = rowGroupReader.Column(1).LogicalReader<int[]>();
+    readValues = valueReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+}
+
+// Combine the keys and values to recreate dictionaries
+var readDictionaries = readKeys.Zip(
+    readValues, (dictKeys, dictValues) => new Dictionary<string, int>(
+        dictKeys.Zip(dictValues, (k, v) => new KeyValuePair<string, int>(k, v)))
+    ).ToArray();
+```
