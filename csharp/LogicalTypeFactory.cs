@@ -82,14 +82,26 @@ namespace ParquetSharp
                 return (DefaultPhysicalTypeMapping[physicalType], match.Key);
             }
 
-            if (logicalType is NoneLogicalType)
+            if (logicalType is NoneLogicalType or NullLogicalType)
             {
+                if (!nullable && logicalType is NullLogicalType)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(logicalType), "The null logical type may only be used with optional columns");
+                }
                 switch (physicalType)
                 {
                     case PhysicalType.Int32:
                         return (typeof(int), nullable ? typeof(int?) : typeof(int));
                     case PhysicalType.Int64:
                         return (typeof(long), nullable ? typeof(long?) : typeof(long));
+                    case PhysicalType.Int96:
+                        return (typeof(Int96), nullable ? typeof(Int96?) : typeof(Int96));
+                    case PhysicalType.Boolean:
+                        return (typeof(bool), nullable ? typeof(bool?) : typeof(bool));
+                    case PhysicalType.Float:
+                        return (typeof(float), nullable ? typeof(float?) : typeof(float));
+                    case PhysicalType.Double:
+                        return (typeof(double), nullable ? typeof(double?) : typeof(double));
                 }
             }
 
