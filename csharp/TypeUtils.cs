@@ -26,5 +26,16 @@ namespace ParquetSharp
             inner = type.GetGenericArguments().Single();
             return true;
         }
+
+        public static bool IsNullableNested(Type type, out Type inner)
+        {
+            if (IsNullable(type, out var nullableInner) && IsNested(nullableInner, out var nestedInner))
+            {
+                inner = nestedInner;
+                return true;
+            }
+            inner = null!;
+            return false;
+        }
     }
 }

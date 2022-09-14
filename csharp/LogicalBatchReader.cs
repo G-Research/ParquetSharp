@@ -93,12 +93,12 @@ namespace ParquetSharp
                 throw new Exception("A buffered reader is required for reading compound column values");
             }
 
-            if (TypeUtils.IsNullable(typeof(TElement), out var nullableType) && TypeUtils.IsNested(nullableType, out var nestedType))
+            if (TypeUtils.IsNullableNested(typeof(TElement), out var nullableNestedType))
             {
                 if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode {Repetition: Repetition.Optional})
                 {
                     return MakeNestedOptionalReader<TElement>(
-                        nestedType, schemaNodes, definitionLevel, repetitionLevel);
+                        nullableNestedType, schemaNodes, definitionLevel, repetitionLevel);
                 }
                 throw new Exception("Unexpected schema for an optional nested element type");
             }

@@ -77,12 +77,12 @@ namespace ParquetSharp
                         as ScalarWriter<TElement, TPhysical>)!;
             }
 
-            if (TypeUtils.IsNullable(typeof(TElement), out var nullableType) && TypeUtils.IsNested(nullableType, out var nestedType))
+            if (TypeUtils.IsNullableNested(typeof(TElement), out var nullableNestedType))
             {
                 if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode {Repetition: Repetition.Optional})
                 {
                     return MakeNestedOptionalWriter<TElement>(
-                        nestedType, schemaNodes, definitionLevel, repetitionLevel, firstRepetitionLevel);
+                        nullableNestedType, schemaNodes, definitionLevel, repetitionLevel, firstRepetitionLevel);
                 }
                 throw new Exception("Unexpected schema for an optional nested element type");
             }

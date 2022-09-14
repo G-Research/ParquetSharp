@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
 using ParquetSharp.IO;
+using ParquetSharp.Schema;
 
 namespace ParquetSharp.Test
 {
@@ -176,15 +177,35 @@ namespace ParquetSharp.Test
             TestWriteNoColumnNorWriterOverride(ArrayValues, ArrayCustomValues);
         }
 
+        [Test]
+        public static void TestRead_Nested()
+        {
+            TestRead(NestedCustomValues, NestedValues, GetNestedSchema());
+        }
+
+        [Test]
+        public static void TestWrite_Nested()
+        {
+            TestWrite(NestedValues, NestedCustomValues, GetNestedSchema());
+        }
+
+        private static GroupNode GetNestedSchema()
+        {
+            using var noneType = LogicalType.None();
+            using var floatNode = new PrimitiveNode("values", Repetition.Required, noneType, PhysicalType.Float);
+            using var groupNode = new GroupNode("group", Repetition.Optional, new[] {floatNode});
+            return new GroupNode("schema", Repetition.Required, new[] {groupNode});
+        }
+
         // Reader tests.
 
-        private static void TestRead<TCustom, TValue>(TCustom[] expected, TValue[] written)
+        private static void TestRead<TCustom, TValue>(TCustom[] expected, TValue[] written, GroupNode? schema = null)
         {
             // Read float values into a custom user-type:
             // - Provide a converter factory such that float values can be written as VolumeInDollars.
             // - Explicitly override the expected type when accessing the LogicalColumnReader.
 
-            using var buffer = WriteTestValues(written);
+            using var buffer = WriteTestValues(written, schema);
             using var input = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(input)
             {
@@ -222,7 +243,7 @@ namespace ParquetSharp.Test
 
         // Writer tests
 
-        private static void TestWrite<TValue, TCustom>(TValue[] expected, TCustom[] written)
+        private static void TestWrite<TValue, TCustom>(TValue[] expected, TCustom[] written, GroupNode? schema = null)
         {
             using var buffer = new ResizableBuffer();
 
@@ -233,15 +254,31 @@ namespace ParquetSharp.Test
 
             using (var output = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<TCustom>("values")}, new WriteTypeFactory())
+                ParquetFileWriter fileWriter;
+                if (schema == null)
                 {
-                    LogicalWriteConverterFactory = new WriteConverterFactory()
-                };
-                using var groupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = groupWriter.NextColumn().LogicalWriterOverride<TCustom>();
+                    fileWriter = new ParquetFileWriter(output, new Column[] {new Column<TCustom>("values")}, new WriteTypeFactory())
+                    {
+                        LogicalWriteConverterFactory = new WriteConverterFactory()
+                    };
+                }
+                else
+                {
+                    using var propertiesBuilder = new WriterPropertiesBuilder();
+                    using var properties = propertiesBuilder.Build();
+                    fileWriter = new ParquetFileWriter(output, schema, properties)
+                    {
+                        LogicalWriteConverterFactory = new WriteConverterFactory()
+                    };
+                }
+                using (fileWriter)
+                {
+                    using var groupWriter = fileWriter.AppendRowGroup();
+                    using var columnWriter = groupWriter.NextColumn().LogicalWriterOverride<TCustom>();
 
-                columnWriter.WriteBatch(written);
-                fileWriter.Close();
+                    columnWriter.WriteBatch(written);
+                    fileWriter.Close();
+                }
             }
 
             CheckWrittenValues(buffer, expected);
@@ -329,14 +366,18 @@ namespace ParquetSharp.Test
             CheckWrittenValues(buffer, expected);
         }
 
-        private static ResizableBuffer WriteTestValues<TValue>(TValue[] written)
+        private static ResizableBuffer WriteTestValues<TValue>(TValue[] written, GroupNode? schema = null)
         {
             var buffer = new ResizableBuffer();
 
             try
             {
                 using var output = new BufferOutputStream(buffer);
-                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<TValue>("values")});
+                using var propertiesBuilder = new WriterPropertiesBuilder();
+                using var properties = propertiesBuilder.Build();
+                using var fileWriter = schema == null
+                    ? new ParquetFileWriter(output, new Column[] {new Column<TValue>("values")}, properties)
+                    : new ParquetFileWriter(output, schema, properties);
                 using var groupWriter = fileWriter.AppendRowGroup();
                 using var columnWriter = groupWriter.NextColumn().LogicalWriter<TValue>();
 
@@ -480,6 +521,15 @@ namespace ParquetSharp.Test
         {
             new[] {new VolumeInDollars(1f), new VolumeInDollars(2f), new VolumeInDollars(3f)},
             new[] {new VolumeInDollars(4f)}
+        };
+
+        private static readonly Nested<float>?[] NestedValues =
+        {
+            new Nested<float>(1f), null, new Nested<float>(3f),
+        };
+        private static readonly Nested<VolumeInDollars>?[] NestedCustomValues =
+        {
+            new(new VolumeInDollars(1f)), null, new(new VolumeInDollars(3f))
         };
     }
 }
