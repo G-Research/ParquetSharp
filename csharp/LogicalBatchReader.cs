@@ -93,16 +93,6 @@ namespace ParquetSharp
                 throw new Exception("A buffered reader is required for reading compound column values");
             }
 
-            if (typeof(TElement) == typeof(TLogical))
-            {
-                if (schemaNodes.Length != 1)
-                {
-                    throw new Exception("Expected only a single schema node for the leaf element reader");
-                }
-
-                return (new LeafReader<TLogical, TPhysical>(_bufferedReader) as LeafReader<TElement, TPhysical>)!;
-            }
-
             if (TypeUtils.IsNullable(typeof(TElement), out var nullableType) && TypeUtils.IsNested(nullableType, out var nestedType))
             {
                 if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode {Repetition: Repetition.Optional})
@@ -128,6 +118,40 @@ namespace ParquetSharp
             if (typeof(TElement).IsArray && SchemaUtils.IsListOrMap(schemaNodes))
             {
                 return MakeArrayReader<TElement>(schemaNodes, definitionLevel, repetitionLevel);
+            }
+
+            if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode groupNode)
+            {
+                // Schema uses a group, but doesn't represent a list or map and
+                // the desired data type doesn't use the Nested type wrapper,
+                // so skip over this level of the type hierarchy and create a reader for the inner type.
+                var optional = groupNode.Repetition == Repetition.Optional;
+                var innerSchema = schemaNodes.AsSpan().Slice(1).ToArray();
+                var innerDefinitionLevel = (short) (definitionLevel + (optional ? 1 : 0));
+                return (ILogicalBatchReader<TElement>) MakeGenericReader(typeof(TElement), innerSchema, innerDefinitionLevel, repetitionLevel);
+            }
+
+            if (typeof(TElement) == typeof(TLogical))
+            {
+                if (schemaNodes.Length != 1)
+                {
+                    throw new Exception("Expected only a single schema node for the leaf element reader");
+                }
+
+                return (new LeafReader<TLogical, TPhysical>(_bufferedReader) as LeafReader<TElement, TPhysical>)!;
+            }
+
+            // If not using nesting, we may need to read nullable values that have a non-nullable logical type
+            // due to required values being wrapped in an optional group.
+            if (TypeUtils.IsNullable(typeof(TElement), out var innerNullableType) && innerNullableType == typeof(TLogical))
+            {
+                if (schemaNodes.Length != 1)
+                {
+                    throw new Exception("Expected only a single schema node for the leaf element reader");
+                }
+
+                return MakeOptionalReader<TElement>(
+                    innerNullableType, schemaNodes, definitionLevel, repetitionLevel);
             }
 
             throw new Exception($"Failed to create a batch reader for type {typeof(TElement)}");
@@ -196,6 +220,24 @@ namespace ParquetSharp
                 typeof(TPhysical), typeof(TLogical), nestedType);
             return (ILogicalBatchReader<TElement>) Activator.CreateInstance(
                 optionalNestedReaderType, innerReader, _bufferedReader!, definitionLevel);
+        }
+
+        /// <summary>
+        /// Create a new reader for required leaf level values that are nullable due to nesting,
+        /// but don't use the Nested wrapper type.
+        /// </summary>
+        /// <typeparam name="TElement">The type of nullable value to read</typeparam>
+        private ILogicalBatchReader<TElement> MakeOptionalReader<TElement>(
+            Type innerType,
+            Node[] schemaNodes,
+            short definitionLevel,
+            short repetitionLevel)
+        {
+            var innerReader = MakeGenericReader(innerType, schemaNodes, definitionLevel, repetitionLevel);
+            var optionalReaderType = typeof(OptionalReader<,,>).MakeGenericType(
+                typeof(TPhysical), typeof(TLogical), innerType);
+            return (ILogicalBatchReader<TElement>) Activator.CreateInstance(
+                optionalReaderType, innerReader, _bufferedReader!, definitionLevel);
         }
 
         /// <summary>
@@ -566,6 +608,62 @@ namespace ParquetSharp
                 {
                     _innerReader.ReadBatch(innerValue);
                     destination[i] = new Nested<TItem>(innerValue[0]);
+                }
+                else
+                {
+                    destination[i] = null;
+                    _bufferedReader.NextDefinition();
+                }
+            }
+
+            return destination.Length;
+        }
+
+        public bool HasNext()
+        {
+            return _innerReader.HasNext();
+        }
+
+        private readonly ILogicalBatchReader<TItem> _innerReader;
+        private readonly BufferedReader<TLogical, TPhysical> _bufferedReader;
+        private readonly short _definitionLevel;
+    }
+
+    /// <summary>
+    /// Reads values that are nested within an outer group struct that is optional, without using the Nested wrapper type
+    /// </summary>
+    /// <typeparam name="TPhysical">The underlying physical type of leaf values in the column</typeparam>
+    /// <typeparam name="TLogical">The .NET logical type for the column leaf values</typeparam>
+    /// <typeparam name="TItem">The type of values that are nullable</typeparam>
+    internal sealed class OptionalReader<TPhysical, TLogical, TItem> : ILogicalBatchReader<TItem?>
+        where TItem : struct
+        where TPhysical : unmanaged
+    {
+        public OptionalReader(
+            ILogicalBatchReader<TItem> innerReader,
+            BufferedReader<TLogical, TPhysical> bufferedReader,
+            short definitionLevel)
+        {
+            _innerReader = innerReader;
+            _bufferedReader = bufferedReader;
+            _definitionLevel = definitionLevel;
+        }
+
+        public int ReadBatch(Span<TItem?> destination)
+        {
+            // Reads one value at a time whenever we have a non-null value
+            var innerValue = new TItem[1];
+            for (var i = 0; i < destination.Length; ++i)
+            {
+                if (_bufferedReader.IsEofDefinition)
+                {
+                    return i;
+                }
+                var defn = _bufferedReader.GetCurrentDefinition();
+                if (defn.DefLevel >= _definitionLevel)
+                {
+                    _innerReader.ReadBatch(innerValue);
+                    destination[i] = innerValue[0];
                 }
                 else
                 {

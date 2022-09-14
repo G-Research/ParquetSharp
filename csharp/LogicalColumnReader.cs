@@ -17,7 +17,7 @@ namespace ParquetSharp
         {
         }
 
-        internal static LogicalColumnReader Create(ColumnReader columnReader, int bufferLength, Type? elementTypeOverride)
+        internal static LogicalColumnReader Create(ColumnReader columnReader, int bufferLength, Type? elementTypeOverride, bool useNesting)
         {
             if (columnReader == null) throw new ArgumentNullException(nameof(columnReader));
 
@@ -27,12 +27,17 @@ namespace ParquetSharp
             return columnReader.ColumnDescriptor.Apply(
                 columnReader.LogicalTypeFactory,
                 columnLogicalTypeOverride,
+                useNesting,
                 new Creator(columnReader, bufferLength));
         }
 
         internal static LogicalColumnReader<TElement> Create<TElement>(ColumnReader columnReader, int bufferLength, Type? elementTypeOverride)
         {
-            var reader = Create(columnReader, bufferLength, elementTypeOverride);
+            // Users can opt in to using the Nested type to represent data by using it in the element type.
+            // This is all-or-nothing, so if multiple levels of nesting are used then the Nested type needs to be
+            // used at both levels or not at all.
+            var useNesting = ContainsNestedType(typeof(TElement));
+            var reader = Create(columnReader, bufferLength, elementTypeOverride, useNesting);
 
             try
             {
@@ -65,6 +70,29 @@ namespace ParquetSharp
         public abstract bool HasNext { get; }
 
         public abstract TReturn Apply<TReturn>(ILogicalColumnReaderVisitor<TReturn> visitor);
+
+        private static bool ContainsNestedType(Type type)
+        {
+            while (true)
+            {
+                if (type != typeof(byte[]) && type.IsArray)
+                {
+                    type = type.GetElementType()!;
+                }
+                else if (TypeUtils.IsNullable(type, out var nullableType))
+                {
+                    type = nullableType;
+                }
+                else if (TypeUtils.IsNested(type, out _))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
 
         private sealed class Creator : IColumnDescriptorVisitor<LogicalColumnReader>
         {

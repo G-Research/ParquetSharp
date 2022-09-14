@@ -405,7 +405,7 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestNestedOptionalStructArray()
+        public static void TestOptionalStructArray([Values(true, false)] bool nestedRead)
         {
             // Create a 2d int array
             const int arraySize = 100;
@@ -440,17 +440,35 @@ namespace ParquetSharp.Test
             using var input = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(input);
             using var rowGroupReader = fileReader.RowGroup(0);
-            using var colReader = rowGroupReader.Column(0).LogicalReader<Nested<int[]>?>();
 
-            var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
-            Assert.IsNotEmpty(actual);
-            Assert.AreEqual(values.Length, actual.Length);
-            for (var i = 0; i < values.Length; i++)
+            if (nestedRead)
             {
-                Assert.AreEqual(values[i].HasValue, actual[i].HasValue);
-                if (values[i].HasValue)
+                using var colReader = rowGroupReader.Column(0).LogicalReader<Nested<int[]>?>();
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
                 {
-                    Assert.AreEqual(values[i]!.Value.Value, actual[i]!.Value.Value);
+                    Assert.AreEqual(values[i].HasValue, actual[i].HasValue);
+                    if (values[i].HasValue)
+                    {
+                        Assert.AreEqual(values[i]!.Value.Value, actual[i]!.Value.Value);
+                    }
+                }
+            }
+            else
+            {
+                using var colReader = rowGroupReader.Column(0).LogicalReader<int[]?>();
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    Assert.AreEqual(values[i].HasValue, actual[i] != null);
+                    if (values[i].HasValue)
+                    {
+                        Assert.AreEqual(values[i]!.Value.Value, actual[i]);
+                    }
                 }
             }
 
@@ -458,7 +476,7 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestNestedRequiredStructArray()
+        public static void TestNestedRequiredStructArray([Values(true, false)] bool nestedRead)
         {
             // Create a 2d int array
             const int arraySize = 100;
@@ -493,14 +511,28 @@ namespace ParquetSharp.Test
             using var input = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(input);
             using var rowGroupReader = fileReader.RowGroup(0);
-            using var colReader = rowGroupReader.Column(0).LogicalReader<Nested<int[]>>();
 
-            var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
-            Assert.IsNotEmpty(actual);
-            Assert.AreEqual(values.Length, actual.Length);
-            for (var i = 0; i < values.Length; i++)
+            if (nestedRead)
             {
-                Assert.AreEqual(values[i].Value, actual[i].Value);
+                using var colReader = rowGroupReader.Column(0).LogicalReader<Nested<int[]>>();
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    Assert.AreEqual(values[i].Value, actual[i].Value);
+                }
+            }
+            else
+            {
+                using var colReader = rowGroupReader.Column(0).LogicalReader<int[]>();
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    Assert.AreEqual(values[i].Value, actual[i]);
+                }
             }
 
             fileReader.Close();
@@ -555,7 +587,7 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestNestedStructArrayMultipleFields()
+        public static void TestNestedStructArrayMultipleFields([Values(true, false)] bool nestedRead)
         {
             using var noneType = LogicalType.None();
             using var listType = LogicalType.List();
@@ -613,33 +645,53 @@ namespace ParquetSharp.Test
             using var fileReader = new ParquetFileReader(inStream);
             using var rowGroup = fileReader.RowGroup(0);
 
-            using var idsColumnReader = rowGroup.Column(0).LogicalReader<Nested<long?[]>?>();
-            var idsRead = idsColumnReader.ReadAll(4);
-            Assert.IsNotEmpty(idsRead);
-            Assert.AreEqual(4, idsRead.Length);
-            Assert.IsTrue(idsRead[0].HasValue);
-            Assert.AreEqual(idsRead[0]!.Value.Value, new long?[] {1, 2, 3});
-            Assert.IsTrue(idsRead[1].HasValue);
-            Assert.AreEqual(idsRead[1]!.Value.Value, new long?[] {4, 5, 6});
-            Assert.IsTrue(idsRead[2].HasValue);
-            Assert.IsNull(idsRead[2]!.Value.Value);
-            Assert.IsFalse(idsRead[3].HasValue);
+            if (nestedRead)
+            {
+                using var idsColumnReader = rowGroup.Column(0).LogicalReader<Nested<long?[]>?>();
+                var idsRead = idsColumnReader.ReadAll(4);
+                Assert.AreEqual(4, idsRead.Length);
+                Assert.IsTrue(idsRead[0].HasValue);
+                Assert.AreEqual(idsRead[0]!.Value.Value, new long?[] {1, 2, 3});
+                Assert.IsTrue(idsRead[1].HasValue);
+                Assert.AreEqual(idsRead[1]!.Value.Value, new long?[] {4, 5, 6});
+                Assert.IsTrue(idsRead[2].HasValue);
+                Assert.IsNull(idsRead[2]!.Value.Value);
+                Assert.IsFalse(idsRead[3].HasValue);
 
-            using var msgColumnReader = rowGroup.Column(1).LogicalReader<Nested<string?>?>();
-            var msgRead = msgColumnReader.ReadAll(4);
-            Assert.IsNotEmpty(msgRead);
-            Assert.AreEqual(4, msgRead.Length);
-            Assert.IsTrue(msgRead[0].HasValue);
-            Assert.AreEqual(msgRead[0]!.Value.Value, "hello");
-            Assert.IsTrue(msgRead[1].HasValue);
-            Assert.AreEqual(msgRead[1]!.Value.Value, "world");
-            Assert.IsTrue(msgRead[2].HasValue);
-            Assert.IsNull(msgRead[2]!.Value.Value);
-            Assert.IsFalse(msgRead[3].HasValue);
+                using var msgColumnReader = rowGroup.Column(1).LogicalReader<Nested<string?>?>();
+                var msgRead = msgColumnReader.ReadAll(4);
+                Assert.AreEqual(4, msgRead.Length);
+                Assert.IsTrue(msgRead[0].HasValue);
+                Assert.AreEqual(msgRead[0]!.Value.Value, "hello");
+                Assert.IsTrue(msgRead[1].HasValue);
+                Assert.AreEqual(msgRead[1]!.Value.Value, "world");
+                Assert.IsTrue(msgRead[2].HasValue);
+                Assert.IsNull(msgRead[2]!.Value.Value);
+                Assert.IsFalse(msgRead[3].HasValue);
+            }
+            else
+            {
+                using var idsColumnReader = rowGroup.Column(0).LogicalReader<long?[]?>();
+                var idsRead = idsColumnReader.ReadAll(4);
+                Assert.That(idsRead, Is.EqualTo(new[]
+                {
+                    new long?[] {1, 2, 3},
+                    new long?[] {4, 5, 6},
+                    null,
+                    null,
+                }));
+
+                using var msgColumnReader = rowGroup.Column(1).LogicalReader<string?>();
+                var msgRead = msgColumnReader.ReadAll(4);
+                Assert.That(msgRead, Is.EqualTo(new[]
+                {
+                    "hello", "world", null, null
+                }));
+            }
         }
 
         [Test]
-        public static void TestStructArrayValues()
+        public static void TestStructArrayValues([Values(true, false)] bool nestedRead)
         {
             using var noneType = LogicalType.None();
             using var listType = LogicalType.List();
@@ -695,64 +747,89 @@ namespace ParquetSharp.Test
             using var fileReader = new ParquetFileReader(inStream);
             using var rowGroup = fileReader.RowGroup(0);
 
-            using var idsColumnReader = rowGroup.Column(0).LogicalReader<Nested<long>?[]?>();
-            var idsRead = idsColumnReader.ReadAll(ids.Length);
-            Assert.That(idsRead, Is.Not.Null);
-            Assert.That(idsRead.Length, Is.EqualTo(ids.Length));
-
-            for (var i = 0; i < idsRead.Length; i++)
+            if (nestedRead)
             {
-                if (ids[i] == null)
+                using var idsColumnReader = rowGroup.Column(0).LogicalReader<Nested<long>?[]?>();
+                var idsRead = idsColumnReader.ReadAll(ids.Length);
+                Assert.That(idsRead, Is.Not.Null);
+                Assert.That(idsRead.Length, Is.EqualTo(ids.Length));
+
+                for (var i = 0; i < idsRead.Length; i++)
                 {
-                    Assert.That(idsRead[i], Is.Null);
-                }
-                else
-                {
-                    Assert.That(idsRead[i], Is.Not.Null);
-                    Assert.That(idsRead[i]!.Length, Is.EqualTo(ids[i]!.Length));
-                    for (var j = 0; j < idsRead[i]!.Length; j++)
+                    if (ids[i] == null)
                     {
-                        if (ids[i]![j] == null)
+                        Assert.That(idsRead[i], Is.Null);
+                    }
+                    else
+                    {
+                        Assert.That(idsRead[i], Is.Not.Null);
+                        Assert.That(idsRead[i]!.Length, Is.EqualTo(ids[i]!.Length));
+                        for (var j = 0; j < idsRead[i]!.Length; j++)
                         {
-                            Assert.That(idsRead[i]![j], Is.Null);
+                            if (ids[i]![j] == null)
+                            {
+                                Assert.That(idsRead[i]![j], Is.Null);
+                            }
+                            else
+                            {
+                                Assert.That(idsRead[i]![j], Is.Not.Null);
+                                Assert.That(idsRead[i]![j], Is.EqualTo(ids[i]![j]));
+                            }
                         }
-                        else
+                    }
+                }
+
+                using var msgColumnReader = rowGroup.Column(1).LogicalReader<Nested<string?>?[]?>();
+                var msgRead = msgColumnReader.ReadAll(msg.Length);
+                Assert.That(msgRead, Is.Not.Null);
+                Assert.That(msgRead.Length, Is.EqualTo(msg.Length));
+
+                for (var i = 0; i < msgRead.Length; i++)
+                {
+                    if (msg[i] == null)
+                    {
+                        Assert.That(msgRead[i], Is.Null);
+                    }
+                    else
+                    {
+                        Assert.That(msgRead[i], Is.Not.Null);
+                        Assert.That(msgRead[i]!.Length, Is.EqualTo(msg[i]!.Length));
+                        for (var j = 0; j < msgRead[i]!.Length; j++)
                         {
-                            Assert.That(idsRead[i]![j], Is.Not.Null);
-                            Assert.That(idsRead[i]![j], Is.EqualTo(ids[i]![j]));
+                            if (msg[i]![j] == null)
+                            {
+                                Assert.That(msgRead[i]![j], Is.Null);
+                            }
+                            else
+                            {
+                                Assert.That(msgRead[i]![j], Is.Not.Null);
+                                Assert.That(msgRead[i]![j], Is.EqualTo(msg[i]![j]));
+                            }
                         }
                     }
                 }
             }
-
-            using var msgColumnReader = rowGroup.Column(1).LogicalReader<Nested<string?>?[]?>();
-            var msgRead = msgColumnReader.ReadAll(msg.Length);
-            Assert.That(msgRead, Is.Not.Null);
-            Assert.That(msgRead.Length, Is.EqualTo(msg.Length));
-
-            for (var i = 0; i < msgRead.Length; i++)
+            else
             {
-                if (msg[i] == null)
+                using var idsColumnReader = rowGroup.Column(0).LogicalReader<long?[]?>();
+                var idsRead = idsColumnReader.ReadAll(ids.Length);
+                Assert.That(idsRead, Is.EqualTo(new[]
                 {
-                    Assert.That(msgRead[i], Is.Null);
-                }
-                else
+                    new long?[] {1, 2, 3},
+                    new long?[] {4, null},
+                    new long?[] { },
+                    null
+                }));
+
+                using var msgColumnReader = rowGroup.Column(1).LogicalReader<string?[]?>();
+                var msgRead = msgColumnReader.ReadAll(msg.Length);
+                Assert.That(msgRead, Is.EqualTo(new[]
                 {
-                    Assert.That(msgRead[i], Is.Not.Null);
-                    Assert.That(msgRead[i]!.Length, Is.EqualTo(msg[i]!.Length));
-                    for (var j = 0; j < msgRead[i]!.Length; j++)
-                    {
-                        if (msg[i]![j] == null)
-                        {
-                            Assert.That(msgRead[i]![j], Is.Null);
-                        }
-                        else
-                        {
-                            Assert.That(msgRead[i]![j], Is.Not.Null);
-                            Assert.That(msgRead[i]![j], Is.EqualTo(msg[i]![j]));
-                        }
-                    }
-                }
+                    new string?[] {"A", "B", null},
+                    new string?[] {"C", null},
+                    new string?[] { },
+                    null
+                }));
             }
         }
 

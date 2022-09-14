@@ -22,10 +22,13 @@ namespace ParquetSharp
             // then we already know what the column writer logical system type should be.
             var columns = columnWriter.RowGroupWriter.ParquetFileWriter.Columns;
             var columnLogicalTypeOverride = GetLeafElementType(elementTypeOverride ?? columns?[columnWriter.ColumnIndex].LogicalSystemType);
+            // Nested types must be used if writing data with a nested structure
+            const bool useNesting = true;
 
             return columnWriter.ColumnDescriptor.Apply(
                 columnWriter.LogicalTypeFactory,
                 columnLogicalTypeOverride,
+                useNesting,
                 new Creator(columnWriter, bufferLength));
         }
 

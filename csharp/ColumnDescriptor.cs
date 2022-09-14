@@ -33,12 +33,17 @@ namespace ParquetSharp
 
         public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, IColumnDescriptorVisitor<TReturn> visitor)
         {
-            return Apply(typeFactory, null, visitor);
+            return Apply(typeFactory, null, false, visitor);
         }
 
         public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride, IColumnDescriptorVisitor<TReturn> visitor)
         {
-            var types = GetSystemTypes(typeFactory, columnLogicalTypeOverride);
+            return Apply(typeFactory, columnLogicalTypeOverride, false, visitor);
+        }
+
+        public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride, bool useNesting, IColumnDescriptorVisitor<TReturn> visitor)
+        {
+            var types = GetSystemTypes(typeFactory, columnLogicalTypeOverride, useNesting);
             var visitorApply = VisitorCache.GetOrAdd((types.physicalType, types.logicalType, types.elementType, typeof(TReturn)), t =>
             {
 
@@ -59,13 +64,21 @@ namespace ParquetSharp
             return ((Func<IColumnDescriptorVisitor<TReturn>, TReturn>) visitorApply)(visitor);
         }
 
+        public (Type physicalType, Type logicalType, Type elementType) GetSystemTypes(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride)
+        {
+            return GetSystemTypes(typeFactory, columnLogicalTypeOverride, useNesting: false);
+        }
+
         /// <summary>
         /// Get the System.Type instances that represent this column.
         /// PhysicalType is the actual type on disk (e.g. ByteArray).
         /// LogicalType is the most nested logical type (e.g. string).
         /// ElementType is the type represented by the column (e.g. string[][][]).
         /// </summary>
-        public (Type physicalType, Type logicalType, Type elementType) GetSystemTypes(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride)
+        /// <param name="typeFactory">Type factory to get logical types</param>
+        /// <param name="columnLogicalTypeOverride">Overrides the default logical type to use</param>
+        /// <param name="useNesting">Controls whether schema nodes tested in groups should result in a corresponding Nested type</param>
+        public (Type physicalType, Type logicalType, Type elementType) GetSystemTypes(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride, bool useNesting)
         {
             var (physicalType, logicalType) = typeFactory.GetSystemTypes(this, columnLogicalTypeOverride);
             var elementType = NonNullable(logicalType);
@@ -102,7 +115,7 @@ namespace ParquetSharp
                 }
                 else
                 {
-                    if (node is Schema.GroupNode && parent != null)
+                    if (node is Schema.GroupNode && parent != null && useNesting)
                     {
                         // This is a group node and not the root schema node, so we nest elements within the Nested type.
                         elementType = typeof(Nested<>).MakeGenericType(elementType);
@@ -110,7 +123,8 @@ namespace ParquetSharp
 
                     if (node.Repetition == Repetition.Optional &&
                         elementType.BaseType != typeof(object) &&
-                        elementType.BaseType != typeof(Array))
+                        elementType.BaseType != typeof(Array) &&
+                        !TypeUtils.IsNullable(elementType, out _))
                     {
                         // Node is optional and the element type is not already a nullable type
                         elementType = typeof(Nullable<>).MakeGenericType(elementType);

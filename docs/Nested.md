@@ -157,6 +157,22 @@ for (var i = 0; i < numRows; ++i)
 }
 ```
 
+Reading data wrapped in the `Nested` type is optional and this type can be ommitted
+from the `TElement` parameter passed to the `LogicalReader<TElement>` method to read unwrapped values,
+for example:
+
+```csharp
+using var messagesReader = groupReader.Column(0).LogicalReader<string?>();
+string?[] messages = messagesReader.ReadAll(numRows);
+
+using var idsReader = groupReader.Column(1).LogicalReader<int[]?>();
+int[]?[] ids = idsReader.ReadAll(numRows);
+```
+
+If using the non-generic `LogicalReader` method,
+the `Nested` wrapper type is not used by default for simplicity and backwards compatibility,
+but this behaviour can be changed by using the override that takes a `useNesting` parameter.
+
 ## Maps
 
 The Map logical type in Parquet represents a map from keys to values,
