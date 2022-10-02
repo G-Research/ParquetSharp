@@ -189,7 +189,7 @@ and the second contains arrays of the map values,
 and the arrays corresponding to the same row must have the same length.
 
 The following example shows how dotnet dictionary data might be written
-and then read from Parquet::
+and then read from Parquet:
 
 ```csharp
 // Start with a single column of dictionary data
