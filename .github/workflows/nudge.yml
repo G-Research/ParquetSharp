@@ -15,4 +15,3 @@ jobs:
         uses: pavlovic-ivan/octo-nudge@v1
         with:
           webhooks: ${{ secrets.WEBHOOKS }}
-          conclusions: 'failure,success'
