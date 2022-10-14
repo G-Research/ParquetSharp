@@ -9,9 +9,9 @@ on:
 jobs:
   nudge:
     runs-on: ubuntu-latest
-    environment: protected
+    environment: nudge
     steps:
       - name: Send notification
         uses: pavlovic-ivan/octo-nudge@v1
         with:
-          webhooks: ${{ secrets.WEBHOOKS }}
+          webhooks: ${{ secrets.NUDGE_WEBHOOKS }}
