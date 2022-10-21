@@ -22,9 +22,9 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup .NET SDK v6.0.x
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x
       - name: Code formating check
@@ -59,7 +59,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     # Compute vcpkg triplet and root
     - name: Compute vcpkg triplet and root
@@ -139,7 +139,7 @@ jobs:
 
     # .NET Core Setup (and also MSBuild for Windows).
     - name: Setup .NET SDK v6.0.x
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
     - name: Setup MSBuild
@@ -163,7 +163,7 @@ jobs:
         VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
     - name: Upload vcpkg arrow logs
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-vcpkg-arrow-logs
         path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
@@ -172,7 +172,7 @@ jobs:
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
         dotnet build csharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
     - name: Upload native ParquetSharp library
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-native-library
         path: bin
@@ -189,9 +189,9 @@ jobs:
     needs: build-native
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Download all artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         path: artifacts
     - name: Copy native ParquetSharp libraries
@@ -199,13 +199,13 @@ jobs:
         mkdir bin
         cp -rv artifacts/*-native-library/* bin/
     - name: Setup .NET SDK v6.0.x
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release
     - name: Upload NuGet artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: nuget-package
         path: nuget
@@ -230,28 +230,28 @@ jobs:
     needs: build-nuget
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Get version
       id: get-version
       run: echo "::set-output name=version::$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)"
       shell: pwsh
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: nuget-package
         path: nuget
     - name: Setup .NET Core SDK v3.1.x
       if: matrix.dotnet == 'netcoreapp3.1'
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 3.1.x
     - name: Setup .NET SDK v5.0.x
       if: matrix.dotnet == 'net5.0'
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 5.0.x
     - name: Setup .NET SDK v6.0.x
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
     - name: Add local NuGet feed
@@ -292,7 +292,7 @@ jobs:
     needs: all-required-checks-done
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Check version
       id: check-version
       shell: pwsh
@@ -305,12 +305,12 @@ jobs:
         }
         echo "::set-output name=version::$version"
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: nuget-package
         path: nuget
     - name: Setup .NET SDK v6.0.x
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
     # if version contains "-" treat it as pre-release
