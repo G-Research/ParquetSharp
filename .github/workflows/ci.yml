@@ -233,7 +233,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Get version
       id: get-version
-      run: echo "version=$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)" >> $GITHUB_OUTPUT
+      run: echo "version=$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)" >> $env:GITHUB_OUTPUT
       shell: pwsh
     - name: Download NuGet artifact
       uses: actions/download-artifact@v3
@@ -303,7 +303,7 @@ jobs:
           echo "::error ::There is a mismatch between the project version ($version) and the tag ($tag)"
           exit 1
         }
-        echo "version=$version" >> $GITHUB_OUTPUT
+        echo "version=$version" >> $env:GITHUB_OUTPUT
     - name: Download NuGet artifact
       uses: actions/download-artifact@v3
       with:
