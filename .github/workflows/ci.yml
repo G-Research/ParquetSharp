@@ -77,20 +77,20 @@ jobs:
             triplet+="windows-static"
             ;;
         esac
-        echo "::set-output name=triplet::$triplet"
-        echo "::set-output name=root::$VCPKG_INSTALLATION_ROOT"
+        echo "triplet=$triplet" >> $GITHUB_OUTPUT
+        echo "root=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_OUTPUT
       shell: bash
 
     # Get cmake version, which is used by vcpkg binary caching
     - name: Get cmake version
       id: cmake-info
-      run: echo "::set-output name=version::$(cmake --version | head -n1 | awk '{print $3}')"
+      run: echo "version=$(cmake --version | head -n1 | awk '{print $3}')" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Runner-info
       id: runner-info
       run: |
-        echo "::set-output name=info::$ImageOS-$ImageVersion"
+        echo "info=$ImageOS-$ImageVersion" >> $GITHUB_OUTPUT
       shell: bash
 
     # Check for cached vcpkg dependencies (use these if we can).
@@ -233,7 +233,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Get version
       id: get-version
-      run: echo "::set-output name=version::$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)"
+      run: echo "version=$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)" >> $GITHUB_OUTPUT
       shell: pwsh
     - name: Download NuGet artifact
       uses: actions/download-artifact@v3
@@ -303,7 +303,7 @@ jobs:
           echo "::error ::There is a mismatch between the project version ($version) and the tag ($tag)"
           exit 1
         }
-        echo "::set-output name=version::$version"
+        echo "version=$version" >> $GITHUB_OUTPUT
     - name: Download NuGet artifact
       uses: actions/download-artifact@v3
       with:
