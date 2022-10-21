@@ -264,7 +264,7 @@ jobs:
         dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
     - name: Setup QEMU for arm64
       if: matrix.arch == 'arm64'
-      uses: docker/setup-qemu-action@v1
+      uses: docker/setup-qemu-action@v2
       with:
         platforms: arm64
     - name: Build & Run .NET unit tests (x64)
