@@ -117,3 +117,22 @@ or
     <RuntimeHostConfigurationOption Include="ParquetSharp.ReadDateTimeKindAsUnspecified" Value="true" />
   </ItemGroup>
 ```
+
+## Long path handling
+
+When running on Windows, the Arrow library used internally by ParquetSharp uses Win32 APIs that can support
+long paths (paths greater than 260 characters), but handling long paths additionally requires that the host
+has the `Computer\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem\LongPathsEnabled`
+registry key enabled, and the application must have a manifest that specifies it is long path aware,
+for example:
+
+```
+<application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings xmlns:ws2="http://schemas.microsoft.com/SMI/2016/WindowsSettings">
+        <ws2:longPathAware>true</ws2:longPathAware>
+    </windowsSettings>
+</application>
+```
+
+For more information, see the Microsoft documentation on the
+`maximum path length limitation`(https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation).
