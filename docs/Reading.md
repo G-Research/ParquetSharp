@@ -134,5 +134,7 @@ for example:
 </application>
 ```
 
+Paths must also be specified in extended-length format,
+which is handled automatically by ParquetSharp when an absolute path is provided since version 9.0.0.
 For more information, see the Microsoft documentation on the
 [maximum path length limitation](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation).
