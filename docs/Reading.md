@@ -135,4 +135,4 @@ for example:
 ```
 
 For more information, see the Microsoft documentation on the
-`maximum path length limitation`(https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation).
+[maximum path length limitation](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation).
