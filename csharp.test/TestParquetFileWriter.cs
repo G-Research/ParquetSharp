@@ -102,6 +102,36 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestStringPathHandling([Values] bool absolutePath)
+        {
+            var path = "test.parquet";
+            if (absolutePath)
+            {
+                path = Path.GetFullPath(path);
+            }
+
+            var columns = new Column[]
+            {
+                new Column<int>("x"),
+            };
+            using (var writer = new ParquetFileWriter(path, columns))
+            {
+                writer.Close();
+            }
+
+            try
+            {
+                using var reader = new ParquetFileReader(path);
+                Assert.That(reader.FileMetaData.NumRowGroups, Is.EqualTo(0));
+                Assert.That(reader.FileMetaData.NumColumns, Is.EqualTo(1));
+            }
+            finally
+            {
+                File.Delete(path);
+            }
+        }
+
+        [Test]
         public static void TestDisposedAccess()
         {
             using var buffer = new ResizableBuffer();
