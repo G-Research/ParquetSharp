@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using ParquetSharp.IO;
 using NUnit.Framework;
@@ -407,19 +405,18 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestNestedStructArray([Values(Repetition.Required, Repetition.Optional)] Repetition structRepetition)
+        public static void TestOptionalStructArray([Values(true, false)] bool nestedRead)
         {
             // Create a 2d int array
             const int arraySize = 100;
-            int[]?[] values = new int[arraySize][];
+            var values = new Nested<int[]>?[arraySize];
 
             for (var i = 0; i < arraySize; i++)
             {
-                values[i] = (i % 3 == 0) ? null : Enumerable.Range(0, arraySize).ToArray();
+                values[i] = (i % 3 == 0) ? null : new Nested<int[]>(Enumerable.Range(0, arraySize).ToArray());
             }
 
             using var buffer = new ResizableBuffer();
-
             using (var output = new BufferOutputStream(buffer))
             {
                 using var noneType = LogicalType.None();
@@ -427,7 +424,7 @@ namespace ParquetSharp.Test
                 using var list = new GroupNode("list", Repetition.Repeated, new[] {element});
                 using var listType = LogicalType.List();
                 using var ids = new GroupNode("ids", Repetition.Optional, new[] {list}, listType);
-                using var outer = new GroupNode("struct", structRepetition, new[] {ids});
+                using var outer = new GroupNode("struct", Repetition.Optional, new[] {ids});
                 using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {outer});
 
                 using var builder = new WriterPropertiesBuilder();
@@ -435,7 +432,7 @@ namespace ParquetSharp.Test
                 using var fileWriter = new ParquetFileWriter(output, schemaNode, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
 
-                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<int[]?>();
+                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<Nested<int[]>?>();
                 colWriter.WriteBatch(values);
                 fileWriter.Close();
             }
@@ -443,9 +440,100 @@ namespace ParquetSharp.Test
             using var input = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(input);
             using var rowGroupReader = fileReader.RowGroup(0);
-            using var colReader = rowGroupReader.Column(0).LogicalReader<int[]>();
 
-            Assert.AreEqual(values, colReader.ReadAll((int) rowGroupReader.MetaData.NumRows));
+            if (nestedRead)
+            {
+                using var colReader = rowGroupReader.Column(0).LogicalReader<Nested<int[]>?>();
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    Assert.AreEqual(values[i].HasValue, actual[i].HasValue);
+                    if (values[i].HasValue)
+                    {
+                        Assert.AreEqual(values[i]!.Value.Value, actual[i]!.Value.Value);
+                    }
+                }
+            }
+            else
+            {
+                using var colReader = rowGroupReader.Column(0).LogicalReader<int[]?>();
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    Assert.AreEqual(values[i].HasValue, actual[i] != null);
+                    if (values[i].HasValue)
+                    {
+                        Assert.AreEqual(values[i]!.Value.Value, actual[i]);
+                    }
+                }
+            }
+
+            fileReader.Close();
+        }
+
+        [Test]
+        public static void TestNestedRequiredStructArray([Values(true, false)] bool nestedRead)
+        {
+            // Create a 2d int array
+            const int arraySize = 100;
+            var values = new Nested<int[]>[arraySize];
+
+            for (var i = 0; i < arraySize; i++)
+            {
+                values[i] = new Nested<int[]>(Enumerable.Range(0, i % 10).ToArray());
+            }
+
+            using var buffer = new ResizableBuffer();
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var noneType = LogicalType.None();
+                using var element = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Int32);
+                using var list = new GroupNode("list", Repetition.Repeated, new[] {element});
+                using var listType = LogicalType.List();
+                using var ids = new GroupNode("ids", Repetition.Optional, new[] {list}, listType);
+                using var outer = new GroupNode("struct", Repetition.Required, new[] {ids});
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {outer});
+
+                using var builder = new WriterPropertiesBuilder();
+                using var writerProperties = builder.Build();
+                using var fileWriter = new ParquetFileWriter(output, schemaNode, writerProperties);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<Nested<int[]>>();
+                colWriter.WriteBatch(values);
+                fileWriter.Close();
+            }
+
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            using var rowGroupReader = fileReader.RowGroup(0);
+
+            if (nestedRead)
+            {
+                using var colReader = rowGroupReader.Column(0).LogicalReader<Nested<int[]>>();
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    Assert.AreEqual(values[i].Value, actual[i].Value);
+                }
+            }
+            else
+            {
+                using var colReader = rowGroupReader.Column(0).LogicalReader<int[]>();
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    Assert.AreEqual(values[i].Value, actual[i]);
+                }
+            }
 
             fileReader.Close();
         }
@@ -486,7 +574,7 @@ namespace ParquetSharp.Test
 
                 using var col = rowGroupReader.Column(0).LogicalReader<T>(bufferLength);
 
-                var enumerator = col.GetEnumerator();
+                using var enumerator = col.GetEnumerator();
                 for (var i = 0; i < values.Length; i++)
                 {
                     Assert.IsTrue(enumerator.MoveNext());
@@ -496,6 +584,353 @@ namespace ParquetSharp.Test
 
                 fileReader.Close();
             }
+        }
+
+        [Test]
+        public static void TestNestedStructArrayMultipleFields([Values(true, false)] bool nestedRead)
+        {
+            using var noneType = LogicalType.None();
+            using var listType = LogicalType.List();
+            using var stringType = LogicalType.String();
+
+            using var itemNode = new PrimitiveNode("item", Repetition.Optional, noneType, PhysicalType.Int64);
+            using var listNode = new GroupNode(
+                "list", Repetition.Repeated, new Node[] {itemNode});
+            using var idsNode = new GroupNode(
+                "ids", Repetition.Optional, new Node[] {listNode}, listType);
+
+            using var msgNode = new PrimitiveNode("msg", Repetition.Optional, stringType, PhysicalType.ByteArray);
+
+            using var nestedNode = new GroupNode(
+                "nested", Repetition.Optional, new Node[] {idsNode, msgNode});
+
+            using var schemaNode = new GroupNode(
+                "schema", Repetition.Required, new Node[] {nestedNode});
+
+            var ids = new Nested<long?[]>?[]
+            {
+                new Nested<long?[]>(new long?[] {1, 2, 3}),
+                new Nested<long?[]>(new long?[] {4, 5, 6}),
+                new Nested<long?[]>(null!),
+                null
+            };
+            var msg = new Nested<string?>?[]
+            {
+                new Nested<string?>("hello"),
+                new Nested<string?>("world"),
+                new Nested<string?>(null),
+                null
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var propertiesBuilder = new WriterPropertiesBuilder();
+                using var writerProperties = propertiesBuilder.Build();
+                using var fileWriter = new ParquetFileWriter(outStream, schemaNode, writerProperties);
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+
+                using var idColWriter = rowGroupWriter.NextColumn().LogicalWriter<Nested<long?[]>?>();
+                idColWriter.WriteBatch(ids);
+
+                using var msgColWriter = rowGroupWriter.NextColumn().LogicalWriter<Nested<string?>?>();
+                msgColWriter.WriteBatch(msg);
+
+                fileWriter.Close();
+            }
+
+            // Read it back.
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var rowGroup = fileReader.RowGroup(0);
+
+            if (nestedRead)
+            {
+                using var idsColumnReader = rowGroup.Column(0).LogicalReader<Nested<long?[]>?>();
+                var idsRead = idsColumnReader.ReadAll(4);
+                Assert.AreEqual(4, idsRead.Length);
+                Assert.IsTrue(idsRead[0].HasValue);
+                Assert.AreEqual(idsRead[0]!.Value.Value, new long?[] {1, 2, 3});
+                Assert.IsTrue(idsRead[1].HasValue);
+                Assert.AreEqual(idsRead[1]!.Value.Value, new long?[] {4, 5, 6});
+                Assert.IsTrue(idsRead[2].HasValue);
+                Assert.IsNull(idsRead[2]!.Value.Value);
+                Assert.IsFalse(idsRead[3].HasValue);
+
+                using var msgColumnReader = rowGroup.Column(1).LogicalReader<Nested<string?>?>();
+                var msgRead = msgColumnReader.ReadAll(4);
+                Assert.AreEqual(4, msgRead.Length);
+                Assert.IsTrue(msgRead[0].HasValue);
+                Assert.AreEqual(msgRead[0]!.Value.Value, "hello");
+                Assert.IsTrue(msgRead[1].HasValue);
+                Assert.AreEqual(msgRead[1]!.Value.Value, "world");
+                Assert.IsTrue(msgRead[2].HasValue);
+                Assert.IsNull(msgRead[2]!.Value.Value);
+                Assert.IsFalse(msgRead[3].HasValue);
+            }
+            else
+            {
+                using var idsColumnReader = rowGroup.Column(0).LogicalReader<long?[]?>();
+                var idsRead = idsColumnReader.ReadAll(4);
+                Assert.That(idsRead, Is.EqualTo(new[]
+                {
+                    new long?[] {1, 2, 3},
+                    new long?[] {4, 5, 6},
+                    null,
+                    null,
+                }));
+
+                using var msgColumnReader = rowGroup.Column(1).LogicalReader<string?>();
+                var msgRead = msgColumnReader.ReadAll(4);
+                Assert.That(msgRead, Is.EqualTo(new[]
+                {
+                    "hello", "world", null, null
+                }));
+            }
+        }
+
+        [Test]
+        public static void TestStructArrayValues([Values(true, false)] bool nestedRead)
+        {
+            using var noneType = LogicalType.None();
+            using var listType = LogicalType.List();
+            using var stringType = LogicalType.String();
+
+            using var idNode = new PrimitiveNode("id", Repetition.Required, noneType, PhysicalType.Int64);
+            using var msgNode = new PrimitiveNode("msg", Repetition.Optional, stringType, PhysicalType.ByteArray);
+
+            using var itemNode = new GroupNode("item", Repetition.Optional, new Node[] {idNode, msgNode});
+            using var listNode = new GroupNode(
+                "list", Repetition.Repeated, new Node[] {itemNode});
+            using var objectsNode = new GroupNode(
+                "objects", Repetition.Optional, new Node[] {listNode}, listType);
+
+            using var schemaNode = new GroupNode(
+                "schema", Repetition.Required, new Node[] {objectsNode});
+
+            var ids = new Nested<long>?[]?[]
+            {
+                new Nested<long>?[] {new(1), new(2), new(3)},
+                new Nested<long>?[] {new(4), null},
+                new Nested<long>?[] { },
+                null
+            };
+            var msg = new Nested<string?>?[]?[]
+            {
+                new Nested<string?>?[] {new("A"), new("B"), new(null)},
+                new Nested<string?>?[] {new("C"), null},
+                new Nested<string?>?[] { },
+                null
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var propertiesBuilder = new WriterPropertiesBuilder();
+                using var writerProperties = propertiesBuilder.Build();
+                using var fileWriter = new ParquetFileWriter(outStream, schemaNode, writerProperties);
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+
+                using var idColWriter = rowGroupWriter.NextColumn().LogicalWriter<Nested<long>?[]?>();
+                idColWriter.WriteBatch(ids);
+
+                using var msgColWriter = rowGroupWriter.NextColumn().LogicalWriter<Nested<string?>?[]?>();
+                msgColWriter.WriteBatch(msg);
+
+                fileWriter.Close();
+            }
+
+            // Read it back.
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var rowGroup = fileReader.RowGroup(0);
+
+            if (nestedRead)
+            {
+                using var idsColumnReader = rowGroup.Column(0).LogicalReader<Nested<long>?[]?>();
+                var idsRead = idsColumnReader.ReadAll(ids.Length);
+                Assert.That(idsRead, Is.Not.Null);
+                Assert.That(idsRead.Length, Is.EqualTo(ids.Length));
+
+                for (var i = 0; i < idsRead.Length; i++)
+                {
+                    if (ids[i] == null)
+                    {
+                        Assert.That(idsRead[i], Is.Null);
+                    }
+                    else
+                    {
+                        Assert.That(idsRead[i], Is.Not.Null);
+                        Assert.That(idsRead[i]!.Length, Is.EqualTo(ids[i]!.Length));
+                        for (var j = 0; j < idsRead[i]!.Length; j++)
+                        {
+                            if (ids[i]![j] == null)
+                            {
+                                Assert.That(idsRead[i]![j], Is.Null);
+                            }
+                            else
+                            {
+                                Assert.That(idsRead[i]![j], Is.Not.Null);
+                                Assert.That(idsRead[i]![j], Is.EqualTo(ids[i]![j]));
+                            }
+                        }
+                    }
+                }
+
+                using var msgColumnReader = rowGroup.Column(1).LogicalReader<Nested<string?>?[]?>();
+                var msgRead = msgColumnReader.ReadAll(msg.Length);
+                Assert.That(msgRead, Is.Not.Null);
+                Assert.That(msgRead.Length, Is.EqualTo(msg.Length));
+
+                for (var i = 0; i < msgRead.Length; i++)
+                {
+                    if (msg[i] == null)
+                    {
+                        Assert.That(msgRead[i], Is.Null);
+                    }
+                    else
+                    {
+                        Assert.That(msgRead[i], Is.Not.Null);
+                        Assert.That(msgRead[i]!.Length, Is.EqualTo(msg[i]!.Length));
+                        for (var j = 0; j < msgRead[i]!.Length; j++)
+                        {
+                            if (msg[i]![j] == null)
+                            {
+                                Assert.That(msgRead[i]![j], Is.Null);
+                            }
+                            else
+                            {
+                                Assert.That(msgRead[i]![j], Is.Not.Null);
+                                Assert.That(msgRead[i]![j], Is.EqualTo(msg[i]![j]));
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using var idsColumnReader = rowGroup.Column(0).LogicalReader<long?[]?>();
+                var idsRead = idsColumnReader.ReadAll(ids.Length);
+                Assert.That(idsRead, Is.EqualTo(new[]
+                {
+                    new long?[] {1, 2, 3},
+                    new long?[] {4, null},
+                    new long?[] { },
+                    null
+                }));
+
+                using var msgColumnReader = rowGroup.Column(1).LogicalReader<string?[]?>();
+                var msgRead = msgColumnReader.ReadAll(msg.Length);
+                Assert.That(msgRead, Is.EqualTo(new[]
+                {
+                    new string?[] {"A", "B", null},
+                    new string?[] {"C", null},
+                    new string?[] { },
+                    null
+                }));
+            }
+        }
+
+        [Test]
+        public static void TestRoundtripRequiredArrays()
+        {
+            using var schemaNode = CreateRequiredArraySchemaNode();
+
+            var items = new[]
+            {
+                new[] {1, 2, 3},
+                Array.Empty<int>(),
+                new[] {4, 5, 6}
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var propertiesBuilder = new WriterPropertiesBuilder();
+                using var writerProperties = propertiesBuilder.Build();
+                using var fileWriter = new ParquetFileWriter(outStream, schemaNode, writerProperties);
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+
+                using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<int[]>();
+                colWriter.WriteBatch(items);
+
+                fileWriter.Close();
+            }
+
+            // Read it back.
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var rowGroup = fileReader.RowGroup(0);
+
+            using var columnReader = rowGroup.Column(0).LogicalReader<int[]>();
+            var itemsActual = columnReader.ReadAll(3);
+
+            Assert.AreEqual(items, itemsActual);
+        }
+
+        [Test]
+        public static void TestRequiredArraysThrowsIfWritingNull()
+        {
+            using var schemaNode = CreateRequiredArraySchemaNode();
+
+            var items = new int[][]
+            {
+                new[] {1, 2, 3},
+                null!,
+                new[] {4, 5, 6}
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            using var outStream = new BufferOutputStream(buffer);
+            using var propertiesBuilder = new WriterPropertiesBuilder();
+            using var writerProperties = propertiesBuilder.Build();
+            using var fileWriter = new ParquetFileWriter(outStream, schemaNode, writerProperties);
+            using var rowGroupWriter = fileWriter.AppendRowGroup();
+
+            using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<int[]>();
+
+            Assert.Throws<InvalidOperationException>(() => colWriter.WriteBatch(items));
+
+            fileWriter.Close();
+        }
+
+        /// <summary>
+        /// A defined levels stream isn't required for a nested int,
+        /// so check we can handle that.
+        /// </summary>
+        [Test]
+        public static void TestRequiredNestedRoundtripInt()
+        {
+            var values = Enumerable.Range(0, 100).Select(i => new Nested<int>(i)).ToArray();
+            using var noneType = LogicalType.None();
+            using var elementNode = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Int32);
+
+            CheckNestedRoundtrip(values, elementNode);
+        }
+
+        [Test]
+        public static void TestRequiredNestedRoundtripString()
+        {
+            var values = Enumerable.Range(0, 100).Select(i => new Nested<string>($"row {i}")).ToArray();
+            using var stringType = LogicalType.String();
+            using var elementNode =
+                new PrimitiveNode("element", Repetition.Required, stringType, PhysicalType.ByteArray);
+
+            CheckNestedRoundtrip(values, elementNode);
+        }
+
+        [Test]
+        public static void TestRequiredString()
+        {
+            var values = Enumerable.Range(0, 100).Select(i => $"row {i}").ToArray();
+            using var stringType = LogicalType.String();
+            using var itemNode = new PrimitiveNode("item", Repetition.Required, stringType, PhysicalType.ByteArray);
+
+            CheckRoundtrip(values, itemNode, (x, y) => x == y);
         }
 
         [Test]
@@ -839,6 +1274,74 @@ namespace ParquetSharp.Test
             var readValues = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
 
             Assert.That(readValues, Is.EqualTo(values));
+        }
+
+        private static GroupNode CreateRequiredArraySchemaNode()
+        {
+            using var noneType = LogicalType.None();
+            using var listType = LogicalType.List();
+
+            using var elementNode = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Int32);
+            using var listNode = new GroupNode(
+                "list", Repetition.Repeated, new Node[] {elementNode});
+
+            // https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#lists
+            // The outer-most level must be a group annotated with LIST that contains a single field named list.
+            // The repetition of this level must be either optional or required and determines whether the list is nullable.
+            using var arrayNode = new GroupNode(
+                "required_array", Repetition.Required, new Node[] {listNode}, listType);
+
+            return new GroupNode(
+                "schema", Repetition.Required, new Node[] {arrayNode});
+        }
+
+        private static void CheckNestedRoundtrip<T>(Nested<T>[] values, PrimitiveNode elementNode)
+        {
+            bool AreEqual(Nested<T> x, Nested<T> y)
+            {
+                if (x.Value == null && y.Value == null)
+                {
+                    return true;
+                }
+                return x.Value!.Equals(y.Value);
+            }
+
+            using var structNode = new GroupNode("struct", Repetition.Required, new[] {elementNode});
+            CheckRoundtrip(values, structNode, AreEqual);
+        }
+
+        private static void CheckRoundtrip<T>(T[] values, Node node, Func<T, T, bool> areEqual)
+        {
+            using var buffer = new ResizableBuffer();
+
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {node});
+
+                using var properties = WriterProperties.GetDefaultWriterProperties();
+                using var fileWriter = new ParquetFileWriter(output, schemaNode, properties);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<T>();
+
+                colWriter.WriteBatch(values);
+
+                fileWriter.Close();
+            }
+
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            using var rowGroupReader = fileReader.RowGroup(0);
+            using var colReader = rowGroupReader.Column(0).LogicalReader<T>();
+
+            var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+            Assert.IsNotEmpty(actual);
+            Assert.AreEqual(values.Length, actual.Length);
+            for (var i = 0; i < values.Length; i++)
+            {
+                Assert.IsTrue(areEqual(values[i], actual[i]));
+            }
+
+            fileReader.Close();
         }
 
         private static ExpectedColumn[] CreateExpectedColumns()

@@ -512,7 +512,7 @@ namespace ParquetSharp
                 var value = source[i];
                 if (value == null)
                 {
-                    if (defLevels == null)
+                    if (defLevels.IsEmpty)
                     {
                         throw new ArgumentException("encountered null value despite column schema node repetition being marked as required");
                     }
@@ -537,7 +537,7 @@ namespace ParquetSharp
                 var value = source[i];
                 if (value == null)
                 {
-                    if (defLevels == null)
+                    if (defLevels.IsEmpty)
                     {
                         throw new ArgumentException("encountered null value despite column schema node repetition being marked as required");
                     }
@@ -547,7 +547,10 @@ namespace ParquetSharp
                 else
                 {
                     destination[dst++] = FromByteArray(value, byteBuffer);
-                    defLevels[i] = (short) (nullLevel + 1);
+                    if (!defLevels.IsEmpty)
+                    {
+                        defLevels[i] = (short) (nullLevel + 1);
+                    }
                 }
             }
         }

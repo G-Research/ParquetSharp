@@ -26,6 +26,19 @@ namespace ParquetSharp
             _nullableLeafValues = nullableLeafValues;
         }
 
+        public TLogical ReadValue()
+        {
+            if (_valueIndex >= _numValues)
+            {
+                if (!FillBuffer())
+                {
+                    throw new Exception("Attempt to read past end of column.");
+                }
+            }
+            var valueIndex = _nullableLeafValues ? _valueIndex : _valueIndex++;
+            return _logicalValues[valueIndex];
+        }
+
         /// <summary>
         /// Attempt to read a whole leaf-level array of values at the given repetition level.
         /// Returns true if we reached the end of the array or false if the values array is incomplete.
@@ -72,9 +85,6 @@ namespace ParquetSharp
 
         public (short DefLevel, short RepLevel) GetCurrentDefinition()
         {
-            if (_defLevels == null) throw new InvalidOperationException("definition levels not defined");
-            if (_repLevels == null) throw new InvalidOperationException("repetition levels not defined");
-
             if (_levelIndex >= _numLevels)
             {
                 if (!FillBuffer())
@@ -83,7 +93,7 @@ namespace ParquetSharp
                 }
             }
 
-            return (DefLevel: _defLevels[_levelIndex], RepLevel: _repLevels[_levelIndex]);
+            return (DefLevel: _defLevels?[_levelIndex] ?? 0, RepLevel: _repLevels?[_levelIndex] ?? 0);
         }
 
         public bool IsEofDefinition => _levelIndex >= _numLevels && !_columnReader.HasNext;
@@ -120,7 +130,7 @@ namespace ParquetSharp
                 // reader is at the end of a data page.
                 _converter(
                     _values.AsSpan(0, (int) _numValues),
-                    _defLevels.AsSpan(0, (int) _numLevels),
+                    _defLevels == null ? null : _defLevels.AsSpan(0, (int) _numLevels),
                     _logicalValues.AsSpan(0, (int) _numValues),
                     _leafDefinitionLevel);
             }
