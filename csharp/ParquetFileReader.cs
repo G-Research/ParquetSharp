@@ -38,6 +38,7 @@ namespace ParquetSharp
             var properties = readerProperties ?? defaultProperties!;
 
             _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle, properties.Handle.IntPtr, ParquetFileReader_Open), ParquetFileReader_Free);
+            _randomAccessFile = randomAccessFile;
 
             GC.KeepAlive(readerProperties);
         }
@@ -83,5 +84,6 @@ namespace ParquetSharp
 
         private readonly ParquetHandle _handle;
         private FileMetaData? _fileMetaData;
+        private readonly RandomAccessFile? _randomAccessFile; // Keep a handle to the input file to prevent GC
     }
 }

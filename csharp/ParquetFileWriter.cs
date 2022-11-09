@@ -55,6 +55,7 @@ namespace ParquetSharp
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _outputStream = outputStream;
             Columns = columns;
         }
 
@@ -109,6 +110,7 @@ namespace ParquetSharp
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _outputStream = outputStream;
             Columns = columns;
         }
 
@@ -157,6 +159,7 @@ namespace ParquetSharp
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _outputStream = outputStream;
             Columns = columns;
         }
 
@@ -209,6 +212,7 @@ namespace ParquetSharp
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _outputStream = outputStream;
             Columns = columns;
         }
 
@@ -255,6 +259,7 @@ namespace ParquetSharp
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _outputStream = outputStream;
             Columns = null;
         }
 
@@ -453,5 +458,6 @@ namespace ParquetSharp
         private FileMetaData? _fileMetaData;
         private WriterProperties? _writerProperties;
         private bool _keyValueMetadataSet;
+        private readonly OutputStream? _outputStream; // Keep a handle to the output stream to prevent GC
     }
 }
