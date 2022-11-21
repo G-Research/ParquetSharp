@@ -107,9 +107,25 @@ namespace ParquetSharp
 
             if (logicalType is DecimalLogicalType)
             {
-                if (descriptor.TypeLength != sizeof(Decimal128)) throw new NotSupportedException($"only {sizeof(Decimal128)} bytes of decimal length is supported");
-                if (descriptor.TypePrecision > 29) throw new NotSupportedException("only max 29 digits of decimal precision is supported");
-                return (typeof(FixedLenByteArray), nullable ? typeof(decimal?) : typeof(decimal));
+                switch (physicalType)
+                {
+                    case PhysicalType.Int32:
+                        return (typeof(int), nullable ? typeof(decimal?) : typeof(decimal));
+                    case PhysicalType.Int64:
+                        return (typeof(long), nullable ? typeof(decimal?) : typeof(decimal));
+                    case PhysicalType.FixedLenByteArray:
+                    {
+                        if (descriptor.TypeLength != sizeof(Decimal128))
+                        {
+                            throw new NotSupportedException($"only {sizeof(Decimal128)} bytes of decimal length is supported with fixed-length byte array data");
+                        }
+                        if (descriptor.TypePrecision > 29)
+                        {
+                            throw new NotSupportedException("only max 29 digits of decimal precision is supported with fixed-length byte array data");
+                        }
+                        return (typeof(FixedLenByteArray), nullable ? typeof(decimal?) : typeof(decimal));
+                    }
+                }
             }
 
             if (logicalType is TimeLogicalType timeLogicalType)

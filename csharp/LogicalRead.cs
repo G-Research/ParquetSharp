@@ -126,13 +126,35 @@ namespace ParquetSharp
             if (typeof(TLogical) == typeof(decimal))
             {
                 var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
-                return (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal128(s, d, multiplier));
+                if (typeof(TPhysical) == typeof(int))
+                {
+                    return (LogicalRead<decimal, int>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal32(s, d, multiplier));
+                }
+                if (typeof(TPhysical) == typeof(long))
+                {
+                    return (LogicalRead<decimal, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal64(s, d, multiplier));
+                }
+                if (typeof(TPhysical) == typeof(FixedLenByteArray))
+                {
+                    return (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal128(s, d, multiplier));
+                }
             }
 
             if (typeof(TLogical) == typeof(decimal?))
             {
                 var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
-                return (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal128(s, dl, d, multiplier, del));
+                if (typeof(TPhysical) == typeof(int))
+                {
+                    return (LogicalRead<decimal?, int>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal32(s, dl, d, multiplier, del));
+                }
+                if (typeof(TPhysical) == typeof(long))
+                {
+                    return (LogicalRead<decimal?, long>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal64(s, dl, d, multiplier, del));
+                }
+                if (typeof(TPhysical) == typeof(FixedLenByteArray))
+                {
+                    return (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal128(s, dl, d, multiplier, del));
+                }
             }
 
             if (typeof(TLogical) == typeof(Guid))
@@ -389,6 +411,38 @@ namespace ParquetSharp
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] != definedLevel ? default(ushort?) : (ushort) source[src++];
+            }
+        }
+
+        public static void ConvertDecimal32(ReadOnlySpan<int> source, Span<decimal> destination, decimal multiplier)
+        {
+            for (int i = 0; i < destination.Length; ++i)
+            {
+                destination[i] = source[i] / multiplier;
+            }
+        }
+
+        public static void ConvertDecimal32(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<decimal?> destination, decimal multiplier, short definedLevel)
+        {
+            for (int i = 0, src = 0; i < destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] != definedLevel ? default(decimal?) : source[src++] / multiplier;
+            }
+        }
+
+        public static void ConvertDecimal64(ReadOnlySpan<long> source, Span<decimal> destination, decimal multiplier)
+        {
+            for (int i = 0; i < destination.Length; ++i)
+            {
+                destination[i] = source[i] / multiplier;
+            }
+        }
+
+        public static void ConvertDecimal64(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<decimal?> destination, decimal multiplier, short definedLevel)
+        {
+            for (int i = 0, src = 0; i < destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] != definedLevel ? default(decimal?) : source[src++] / multiplier;
             }
         }
 
