@@ -110,9 +110,21 @@ namespace ParquetSharp
                 switch (physicalType)
                 {
                     case PhysicalType.Int32:
+                    {
+                        if (descriptor.TypePrecision > 9)
+                        {
+                            throw new NotSupportedException("A maximum of 9 digits of decimal precision is supported with int32 data");
+                        }
                         return (typeof(int), nullable ? typeof(decimal?) : typeof(decimal));
+                    }
                     case PhysicalType.Int64:
+                    {
+                        if (descriptor.TypePrecision > 18)
+                        {
+                            throw new NotSupportedException("A maximum of 18 digits of decimal precision is supported with int64 data");
+                        }
                         return (typeof(long), nullable ? typeof(decimal?) : typeof(decimal));
+                    }
                     case PhysicalType.FixedLenByteArray:
                     {
                         if (descriptor.TypeLength != sizeof(Decimal128))
