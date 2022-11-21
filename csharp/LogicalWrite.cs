@@ -97,6 +97,10 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(decimal))
             {
+                if (typeof(TPhysical) != typeof(FixedLenByteArray))
+                {
+                    throw new NotSupportedException("Writing decimal data is only supported with a fixed-length byte array physical type");
+                }
                 if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
                 return (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal128(s, d, multiplier, byteBuffer));
@@ -104,6 +108,10 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(decimal?))
             {
+                if (typeof(TPhysical) != typeof(FixedLenByteArray))
+                {
+                    throw new NotSupportedException("Writing decimal data is only supported with a fixed-length byte array physical type");
+                }
                 if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
                 return (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertDecimal128(s, dl, d, multiplier, nl, byteBuffer));
