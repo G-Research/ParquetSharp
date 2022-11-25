@@ -545,10 +545,10 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestNestedNestedOptionalListWithRequiredField()
         {
-            int rows = 5;
-            int nestedNestedElements = 111;
-            int maxNestedNestedIds = 200;
-            int randomSeed = 127;
+            const int rows = 5;
+            const int nestedNestedElements = 111;
+            const int maxNestedNestedIds = 200;
+            const int randomSeed = 127;
 
             var inputNestedNestedData = new Nested<Nested<string>[]?>[rows][];
 
@@ -559,9 +559,7 @@ namespace ParquetSharp.Test
 
                 for (int j = 0; j < nestedNestedElements; j++)
                 {
-                    Nested<string>[]? val = j % 2 == 0 ?
-                        Enumerable.Range(0, r.Next(maxNestedNestedIds)).Select(i => new Nested<string>(Guid.NewGuid().ToString())).ToArray() :
-                        null;
+                    Nested<string>[]? val = j % 2 == 0 ? Enumerable.Range(0, r.Next(maxNestedNestedIds)).Select(i => new Nested<string>(Guid.NewGuid().ToString())).ToArray() : null;
 
                     inputNestedNestedData[i][j] = new Nested<Nested<string>[]?>(val);
                 }
@@ -571,15 +569,15 @@ namespace ParquetSharp.Test
             using (var output = new BufferOutputStream(buffer))
             {
                 using var nestedNestedItem = new PrimitiveNode("nestedNestedIds", Repetition.Required, LogicalType.String(), PhysicalType.ByteArray);
-                using var nestedNestedElement = new GroupNode("element", Repetition.Required, new[] { nestedNestedItem } );
-                using var nestedNestedList = new GroupNode("list", Repetition.Repeated, new[] { nestedNestedElement });
-                using var nestedNestedStructure = new GroupNode("NestedNested", Repetition.Optional, new[] { nestedNestedList }, LogicalType.List());                
+                using var nestedNestedElement = new GroupNode("element", Repetition.Required, new[] {nestedNestedItem});
+                using var nestedNestedList = new GroupNode("list", Repetition.Repeated, new[] {nestedNestedElement});
+                using var nestedNestedStructure = new GroupNode("NestedNested", Repetition.Optional, new[] {nestedNestedList}, LogicalType.List());
 
-                using var nestedElement = new GroupNode("element", Repetition.Required, new[] { nestedNestedStructure });
-                using var nestedList = new GroupNode("list", Repetition.Repeated, new[] { nestedElement });
-                using var nestedStructure = new GroupNode("Nested", Repetition.Required, new[] { nestedList }, LogicalType.List());
+                using var nestedElement = new GroupNode("element", Repetition.Required, new[] {nestedNestedStructure});
+                using var nestedList = new GroupNode("list", Repetition.Repeated, new[] {nestedElement});
+                using var nestedStructure = new GroupNode("Nested", Repetition.Required, new[] {nestedList}, LogicalType.List());
 
-                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] { nestedStructure });
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {nestedStructure});
 
                 using var builder = new WriterPropertiesBuilder();
                 using var writerProperties = builder.Build();
@@ -596,7 +594,7 @@ namespace ParquetSharp.Test
             using var rowGroupReader = fileReader.RowGroup(0);
 
             using var colReader = rowGroupReader.Column(0).LogicalReader<string[]?[]>();
-            var actual = colReader.ReadAll((int)rowGroupReader.MetaData.NumRows);
+            var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
             Assert.IsNotEmpty(actual);
             Assert.AreEqual(inputNestedNestedData.Length, actual.Length);
             for (var i = 0; i < inputNestedNestedData.Length; i++)
@@ -614,7 +612,7 @@ namespace ParquetSharp.Test
                     {
                         Assert.IsNull(inputNestedNestedData[i][j].Value);
                         Assert.AreEqual(inputNestedNestedData[i][j].Value, actual[i][j]);
-                    }                    
+                    }
                 }
             }
 

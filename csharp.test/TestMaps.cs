@@ -56,10 +56,10 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestNestedNestedOptionalMapWithRequiredKey()
         {
-            int rows = 5;
-            int nestedNestedElements = 111;
-            int maxNestedNestedIds = 200;
-            int randomSeed = 127;
+            const int rows = 5;
+            const int nestedNestedElements = 111;
+            const int maxNestedNestedIds = 200;
+            const int randomSeed = 127;
 
             var inputNestedNestedKeys = new Nested<string[]?>[rows][];
             var inputNestedNestedValues = new Nested<string[]?>[rows][];
@@ -72,13 +72,9 @@ namespace ParquetSharp.Test
 
                 for (int j = 0; j < nestedNestedElements; j++)
                 {
-                    string[]? vals = j % 2 == 0 ?
-                        Enumerable.Range(0, r.Next(maxNestedNestedIds)).Select(i => Guid.NewGuid().ToString()).ToArray() :
-                        null;
+                    string[]? vals = j % 2 == 0 ? Enumerable.Range(0, r.Next(maxNestedNestedIds)).Select(i => Guid.NewGuid().ToString()).ToArray() : null;
 
-                    string[]? keys = j % 2 == 0 ?
-                        Enumerable.Range(0, vals!.Length).Select(i => Guid.NewGuid().ToString()).ToArray() :
-                        null;
+                    string[]? keys = j % 2 == 0 ? Enumerable.Range(0, vals!.Length).Select(i => Guid.NewGuid().ToString()).ToArray() : null;
 
                     inputNestedNestedKeys[i][j] = new Nested<string[]?>(keys);
                     inputNestedNestedValues[i][j] = new Nested<string[]?>(vals);
@@ -90,14 +86,14 @@ namespace ParquetSharp.Test
             {
                 using var nestedNestedKey = new PrimitiveNode("key", Repetition.Required, LogicalType.String(), PhysicalType.ByteArray);
                 using var nestedNestedValue = new PrimitiveNode("value", Repetition.Required, LogicalType.String(), PhysicalType.ByteArray);
-                using var nestedNestedMap = new GroupNode("key_value", Repetition.Repeated, new[] { nestedNestedKey, nestedNestedValue });
-                using var nestedNestedStructure = new GroupNode("NestedNested", Repetition.Optional, new[] { nestedNestedMap }, LogicalType.Map());
+                using var nestedNestedMap = new GroupNode("key_value", Repetition.Repeated, new[] {nestedNestedKey, nestedNestedValue});
+                using var nestedNestedStructure = new GroupNode("NestedNested", Repetition.Optional, new[] {nestedNestedMap}, LogicalType.Map());
 
-                using var nestedElement = new GroupNode("element", Repetition.Required, new[] { nestedNestedStructure });
-                using var nestedList = new GroupNode("list", Repetition.Repeated, new[] { nestedElement });
-                using var nestedStructure = new GroupNode("Nested", Repetition.Required, new[] { nestedList }, LogicalType.List());
+                using var nestedElement = new GroupNode("element", Repetition.Required, new[] {nestedNestedStructure});
+                using var nestedList = new GroupNode("list", Repetition.Repeated, new[] {nestedElement});
+                using var nestedStructure = new GroupNode("Nested", Repetition.Required, new[] {nestedList}, LogicalType.List());
 
-                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] { nestedStructure });
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {nestedStructure});
 
                 using var builder = new WriterPropertiesBuilder();
                 using var writerProperties = builder.Build();
@@ -118,10 +114,10 @@ namespace ParquetSharp.Test
             using var rowGroupReader = fileReader.RowGroup(0);
 
             using var colReader = rowGroupReader.Column(0).LogicalReader<string[]?[]>();
-            var actualKeys = colReader.ReadAll((int)rowGroupReader.MetaData.NumRows);
+            var actualKeys = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
 
             using var colReader2 = rowGroupReader.Column(1).LogicalReader<string[]?[]>();
-            var actualValues = colReader2.ReadAll((int)rowGroupReader.MetaData.NumRows);
+            var actualValues = colReader2.ReadAll((int) rowGroupReader.MetaData.NumRows);
 
             Assert.IsNotEmpty(actualKeys);
             Assert.AreEqual(inputNestedNestedKeys.Length, actualKeys.Length);
