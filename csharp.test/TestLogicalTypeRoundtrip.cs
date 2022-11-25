@@ -543,7 +543,7 @@ namespace ParquetSharp.Test
         /// a nested-nested optional list can be read back.
         /// </summary>
         [Test]
-        public static void TestNestedNestedOptinalListWithRequiredField()
+        public static void TestNestedNestedOptionalListWithRequiredField()
         {
             int rows = 5;
             int nestedNestedElements = 111;

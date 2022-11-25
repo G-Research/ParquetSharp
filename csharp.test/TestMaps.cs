@@ -54,7 +54,7 @@ namespace ParquetSharp.Test
         /// a nested-nested optional map can be read back.
         /// </summary>
         [Test]
-        public static void TestNestedNestedOptinalMapWithRequiredKey()
+        public static void TestNestedNestedOptionalMapWithRequiredKey()
         {
             int rows = 5;
             int nestedNestedElements = 111;
