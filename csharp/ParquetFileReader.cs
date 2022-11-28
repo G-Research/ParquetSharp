@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using ParquetSharp.IO;
 
@@ -13,6 +14,16 @@ namespace ParquetSharp
 
         public ParquetFileReader(RandomAccessFile randomAccessFile)
             : this(randomAccessFile, null)
+        {
+        }
+
+        /// <summary>
+        /// Create a new ParquetFileReader for reading from a .NET stream
+        /// </summary>
+        /// <param name="stream">The stream to read</param>
+        /// <param name="leaveOpen">Whether to keep the stream open after the reader is closed</param>
+        public ParquetFileReader(Stream stream, bool leaveOpen = false)
+            : this(stream, null, leaveOpen)
         {
         }
 
@@ -43,10 +54,35 @@ namespace ParquetSharp
             GC.KeepAlive(readerProperties);
         }
 
+        /// <summary>
+        /// Create a new ParquetFileReader for reading from a .NET stream
+        /// </summary>
+        /// <param name="stream">The stream to read</param>
+        /// <param name="readerProperties">Configures the reader properties</param>
+        /// <param name="leaveOpen">Whether to keep the stream open after the reader is closed</param>
+        public ParquetFileReader(Stream stream, ReaderProperties? readerProperties, bool leaveOpen = false)
+        {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+
+            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var properties = readerProperties ?? defaultProperties!;
+            var randomAccessFile = new ManagedRandomAccessFile(stream, leaveOpen);
+
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle!, properties.Handle.IntPtr, ParquetFileReader_Open), ParquetFileReader_Free);
+            _randomAccessFile = randomAccessFile;
+            _ownedFile = true;
+
+            GC.KeepAlive(readerProperties);
+        }
+
         public void Dispose()
         {
             _fileMetaData?.Dispose();
             _handle.Dispose();
+            if (_ownedFile)
+            {
+                _randomAccessFile?.Dispose();
+            }
         }
 
         public void Close()
@@ -85,5 +121,6 @@ namespace ParquetSharp
         private readonly ParquetHandle _handle;
         private FileMetaData? _fileMetaData;
         private readonly RandomAccessFile? _randomAccessFile; // Keep a handle to the input file to prevent GC
+        private readonly bool _ownedFile; // Whether this reader created the RandomAccessFile
     }
 }

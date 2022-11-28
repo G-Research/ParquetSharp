@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using ParquetSharp.IO;
 using ParquetSharp.Schema;
@@ -115,6 +116,39 @@ namespace ParquetSharp
         }
 
         /// <summary>
+        /// Open a new ParquetFileWriter for writing to a .NET stream
+        /// </summary>
+        /// <param name="stream">Stream to write to</param>
+        /// <param name="columns">Definitions of columns to be written</param>
+        /// <param name="logicalTypeFactory">Custom type factory used to map from dotnet types to Parquet types</param>
+        /// <param name="compression">Compression to use for all columns</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
+        /// <param name="leaveOpen">Whether to keep the stream open after closing the writer</param>
+        public ParquetFileWriter(
+            Stream stream,
+            Column[] columns,
+            LogicalTypeFactory? logicalTypeFactory = null,
+            Compression compression = Compression.Snappy,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null,
+            bool leaveOpen = false)
+        {
+            using var schema = Column.CreateSchemaNode(columns, LogicalTypeFactory = logicalTypeFactory ?? LogicalTypeFactory.Default);
+            using var writerProperties = CreateWriterProperties(compression);
+            if (keyValueMetadata != null)
+            {
+                _keyValueMetadata = keyValueMetadata;
+                _parquetKeyValueMetadata = new KeyValueMetadata();
+            }
+
+            var outputStream = new ManagedOutputStream(stream, leaveOpen);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _outputStream = outputStream;
+            _ownedStream = true;
+            Columns = columns;
+        }
+
+        /// <summary>
         /// Open a new ParquetFileWriter
         /// </summary>
         /// <param name="path">Location to write to</param>
@@ -213,6 +247,38 @@ namespace ParquetSharp
             }
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
             _outputStream = outputStream;
+            Columns = columns;
+        }
+
+        /// <summary>
+        /// Open a new ParquetFileWriter for writing to a .NET stream
+        /// </summary>
+        /// <param name="stream">Stream to write to</param>
+        /// <param name="columns">Definitions of columns to be written</param>
+        /// <param name="logicalTypeFactory">Custom type factory used to map from dotnet types to Parquet types</param>
+        /// <param name="writerProperties">Writer properties to use</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
+        /// <param name="leaveOpen">Whether to keep the stream open after closing the writer</param>
+        public ParquetFileWriter(
+            Stream stream,
+            Column[] columns,
+            LogicalTypeFactory? logicalTypeFactory,
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null,
+            bool leaveOpen = false)
+        {
+            using var schema = Column.CreateSchemaNode(columns, LogicalTypeFactory = logicalTypeFactory ?? LogicalTypeFactory.Default);
+            if (keyValueMetadata != null)
+            {
+                _keyValueMetadata = keyValueMetadata;
+                _parquetKeyValueMetadata = new KeyValueMetadata();
+            }
+
+            var outputStream = new ManagedOutputStream(stream, leaveOpen);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _outputStream = outputStream;
+            _ownedStream = true;
             Columns = columns;
         }
 
@@ -260,6 +326,35 @@ namespace ParquetSharp
             }
             _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
             _outputStream = outputStream;
+            Columns = null;
+        }
+
+        /// <summary>
+        /// Open a new ParquetFileWriter for writing to a .NET stream
+        /// </summary>
+        /// <param name="stream">Stream to write to</param>
+        /// <param name="schema">Root schema node defining the structure of the file</param>
+        /// <param name="writerProperties">Writer properties to use</param>
+        /// <param name="keyValueMetadata">Optional dictionary of key-value metadata.
+        /// This isn't read until the file is closed, to allow metadata to be modified after data is written.</param>
+        /// <param name="leaveOpen">Whether to keep the stream open after closing the writer</param>
+        public ParquetFileWriter(
+            Stream stream,
+            GroupNode schema,
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null,
+            bool leaveOpen = false)
+        {
+            if (keyValueMetadata != null)
+            {
+                _keyValueMetadata = keyValueMetadata;
+                _parquetKeyValueMetadata = new KeyValueMetadata();
+            }
+
+            var outputStream = new ManagedOutputStream(stream, leaveOpen);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _outputStream = outputStream;
+            _ownedStream = true;
             Columns = null;
         }
 
@@ -276,6 +371,10 @@ namespace ParquetSharp
             _parquetKeyValueMetadata?.Dispose();
             _fileMetaData?.Dispose();
             _handle.Dispose();
+            if (_ownedStream)
+            {
+                _outputStream?.Dispose();
+            }
         }
 
         /// <summary>
@@ -459,5 +558,6 @@ namespace ParquetSharp
         private WriterProperties? _writerProperties;
         private bool _keyValueMetadataSet;
         private readonly OutputStream? _outputStream; // Keep a handle to the output stream to prevent GC
+        private readonly bool _ownedStream; // Whether this writer created the OutputStream
     }
 }

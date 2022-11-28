@@ -210,6 +210,33 @@ namespace ParquetSharp.Test
             reader.Close();
         }
 
+        /// <summary>
+        /// Test reading and writing using .NET streams directly
+        /// </summary>
+        [Test]
+        public static void TestStreamReadAndWrite()
+        {
+            var expected = Enumerable.Range(0, 1024 * 1024).ToArray();
+            using var buffer = new MemoryStream();
+
+            // Write test data.
+            using (var writer = new ParquetFileWriter(buffer, new Column[] {new Column<int>("ids")}, leaveOpen: true))
+            {
+                using var groupWriter = writer.AppendRowGroup();
+                using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
+                columnWriter.WriteBatch(expected);
+                writer.Close();
+            }
+
+            buffer.Seek(0, SeekOrigin.Begin);
+
+            using var reader = new ParquetFileReader(buffer, leaveOpen: false);
+            using var groupReader = reader.RowGroup(0);
+            using var columnReader = groupReader.Column(0).LogicalReader<int>();
+            Assert.AreEqual(expected, columnReader.ReadAll(expected.Length));
+            reader.Close();
+        }
+
         private static ParquetFileWriter GetWriterWithDroppedOutput(MemoryStream buffer)
         {
             var stream = new ManagedOutputStream(buffer);
