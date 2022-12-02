@@ -19,6 +19,7 @@ namespace ParquetSharp
         public ParquetFileReader(string path, ReaderProperties? readerProperties)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
+            path = LongPath.EnsureLongPathSafe(path);
 
             using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
             var properties = readerProperties ?? defaultProperties!;
