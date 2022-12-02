@@ -473,6 +473,8 @@ namespace ParquetSharp
             if (schema == null) throw new ArgumentNullException(nameof(schema));
             if (writerProperties == null) throw new ArgumentNullException(nameof(writerProperties));
 
+            path = LongPath.EnsureLongPathSafe(path);
+
             ExceptionInfo.Check(ParquetFileWriter_OpenFile(
                 path, schema.Handle.IntPtr, writerProperties.Handle.IntPtr, keyValueMetadata?.Handle.IntPtr ?? IntPtr.Zero, out var writer));
 
