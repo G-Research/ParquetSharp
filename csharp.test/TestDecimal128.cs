@@ -5,7 +5,6 @@ using Parquet;
 using ParquetSharp.IO;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace ParquetSharp.Test
 {
@@ -62,7 +61,7 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static async Task TestAgainstThirdParty()
+        public static void TestAgainstThirdParty()
         {
             using var decimalType = LogicalType.Decimal(precision: 29, scale: 3);
             var columns = new Column[] {new Column<decimal>("Decimal", decimalType)};
@@ -76,7 +75,13 @@ namespace ParquetSharp.Test
             // Write using ParquetSharp
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, columns, Compression.Snappy);
+                // Specify we want to write version 1.0 format, as 2.x uses RleDictionary
+                // which is only supported by Parquet.Net since 4.0.2, which also dropped support for .NET framework
+                using var propertiesBuilder = new WriterPropertiesBuilder()
+                    .Compression(Compression.Snappy)
+                    .Version(ParquetVersion.PARQUET_1_0);
+                using var writerProperties = propertiesBuilder.Build();
+                using var fileWriter = new ParquetFileWriter(outStream, columns, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>();
 
@@ -87,10 +92,10 @@ namespace ParquetSharp.Test
 
             // Read using Parquet.NET
             using var memoryStream = new MemoryStream(buffer.ToArray());
-            using var fileReader = await ParquetReader.CreateAsync(memoryStream);
+            using var fileReader = new ParquetReader(memoryStream);
             using var rowGroupReader = fileReader.OpenRowGroupReader(0);
 
-            var read = (decimal[]) (await rowGroupReader.ReadColumnAsync(fileReader.Schema.GetDataFields()[0])).Data;
+            var read = (decimal[]) rowGroupReader.ReadColumn(fileReader.Schema.GetDataFields()[0]).Data;
             Assert.AreEqual(values, read);
         }
     }
