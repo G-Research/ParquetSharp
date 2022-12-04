@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using ParquetSharp.IO;
 using ParquetSharp.Schema;
@@ -46,6 +47,106 @@ namespace ParquetSharp.Test
             var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, Array.Empty<string>()};
 
             DoRoundtripTest(false, keys, values);
+        }
+
+        /// <summary>
+        /// This checks that values written to nested-nested required key field of 
+        /// a nested-nested optional map can be read back.
+        /// </summary>
+        [Test]
+        public static void TestNestedNestedOptionalMapWithRequiredKey()
+        {
+            const int rows = 5;
+            const int nestedNestedElements = 111;
+            const int maxNestedNestedIds = 200;
+            const int randomSeed = 127;
+
+            var inputNestedNestedKeys = new Nested<string[]?>[rows][];
+            var inputNestedNestedValues = new Nested<string[]?>[rows][];
+
+            Random r = new Random(randomSeed);
+            for (int i = 0; i < rows; i++)
+            {
+                inputNestedNestedKeys[i] = new Nested<string[]?>[nestedNestedElements];
+                inputNestedNestedValues[i] = new Nested<string[]?>[nestedNestedElements];
+
+                for (int j = 0; j < nestedNestedElements; j++)
+                {
+                    string[]? vals = j % 2 == 0 ? Enumerable.Range(0, r.Next(maxNestedNestedIds)).Select(i => Guid.NewGuid().ToString()).ToArray() : null;
+
+                    string[]? keys = j % 2 == 0 ? Enumerable.Range(0, vals!.Length).Select(i => Guid.NewGuid().ToString()).ToArray() : null;
+
+                    inputNestedNestedKeys[i][j] = new Nested<string[]?>(keys);
+                    inputNestedNestedValues[i][j] = new Nested<string[]?>(vals);
+                }
+            }
+
+            using var buffer = new ResizableBuffer();
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var nestedNestedKey = new PrimitiveNode("key", Repetition.Required, LogicalType.String(), PhysicalType.ByteArray);
+                using var nestedNestedValue = new PrimitiveNode("value", Repetition.Required, LogicalType.String(), PhysicalType.ByteArray);
+                using var nestedNestedMap = new GroupNode("key_value", Repetition.Repeated, new[] {nestedNestedKey, nestedNestedValue});
+                using var nestedNestedStructure = new GroupNode("NestedNested", Repetition.Optional, new[] {nestedNestedMap}, LogicalType.Map());
+
+                using var nestedElement = new GroupNode("element", Repetition.Required, new[] {nestedNestedStructure});
+                using var nestedList = new GroupNode("list", Repetition.Repeated, new[] {nestedElement});
+                using var nestedStructure = new GroupNode("Nested", Repetition.Required, new[] {nestedList}, LogicalType.List());
+
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {nestedStructure});
+
+                using var builder = new WriterPropertiesBuilder();
+                using var writerProperties = builder.Build();
+                using var fileWriter = new ParquetFileWriter(output, schemaNode, writerProperties);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<Nested<string[]?>[]>();
+                colWriter.WriteBatch(inputNestedNestedKeys);
+
+                using var colWriter2 = rowGroupWriter.Column(1).LogicalWriter<Nested<string[]?>[]>();
+                colWriter2.WriteBatch(inputNestedNestedValues);
+
+                fileWriter.Close();
+            }
+
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            using var rowGroupReader = fileReader.RowGroup(0);
+
+            using var colReader = rowGroupReader.Column(0).LogicalReader<string[]?[]>();
+            var actualKeys = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+
+            using var colReader2 = rowGroupReader.Column(1).LogicalReader<string[]?[]>();
+            var actualValues = colReader2.ReadAll((int) rowGroupReader.MetaData.NumRows);
+
+            Assert.IsNotEmpty(actualKeys);
+            Assert.AreEqual(inputNestedNestedKeys.Length, actualKeys.Length);
+            Assert.AreEqual(actualValues.Length, actualKeys.Length);
+
+            for (var i = 0; i < inputNestedNestedKeys.Length; i++)
+            {
+                for (int j = 0; j < inputNestedNestedKeys[i].Length; j++)
+                {
+                    if (j % 2 == 0)
+                    {
+                        for (int k = 0; k < inputNestedNestedKeys[i][j].Value!.Length; k++)
+                        {
+                            Assert.AreEqual(inputNestedNestedKeys[i][j].Value![k], actualKeys[i][j]![k]);
+                            Assert.AreEqual(inputNestedNestedValues[i][j].Value![k], actualValues[i][j]![k]);
+                        }
+                    }
+                    else
+                    {
+                        Assert.IsNull(inputNestedNestedKeys[i][j].Value);
+                        Assert.AreEqual(inputNestedNestedKeys[i][j].Value, actualKeys[i][j]);
+
+                        Assert.IsNull(inputNestedNestedValues[i][j].Value);
+                        Assert.AreEqual(inputNestedNestedValues[i][j].Value, actualValues[i][j]);
+                    }
+                }
+            }
+
+            fileReader.Close();
         }
 
         [Test]

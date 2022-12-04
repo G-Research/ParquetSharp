@@ -539,6 +539,87 @@ namespace ParquetSharp.Test
         }
 
         /// <summary>
+        /// This checks that values written to nested-nested required field of 
+        /// a nested-nested optional list can be read back.
+        /// </summary>
+        [Test]
+        public static void TestNestedNestedOptionalListWithRequiredField()
+        {
+            const int rows = 5;
+            const int nestedNestedElements = 111;
+            const int maxNestedNestedIds = 200;
+            const int randomSeed = 127;
+
+            var inputNestedNestedData = new Nested<Nested<string>[]?>[rows][];
+
+            Random r = new Random(randomSeed);
+            for (int i = 0; i < rows; i++)
+            {
+                inputNestedNestedData[i] = new Nested<Nested<string>[]?>[nestedNestedElements];
+
+                for (int j = 0; j < nestedNestedElements; j++)
+                {
+                    Nested<string>[]? val = j % 2 == 0 ? Enumerable.Range(0, r.Next(maxNestedNestedIds)).Select(i => new Nested<string>(Guid.NewGuid().ToString())).ToArray() : null;
+
+                    inputNestedNestedData[i][j] = new Nested<Nested<string>[]?>(val);
+                }
+            }
+
+            using var buffer = new ResizableBuffer();
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var nestedNestedItem = new PrimitiveNode("nestedNestedIds", Repetition.Required, LogicalType.String(), PhysicalType.ByteArray);
+                using var nestedNestedElement = new GroupNode("element", Repetition.Required, new[] {nestedNestedItem});
+                using var nestedNestedList = new GroupNode("list", Repetition.Repeated, new[] {nestedNestedElement});
+                using var nestedNestedStructure = new GroupNode("NestedNested", Repetition.Optional, new[] {nestedNestedList}, LogicalType.List());
+
+                using var nestedElement = new GroupNode("element", Repetition.Required, new[] {nestedNestedStructure});
+                using var nestedList = new GroupNode("list", Repetition.Repeated, new[] {nestedElement});
+                using var nestedStructure = new GroupNode("Nested", Repetition.Required, new[] {nestedList}, LogicalType.List());
+
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {nestedStructure});
+
+                using var builder = new WriterPropertiesBuilder();
+                using var writerProperties = builder.Build();
+                using var fileWriter = new ParquetFileWriter(output, schemaNode, writerProperties);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+
+                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<Nested<Nested<string>[]?>[]>();
+                colWriter.WriteBatch(inputNestedNestedData);
+                fileWriter.Close();
+            }
+
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            using var rowGroupReader = fileReader.RowGroup(0);
+
+            using var colReader = rowGroupReader.Column(0).LogicalReader<string[]?[]>();
+            var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+            Assert.IsNotEmpty(actual);
+            Assert.AreEqual(inputNestedNestedData.Length, actual.Length);
+            for (var i = 0; i < inputNestedNestedData.Length; i++)
+            {
+                for (int j = 0; j < inputNestedNestedData[i].Length; j++)
+                {
+                    if (j % 2 == 0)
+                    {
+                        for (int k = 0; k < inputNestedNestedData[i][j].Value!.Length; k++)
+                        {
+                            Assert.AreEqual(inputNestedNestedData[i][j].Value![k].Value, actual[i][j]![k]);
+                        }
+                    }
+                    else
+                    {
+                        Assert.IsNull(inputNestedNestedData[i][j].Value);
+                        Assert.AreEqual(inputNestedNestedData[i][j].Value, actual[i][j]);
+                    }
+                }
+            }
+
+            fileReader.Close();
+        }
+
+        /// <summary>
         /// This checks that LogicalColumnReader's GetEnumerator() works correctly
         /// when the column is longer than the buffer length but not an exact multiple
         /// (see https://github.com/G-Research/ParquetSharp/issues/242).

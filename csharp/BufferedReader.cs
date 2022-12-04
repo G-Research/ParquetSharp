@@ -124,13 +124,16 @@ namespace ParquetSharp
                 // For non-nullable leaf values, converters will ignore definition levels and produce compacted
                 // values, otherwise definition levels are used and the number of values will match the number of levels.
                 _numValues = _nullableLeafValues ? _numLevels : numValues;
+                // Required field is defined then all its parents are defined too so there is no sense to consider definition levels for 
+                // the non-nullable leaf values
+                var defLevels = _nullableLeafValues ? (_defLevels == null ? null : _defLevels.AsSpan(0, (int) _numLevels)) : Array.Empty<short>();
                 // It's important that we immediately convert the read values. In the case of ByteArray physical values,
                 // these are pointers to internal Arrow memory that may be invalidated if we perform any other operation
                 // on the column reader, for example calling HasNext will trigger a new page load if the Arrow column
                 // reader is at the end of a data page.
                 _converter(
                     _values.AsSpan(0, (int) _numValues),
-                    _defLevels == null ? null : _defLevels.AsSpan(0, (int) _numLevels),
+                    defLevels,
                     _logicalValues.AsSpan(0, (int) _numValues),
                     _leafDefinitionLevel);
             }
