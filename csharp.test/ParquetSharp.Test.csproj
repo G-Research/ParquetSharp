@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
     <PackageReference Include="NUnit" Version="3.13.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="Parquet.Net" Version="3.8.6" />
+    <PackageReference Include="Parquet.Net" Version="4.1.2" />
   </ItemGroup>
 
   <ItemGroup>
