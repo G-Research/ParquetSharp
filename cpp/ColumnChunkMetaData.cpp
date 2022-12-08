@@ -20,7 +20,7 @@ extern "C"
 
 	PARQUETSHARP_EXPORT void ColumnChunkMetaData_Free(const ColumnChunkMetaData* column_chunk_meta_data)
 	{
-		delete column_chunk_meta_data;
+		delete column_chunk_meta_data
 	}
 
 	PARQUETSHARP_EXPORT ExceptionInfo* ColumnChunkMetaData_Compression(const ColumnChunkMetaData* column_chunk_meta_data, Compression::type* compression)

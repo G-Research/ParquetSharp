@@ -8,7 +8,7 @@ using namespace parquet;
 
 extern "C"
 {
-	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_Free(const SchemaDescriptor* descriptor)
+	PARQUETSHARP_EXPORT void SchemaDescriptor_Free(const SchemaDescriptor* descriptor)
 	{
 		delete descriptor;
 	}
