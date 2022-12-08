@@ -3,11 +3,16 @@ using System.Runtime.InteropServices;
 
 namespace ParquetSharp
 {
-    public sealed class RowGroupMetaData
+    public sealed class RowGroupMetaData : IDisposable
     {
         internal RowGroupMetaData(IntPtr handle)
         {
             _handle = handle;
+        }
+
+        public void Dispose()
+        {
+            _handle.Dispose();
         }
 
         public int NumColumns => ExceptionInfo.Return<int>(_handle, RowGroupMetaData_Num_Columns);
