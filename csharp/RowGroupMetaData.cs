@@ -7,11 +7,12 @@ namespace ParquetSharp
     {
         internal RowGroupMetaData(IntPtr handle)
         {
-            _handle = handle;
+            _handle = new ParquetHandle(handle, RowGroupMetaData_Free);
         }
 
         public void Dispose()
         {
+            _schema?.Dispose();
             _handle.Dispose();
         }
 
@@ -40,7 +41,10 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr RowGroupMetaData_Total_Byte_Size(IntPtr rowGroupMetaData, out long totalByteSize);
 
-        private readonly IntPtr _handle;
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr RowGroupMetaData_Free(IntPtr rowGroupMetaData);
+
+        private readonly ParquetHandle _handle;
         private SchemaDescriptor? _schema;
     }
 }

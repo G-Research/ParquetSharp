@@ -8,6 +8,11 @@ using namespace parquet;
 
 extern "C"
 {
+	PARQUETSHARP_EXPORT void RowGroupMetaData_Free(const RowGroupMetaData* row_group_meta_data)
+	{
+		delete row_group_meta_data;
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* RowGroupMetaData_Get_Column_Chunk_Meta_Data(const RowGroupMetaData* row_group_meta_data, int i, ColumnChunkMetaData** column_chunk_meta_data)
 	{
 		TRYCATCH(*column_chunk_meta_data = row_group_meta_data->ColumnChunk(i).release();)

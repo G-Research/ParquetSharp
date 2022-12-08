@@ -4,11 +4,16 @@ using ParquetSharp.Schema;
 
 namespace ParquetSharp
 {
-    public sealed class SchemaDescriptor
+    public sealed class SchemaDescriptor : IDisposable
     {
         internal SchemaDescriptor(IntPtr schemaDescriptorHandle)
         {
-            _handle = schemaDescriptorHandle;
+            _handle = new ParquetHandle(schemaDescriptorHandle, SchemaDescriptor_Free);
+        }
+
+        public void Dispose()
+        {
+            _handle.Dispose();
         }
 
         public GroupNode GroupNode => (GroupNode) (Node.Create(ExceptionInfo.Return<IntPtr>(_handle, SchemaDescriptor_Group_Node)) ?? throw new InvalidOperationException());
@@ -39,6 +44,9 @@ namespace ParquetSharp
         }
 
         [DllImport(ParquetDll.Name)]
+        private static extern IntPtr SchemaDescriptor_Free(IntPtr descriptor);
+
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr SchemaDescriptor_Column(IntPtr descriptor, int i, out IntPtr columnDescriptor);
 
         [DllImport(ParquetDll.Name)]
@@ -62,6 +70,6 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr SchemaDescriptor_Schema_Root(IntPtr descriptor, out IntPtr schemaRoot);
 
-        private readonly IntPtr _handle;
+        private readonly ParquetHandle _handle;
     }
 }

@@ -8,6 +8,11 @@ using namespace parquet;
 
 extern "C"
 {
+	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_Free(const SchemaDescriptor* descriptor)
+	{
+		delete descriptor;
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* SchemaDescriptor_Column(const SchemaDescriptor* descriptor, int i, const ColumnDescriptor** column_descriptor)
 	{
 		TRYCATCH(*column_descriptor = descriptor->Column(i);)
