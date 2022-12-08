@@ -13,6 +13,7 @@ namespace ParquetSharp
 
         public void Dispose()
         {
+            _metaData?.Dispose();
             _handle.Dispose();
         }
 
