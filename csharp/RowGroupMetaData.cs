@@ -42,7 +42,7 @@ namespace ParquetSharp
         private static extern IntPtr RowGroupMetaData_Total_Byte_Size(IntPtr rowGroupMetaData, out long totalByteSize);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr RowGroupMetaData_Free(IntPtr rowGroupMetaData);
+        private static extern void RowGroupMetaData_Free(IntPtr rowGroupMetaData);
 
         private readonly ParquetHandle _handle;
         private SchemaDescriptor? _schema;

@@ -44,7 +44,7 @@ namespace ParquetSharp
         }
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr SchemaDescriptor_Free(IntPtr descriptor);
+        private static extern void SchemaDescriptor_Free(IntPtr descriptor);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr SchemaDescriptor_Column(IntPtr descriptor, int i, out IntPtr columnDescriptor);
