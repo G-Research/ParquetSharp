@@ -74,8 +74,8 @@ include_directories(
 	${PARQUET_INCLUDE_DIRS})
 
 target_link_libraries(ParquetSharpNative PRIVATE
-	${PARQUET_LIBRARIES}
-	${ARROW_LIBRARIES}
+	Parquet::parquet_static
+	Arrow::arrow_static
 	unofficial::brotli::brotlidec-static unofficial::brotli::brotlienc-static unofficial::brotli::brotlicommon-static
 	BZip2::BZip2
 	lz4::lz4
@@ -86,7 +86,7 @@ target_link_libraries(ParquetSharpNative PRIVATE
 	ZLIB::ZLIB
 	zstd::libzstd_static
 )
-	
+
 add_definitions(-DARROW_STATIC)
 add_definitions(-DARROW_NO_DEPRECATED_API)
 add_definitions(-DPARQUET_STATIC)

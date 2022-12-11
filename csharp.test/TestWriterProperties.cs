@@ -15,15 +15,15 @@ namespace ParquetSharp.Test
         {
             var p = WriterProperties.GetDefaultWriterProperties();
 
-            Assert.AreEqual("parquet-cpp-arrow version 8.0.0", p.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 10.0.1", p.CreatedBy);
             Assert.AreEqual(Compression.Uncompressed, p.Compression(new ColumnPath("anypath")));
             Assert.AreEqual(int.MinValue, p.CompressionLevel(new ColumnPath("anypath")));
             Assert.AreEqual(1024 * 1024, p.DataPageSize);
-            Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryIndexEncoding);
-            Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryPageEncoding);
+            Assert.AreEqual(Encoding.RleDictionary, p.DictionaryIndexEncoding);
+            Assert.AreEqual(Encoding.Plain, p.DictionaryPageEncoding);
             Assert.AreEqual(1024 * 1024, p.DictionaryPagesizeLimit);
             Assert.AreEqual(64 * 1024 * 1024, p.MaxRowGroupLength);
-            Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
+            Assert.AreEqual(ParquetVersion.PARQUET_2_4, p.Version);
             Assert.AreEqual(1024, p.WriteBatchSize);
         }
 
@@ -97,7 +97,7 @@ namespace ParquetSharp.Test
             using var metadataId = groupReader.MetaData.GetColumnChunkMetaData(0);
             using var metadataValue = groupReader.MetaData.GetColumnChunkMetaData(1);
 
-            Assert.AreEqual(new[] {Encoding.PlainDictionary, Encoding.Plain, Encoding.Rle}, metadataId.Encodings);
+            Assert.AreEqual(new[] {Encoding.RleDictionary, Encoding.Plain, Encoding.Rle}, metadataId.Encodings);
             Assert.AreEqual(new[] {Encoding.ByteStreamSplit, Encoding.Rle}, metadataValue.Encodings);
 
             using var idReader = groupReader.Column(0).LogicalReader<int>();

@@ -75,7 +75,13 @@ namespace ParquetSharp.Test
             // Write using ParquetSharp
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, columns, Compression.Snappy);
+                // Specify we want to write version 1.0 format, as 2.x uses RleDictionary
+                // which is only supported by Parquet.Net since 4.0.2, which also dropped support for .NET framework
+                using var propertiesBuilder = new WriterPropertiesBuilder()
+                    .Compression(Compression.Snappy)
+                    .Version(ParquetVersion.PARQUET_1_0);
+                using var writerProperties = propertiesBuilder.Build();
+                using var fileWriter = new ParquetFileWriter(outStream, columns, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>();
 

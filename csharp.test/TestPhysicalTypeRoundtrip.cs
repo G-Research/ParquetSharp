@@ -162,14 +162,18 @@ namespace ParquetSharp.Test
 
             var numRows = expectedColumns.First().Values.Length;
 
-            Assert.AreEqual("parquet-cpp-arrow version 8.0.0", fileMetaData.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 10.0.1", fileMetaData.CreatedBy);
             Assert.AreEqual(new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}}, fileMetaData.KeyValueMetadata);
             Assert.AreEqual(expectedColumns.Length, fileMetaData.NumColumns);
             Assert.AreEqual(numRows, fileMetaData.NumRows);
             Assert.AreEqual(1, fileMetaData.NumRowGroups);
             Assert.AreEqual(1 + expectedColumns.Length, fileMetaData.NumSchemaElements);
-            Assert.AreEqual(ParquetVersion.PARQUET_1_0, fileMetaData.Version);
-            Assert.AreEqual("parquet-cpp-arrow version 8.0.0", fileMetaData.WriterVersion.ToString());
+            // The default format version to write is 2.4, but this doesn't correspond exactly
+            // to the version read from the file metadata.
+            // The parquet format only stores an integer file version (1 or 2) and
+            // 2 gets mapped to the latest 2.x version.
+            Assert.AreEqual(ParquetVersion.PARQUET_2_6, fileMetaData.Version);
+            Assert.AreEqual("parquet-cpp-arrow version 10.0.1", fileMetaData.WriterVersion.ToString());
 
             using var rowGroupReader = fileReader.RowGroup(0);
             var rowGroupMetaData = rowGroupReader.MetaData;
@@ -198,7 +202,7 @@ namespace ParquetSharp.Test
                 Assert.AreEqual(expected.TypeScale, descr.TypeScale);
 
                 Assert.AreEqual(
-                    expected.Encodings.Where(e => useDictionaryEncoding || e != Encoding.PlainDictionary).ToArray(),
+                    expected.Encodings.Where(e => useDictionaryEncoding || e != Encoding.RleDictionary).ToArray(),
                     chunkMetaData.Encodings.Distinct().ToArray());
 
                 Assert.AreEqual(expected.Compression, chunkMetaData.Compression);
@@ -314,7 +318,7 @@ namespace ParquetSharp.Test
                 }
             }
 
-            public Encoding[] Encodings = {Encoding.PlainDictionary, Encoding.Plain, Encoding.Rle};
+            public Encoding[] Encodings = {Encoding.RleDictionary, Encoding.Plain, Encoding.Rle};
             public Compression Compression = Compression.Snappy;
 
             public void Dispose()
