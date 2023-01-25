@@ -210,6 +210,13 @@ namespace ParquetSharp.RowOriented
 
             // Use constructor or the property setters.
             var ctor = typeof(TTuple).GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, fields.Select(f => f.Type).ToArray(), null);
+            if (ctor == null && !IsMemberInitializable(typeof(TTuple), fields))
+            {
+                // Try to get a private constructor if we can't use public constructors.
+                // This is necessary if dealing with internal F# types, as all members on internal types are private.
+                ctor = typeof(TTuple).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null,
+                    fields.Select(f => f.Type).ToArray(), null);
+            }
 
             // Buffers.
             var buffers = fields.Select(f => Expression.Variable(f.Type.MakeArrayType(), $"buffer_{f.Name}")).ToArray();
@@ -326,8 +333,12 @@ namespace ParquetSharp.RowOriented
 
         private static MappedField[] GetFieldsAndProperties(Type type)
         {
+            // Members mapped to Parquet columns are any public fields and properties,
+            // and private fields and properties annotated with the
+            // MapToColumn attribute. Allowing private properties is required for mapping
+            // internal types in F#, in which all members are always private.
             var list = new List<MappedField>();
-            var flags = BindingFlags.Public | BindingFlags.Instance;
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTuple<,,,,,,,>))
             {
@@ -337,13 +348,26 @@ namespace ParquetSharp.RowOriented
             foreach (var field in type.GetFields(flags))
             {
                 var mappedColumn = field.GetCustomAttribute<MapToColumnAttribute>()?.ColumnName;
-                list.Add(new MappedField(field.Name, mappedColumn, field.FieldType, field));
+                if (field.IsPublic || mappedColumn != null)
+                {
+                    list.Add(new MappedField(field.Name, mappedColumn, field.FieldType, field));
+                }
             }
 
             foreach (var property in type.GetProperties(flags))
             {
                 var mappedColumn = property.GetCustomAttribute<MapToColumnAttribute>()?.ColumnName;
-                list.Add(new MappedField(property.Name, mappedColumn, property.PropertyType, property));
+                if ((property.GetMethod?.IsPublic ?? false) || mappedColumn != null)
+                {
+                    list.Add(new MappedField(property.Name, mappedColumn, property.PropertyType, property));
+                }
+            }
+
+            if (list.Count == 0)
+            {
+                throw new ArgumentException(
+                    $"Type '{type}' does not have any public fields or properties to map to Parquet columns, " +
+                    $"or any private fields or properties annotated with '{nameof(MapToColumnAttribute)}'", nameof(type));
             }
 
             // The order in which fields are processed is important given that when a tuple type is used in
@@ -383,6 +407,33 @@ namespace ParquetSharp.RowOriented
             }
 
             return new Column(field.Type, field.MappedColumn ?? field.Name, isDecimal ? LogicalType.Decimal(29, decimalScale!.Scale) : null);
+        }
+
+        private static bool IsMemberInitializable(Type type, MappedField[] fields)
+        {
+            if (!type.IsValueType &&
+                type.GetConstructor(
+                    BindingFlags.Public | BindingFlags.Instance, null, Array.Empty<Type>(), null) ==
+                null)
+            {
+                // No default constructor
+                return false;
+            }
+
+            foreach (var field in fields)
+            {
+                var memberType = field.Info.MemberType;
+                if (memberType == MemberTypes.Field && !((FieldInfo) field.Info).IsPublic)
+                {
+                    return false;
+                }
+                if (memberType == MemberTypes.Property && !(((PropertyInfo) field.Info).SetMethod?.IsPublic ?? false))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static readonly ConcurrentDictionary<Type, Delegate> ReadDelegatesCache =
