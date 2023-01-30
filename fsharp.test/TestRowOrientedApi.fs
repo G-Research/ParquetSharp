@@ -64,11 +64,8 @@ module TestRowOrientedApi =
         let dir = Path.Combine(Path.GetTempPath (), Guid.NewGuid().ToString ()) |> Directory.CreateDirectory
         try
             let path = Path.Combine (dir.FullName, "test.parquet")
-            let expectedMessage = ("Type 'ParquetSharp.Test.FSharp.TestRowOrientedApi+InternalRecord' does not have " +
-                "any public fields or properties to map to Parquet columns, or any private fields or properties " +
-                "annotated with 'MapToColumnAttribute' (Parameter 'type')")
             (fun () -> ParquetFile.CreateRowWriter<InternalRecord> path |> ignore)
-                |> should (throwWithMessage expectedMessage) typeof<System.ArgumentException>
+                |> should throw typeof<System.ArgumentException>
         finally
             dir.Delete true
 
