@@ -59,6 +59,9 @@ if (MSVC)
 
 	include_external_msproject(ParquetSharp.Test ${CMAKE_SOURCE_DIR}/csharp.test/ParquetSharp.Test.csproj TYPE 9A19103F-16F7-4668-BE54-9A1E7A4F7556 PLATFORM x64)
 	add_dependencies(ParquetSharp.Test ParquetSharp)
+
+	include_external_msproject(ParquetSharp.Test.FSharp ${CMAKE_SOURCE_DIR}/fsharp.test/ParquetSharp.Test.Fsharp.fsproj TYPE 6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705 PLATFORM x64)
+	add_dependencies(ParquetSharp.Test.FSharp ParquetSharp)
 endif ()
 
 add_subdirectory(cpp)
