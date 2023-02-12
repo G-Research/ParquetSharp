@@ -171,6 +171,7 @@ jobs:
       run: |
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
         dotnet build csharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
+        dotnet build fsharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v3
       with:
@@ -262,17 +263,25 @@ jobs:
       run: |
         dotnet remove csharp.test reference csharp/ParquetSharp.csproj
         dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
+        dotnet remove fsharp.test reference csharp/ParquetSharp.csproj
+        dotnet add fsharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
     - name: Setup QEMU for arm64
       if: matrix.arch == 'arm64'
       uses: docker/setup-qemu-action@v2
       with:
         platforms: arm64
-    - name: Build & Run .NET unit tests (x64)
+    - name: Build & Run C# unit tests (x64)
       if: matrix.arch == 'x64'
       run: dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
-    - name: Build & Run .NET unit tests (arm64)
+    - name: Build & Run F# unit tests (x64)
+      if: matrix.arch == 'x64'
+      run: dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
+    - name: Build & Run C# unit tests (arm64)
       if: matrix.arch == 'arm64'
       run: docker run --rm --platform linux/arm64/v8 -v $PWD:$PWD -w $PWD mcr.microsoft.com/dotnet/sdk:6.0 dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
+    - name: Build & Run F# unit tests (arm64)
+      if: matrix.arch == 'arm64'
+      run: docker run --rm --platform linux/arm64/v8 -v $PWD:$PWD -w $PWD mcr.microsoft.com/dotnet/sdk:6.0 dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
 
   # Virtual job that can be configured as a required check before a PR can be merged.
   all-required-checks-done:
