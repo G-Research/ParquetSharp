@@ -30,5 +30,12 @@ namespace ParquetSharp.Test
             Assert.AreEqual(prevDate, new Date(new DateTime(1969, 12, 31)));
             Assert.AreEqual(new DateTime(1969, 12, 31), prevDate.DateTime);
         }
+
+        [Test]
+        public static void TestToString()
+        {
+            var date = new Date(2023, 1, 26);
+            Assert.AreEqual("2023-01-26", date.ToString());
+        }
     }
 }
