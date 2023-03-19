@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ParquetSharp.Schema;
 
@@ -13,6 +14,7 @@ namespace ParquetSharp
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Create(out var handle));
             _handle = new ParquetHandle(handle, WriterPropertiesBuilder_Free);
+            ApplyDefaults();
         }
 
         public void Dispose()
@@ -231,6 +233,70 @@ namespace ParquetSharp
             ExceptionInfo.Check(WriterPropertiesBuilder_Write_Batch_Size(_handle.IntPtr, writeBatchSize));
             GC.KeepAlive(_handle);
             return this;
+        }
+
+        private void ApplyDefaults()
+        {
+            OnDefaultProperty(DefaultWriterProperties.EnableDictionary, enabled =>
+            {
+                if (enabled)
+                {
+                    EnableDictionary();
+                }
+                else
+                {
+                    DisableDictionary();
+                }
+            });
+
+            OnDefaultProperty(DefaultWriterProperties.EnableStatistics, enabled =>
+            {
+                if (enabled)
+                {
+                    EnableStatistics();
+                }
+                else
+                {
+                    DisableStatistics();
+                }
+            });
+
+            OnDefaultProperty(DefaultWriterProperties.Compression, compression => { Compression(compression); });
+
+            OnDefaultProperty(DefaultWriterProperties.CompressionLevel, compressionLevel => { CompressionLevel(compressionLevel); });
+
+            OnDefaultRefProperty(DefaultWriterProperties.CreatedBy, createdBy => { CreatedBy(createdBy); });
+
+            OnDefaultProperty(DefaultWriterProperties.DataPagesize, dataPagesize => { DataPagesize(dataPagesize); });
+
+            OnDefaultProperty(DefaultWriterProperties.DictionaryPagesizeLimit, dictionaryPagesizeLimit => { DictionaryPagesizeLimit(dictionaryPagesizeLimit); });
+
+            OnDefaultProperty(DefaultWriterProperties.Encoding, encoding => { Encoding(encoding); });
+
+            OnDefaultProperty(DefaultWriterProperties.MaxRowGroupLength, maxRowGroupLength => { MaxRowGroupLength(maxRowGroupLength); });
+
+            OnDefaultProperty(DefaultWriterProperties.Version, version => { Version(version); });
+
+            OnDefaultProperty(DefaultWriterProperties.WriteBatchSize, writeBatchSize => { WriteBatchSize(writeBatchSize); });
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void OnDefaultProperty<T>(T? defaultPropertyValue, Action<T> setProperty)
+            where T : struct
+        {
+            if (defaultPropertyValue.HasValue)
+            {
+                setProperty(defaultPropertyValue.Value);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void OnDefaultRefProperty<T>(T? defaultPropertyValue, Action<T> setProperty)
+        {
+            if (defaultPropertyValue != null)
+            {
+                setProperty(defaultPropertyValue);
+            }
         }
 
         [DllImport(ParquetDll.Name)]
