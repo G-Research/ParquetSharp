@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Parquet;
 using Parquet.Data;
@@ -98,11 +99,10 @@ namespace ParquetSharp.Benchmark
         }
 
         [Benchmark]
-        public DataColumn[] ParquetDotNet()
+        public async Task<DataColumn[]> ParquetDotNet()
         {
-            using var stream = File.OpenRead(Filename);
-            using var parquetReader = new ParquetReader(stream);
-            var results = parquetReader.ReadEntireRowGroup();
+            using var parquetReader = await ParquetReader.CreateAsync(Filename);
+            var results = await parquetReader.ReadEntireRowGroupAsync();
 
             if (Check.Enabled)
             {
