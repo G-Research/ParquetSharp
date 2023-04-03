@@ -121,8 +121,6 @@ Typically this can arise when attempting to access an instance whose owner has b
 
 As only 64-bit runtimes are available, ParquetSharp cannot be referenced by a 32-bit project.  For example, using the library from F# Interactive requires running `fsiAnyCpu.exe` rather than `fsi.exe`.
 
-In the 5.0.X versions, reading nested structures was introduced. However, nesting information about nulls is lost when reading columns with Repetition Level optional inside structs with Repetition Level optional. ParquetSharp does not yet provide information about whether the column or the enclosing struct is null.
-
 ## Building
 
 Building ParquetSharp for Windows requires the following dependencies:
