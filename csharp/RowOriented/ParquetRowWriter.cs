@@ -133,8 +133,9 @@ namespace ParquetSharp.RowOriented
                 // Always set the RowGroupWriter to null to ensure we don't try to re-write again when
                 // this ParquetRowWriter is disposed after encountering an error,
                 // which could lead to writing invalid data (eg. mismatching numbers of rows between columns).
-                _rowGroupWriter.Dispose();
+                var rowGroupWriter = _rowGroupWriter;
                 _rowGroupWriter = null;
+                rowGroupWriter.Dispose();
             }
         }
 
