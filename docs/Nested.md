@@ -31,11 +31,19 @@ Imagine we have the following JSON object we would like to store as Parquet:
 }
 ```
 
-In the Parquet schema, we have one one top-level column named `objects`,
+We will store this data with one object per logical row in the Parquet file.
+We could use a schema with a `message` column and an `ids` column,
+but when both `message` and `ids` are null we would not be able to determine whether
+this is because the top level object was null in the source data,
+or we had a non-null object with a null `message` and null `ids`.
+Instead we will represent this data in Parquet with a single
+`objects` column.
+
+In the Parquet schema, we have one one top-level group node named `objects`,
 which contains two nested fields, `ids` and `message`.
 The `ids` field is an optional list of integer values,
 and `message` is an optional string.
-The schema can be defined as follows:
+The schema needs to be built from the bottom up, and can be defined as follows:
 
 ```csharp
 using var messageNode = new PrimitiveNode(
@@ -54,7 +62,7 @@ using var idsNode = new GroupNode(
 using var groupNode = new GroupNode(
         "objects", Repetition.Optional, new Node[] {messageNode, idsNode});
 
-// Create the top-level schema group that contains all top-level columns
+// Create the root schema group that contains all top-level columns
 using var schema = new GroupNode(
         "schema", Repetition.Required, new Node[] {groupNode});
 ```

@@ -83,10 +83,7 @@ namespace ParquetSharp.RowOriented
         {
             if (_rowGroupWriter == null) throw new InvalidOperationException("writer has been closed or disposed");
 
-            _writeAction(this, _rows, _pos);
-            _pos = 0;
-
-            _rowGroupWriter.Dispose();
+            FlushAndDisposeRowGroup();
             _rowGroupWriter = _parquetFileWriter.AppendRowGroup();
         }
 
@@ -121,14 +118,25 @@ namespace ParquetSharp.RowOriented
 
         private void FlushAndDisposeRowGroup()
         {
-            if (_rowGroupWriter != null)
+            if (_rowGroupWriter == null)
+            {
+                return;
+            }
+
+            try
             {
                 _writeAction(this, _rows, _pos);
                 _pos = 0;
             }
-
-            _rowGroupWriter?.Dispose();
-            _rowGroupWriter = null;
+            finally
+            {
+                // Always set the RowGroupWriter to null to ensure we don't try to re-write again when
+                // this ParquetRowWriter is disposed after encountering an error,
+                // which could lead to writing invalid data (eg. mismatching numbers of rows between columns).
+                var rowGroupWriter = _rowGroupWriter;
+                _rowGroupWriter = null;
+                rowGroupWriter.Dispose();
+            }
         }
 
         private readonly ParquetFileWriter _parquetFileWriter;

@@ -55,6 +55,57 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        [NonParallelizable]
+        public static void TestOverrideDefaults()
+        {
+            try
+            {
+                DefaultWriterProperties.EnableDictionary = false;
+                DefaultWriterProperties.EnableStatistics = false;
+                DefaultWriterProperties.Compression = Compression.Zstd;
+                DefaultWriterProperties.CompressionLevel = 3;
+                DefaultWriterProperties.CreatedBy = "Meeeee!!!";
+                DefaultWriterProperties.DataPagesize = 123;
+                DefaultWriterProperties.DictionaryPagesizeLimit = 456;
+                DefaultWriterProperties.Encoding = Encoding.DeltaByteArray;
+                DefaultWriterProperties.MaxRowGroupLength = 789;
+                DefaultWriterProperties.Version = ParquetVersion.PARQUET_1_0;
+                DefaultWriterProperties.WriteBatchSize = 666;
+
+                using var builder = new WriterPropertiesBuilder();
+                using var p = builder.Build();
+
+                Assert.False(p.DictionaryEnabled(new ColumnPath("anypath")));
+                Assert.False(p.StatisticsEnabled(new ColumnPath("anypath")));
+                Assert.AreEqual("Meeeee!!!", p.CreatedBy);
+                Assert.AreEqual(Compression.Zstd, p.Compression(new ColumnPath("anypath")));
+                Assert.AreEqual(3, p.CompressionLevel(new ColumnPath("anypath")));
+                Assert.AreEqual(123, p.DataPageSize);
+                Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryIndexEncoding);
+                Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryPageEncoding);
+                Assert.AreEqual(456, p.DictionaryPagesizeLimit);
+                Assert.AreEqual(789, p.MaxRowGroupLength);
+                Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
+                Assert.AreEqual(666, p.WriteBatchSize);
+            }
+            finally
+            {
+                // Reset defaults
+                DefaultWriterProperties.EnableDictionary = null;
+                DefaultWriterProperties.EnableStatistics = null;
+                DefaultWriterProperties.Compression = null;
+                DefaultWriterProperties.CompressionLevel = null;
+                DefaultWriterProperties.CreatedBy = null;
+                DefaultWriterProperties.DataPagesize = null;
+                DefaultWriterProperties.DictionaryPagesizeLimit = null;
+                DefaultWriterProperties.Encoding = null;
+                DefaultWriterProperties.MaxRowGroupLength = null;
+                DefaultWriterProperties.Version = null;
+                DefaultWriterProperties.WriteBatchSize = null;
+            }
+        }
+
+        [Test]
         public static void TestByteStreamSplitEncoding()
         {
             const int numRows = 10230;
