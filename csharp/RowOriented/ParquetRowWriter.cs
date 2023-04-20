@@ -95,6 +95,19 @@ namespace ParquetSharp.RowOriented
             }
         }
 
+        public void WriteRowSpan(ReadOnlySpan<TTuple> rows)
+        {
+            if (_pos + rows.Length > _rows.Length)
+            {
+                var newRows = new TTuple[RoundUpToPowerOf2(_pos + rows.Length)];
+                Array.Copy(_rows, newRows, _pos);
+                _rows = newRows;
+            }
+
+            rows.CopyTo(_rows.AsSpan(_pos, rows.Length));
+            _pos += rows.Length;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteRow(TTuple row)
         {
@@ -137,6 +150,19 @@ namespace ParquetSharp.RowOriented
                 _rowGroupWriter = null;
                 rowGroupWriter.Dispose();
             }
+        }
+
+        private static int RoundUpToPowerOf2(int x)
+        {
+            // TODO: Use BitOperations.RoundUpToPowerOf2 from System.Numerics once we move to dotnet >= 6
+            x--;
+            x |= x >> 1;
+            x |= x >> 2;
+            x |= x >> 4;
+            x |= x >> 8;
+            x |= x >> 16;
+            x++;
+            return x;
         }
 
         private readonly ParquetFileWriter _parquetFileWriter;

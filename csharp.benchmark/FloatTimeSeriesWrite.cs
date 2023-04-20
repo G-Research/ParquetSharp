@@ -28,6 +28,16 @@ namespace ParquetSharp.Benchmark
             _allObjectIds = _dates.SelectMany(d => _objectIds).ToArray();
             _allValues = _dates.SelectMany((d, i) => _values[i]).ToArray();
 
+            // Pre-computed rows for batch row-oriented
+            _allRows = new (DateTime, int, float)[numRows];
+            for (var i = 0; i != _dates.Length; ++i)
+            {
+                for (var j = 0; j != _objectIds.Length; ++j)
+                {
+                    _allRows[i * _objectIds.Length + j] = (_dates[i], _objectIds[j], _values[i][j]);
+                }
+            }
+
             Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", numRows, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
         }
@@ -174,7 +184,7 @@ namespace ParquetSharp.Benchmark
         }
 
         [Benchmark(Description = "RowOriented")]
-        public long ParquetRowsOriented()
+        public long ParquetRowOriented()
         {
             using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet.roworiented", new[] {"DateTime", "ObjectId", "Value"}))
             {
@@ -208,6 +218,18 @@ namespace ParquetSharp.Benchmark
             }
 
             rowWriter.Close();
+        }
+
+        [Benchmark(Description = "RowOriented (Batched)")]
+        public long ParquetRowOrientedBatched()
+        {
+            using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet.roworiented.batched", new[] {"DateTime", "ObjectId", "Value"}))
+            {
+                rowWriter.WriteRowSpan(_allRows);
+                rowWriter.Close();
+            }
+
+            return new FileInfo("float_timeseries.parquet.roworiented.batched").Length;
         }
 
         [Benchmark(Description = "Parquet .NET")]
@@ -278,6 +300,8 @@ namespace ParquetSharp.Benchmark
         private readonly DateTime[] _dates;
         private readonly int[] _objectIds;
         private readonly float[][] _values;
+
+        private readonly (DateTime, int, float)[] _allRows;
 
         private readonly DateTime[] _allDates;
         private readonly int[] _allObjectIds;

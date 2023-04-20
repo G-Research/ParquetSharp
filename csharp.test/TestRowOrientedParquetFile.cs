@@ -322,6 +322,52 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestWriteMultipleBatches([Values] bool useSpan)
+        {
+            var batchSizes = new[] {2, 1024, 0, 4, 1, 2048};
+            var totalRows = batchSizes.Sum();
+            var batches = new Row1[batchSizes.Length][];
+            var expected = new Row1[totalRows];
+            var offset = 0;
+            for (var batchIdx = 0; batchIdx < batchSizes.Length; ++batchIdx)
+            {
+                var batchSize = batchSizes[batchIdx];
+                batches[batchIdx] = Enumerable.Range(0, batchSize).Select(i => new Row1
+                    {A = batchIdx, B = i, C = new DateTime(2022, 4, 20), D = 123.1M}).ToArray();
+                for (var i = 0; i < batchSize; ++i)
+                {
+                    expected[offset + i] = batches[batchIdx][i];
+                }
+                offset += batchSize;
+            }
+
+            using var buffer = new ResizableBuffer();
+            using (var outputStream = new BufferOutputStream(buffer))
+            {
+                using var writer = ParquetFile.CreateRowWriter<Row1>(outputStream);
+                foreach (var batch in batches)
+                {
+                    if (useSpan)
+                    {
+                        writer.WriteRowSpan(batch);
+                    }
+                    else
+                    {
+                        writer.WriteRows(batch);
+                    }
+                }
+                writer.Close();
+            }
+
+            using var inputStream = new BufferReader(buffer);
+            using var reader = ParquetFile.CreateRowReader<Row1>(inputStream);
+
+            Assert.AreEqual(1, reader.FileMetaData.NumRowGroups);
+            var values = reader.ReadRows(0);
+            Assert.AreEqual(expected, values);
+        }
+
+        [Test]
         public static void TestWriteErrorHandling()
         {
             var rows = new[]
