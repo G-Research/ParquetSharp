@@ -97,10 +97,7 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(decimal))
             {
-                if (typeof(TPhysical) != typeof(FixedLenByteArray))
-                {
-                    throw new NotSupportedException("Writing decimal data is only supported with a fixed-length byte array physical type");
-                }
+                ValidateDecimalColumn(columnDescriptor);
                 if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
                 return (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal128(s, d, multiplier, byteBuffer));
@@ -108,10 +105,7 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(decimal?))
             {
-                if (typeof(TPhysical) != typeof(FixedLenByteArray))
-                {
-                    throw new NotSupportedException("Writing decimal data is only supported with a fixed-length byte array physical type");
-                }
+                ValidateDecimalColumn(columnDescriptor);
                 if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
                 return (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertDecimal128(s, dl, d, multiplier, nl, byteBuffer));
@@ -218,6 +212,25 @@ namespace ParquetSharp
             }
 
             throw new NotSupportedException($"unsupported logical system type {typeof(TLogical)} with logical type {logicalType}");
+        }
+
+        private static unsafe void ValidateDecimalColumn(ColumnDescriptor columnDescriptor)
+        {
+            // For the moment we only support serializing decimal to Decimal128.
+            // This reflects the C# decimal structure with 28-29 digits precision.
+            // Will implement 32-bits, 64-bits and other precision later.
+            if (typeof(TPhysical) != typeof(FixedLenByteArray))
+            {
+                throw new NotSupportedException("Writing decimal data is only supported with a fixed-length byte array physical type");
+            }
+            if (columnDescriptor.TypePrecision != 29)
+            {
+                throw new NotSupportedException("only 29 digits of precision is currently supported for decimal type");
+            }
+            if (columnDescriptor.TypeLength != sizeof(Decimal128))
+            {
+                throw new NotSupportedException("only 16 bytes of length is currently supported for decimal type ");
+            }
         }
     }
 
