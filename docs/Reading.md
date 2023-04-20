@@ -118,6 +118,15 @@ or
   </ItemGroup>
 ```
 
+## Int96 Timestamps
+
+Some legacy implementations of Parquet write timestamps using the Int96 primitive type,
+which has been [deprecated](https://issues.apache.org/jira/browse/PARQUET-323).
+ParquetSharp doesn't support reading Int96 values as .NET `DateTime`s
+as not all Int96 timestamp values are representable as a `DateTime`.
+However, there is limited support for reading raw Int96 values using the `ParquetSharp.Int96` type
+and it is left to applications to decide how to interpret these values.
+
 ## Long path handling
 
 When running on Windows, the Arrow library used internally by ParquetSharp uses Win32 APIs that can support

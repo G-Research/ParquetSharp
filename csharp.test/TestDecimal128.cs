@@ -98,5 +98,35 @@ namespace ParquetSharp.Test
             var read = (decimal[]) rowGroupReader.ReadColumn(fileReader.Schema.GetDataFields()[0]).Data;
             Assert.AreEqual(values, read);
         }
+
+        [Test]
+        public static void TestThrowsWithUnsupportedPrecision()
+        {
+            using var decimalType = LogicalType.Decimal(precision: 28, scale: 3);
+            var columns = new Column[] {new Column<decimal>("Decimal", decimalType)};
+
+            using var buffer = new ResizableBuffer();
+            using var outStream = new BufferOutputStream(buffer);
+            using var fileWriter = new ParquetFileWriter(outStream, columns);
+            using var rowGroupWriter = fileWriter.AppendRowGroup();
+            var exception = Assert.Throws<NotSupportedException>(() => { rowGroupWriter.NextColumn().LogicalWriter<decimal>(); });
+            Assert.That(exception!.Message, Does.Contain("29 digits of precision"));
+            fileWriter.Close();
+        }
+
+        [Test]
+        public static void TestThrowsWithUnsupportedLength()
+        {
+            using var decimalType = LogicalType.Decimal(precision: 29, scale: 3);
+            var columns = new Column[] {new Column(typeof(decimal), "Decimal", decimalType, 13)};
+
+            using var buffer = new ResizableBuffer();
+            using var outStream = new BufferOutputStream(buffer);
+            using var fileWriter = new ParquetFileWriter(outStream, columns);
+            using var rowGroupWriter = fileWriter.AppendRowGroup();
+            var exception = Assert.Throws<NotSupportedException>(() => { rowGroupWriter.NextColumn().LogicalWriter<decimal>(); });
+            Assert.That(exception!.Message, Does.Contain("16 bytes of decimal length"));
+            fileWriter.Close();
+        }
     }
 }
