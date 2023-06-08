@@ -1,6 +1,8 @@
+#include <numeric>
 #include <arrow/io/file.h>
 #include <arrow/c/abi.h>
 #include <arrow/c/bridge.h>
+#include <arrow/record_batch.h>
 #include <parquet/arrow/reader.h>
 
 #include "cpp/ParquetSharpExport.h"
@@ -45,6 +47,24 @@ extern "C"
       std::shared_ptr<arrow::Schema> schema;
       PARQUET_THROW_NOT_OK(reader->GetSchema(&schema));
       PARQUET_THROW_NOT_OK(arrow::ExportSchema(*schema, schema_out));
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* FileReader_NumRowGroups(FileReader* reader, int* num_row_groups)
+  {
+    TRYCATCH(*num_row_groups = reader->num_row_groups();)
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* FileReader_GetRecordBatchReader(FileReader* reader, struct ArrowArrayStream* stream_out)
+  {
+    TRYCATCH
+    (
+        std::shared_ptr<arrow::RecordBatchReader> batch_reader;
+        // TODO: Use method that doesn't require passing row groups vector when updating to latest Arrow
+        std::vector<int> row_groups(reader->num_row_groups());
+        std::iota(row_groups.begin(), row_groups.end(), 0);
+        PARQUET_THROW_NOT_OK(reader->GetRecordBatchReader(row_groups, &batch_reader));
+        PARQUET_THROW_NOT_OK(arrow::ExportRecordBatchReader(batch_reader, stream_out));
     )
   }
 

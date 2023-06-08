@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Apache.Arrow.C;
+using Apache.Arrow.Ipc;
 using ParquetSharp.IO;
 
 namespace ParquetSharp.Arrow
@@ -44,6 +45,30 @@ namespace ParquetSharp.Arrow
             }
         }
 
+        /// <summary>
+        /// The number of row groups in the file
+        /// </summary>
+        public int NumRowGroups => ExceptionInfo.Return<int>(_handle, FileReader_NumRowGroups);
+
+        /// <summary>
+        /// Get a record batch reader for all row groups and columns in the file
+        /// </summary>
+        public unsafe IArrowArrayStream GetRecordBatchReader()
+        {
+            var cStream = CArrowArrayStream.Create();
+            try
+            {
+                ExceptionInfo.Check(FileReader_GetRecordBatchReader(_handle.IntPtr, (IntPtr) cStream));
+                return CArrowArrayStreamImporter.ImportArrayStream(cStream);
+            }
+            catch
+            {
+                // FIXME: Need to free all allocated streams once they're used somehow?
+                CArrowArrayStream.Free(cStream);
+                throw;
+            }
+        }
+
         public void Dispose()
         {
             _handle.Dispose();
@@ -57,6 +82,12 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileReader_GetSchema(IntPtr reader, IntPtr schema);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr FileReader_NumRowGroups(IntPtr reader, out int numRowGroups);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr FileReader_GetRecordBatchReader(IntPtr reader, IntPtr stream);
 
         [DllImport(ParquetDll.Name)]
         private static extern void FileReader_Free(IntPtr reader);
