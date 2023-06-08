@@ -11,18 +11,44 @@ namespace ParquetSharp.Arrow
     /// </summary>
     public class FileReader : IDisposable
     {
-        public FileReader(string path)
+        public FileReader(
+            string path,
+            ReaderProperties? readerProperties = null,
+            ArrowReaderProperties? arrowReaderProperties = null)
         {
-            ExceptionInfo.Check(FileReader_OpenPath(path, out var reader));
+            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var properties = readerProperties ?? defaultProperties!;
+
+            var arrowReaderPropertiesPtr =
+                arrowReaderProperties == null ? IntPtr.Zero : arrowReaderProperties.Handle.IntPtr;
+
+            ExceptionInfo.Check(FileReader_OpenPath(path, properties.Handle.IntPtr, arrowReaderPropertiesPtr, out var reader));
+
             _handle = new ParquetHandle(reader, FileReader_Free);
+
+            GC.KeepAlive(readerProperties);
+            GC.KeepAlive(arrowReaderProperties);
         }
 
-        public FileReader(RandomAccessFile file)
+        public FileReader(
+            RandomAccessFile file,
+            ReaderProperties? readerProperties = null,
+            ArrowReaderProperties? arrowReaderProperties = null)
         {
             if (file == null) throw new ArgumentNullException(nameof(file));
             if (file.Handle == null) throw new ArgumentNullException(nameof(file.Handle));
 
-            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr>(file.Handle, FileReader_OpenFile), FileReader_Free);
+            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var properties = readerProperties ?? defaultProperties!;
+
+            var arrowReaderPropertiesPtr =
+                arrowReaderProperties == null ? IntPtr.Zero : arrowReaderProperties.Handle.IntPtr;
+
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr, IntPtr>(
+                file.Handle, properties.Handle.IntPtr, arrowReaderPropertiesPtr, FileReader_OpenFile), FileReader_Free);
+
+            GC.KeepAlive(readerProperties);
+            GC.KeepAlive(arrowReaderProperties);
         }
 
         /// <summary>
@@ -75,10 +101,12 @@ namespace ParquetSharp.Arrow
         }
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileReader_OpenPath([MarshalAs(UnmanagedType.LPUTF8Str)] string path, out IntPtr reader);
+        private static extern IntPtr FileReader_OpenPath(
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string path, IntPtr properties, IntPtr arrowProperties, out IntPtr reader);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileReader_OpenFile(IntPtr file, out IntPtr reader);
+        private static extern IntPtr FileReader_OpenFile(
+            IntPtr file, IntPtr properties, IntPtr arrowProperties, out IntPtr reader);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileReader_GetSchema(IntPtr reader, IntPtr schema);

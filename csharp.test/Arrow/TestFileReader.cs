@@ -77,6 +77,42 @@ namespace ParquetSharp.Test.Arrow
             Assert.That(rowsRead, Is.EqualTo(200));
         }
 
+        [Test]
+        public async Task TestReadWithBatchSize()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var arrowProperties = ArrowReaderProperties.GetDefault();
+            arrowProperties.BatchSize = 64;
+
+            using var fileReader = new FileReader(inStream, arrowReaderProperties: arrowProperties);
+            using var batchReader = fileReader.GetRecordBatchReader();
+
+            int rowsRead = 0;
+            int batchCount = 0;
+            while (true)
+            {
+                using var batch = await batchReader.ReadNextRecordBatchAsync();
+                if (batch == null)
+                {
+                    break;
+                }
+
+                if (batchCount < 3)
+                {
+                    Assert.That(batch.Length, Is.EqualTo(64));
+                }
+
+                rowsRead += batch.Length;
+                batchCount += 1;
+            }
+
+            Assert.That(rowsRead, Is.EqualTo(200));
+            Assert.That(batchCount, Is.EqualTo(4));
+        }
+
         private void WriteTestFile(ResizableBuffer buffer)
         {
             var columns = new Column[]

@@ -14,6 +14,8 @@ extern "C"
 {
 	PARQUETSHARP_EXPORT ExceptionInfo* FileReader_OpenPath(
 		const char* const path,
+    const parquet::ReaderProperties* reader_properties,
+    const parquet::ArrowReaderProperties* arrow_reader_properties,
     FileReader** reader)
 	{
     TRYCATCH
@@ -22,20 +24,31 @@ extern "C"
       std::shared_ptr<arrow::io::ReadableFile> input_file;
       std::unique_ptr<FileReader> reader_ptr;
       PARQUET_ASSIGN_OR_THROW(input_file, arrow::io::ReadableFile::Open(path, pool));
-      PARQUET_THROW_NOT_OK(OpenFile(input_file, pool, &reader_ptr));
+      FileReaderBuilder builder;
+      PARQUET_THROW_NOT_OK(builder.Open(input_file, *reader_properties));
+      if (arrow_reader_properties != nullptr) {
+        builder.properties(*arrow_reader_properties);
+      }
+      PARQUET_THROW_NOT_OK(builder.Build(&reader_ptr));
       *reader = reader_ptr.release();
     )
 	}
 
   PARQUETSHARP_EXPORT ExceptionInfo* FileReader_OpenFile(
       std::shared_ptr<::arrow::io::RandomAccessFile>* readable_file_interface,
+      const parquet::ReaderProperties* reader_properties,
+      const parquet::ArrowReaderProperties* arrow_reader_properties,
       FileReader** reader)
   {
     TRYCATCH
     (
-      arrow::MemoryPool* pool = arrow::default_memory_pool();
       std::unique_ptr<FileReader> reader_ptr;
-      PARQUET_THROW_NOT_OK(OpenFile(*readable_file_interface, pool, &reader_ptr));
+      FileReaderBuilder builder;
+      PARQUET_THROW_NOT_OK(builder.Open(*readable_file_interface, *reader_properties));
+      if (arrow_reader_properties != nullptr) {
+        builder.properties(*arrow_reader_properties);
+      }
+      PARQUET_THROW_NOT_OK(builder.Build(&reader_ptr));
       *reader = reader_ptr.release();
     )
   }
