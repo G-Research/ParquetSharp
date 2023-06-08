@@ -43,7 +43,7 @@ namespace ParquetSharp.Test.Arrow
             using var inStream = new BufferReader(buffer);
             using var fileReader = new FileReader(inStream);
 
-            Assert.That(fileReader.NumRowGroups, Is.EqualTo(2));
+            Assert.That(fileReader.NumRowGroups, Is.EqualTo(NumRowGroups));
 
             using var batchReader = fileReader.GetRecordBatchReader();
             var schema = batchReader.Schema;
@@ -66,26 +66,29 @@ namespace ParquetSharp.Test.Arrow
                 {
                     var row = rowsRead + i;
                     Assert.That(
-                        timestampValues.GetTimestamp(row),
+                        timestampValues.GetTimestamp(i),
                         Is.EqualTo(new DateTimeOffset(2023, 6, 8, 0, 0, 0, TimeSpan.Zero) + TimeSpan.FromSeconds(row)));
-                    Assert.That(idValues.GetValue(row), Is.EqualTo(row));
-                    Assert.That(valueValues.GetValue(row), Is.EqualTo(row / 100.0f));
+                    Assert.That(idValues.GetValue(i), Is.EqualTo(row));
+                    Assert.That(valueValues.GetValue(i), Is.EqualTo(row / 100.0f));
                 }
                 rowsRead += batch.Length;
             }
 
-            Assert.That(rowsRead, Is.EqualTo(200));
+            Assert.That(rowsRead, Is.EqualTo(RowsPerRowGroup * NumRowGroups));
         }
 
         [Test]
         public async Task TestReadWithBatchSize()
         {
+            const int batchSize = 64;
+            const int expectedRows = NumRowGroups * RowsPerRowGroup;
+
             using var buffer = new ResizableBuffer();
             WriteTestFile(buffer);
 
             using var inStream = new BufferReader(buffer);
             using var arrowProperties = ArrowReaderProperties.GetDefault();
-            arrowProperties.BatchSize = 64;
+            arrowProperties.BatchSize = batchSize;
 
             using var fileReader = new FileReader(inStream, arrowReaderProperties: arrowProperties);
             using var batchReader = fileReader.GetRecordBatchReader();
@@ -100,20 +103,99 @@ namespace ParquetSharp.Test.Arrow
                     break;
                 }
 
-                if (batchCount < 3)
-                {
-                    Assert.That(batch.Length, Is.EqualTo(64));
-                }
+                var expectedLength = batchCount < expectedRows / batchSize
+                    ? batchSize
+                    : expectedRows % batchSize;
+                Assert.That(batch.Length, Is.EqualTo(expectedLength));
 
                 rowsRead += batch.Length;
                 batchCount += 1;
             }
 
-            Assert.That(rowsRead, Is.EqualTo(200));
-            Assert.That(batchCount, Is.EqualTo(4));
+            Assert.That(rowsRead, Is.EqualTo(expectedRows));
+            Assert.That(batchCount, Is.EqualTo(1 + expectedRows / batchSize));
         }
 
-        private void WriteTestFile(ResizableBuffer buffer)
+        [Test]
+        public async Task TestReadSelectedRowGroups()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+
+            using var batchReader = fileReader.GetRecordBatchReader(
+                rowGroups: new[] {1, 2});
+
+            int rowsRead = 0;
+            while (true)
+            {
+                using var batch = await batchReader.ReadNextRecordBatchAsync();
+                if (batch == null)
+                {
+                    break;
+                }
+
+                var timestampValues = (TimestampArray) batch.Column("Timestamp");
+                var idValues = (Int32Array) batch.Column("ObjectId");
+                var valueValues = (FloatArray) batch.Column("Value");
+                for (var i = 0; i < batch.Length; ++i)
+                {
+                    var row = RowsPerRowGroup + rowsRead + i;
+                    Assert.That(
+                        timestampValues.GetTimestamp(i),
+                        Is.EqualTo(new DateTimeOffset(2023, 6, 8, 0, 0, 0, TimeSpan.Zero) + TimeSpan.FromSeconds(row)));
+                    Assert.That(idValues.GetValue(i), Is.EqualTo(row));
+                    Assert.That(valueValues.GetValue(i), Is.EqualTo(row / 100.0f));
+                }
+                rowsRead += batch.Length;
+            }
+
+            Assert.That(rowsRead, Is.EqualTo(RowsPerRowGroup * 2));
+        }
+
+        [Test]
+        public async Task TestReadSelectedColumns()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+
+            using var batchReader = fileReader.GetRecordBatchReader(
+                columns: new[] {1, 2});
+
+            var schema = batchReader.Schema;
+            Assert.That(schema.FieldsList.Count, Is.EqualTo(2));
+            Assert.That(schema.FieldsList[0].Name, Is.EqualTo("ObjectId"));
+            Assert.That(schema.FieldsList[1].Name, Is.EqualTo("Value"));
+
+            int rowsRead = 0;
+            while (true)
+            {
+                using var batch = await batchReader.ReadNextRecordBatchAsync();
+                if (batch == null)
+                {
+                    break;
+                }
+
+                var idValues = (Int32Array) batch.Column("ObjectId");
+                var valueValues = (FloatArray) batch.Column("Value");
+                for (var i = 0; i < batch.Length; ++i)
+                {
+                    var row = rowsRead + i;
+                    Assert.That(idValues.GetValue(i), Is.EqualTo(row));
+                    Assert.That(valueValues.GetValue(i), Is.EqualTo(row / 100.0f));
+                }
+                rowsRead += batch.Length;
+            }
+
+            Assert.That(rowsRead, Is.EqualTo(RowsPerRowGroup * NumRowGroups));
+        }
+
+        private static void WriteTestFile(ResizableBuffer buffer)
         {
             var columns = new Column[]
             {
@@ -121,29 +203,30 @@ namespace ParquetSharp.Test.Arrow
                 new Column<int>("ObjectId"),
                 new Column<float>("Value")
             };
-            const int numRowGroups = 2;
-            const int rowsPerRowGroup = 100;
 
             using var outStream = new BufferOutputStream(buffer);
             using var fileWriter = new ParquetFileWriter(outStream, columns);
 
-            for (var rowGroup = 0; rowGroup < numRowGroups; ++rowGroup)
+            for (var rowGroup = 0; rowGroup < NumRowGroups; ++rowGroup)
             {
-                var start = rowGroup * rowsPerRowGroup;
+                var start = rowGroup * RowsPerRowGroup;
 
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
 
                 using var timestampWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>();
-                timestampWriter.WriteBatch(Enumerable.Range(start, rowsPerRowGroup).Select(i => new DateTime(2023, 6, 8) + TimeSpan.FromSeconds(i)).ToArray());
+                timestampWriter.WriteBatch(Enumerable.Range(start, RowsPerRowGroup).Select(i => new DateTime(2023, 6, 8) + TimeSpan.FromSeconds(i)).ToArray());
 
                 using var idWriter = rowGroupWriter.NextColumn().LogicalWriter<int>();
-                idWriter.WriteBatch(Enumerable.Range(start, rowsPerRowGroup).ToArray());
+                idWriter.WriteBatch(Enumerable.Range(start, RowsPerRowGroup).ToArray());
 
                 using var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<float>();
-                valueWriter.WriteBatch(Enumerable.Range(start, rowsPerRowGroup).Select(i => i / 100.0f).ToArray());
+                valueWriter.WriteBatch(Enumerable.Range(start, RowsPerRowGroup).Select(i => i / 100.0f).ToArray());
             }
 
             fileWriter.Close();
         }
+
+        private const int NumRowGroups = 4;
+        private const int RowsPerRowGroup = 100;
     }
 }

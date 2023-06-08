@@ -11,6 +11,12 @@ namespace ParquetSharp.Arrow
     /// </summary>
     public class FileReader : IDisposable
     {
+        /// <summary>
+        /// Create a new Arrow FileReader for a file at the specified path
+        /// </summary>
+        /// <param name="path">Path to the Parquet file</param>
+        /// <param name="readerProperties">Parquet reader properties</param>
+        /// <param name="arrowReaderProperties">Arrow specific reader properties</param>
         public FileReader(
             string path,
             ReaderProperties? readerProperties = null,
@@ -30,6 +36,13 @@ namespace ParquetSharp.Arrow
             GC.KeepAlive(arrowReaderProperties);
         }
 
+        /// <summary>
+        /// Create a new Arrow FileReader for a file object
+        /// </summary>
+        /// <param name="file">The file to read</param>
+        /// <param name="readerProperties">Parquet reader properties</param>
+        /// <param name="arrowReaderProperties">Arrow specific reader properties</param>
+        /// <exception cref="ArgumentNullException">Thrown if the file or its handle are null</exception>
         public FileReader(
             RandomAccessFile file,
             ReaderProperties? readerProperties = null,
@@ -52,7 +65,7 @@ namespace ParquetSharp.Arrow
         }
 
         /// <summary>
-        /// Get the Arrow schema of the file being read
+        /// The Arrow schema of the file being read
         /// </summary>
         public unsafe Apache.Arrow.Schema Schema
         {
@@ -77,19 +90,31 @@ namespace ParquetSharp.Arrow
         public int NumRowGroups => ExceptionInfo.Return<int>(_handle, FileReader_NumRowGroups);
 
         /// <summary>
-        /// Get a record batch reader for all row groups and columns in the file
+        /// Get a record batch reader for the file data
+        /// <param name="rowGroups">The indices of row groups to read data from</param>
+        /// <param name="columns">The indices of columns to read, based on the schema</param>
         /// </summary>
-        public unsafe IArrowArrayStream GetRecordBatchReader()
+        public unsafe IArrowArrayStream GetRecordBatchReader(
+            int[]? rowGroups = null,
+            int[]? columns = null)
         {
             var cStream = CArrowArrayStream.Create();
             try
             {
-                ExceptionInfo.Check(FileReader_GetRecordBatchReader(_handle.IntPtr, (IntPtr) cStream));
+                fixed (int* rowGroupsPtr = rowGroups)
+                {
+                    fixed (int* columnsPtr = columns)
+                    {
+                        ExceptionInfo.Check(FileReader_GetRecordBatchReader(
+                            _handle.IntPtr, rowGroupsPtr, rowGroups?.Length ?? 0, columnsPtr, columns?.Length ?? 0, (IntPtr) cStream));
+                    }
+                }
+                GC.KeepAlive(_handle);
                 return CArrowArrayStreamImporter.ImportArrayStream(cStream);
             }
             catch
             {
-                // FIXME: Need to free all allocated streams once they're used somehow?
+                // FIXME: Can create cStream on the stack after https://github.com/apache/arrow/pull/35996
                 CArrowArrayStream.Free(cStream);
                 throw;
             }
@@ -115,7 +140,8 @@ namespace ParquetSharp.Arrow
         private static extern IntPtr FileReader_NumRowGroups(IntPtr reader, out int numRowGroups);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileReader_GetRecordBatchReader(IntPtr reader, IntPtr stream);
+        private static extern unsafe IntPtr FileReader_GetRecordBatchReader(
+            IntPtr reader, int* rowGroups, int rowGroupsCount, int* columns, int columnsCount, IntPtr stream);
 
         [DllImport(ParquetDll.Name)]
         private static extern void FileReader_Free(IntPtr reader);
