@@ -64,6 +64,7 @@ add_library(ParquetSharpNative SHARED
 	WriterPropertiesBuilder.cpp
 	arrow/ArrowReaderProperties.cpp
 	arrow/ArrowWriterProperties.cpp
+	arrow/ArrowWriterPropertiesBuilder.cpp
 	arrow/FileReader.cpp
 	arrow/FileWriter.cpp
 )

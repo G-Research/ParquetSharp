@@ -88,6 +88,14 @@ namespace
 		static_assert(LogicalType::TimeUnit::MILLIS == 1);
 		static_assert(LogicalType::TimeUnit::MICROS == 2);
 		static_assert(LogicalType::TimeUnit::NANOS == 3);
+
+		static_assert(ArrowWriterProperties::EngineVersion::V1 == 0);
+		static_assert(ArrowWriterProperties::EngineVersion::V2 == 1);
+
+		static_assert(::arrow::TimeUnit::type::SECOND == 0);
+		static_assert(::arrow::TimeUnit::type::MILLI == 1);
+		static_assert(::arrow::TimeUnit::type::MICRO == 2);
+		static_assert(::arrow::TimeUnit::type::NANO == 3);
 	}
 
 }
