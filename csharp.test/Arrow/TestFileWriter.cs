@@ -109,6 +109,50 @@ namespace ParquetSharp.Test.Arrow
             await VerifyData(inStream, numRows);
         }
 
+        [Test]
+        public async Task TestWriteRowGroupColumns()
+        {
+            var fields = new[]
+            {
+                new Field("x", new Apache.Arrow.Types.Int32Type(), false),
+                new Field("y", new Apache.Arrow.Types.FloatType(), false),
+            };
+            const int rowsPerRowGroup = 100;
+            const int numRowGroups = 10;
+            var schema = new Apache.Arrow.Schema(fields, null);
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var writer = new FileWriter(outStream, schema);
+
+                for (var rowGroupIdx = 0; rowGroupIdx < numRowGroups; ++rowGroupIdx)
+                {
+                    var start = rowGroupIdx * rowsPerRowGroup;
+                    writer.NewRowGroup(rowsPerRowGroup);
+
+                    using (var intArray = new Int32Array.Builder()
+                        .AppendRange(Enumerable.Range(start, rowsPerRowGroup))
+                        .Build())
+                    {
+                        writer.WriteColumnChunk(intArray);
+                    }
+
+                    using (var floatArray = new FloatArray.Builder()
+                        .AppendRange(Enumerable.Range(start, rowsPerRowGroup).Select(i => i / 100.0f))
+                        .Build())
+                    {
+                        writer.WriteColumnChunk(floatArray);
+                    }
+                }
+
+                writer.Close();
+            }
+
+            using var inStream = new BufferReader(buffer);
+            await VerifyData(inStream, numRowGroups * rowsPerRowGroup);
+        }
+
         private static async Task VerifyData(RandomAccessFile inStream, int expectedRows)
         {
             using var fileReader = new FileReader(inStream);

@@ -96,6 +96,24 @@ extern "C"
     )
   }
 
+  PARQUETSHARP_EXPORT ExceptionInfo* FileWriter_NewRowGroup(FileWriter* writer, int64_t chunk_size)
+  {
+    TRYCATCH(PARQUET_THROW_NOT_OK(writer->NewRowGroup(chunk_size));)
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* FileWriter_WriteColumnChunk(
+      FileWriter* writer, struct ArrowArray* c_array, struct ArrowSchema* c_array_type)
+  {
+    TRYCATCH
+    (
+      std::shared_ptr<arrow::DataType> array_type;
+      PARQUET_ASSIGN_OR_THROW(array_type, arrow::ImportType(c_array_type));
+      std::shared_ptr<arrow::Array> array;
+      PARQUET_ASSIGN_OR_THROW(array, arrow::ImportArray(c_array, array_type));
+      PARQUET_THROW_NOT_OK(writer->WriteColumnChunk(*array));
+    )
+  }
+
   PARQUETSHARP_EXPORT ExceptionInfo* FileWriter_Close(FileWriter* writer)
   {
     TRYCATCH(PARQUET_THROW_NOT_OK(writer->Close());)

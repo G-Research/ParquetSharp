@@ -13,6 +13,14 @@ namespace ParquetSharp.Arrow
 {
     /// <summary>
     /// Writes Parquet files using Arrow format data
+    ///
+    /// This may be used to write whole tables or record batches,
+    /// using the WriteTable or WriteRecordBatch methods.
+    ///
+    /// For more control over writing, you can create a new row group with NewRowGroup,
+    /// then write all columns for the row group with the WriteColumn method.
+    /// All required columns must be written before starting the next row group
+    /// or closing the file.
     /// </summary>
     public class FileWriter : IDisposable
     {
@@ -145,6 +153,40 @@ namespace ParquetSharp.Arrow
         }
 
         /// <summary>
+        /// Start writing a new row group to the file. After calling this method,
+        /// each column required in the schema must be written using WriteColumn
+        /// before creating a new row group or closing the file.
+        /// </summary>
+        /// <param name="chunkSize">The number of rows to be written in this row group</param>
+        public void NewRowGroup(long chunkSize)
+        {
+            ExceptionInfo.Check(FileWriter_NewRowGroup(_handle.IntPtr, chunkSize));
+            GC.KeepAlive(_handle);
+        }
+
+        /// <summary>
+        /// Write a column of data to a row group using an Arrow Array
+        /// </summary>
+        /// <param name="array">The array of data for the column</param>
+        public unsafe void WriteColumnChunk(IArrowArray array)
+        {
+            var cArray = CArrowArray.Create();
+            var cType = CArrowSchema.Create();
+            try
+            {
+                CArrowArrayExporter.ExportArray(array, cArray);
+                CArrowSchemaExporter.ExportType(array.Data.DataType, cType);
+                ExceptionInfo.Check(FileWriter_WriteColumnChunk(_handle.IntPtr, cArray, cType));
+            }
+            finally
+            {
+                CArrowArray.Free(cArray);
+                CArrowSchema.Free(cType);
+            }
+            GC.KeepAlive(_handle);
+        }
+
+        /// <summary>
         /// Close the file writer, writing the Parquet footer.
         /// This is the recommended way of closing Parquet files, rather than relying on the Dispose() method,
         /// as the latter will gobble exceptions.
@@ -195,6 +237,12 @@ namespace ParquetSharp.Arrow
         private static extern unsafe IntPtr FileWriter_WriteTable(IntPtr writer, CArrowArrayStream* stream, long chunkSize);
 
         [DllImport(ParquetDll.Name)]
+        private static extern IntPtr FileWriter_NewRowGroup(IntPtr writer, long chunkSize);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern unsafe IntPtr FileWriter_WriteColumnChunk(IntPtr writer, CArrowArray* array, CArrowSchema* arrayType);
+
+        [DllImport(ParquetDll.Name)]
         private static extern void FileWriter_Free(IntPtr writer);
 
         [DllImport(ParquetDll.Name)]
@@ -202,6 +250,9 @@ namespace ParquetSharp.Arrow
 
         private readonly ParquetHandle _handle;
 
+        /// <summary>
+        /// A stream of record batches where batches are all stored in memory
+        /// </summary>
         private sealed class RecordBatchStream : IArrowArrayStream
         {
             public RecordBatchStream(Apache.Arrow.Schema schema, RecordBatch[] batches)
@@ -246,6 +297,7 @@ namespace ParquetSharp.Arrow
 
                 if (table.ColumnCount == 0)
                 {
+                    // This shouldn't happen, as the row count should be zero when there are no columns
                     throw new ArgumentException("No columns in table");
                 }
 
