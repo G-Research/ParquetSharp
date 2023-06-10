@@ -46,17 +46,10 @@ namespace ParquetSharp.Arrow
             var arrowWriterPropertiesPtr =
                 arrowWriterProperties == null ? IntPtr.Zero : arrowWriterProperties.Handle.IntPtr;
 
-            var cSchema = CArrowSchema.Create();
-            try
-            {
-                CArrowSchemaExporter.ExportSchema(schema, cSchema);
-                ExceptionInfo.Check(FileWriter_OpenPath(path, cSchema, writerPropertiesPtr, arrowWriterPropertiesPtr, out var writer));
-                _handle = new ParquetHandle(writer, FileWriter_Free);
-            }
-            finally
-            {
-                CArrowSchema.Free(cSchema);
-            }
+            var cSchema = new CArrowSchema();
+            CArrowSchemaExporter.ExportSchema(schema, &cSchema);
+            ExceptionInfo.Check(FileWriter_OpenPath(path, &cSchema, writerPropertiesPtr, arrowWriterPropertiesPtr, out var writer));
+            _handle = new ParquetHandle(writer, FileWriter_Free);
 
             GC.KeepAlive(writerProperties);
             GC.KeepAlive(arrowWriterProperties);
@@ -85,18 +78,11 @@ namespace ParquetSharp.Arrow
             var arrowWriterPropertiesPtr =
                 arrowWriterProperties == null ? IntPtr.Zero : arrowWriterProperties.Handle.IntPtr;
 
-            var cSchema = CArrowSchema.Create();
-            try
-            {
-                CArrowSchemaExporter.ExportSchema(schema, cSchema);
-                ExceptionInfo.Check(FileWriter_OpenStream(
-                    outputStream.Handle.IntPtr, cSchema, writerPropertiesPtr, arrowWriterPropertiesPtr, out var writer));
-                _handle = new ParquetHandle(writer, FileWriter_Free);
-            }
-            finally
-            {
-                CArrowSchema.Free(cSchema);
-            }
+            var cSchema = new CArrowSchema();
+            CArrowSchemaExporter.ExportSchema(schema, &cSchema);
+            ExceptionInfo.Check(FileWriter_OpenStream(
+                outputStream.Handle.IntPtr, &cSchema, writerPropertiesPtr, arrowWriterPropertiesPtr, out var writer));
+            _handle = new ParquetHandle(writer, FileWriter_Free);
 
             GC.KeepAlive(outputStream);
             GC.KeepAlive(writerProperties);
@@ -110,16 +96,9 @@ namespace ParquetSharp.Arrow
         {
             get
             {
-                var cSchema = CArrowSchema.Create();
-                try
-                {
-                    ExceptionInfo.Check(FileWriter_GetSchema(_handle.IntPtr, (IntPtr) cSchema));
-                    return CArrowSchemaImporter.ImportSchema(cSchema);
-                }
-                finally
-                {
-                    CArrowSchema.Free(cSchema);
-                }
+                var cSchema = new CArrowSchema();
+                ExceptionInfo.Check(FileWriter_GetSchema(_handle.IntPtr, &cSchema));
+                return CArrowSchemaImporter.ImportSchema(&cSchema);
             }
         }
 
@@ -170,19 +149,13 @@ namespace ParquetSharp.Arrow
         /// <param name="array">The array of data for the column</param>
         public unsafe void WriteColumnChunk(IArrowArray array)
         {
-            var cArray = CArrowArray.Create();
-            var cType = CArrowSchema.Create();
-            try
-            {
-                CArrowArrayExporter.ExportArray(array, cArray);
-                CArrowSchemaExporter.ExportType(array.Data.DataType, cType);
-                ExceptionInfo.Check(FileWriter_WriteColumnChunk(_handle.IntPtr, cArray, cType));
-            }
-            finally
-            {
-                CArrowArray.Free(cArray);
-                CArrowSchema.Free(cType);
-            }
+            var cArray = new CArrowArray();
+            var cType = new CArrowSchema();
+
+            CArrowArrayExporter.ExportArray(array, &cArray);
+            CArrowSchemaExporter.ExportType(array.Data.DataType, &cType);
+            ExceptionInfo.Check(FileWriter_WriteColumnChunk(_handle.IntPtr, &cArray, &cType));
+
             GC.KeepAlive(_handle);
         }
 
@@ -209,16 +182,9 @@ namespace ParquetSharp.Arrow
         /// </summary>
         private unsafe void WriteRecordBatchStream(IArrowArrayStream arrayStream, long chunkSize)
         {
-            var cArrayStream = CArrowArrayStream.Create();
-            try
-            {
-                CArrowArrayStreamExporter.ExportArrayStream(arrayStream, cArrayStream);
-                ExceptionInfo.Check(FileWriter_WriteTable(_handle.IntPtr, cArrayStream, chunkSize));
-            }
-            finally
-            {
-                CArrowArrayStream.Free(cArrayStream);
-            }
+            var cArrayStream = new CArrowArrayStream();
+            CArrowArrayStreamExporter.ExportArrayStream(arrayStream, &cArrayStream);
+            ExceptionInfo.Check(FileWriter_WriteTable(_handle.IntPtr, &cArrayStream, chunkSize));
             GC.KeepAlive(_handle);
         }
 
@@ -231,7 +197,7 @@ namespace ParquetSharp.Arrow
             IntPtr outputStream, CArrowSchema* schema, IntPtr properties, IntPtr arrowProperties, out IntPtr writer);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileWriter_GetSchema(IntPtr writer, IntPtr schema);
+        private static extern unsafe IntPtr FileWriter_GetSchema(IntPtr writer, CArrowSchema* schema);
 
         [DllImport(ParquetDll.Name)]
         private static extern unsafe IntPtr FileWriter_WriteTable(IntPtr writer, CArrowArrayStream* stream, long chunkSize);

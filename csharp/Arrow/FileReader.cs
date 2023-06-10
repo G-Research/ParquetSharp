@@ -71,16 +71,9 @@ namespace ParquetSharp.Arrow
         {
             get
             {
-                var cSchema = CArrowSchema.Create();
-                try
-                {
-                    ExceptionInfo.Check(FileReader_GetSchema(_handle.IntPtr, (IntPtr) cSchema));
-                    return CArrowSchemaImporter.ImportSchema(cSchema);
-                }
-                finally
-                {
-                    CArrowSchema.Free(cSchema);
-                }
+                var cSchema = new CArrowSchema();
+                ExceptionInfo.Check(FileReader_GetSchema(_handle.IntPtr, &cSchema));
+                return CArrowSchemaImporter.ImportSchema(&cSchema);
             }
         }
 
@@ -98,26 +91,17 @@ namespace ParquetSharp.Arrow
             int[]? rowGroups = null,
             int[]? columns = null)
         {
-            var cStream = CArrowArrayStream.Create();
-            try
+            var cStream = new CArrowArrayStream();
+            fixed (int* rowGroupsPtr = rowGroups)
             {
-                fixed (int* rowGroupsPtr = rowGroups)
+                fixed (int* columnsPtr = columns)
                 {
-                    fixed (int* columnsPtr = columns)
-                    {
-                        ExceptionInfo.Check(FileReader_GetRecordBatchReader(
-                            _handle.IntPtr, rowGroupsPtr, rowGroups?.Length ?? 0, columnsPtr, columns?.Length ?? 0, (IntPtr) cStream));
-                    }
+                    ExceptionInfo.Check(FileReader_GetRecordBatchReader(
+                        _handle.IntPtr, rowGroupsPtr, rowGroups?.Length ?? 0, columnsPtr, columns?.Length ?? 0, &cStream));
                 }
-                GC.KeepAlive(_handle);
-                return CArrowArrayStreamImporter.ImportArrayStream(cStream);
             }
-            catch
-            {
-                // FIXME: Can create cStream on the stack after https://github.com/apache/arrow/pull/35996
-                CArrowArrayStream.Free(cStream);
-                throw;
-            }
+            GC.KeepAlive(_handle);
+            return CArrowArrayStreamImporter.ImportArrayStream(&cStream);
         }
 
         public void Dispose()
@@ -134,14 +118,14 @@ namespace ParquetSharp.Arrow
             IntPtr file, IntPtr properties, IntPtr arrowProperties, out IntPtr reader);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileReader_GetSchema(IntPtr reader, IntPtr schema);
+        private static extern unsafe IntPtr FileReader_GetSchema(IntPtr reader, CArrowSchema* schema);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileReader_NumRowGroups(IntPtr reader, out int numRowGroups);
 
         [DllImport(ParquetDll.Name)]
         private static extern unsafe IntPtr FileReader_GetRecordBatchReader(
-            IntPtr reader, int* rowGroups, int rowGroupsCount, int* columns, int columnsCount, IntPtr stream);
+            IntPtr reader, int* rowGroups, int rowGroupsCount, int* columns, int columnsCount, CArrowArrayStream* stream);
 
         [DllImport(ParquetDll.Name)]
         private static extern void FileReader_Free(IntPtr reader);
