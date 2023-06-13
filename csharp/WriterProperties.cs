@@ -30,6 +30,7 @@ namespace ParquetSharp
         public long MaxRowGroupLength => ExceptionInfo.Return<long>(Handle, WriterProperties_Max_Row_Group_Length);
         public ParquetVersion Version => ExceptionInfo.Return<ParquetVersion>(Handle, WriterProperties_Version);
         public long WriteBatchSize => ExceptionInfo.Return<long>(Handle, WriterProperties_Write_Batch_Size);
+        public bool WritePageIndex => ExceptionInfo.Return<bool>(Handle, WriterProperties_Write_Page_Index);
 
         public Compression Compression(ColumnPath path)
         {
@@ -95,6 +96,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Write_Batch_Size(IntPtr writerProperties, out long size);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Write_Page_Index(IntPtr writerProperties, out bool enabled);
 
         //[DllImport(ParquetDll.Name)]
         //private static extern IntPtr WriterProperties_Column_Properties(IntPtr writerProperties, IntPtr path, out IntPtr columnProperties);

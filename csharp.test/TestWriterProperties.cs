@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using NUnit.Framework;
 using ParquetSharp.IO;
 using ParquetSharp.Schema;
@@ -25,6 +24,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(1024 * 1024, p.MaxRowGroupLength);
             Assert.AreEqual(ParquetVersion.PARQUET_2_4, p.Version);
             Assert.AreEqual(1024, p.WriteBatchSize);
+            Assert.False(p.WritePageIndex);
         }
 
         [Test]
@@ -40,6 +40,8 @@ namespace ParquetSharp.Test
                 .MaxRowGroupLength(789)
                 .Version(ParquetVersion.PARQUET_1_0)
                 .WriteBatchSize(666)
+                .DisableWritePageIndex()
+                .EnableWritePageIndex()
                 .Build();
 
             Assert.AreEqual("Meeeee!!!", p.CreatedBy);
@@ -52,6 +54,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(789, p.MaxRowGroupLength);
             Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
             Assert.AreEqual(666, p.WriteBatchSize);
+            Assert.True(p.WritePageIndex);
         }
 
         [Test]
@@ -71,6 +74,7 @@ namespace ParquetSharp.Test
                 DefaultWriterProperties.MaxRowGroupLength = 789;
                 DefaultWriterProperties.Version = ParquetVersion.PARQUET_1_0;
                 DefaultWriterProperties.WriteBatchSize = 666;
+                DefaultWriterProperties.WritePageIndex = true;
 
                 using var builder = new WriterPropertiesBuilder();
                 using var p = builder.Build();
@@ -87,6 +91,7 @@ namespace ParquetSharp.Test
                 Assert.AreEqual(789, p.MaxRowGroupLength);
                 Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
                 Assert.AreEqual(666, p.WriteBatchSize);
+                Assert.True(p.WritePageIndex);
             }
             finally
             {
@@ -102,6 +107,7 @@ namespace ParquetSharp.Test
                 DefaultWriterProperties.MaxRowGroupLength = null;
                 DefaultWriterProperties.Version = null;
                 DefaultWriterProperties.WriteBatchSize = null;
+                DefaultWriterProperties.WritePageIndex = null;
             }
         }
 
