@@ -15,14 +15,14 @@ namespace ParquetSharp.Test
         {
             var p = WriterProperties.GetDefaultWriterProperties();
 
-            Assert.AreEqual("parquet-cpp-arrow version 10.0.1", p.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 12.0.1", p.CreatedBy);
             Assert.AreEqual(Compression.Uncompressed, p.Compression(new ColumnPath("anypath")));
             Assert.AreEqual(int.MinValue, p.CompressionLevel(new ColumnPath("anypath")));
             Assert.AreEqual(1024 * 1024, p.DataPageSize);
             Assert.AreEqual(Encoding.RleDictionary, p.DictionaryIndexEncoding);
             Assert.AreEqual(Encoding.Plain, p.DictionaryPageEncoding);
             Assert.AreEqual(1024 * 1024, p.DictionaryPagesizeLimit);
-            Assert.AreEqual(64 * 1024 * 1024, p.MaxRowGroupLength);
+            Assert.AreEqual(1024 * 1024, p.MaxRowGroupLength);
             Assert.AreEqual(ParquetVersion.PARQUET_2_4, p.Version);
             Assert.AreEqual(1024, p.WriteBatchSize);
         }
