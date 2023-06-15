@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Apache.Arrow;
@@ -24,7 +25,7 @@ namespace ParquetSharp.Test.Arrow
         }
 
         [Test]
-        public void TestWriteStream()
+        public void TestWriteOutputStream()
         {
             var fields = new[] {new Field("x", new Apache.Arrow.Types.Int32Type(), false)};
             var schema = new Apache.Arrow.Schema(fields, null);
@@ -34,6 +35,24 @@ namespace ParquetSharp.Test.Arrow
 
             using var writer = new FileWriter(outStream, schema);
             writer.Close();
+        }
+
+        [Test]
+        public void TestWriteAndReadStream()
+        {
+            var fields = new[] {new Field("x", new Apache.Arrow.Types.Int32Type(), false)};
+            var schema = new Apache.Arrow.Schema(fields, null);
+
+            using var stream = new MemoryStream();
+            using var writer = new FileWriter(stream, schema);
+            writer.Close();
+
+            stream.Seek(0, SeekOrigin.Begin);
+            using var reader = new FileReader(stream);
+
+            var readSchema = reader.Schema;
+            Assert.That(readSchema.FieldsList.Count, Is.EqualTo(1));
+            Assert.That(readSchema.FieldsList[0].Name, Is.EqualTo("x"));
         }
 
         [Test]

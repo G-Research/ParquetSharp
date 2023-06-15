@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using Apache.Arrow.C;
 using Apache.Arrow.Ipc;
@@ -59,6 +60,39 @@ namespace ParquetSharp.Arrow
 
             _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr, IntPtr>(
                 file.Handle, properties.Handle.IntPtr, arrowReaderPropertiesPtr, FileReader_OpenFile), FileReader_Free);
+            _randomAccessFile = file;
+
+            GC.KeepAlive(readerProperties);
+            GC.KeepAlive(arrowReaderProperties);
+        }
+
+        /// <summary>
+        /// Create a new Arrow FileReader for a .NET stream
+        /// </summary>
+        /// <param name="stream">The stream to read</param>
+        /// <param name="readerProperties">Parquet reader properties</param>
+        /// <param name="arrowReaderProperties">Arrow specific reader properties</param>
+        /// <param name="leaveOpen">Whether to keep the stream open after the reader is closed</param>
+        /// <exception cref="ArgumentNullException">Thrown if the file or its handle are null</exception>
+        public FileReader(
+            Stream stream,
+            ReaderProperties? readerProperties = null,
+            ArrowReaderProperties? arrowReaderProperties = null,
+            bool leaveOpen = false)
+        {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+
+            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var properties = readerProperties ?? defaultProperties!;
+
+            _randomAccessFile = new ManagedRandomAccessFile(stream, leaveOpen);
+            _ownedFile = true;
+
+            var arrowReaderPropertiesPtr =
+                arrowReaderProperties == null ? IntPtr.Zero : arrowReaderProperties.Handle.IntPtr;
+
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr, IntPtr>(
+                _randomAccessFile.Handle!, properties.Handle.IntPtr, arrowReaderPropertiesPtr, FileReader_OpenFile), FileReader_Free);
 
             GC.KeepAlive(readerProperties);
             GC.KeepAlive(arrowReaderProperties);
@@ -107,6 +141,10 @@ namespace ParquetSharp.Arrow
         public void Dispose()
         {
             _handle.Dispose();
+            if (_ownedFile)
+            {
+                _randomAccessFile?.Dispose();
+            }
         }
 
         [DllImport(ParquetDll.Name)]
@@ -131,5 +169,7 @@ namespace ParquetSharp.Arrow
         private static extern void FileReader_Free(IntPtr reader);
 
         private readonly ParquetHandle _handle;
+        private readonly RandomAccessFile? _randomAccessFile; // Keep a handle to the input file to prevent GC
+        private readonly bool _ownedFile; // Whether this reader created the RandomAccessFile
     }
 }

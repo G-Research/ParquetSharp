@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -83,8 +84,45 @@ namespace ParquetSharp.Arrow
             ExceptionInfo.Check(FileWriter_OpenStream(
                 outputStream.Handle.IntPtr, &cSchema, writerPropertiesPtr, arrowWriterPropertiesPtr, out var writer));
             _handle = new ParquetHandle(writer, FileWriter_Free);
+            _outputStream = outputStream;
 
-            GC.KeepAlive(outputStream);
+            GC.KeepAlive(writerProperties);
+            GC.KeepAlive(arrowWriterProperties);
+        }
+
+        /// <summary>
+        /// Create a new Arrow FileWriter that writes to a .NET stream
+        /// </summary>
+        /// <param name="stream">Stream to write to</param>
+        /// <param name="schema">Arrow schema for the data to be written</param>
+        /// <param name="writerProperties">Parquet writer properties</param>
+        /// <param name="arrowWriterProperties">Arrow specific writer properties</param>
+        /// <param name="leaveOpen">Whether to keep the stream open after closing the writer</param>
+        public unsafe FileWriter(
+            Stream stream,
+            Apache.Arrow.Schema schema,
+            WriterProperties? writerProperties = null,
+            ArrowWriterProperties? arrowWriterProperties = null,
+            bool leaveOpen = false)
+        {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            if (schema == null) throw new ArgumentNullException(nameof(schema));
+
+            var writerPropertiesPtr =
+                writerProperties == null ? IntPtr.Zero : writerProperties.Handle.IntPtr;
+
+            var arrowWriterPropertiesPtr =
+                arrowWriterProperties == null ? IntPtr.Zero : arrowWriterProperties.Handle.IntPtr;
+
+            _outputStream = new ManagedOutputStream(stream, leaveOpen);
+            _ownedStream = true;
+
+            var cSchema = new CArrowSchema();
+            CArrowSchemaExporter.ExportSchema(schema, &cSchema);
+            ExceptionInfo.Check(FileWriter_OpenStream(
+                _outputStream.Handle!.IntPtr, &cSchema, writerPropertiesPtr, arrowWriterPropertiesPtr, out var writer));
+            _handle = new ParquetHandle(writer, FileWriter_Free);
+
             GC.KeepAlive(writerProperties);
             GC.KeepAlive(arrowWriterProperties);
         }
@@ -173,6 +211,10 @@ namespace ParquetSharp.Arrow
         public void Dispose()
         {
             _handle.Dispose();
+            if (_ownedStream)
+            {
+                _outputStream?.Dispose();
+            }
         }
 
         /// <summary>
@@ -215,6 +257,8 @@ namespace ParquetSharp.Arrow
         private static extern IntPtr FileWriter_Close(IntPtr writer);
 
         private readonly ParquetHandle _handle;
+        private readonly OutputStream? _outputStream; // Keep a handle to the output stream to prevent GC
+        private readonly bool _ownedStream; // Whether this writer created the OutputStream
 
         /// <summary>
         /// A stream of record batches where batches are all stored in memory
