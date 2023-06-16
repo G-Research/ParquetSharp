@@ -16,86 +16,86 @@ namespace ParquetSharp.Arrow
         /// Create a new Arrow FileReader for a file at the specified path
         /// </summary>
         /// <param name="path">Path to the Parquet file</param>
-        /// <param name="readerProperties">Parquet reader properties</param>
-        /// <param name="arrowReaderProperties">Arrow specific reader properties</param>
+        /// <param name="properties">Parquet reader properties</param>
+        /// <param name="arrowProperties">Arrow specific reader properties</param>
         public FileReader(
             string path,
-            ReaderProperties? readerProperties = null,
-            ArrowReaderProperties? arrowReaderProperties = null)
+            ReaderProperties? properties = null,
+            ArrowReaderProperties? arrowProperties = null)
         {
-            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
-            var properties = readerProperties ?? defaultProperties!;
+            using var defaultProperties = properties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var readerProperties = properties ?? defaultProperties!;
 
-            var arrowReaderPropertiesPtr =
-                arrowReaderProperties == null ? IntPtr.Zero : arrowReaderProperties.Handle.IntPtr;
+            var arrowPropertiesPtr =
+                arrowProperties == null ? IntPtr.Zero : arrowProperties.Handle.IntPtr;
 
-            ExceptionInfo.Check(FileReader_OpenPath(path, properties.Handle.IntPtr, arrowReaderPropertiesPtr, out var reader));
+            ExceptionInfo.Check(FileReader_OpenPath(path, readerProperties.Handle.IntPtr, arrowPropertiesPtr, out var reader));
 
             _handle = new ParquetHandle(reader, FileReader_Free);
 
-            GC.KeepAlive(readerProperties);
-            GC.KeepAlive(arrowReaderProperties);
+            GC.KeepAlive(properties);
+            GC.KeepAlive(arrowProperties);
         }
 
         /// <summary>
         /// Create a new Arrow FileReader for a file object
         /// </summary>
         /// <param name="file">The file to read</param>
-        /// <param name="readerProperties">Parquet reader properties</param>
-        /// <param name="arrowReaderProperties">Arrow specific reader properties</param>
+        /// <param name="properties">Parquet reader properties</param>
+        /// <param name="arrowProperties">Arrow specific reader properties</param>
         /// <exception cref="ArgumentNullException">Thrown if the file or its handle are null</exception>
         public FileReader(
             RandomAccessFile file,
-            ReaderProperties? readerProperties = null,
-            ArrowReaderProperties? arrowReaderProperties = null)
+            ReaderProperties? properties = null,
+            ArrowReaderProperties? arrowProperties = null)
         {
             if (file == null) throw new ArgumentNullException(nameof(file));
             if (file.Handle == null) throw new ArgumentNullException(nameof(file.Handle));
 
-            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
-            var properties = readerProperties ?? defaultProperties!;
+            using var defaultProperties = properties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var readerProperties = properties ?? defaultProperties!;
 
-            var arrowReaderPropertiesPtr =
-                arrowReaderProperties == null ? IntPtr.Zero : arrowReaderProperties.Handle.IntPtr;
+            var arrowPropertiesPtr =
+                arrowProperties == null ? IntPtr.Zero : arrowProperties.Handle.IntPtr;
 
             _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr, IntPtr>(
-                file.Handle, properties.Handle.IntPtr, arrowReaderPropertiesPtr, FileReader_OpenFile), FileReader_Free);
+                file.Handle, readerProperties.Handle.IntPtr, arrowPropertiesPtr, FileReader_OpenFile), FileReader_Free);
             _randomAccessFile = file;
 
-            GC.KeepAlive(readerProperties);
-            GC.KeepAlive(arrowReaderProperties);
+            GC.KeepAlive(properties);
+            GC.KeepAlive(arrowProperties);
         }
 
         /// <summary>
         /// Create a new Arrow FileReader for a .NET stream
         /// </summary>
         /// <param name="stream">The stream to read</param>
-        /// <param name="readerProperties">Parquet reader properties</param>
-        /// <param name="arrowReaderProperties">Arrow specific reader properties</param>
+        /// <param name="properties">Parquet reader properties</param>
+        /// <param name="arrowProperties">Arrow specific reader properties</param>
         /// <param name="leaveOpen">Whether to keep the stream open after the reader is closed</param>
         /// <exception cref="ArgumentNullException">Thrown if the file or its handle are null</exception>
         public FileReader(
             Stream stream,
-            ReaderProperties? readerProperties = null,
-            ArrowReaderProperties? arrowReaderProperties = null,
+            ReaderProperties? properties = null,
+            ArrowReaderProperties? arrowProperties = null,
             bool leaveOpen = false)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
 
-            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
-            var properties = readerProperties ?? defaultProperties!;
+            using var defaultProperties = properties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var readerProperties = properties ?? defaultProperties!;
 
             _randomAccessFile = new ManagedRandomAccessFile(stream, leaveOpen);
             _ownedFile = true;
 
-            var arrowReaderPropertiesPtr =
-                arrowReaderProperties == null ? IntPtr.Zero : arrowReaderProperties.Handle.IntPtr;
+            var arrowPropertiesPtr =
+                arrowProperties == null ? IntPtr.Zero : arrowProperties.Handle.IntPtr;
 
             _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr, IntPtr>(
-                _randomAccessFile.Handle!, properties.Handle.IntPtr, arrowReaderPropertiesPtr, FileReader_OpenFile), FileReader_Free);
+                _randomAccessFile.Handle!, readerProperties.Handle.IntPtr, arrowPropertiesPtr, FileReader_OpenFile), FileReader_Free);
 
-            GC.KeepAlive(readerProperties);
-            GC.KeepAlive(arrowReaderProperties);
+            GC.KeepAlive(properties);
+            GC.KeepAlive(arrowProperties);
         }
 
         /// <summary>

@@ -30,30 +30,30 @@ namespace ParquetSharp.Arrow
         /// </summary>
         /// <param name="path">Path to the Parquet file to write</param>
         /// <param name="schema">Arrow schema for the data to be written</param>
-        /// <param name="writerProperties">Parquet writer properties</param>
-        /// <param name="arrowWriterProperties">Arrow specific writer properties</param>
+        /// <param name="properties">Parquet writer properties</param>
+        /// <param name="arrowProperties">Arrow specific writer properties</param>
         public unsafe FileWriter(
             string path,
             Apache.Arrow.Schema schema,
-            WriterProperties? writerProperties = null,
-            ArrowWriterProperties? arrowWriterProperties = null)
+            WriterProperties? properties = null,
+            ArrowWriterProperties? arrowProperties = null)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
             if (schema == null) throw new ArgumentNullException(nameof(schema));
 
             var writerPropertiesPtr =
-                writerProperties == null ? IntPtr.Zero : writerProperties.Handle.IntPtr;
+                properties == null ? IntPtr.Zero : properties.Handle.IntPtr;
 
-            var arrowWriterPropertiesPtr =
-                arrowWriterProperties == null ? IntPtr.Zero : arrowWriterProperties.Handle.IntPtr;
+            var arrowPropertiesPtr =
+                arrowProperties == null ? IntPtr.Zero : arrowProperties.Handle.IntPtr;
 
             var cSchema = new CArrowSchema();
             CArrowSchemaExporter.ExportSchema(schema, &cSchema);
-            ExceptionInfo.Check(FileWriter_OpenPath(path, &cSchema, writerPropertiesPtr, arrowWriterPropertiesPtr, out var writer));
+            ExceptionInfo.Check(FileWriter_OpenPath(path, &cSchema, writerPropertiesPtr, arrowPropertiesPtr, out var writer));
             _handle = new ParquetHandle(writer, FileWriter_Free);
 
-            GC.KeepAlive(writerProperties);
-            GC.KeepAlive(arrowWriterProperties);
+            GC.KeepAlive(properties);
+            GC.KeepAlive(arrowProperties);
         }
 
         /// <summary>
@@ -61,33 +61,33 @@ namespace ParquetSharp.Arrow
         /// </summary>
         /// <param name="outputStream">Stream to write to</param>
         /// <param name="schema">Arrow schema for the data to be written</param>
-        /// <param name="writerProperties">Parquet writer properties</param>
-        /// <param name="arrowWriterProperties">Arrow specific writer properties</param>
+        /// <param name="properties">Parquet writer properties</param>
+        /// <param name="arrowProperties">Arrow specific writer properties</param>
         public unsafe FileWriter(
             OutputStream outputStream,
             Apache.Arrow.Schema schema,
-            WriterProperties? writerProperties = null,
-            ArrowWriterProperties? arrowWriterProperties = null)
+            WriterProperties? properties = null,
+            ArrowWriterProperties? arrowProperties = null)
         {
             if (outputStream == null) throw new ArgumentNullException(nameof(outputStream));
             if (outputStream.Handle == null) throw new ArgumentNullException(nameof(outputStream.Handle));
             if (schema == null) throw new ArgumentNullException(nameof(schema));
 
             var writerPropertiesPtr =
-                writerProperties == null ? IntPtr.Zero : writerProperties.Handle.IntPtr;
+                properties == null ? IntPtr.Zero : properties.Handle.IntPtr;
 
-            var arrowWriterPropertiesPtr =
-                arrowWriterProperties == null ? IntPtr.Zero : arrowWriterProperties.Handle.IntPtr;
+            var arrowPropertiesPtr =
+                arrowProperties == null ? IntPtr.Zero : arrowProperties.Handle.IntPtr;
 
             var cSchema = new CArrowSchema();
             CArrowSchemaExporter.ExportSchema(schema, &cSchema);
             ExceptionInfo.Check(FileWriter_OpenStream(
-                outputStream.Handle.IntPtr, &cSchema, writerPropertiesPtr, arrowWriterPropertiesPtr, out var writer));
+                outputStream.Handle.IntPtr, &cSchema, writerPropertiesPtr, arrowPropertiesPtr, out var writer));
             _handle = new ParquetHandle(writer, FileWriter_Free);
             _outputStream = outputStream;
 
-            GC.KeepAlive(writerProperties);
-            GC.KeepAlive(arrowWriterProperties);
+            GC.KeepAlive(properties);
+            GC.KeepAlive(arrowProperties);
         }
 
         /// <summary>
@@ -95,24 +95,24 @@ namespace ParquetSharp.Arrow
         /// </summary>
         /// <param name="stream">Stream to write to</param>
         /// <param name="schema">Arrow schema for the data to be written</param>
-        /// <param name="writerProperties">Parquet writer properties</param>
-        /// <param name="arrowWriterProperties">Arrow specific writer properties</param>
+        /// <param name="properties">Parquet writer properties</param>
+        /// <param name="arrowProperties">Arrow specific writer properties</param>
         /// <param name="leaveOpen">Whether to keep the stream open after closing the writer</param>
         public unsafe FileWriter(
             Stream stream,
             Apache.Arrow.Schema schema,
-            WriterProperties? writerProperties = null,
-            ArrowWriterProperties? arrowWriterProperties = null,
+            WriterProperties? properties = null,
+            ArrowWriterProperties? arrowProperties = null,
             bool leaveOpen = false)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (schema == null) throw new ArgumentNullException(nameof(schema));
 
             var writerPropertiesPtr =
-                writerProperties == null ? IntPtr.Zero : writerProperties.Handle.IntPtr;
+                properties == null ? IntPtr.Zero : properties.Handle.IntPtr;
 
-            var arrowWriterPropertiesPtr =
-                arrowWriterProperties == null ? IntPtr.Zero : arrowWriterProperties.Handle.IntPtr;
+            var arrowPropertiesPtr =
+                arrowProperties == null ? IntPtr.Zero : arrowProperties.Handle.IntPtr;
 
             _outputStream = new ManagedOutputStream(stream, leaveOpen);
             _ownedStream = true;
@@ -120,11 +120,11 @@ namespace ParquetSharp.Arrow
             var cSchema = new CArrowSchema();
             CArrowSchemaExporter.ExportSchema(schema, &cSchema);
             ExceptionInfo.Check(FileWriter_OpenStream(
-                _outputStream.Handle!.IntPtr, &cSchema, writerPropertiesPtr, arrowWriterPropertiesPtr, out var writer));
+                _outputStream.Handle!.IntPtr, &cSchema, writerPropertiesPtr, arrowPropertiesPtr, out var writer));
             _handle = new ParquetHandle(writer, FileWriter_Free);
 
-            GC.KeepAlive(writerProperties);
-            GC.KeepAlive(arrowWriterProperties);
+            GC.KeepAlive(properties);
+            GC.KeepAlive(arrowProperties);
         }
 
         /// <summary>

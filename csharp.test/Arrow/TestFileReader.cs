@@ -90,7 +90,7 @@ namespace ParquetSharp.Test.Arrow
             using var arrowProperties = ArrowReaderProperties.GetDefault();
             arrowProperties.BatchSize = batchSize;
 
-            using var fileReader = new FileReader(inStream, arrowReaderProperties: arrowProperties);
+            using var fileReader = new FileReader(inStream, arrowProperties: arrowProperties);
             using var batchReader = fileReader.GetRecordBatchReader();
 
             int rowsRead = 0;

@@ -172,6 +172,26 @@ namespace ParquetSharp.Test.Arrow
             await VerifyData(inStream, numRowGroups * rowsPerRowGroup);
         }
 
+        [Test]
+        public void TestWriteWithProperties()
+        {
+            var fields = new[] {new Field("x", new Apache.Arrow.Types.Int32Type(), false)};
+            var schema = new Apache.Arrow.Schema(fields, null);
+
+            using var propertiesBuilder = new WriterPropertiesBuilder();
+            using var properties = propertiesBuilder.Build();
+
+            using var arrowPropertiesBuilder = new ArrowWriterPropertiesBuilder();
+            using var arrowProperties = arrowPropertiesBuilder.Build();
+
+            using var buffer = new ResizableBuffer();
+            using var outStream = new BufferOutputStream(buffer);
+            using var writer = new FileWriter(
+                outStream, schema, properties, arrowProperties);
+
+            writer.Close();
+        }
+
         private static async Task VerifyData(RandomAccessFile inStream, int expectedRows)
         {
             using var fileReader = new FileReader(inStream);
