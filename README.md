@@ -28,7 +28,8 @@ Supported platforms:
 ## Quickstart
 
 The following examples show how to write and then read a Parquet file with three columns representing a timeseries of object-value pairs.
-These use the low-level API, which is the recommended API and closely maps to the API of Apache Parquet C++.
+These use the low-level API, which is the recommended API for working with native .NET types and closely maps to the API of Apache Parquet C++.
+For reading and writing data in the [Apache Arrow](https://arrow.apache.org/) format, an [Arrow based API](docs/Arrow.md) is also provided.
 
 Writing a Parquet File:
 
@@ -87,6 +88,7 @@ For more detailed information on how to use ParquetSharp, see the following docu
 * [Writing parquet files](docs/Writing.md)
 * [Reading parquet files](docs/Reading.md)
 * [Working with nested data](docs/Nested.md)
+* [Reading and writing Arrow data](docs/Arrow.md) &mdash; how to read and write data using the [Apache Arrow format](https://arrow.apache.org/)
 * [Row-oriented API](docs/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
 * [Custom types](docs/TypeFactories.md) &mdash; how to override the mapping between .NET and Parquet types
 * [Use from PowerShell](docs/PowerShell.md)
