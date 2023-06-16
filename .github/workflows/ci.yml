@@ -19,12 +19,12 @@ jobs:
   check-format:
     if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     name: Check format
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup .NET SDK v6.0.x
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x
       - name: Code formating check
@@ -49,7 +49,7 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-11, windows-2022]
+        os: [ubuntu-20.04, macos-11, windows-2022]
         arch: [x64, arm64]
         exclude:
         - os: windows-2022
@@ -59,7 +59,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     # Compute vcpkg triplet and root
     - name: Compute vcpkg triplet and root
@@ -77,20 +77,20 @@ jobs:
             triplet+="windows-static"
             ;;
         esac
-        echo "::set-output name=triplet::$triplet"
-        echo "::set-output name=root::$VCPKG_INSTALLATION_ROOT"
+        echo "triplet=$triplet" >> $GITHUB_OUTPUT
+        echo "root=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_OUTPUT
       shell: bash
 
     # Get cmake version, which is used by vcpkg binary caching
     - name: Get cmake version
       id: cmake-info
-      run: echo "::set-output name=version::$(cmake --version | head -n1 | awk '{print $3}')"
+      run: echo "version=$(cmake --version | head -n1 | awk '{print $3}')" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Runner-info
       id: runner-info
       run: |
-        echo "::set-output name=info::$ImageOS-$ImageVersion"
+        echo "info=$ImageOS-$ImageVersion" >> $GITHUB_OUTPUT
       shell: bash
 
     # Check for cached vcpkg dependencies (use these if we can).
@@ -139,7 +139,7 @@ jobs:
 
     # .NET Core Setup (and also MSBuild for Windows).
     - name: Setup .NET SDK v6.0.x
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
     - name: Setup MSBuild
@@ -163,7 +163,7 @@ jobs:
         VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
     - name: Upload vcpkg arrow logs
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-vcpkg-arrow-logs
         path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
@@ -171,8 +171,9 @@ jobs:
       run: |
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
         dotnet build csharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
+        dotnet build fsharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
     - name: Upload native ParquetSharp library
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-native-library
         path: bin
@@ -189,9 +190,9 @@ jobs:
     needs: build-native
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Download all artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         path: artifacts
     - name: Copy native ParquetSharp libraries
@@ -199,13 +200,13 @@ jobs:
         mkdir bin
         cp -rv artifacts/*-native-library/* bin/
     - name: Setup .NET SDK v6.0.x
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release
     - name: Upload NuGet artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: nuget-package
         path: nuget
@@ -214,7 +215,7 @@ jobs:
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, macos-11, macos-12, windows-2022]
+        os: [ubuntu-20.04, macos-11, macos-12, windows-2022]
         dotnet: [netcoreapp3.1, net5.0, net6.0]
         arch: [x64]
         include:
@@ -230,28 +231,28 @@ jobs:
     needs: build-nuget
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Get version
       id: get-version
-      run: echo "::set-output name=version::$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)"
+      run: echo "version=$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)" >> $env:GITHUB_OUTPUT
       shell: pwsh
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: nuget-package
         path: nuget
     - name: Setup .NET Core SDK v3.1.x
       if: matrix.dotnet == 'netcoreapp3.1'
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 3.1.x
     - name: Setup .NET SDK v5.0.x
       if: matrix.dotnet == 'net5.0'
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 5.0.x
     - name: Setup .NET SDK v6.0.x
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
     - name: Add local NuGet feed
@@ -262,17 +263,25 @@ jobs:
       run: |
         dotnet remove csharp.test reference csharp/ParquetSharp.csproj
         dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
+        dotnet remove fsharp.test reference csharp/ParquetSharp.csproj
+        dotnet add fsharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
     - name: Setup QEMU for arm64
       if: matrix.arch == 'arm64'
-      uses: docker/setup-qemu-action@v1
+      uses: docker/setup-qemu-action@v2
       with:
         platforms: arm64
-    - name: Build & Run .NET unit tests (x64)
+    - name: Build & Run C# unit tests (x64)
       if: matrix.arch == 'x64'
       run: dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
-    - name: Build & Run .NET unit tests (arm64)
+    - name: Build & Run F# unit tests (x64)
+      if: matrix.arch == 'x64'
+      run: dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
+    - name: Build & Run C# unit tests (arm64)
       if: matrix.arch == 'arm64'
       run: docker run --rm --platform linux/arm64/v8 -v $PWD:$PWD -w $PWD mcr.microsoft.com/dotnet/sdk:6.0 dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
+    - name: Build & Run F# unit tests (arm64)
+      if: matrix.arch == 'arm64'
+      run: docker run --rm --platform linux/arm64/v8 -v $PWD:$PWD -w $PWD mcr.microsoft.com/dotnet/sdk:6.0 dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
 
   # Virtual job that can be configured as a required check before a PR can be merged.
   all-required-checks-done:
@@ -292,7 +301,7 @@ jobs:
     needs: all-required-checks-done
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Check version
       id: check-version
       shell: pwsh
@@ -303,14 +312,14 @@ jobs:
           echo "::error ::There is a mismatch between the project version ($version) and the tag ($tag)"
           exit 1
         }
-        echo "::set-output name=version::$version"
+        echo "version=$version" >> $env:GITHUB_OUTPUT
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: nuget-package
         path: nuget
     - name: Setup .NET SDK v6.0.x
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
     # if version contains "-" treat it as pre-release

@@ -26,6 +26,19 @@ namespace ParquetSharp
             _nullableLeafValues = nullableLeafValues;
         }
 
+        public TLogical ReadValue()
+        {
+            if (_valueIndex >= _numValues)
+            {
+                if (!FillBuffer())
+                {
+                    throw new Exception("Attempt to read past end of column.");
+                }
+            }
+            var valueIndex = _nullableLeafValues ? _valueIndex : _valueIndex++;
+            return _logicalValues[valueIndex];
+        }
+
         /// <summary>
         /// Attempt to read a whole leaf-level array of values at the given repetition level.
         /// Returns true if we reached the end of the array or false if the values array is incomplete.
@@ -72,9 +85,6 @@ namespace ParquetSharp
 
         public (short DefLevel, short RepLevel) GetCurrentDefinition()
         {
-            if (_defLevels == null) throw new InvalidOperationException("definition levels not defined");
-            if (_repLevels == null) throw new InvalidOperationException("repetition levels not defined");
-
             if (_levelIndex >= _numLevels)
             {
                 if (!FillBuffer())
@@ -83,7 +93,7 @@ namespace ParquetSharp
                 }
             }
 
-            return (DefLevel: _defLevels[_levelIndex], RepLevel: _repLevels[_levelIndex]);
+            return (DefLevel: _defLevels?[_levelIndex] ?? 0, RepLevel: _repLevels?[_levelIndex] ?? 0);
         }
 
         public bool IsEofDefinition => _levelIndex >= _numLevels && !_columnReader.HasNext;
@@ -114,13 +124,16 @@ namespace ParquetSharp
                 // For non-nullable leaf values, converters will ignore definition levels and produce compacted
                 // values, otherwise definition levels are used and the number of values will match the number of levels.
                 _numValues = _nullableLeafValues ? _numLevels : numValues;
+                // Required field is defined then all its parents are defined too so there is no sense to consider definition levels for 
+                // the non-nullable leaf values
+                var defLevels = _nullableLeafValues ? (_defLevels == null ? null : _defLevels.AsSpan(0, (int) _numLevels)) : Array.Empty<short>();
                 // It's important that we immediately convert the read values. In the case of ByteArray physical values,
                 // these are pointers to internal Arrow memory that may be invalidated if we perform any other operation
                 // on the column reader, for example calling HasNext will trigger a new page load if the Arrow column
                 // reader is at the end of a data page.
                 _converter(
                     _values.AsSpan(0, (int) _numValues),
-                    _defLevels.AsSpan(0, (int) _numLevels),
+                    defLevels,
                     _logicalValues.AsSpan(0, (int) _numValues),
                     _leafDefinitionLevel);
             }

@@ -25,7 +25,7 @@ namespace ParquetSharp.IO
             _seek = Seek;
             _closed = Closed;
 
-            Handle = Create(_read, _close, _getSize, _tell, _seek, _closed);
+            Handle = Create(_read, _close, _getSize, _tell, _seek, _closed, this);
         }
 
         private static ParquetHandle Create(
@@ -34,10 +34,22 @@ namespace ParquetSharp.IO
             GetSizeDelegate getSize,
             TellDelegate tell,
             SeekDelegate seek,
-            ClosedDelegate closed)
+            ClosedDelegate closed,
+            ManagedRandomAccessFile managedFile)
         {
             ExceptionInfo.Check(ManagedRandomAccessFile_Create(read, close, getSize, tell, seek, closed, out var handle));
-            return new ParquetHandle(handle, RandomAccessFile_Free);
+
+            void Free(IntPtr ptr)
+            {
+                RandomAccessFile_Free(ptr);
+                // Capture and keep a handle to the managed file instance so that if we free the last reference to the
+                // C++ random access file and trigger a file close, we can ensure the file hasn't been garbage collected.
+                // Note that this doesn't protect against the case where the C# side handle is disposed or finalized before
+                // the C++ side has finished with it.
+                GC.KeepAlive(managedFile);
+            }
+
+            return new ParquetHandle(handle, Free);
         }
 
         private byte Read(long nbytes, IntPtr bytesRead, IntPtr dest, out string? exception)

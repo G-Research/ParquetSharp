@@ -86,6 +86,7 @@ For more detailed information on how to use ParquetSharp, see the following docu
 
 * [Writing parquet files](docs/Writing.md)
 * [Reading parquet files](docs/Reading.md)
+* [Working with nested data](docs/Nested.md)
 * [Row-oriented API](docs/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
 * [Custom types](docs/TypeFactories.md) &mdash; how to override the mapping between .NET and Parquet types
 * [Use from PowerShell](docs/PowerShell.md)
@@ -103,12 +104,14 @@ Not finding an existing solution meeting these requirements, we decided to imple
 
 ## Performance
 
-The following benchmarks can be reproduced by running `ParquetSharp.Benchmark.csproj`. The relative performance of ParquetSharp 2.4.0-beta1 is compared to [Parquet.NET](https://github.com/aloneguid/parquet-dotnet) 3.8.6, an alternative open-source .NET library that is fully managed. The Decimal tests focus purely on handling the C# `decimal` type, while the TimeSeries tests benchmark three columns respectively of the types `{int, DateTime, float}`. Results are from a Ryzen 5950X on Windows 10.
+The following benchmarks can be reproduced by running `ParquetSharp.Benchmark.csproj`. The relative performance of ParquetSharp 10.0.1 is compared to [Parquet.NET](https://github.com/aloneguid/parquet-dotnet) 4.6.2, an alternative open-source .NET library that is fully managed. The Decimal tests focus purely on handling the C# `decimal` type, while the TimeSeries tests benchmark three columns of the types `{int, DateTime, float}`. Results are from a Ryzen 5900X on Linux 6.2.7 using the dotnet 6.0.14 runtime.
+
+If performance is a concern for you, we recommend benchmarking your own workloads and testing different encodings and compression methods. For example, disabling dictionary encoding for floating point columns can often significantly improve performance.
 
 |              | Decimal (Read) | Decimal (Write) | TimeSeries (Read) | TimeSeries (Write) |
 | -----------: | :------------: | :-------------: | :---------------: | :----------------: |
 | Parquet.NET  | 1.0x           | 1.0x            | 1.0x              | 1.0x               |
-| ParquetSharp | 4.7x Faster    | 3.7x Faster     | 2.9x Faster       | 8.5x Faster        |
+| ParquetSharp | 4.0x Faster    | 3.0x Faster     | 2.8x Faster       | 1.5x Faster        |
 
 ## Known Limitations
 
@@ -118,13 +121,11 @@ Typically this can arise when attempting to access an instance whose owner has b
 
 As only 64-bit runtimes are available, ParquetSharp cannot be referenced by a 32-bit project.  For example, using the library from F# Interactive requires running `fsiAnyCpu.exe` rather than `fsi.exe`.
 
-In the 5.0.X versions, reading nested structures was introduced. However, nesting information about nulls is lost when reading columns with Repetition Level optional inside structs with Repetition Level optional. ParquetSharp does not yet provide information about whether the column or the enclosing struct is null.
-
 ## Building
 
 Building ParquetSharp for Windows requires the following dependencies:
 - Visual Studio 2022 (17.0 or higher)
-- Apache Arrow (8.0.0)
+- Apache Arrow (10.0.1)
 
 For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg).
 The build scripts will use an existing vcpkg installation if either of the `VCPKG_INSTALLATION_ROOT` or `VCPKG_ROOT` environment variables are defined,

@@ -67,3 +67,14 @@ using (var rowReader = ParquetFile.CreateRowReader<MyRow>("example.parquet"))
     }
 }
 ```
+
+## Using the row-oriented API from F#
+
+The row-oriented API works with F# types,
+but one important issue to note is that if you are mapping an internal type,
+all fields must have the `MapToColumn` attribute applied to be mapped to Parquet columns.
+
+This is because ParquetSharp will only map public fields and properties of a type by default,
+and all fields of an internal F# type are private.
+However, the `MapToColumn` attribute can be applied to private properties to
+opt-in to including them in the column mapping.

@@ -17,7 +17,7 @@ namespace ParquetSharp
             Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
-        public unsafe Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride, int length)
+        public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride, int length)
         {
             var isDecimal = logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?);
             var isUuid = logicalSystemType == typeof(Guid) || logicalSystemType == typeof(Guid?);
@@ -35,22 +35,6 @@ namespace ParquetSharp
             if (isUuid && !(logicalTypeOverride is UuidLogicalType))
             {
                 throw new ArgumentException("Guid type requires a UuidLogicalType override");
-            }
-
-            if (logicalTypeOverride is DecimalLogicalType decimalLogicalType)
-            {
-                // For the moment we only support serializing decimal to Decimal128.
-                // This reflects the C# decimal structure with 28-29 digits precision.
-                // Will implement 32-bits, 64-bits and other precision later.
-                if (decimalLogicalType.Precision != 29)
-                {
-                    throw new NotSupportedException("only 29 digits of precision is currently supported for decimal type");
-                }
-
-                if (length != sizeof(Decimal128))
-                {
-                    throw new NotSupportedException("only 16 bytes of length is currently supported for decimal type ");
-                }
             }
 
             LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));

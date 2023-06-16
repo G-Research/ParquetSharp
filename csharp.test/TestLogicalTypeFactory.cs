@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
 using ParquetSharp.IO;
+using ParquetSharp.Schema;
 
 namespace ParquetSharp.Test
 {
@@ -176,15 +177,71 @@ namespace ParquetSharp.Test
             TestWriteNoColumnNorWriterOverride(ArrayValues, ArrayCustomValues);
         }
 
+        [Test]
+        public static void TestRead_Nested()
+        {
+            TestRead(NestedCustomValues, NestedValues, GetNestedSchema());
+        }
+
+        [Test]
+        public static void TestWrite_Nested()
+        {
+            TestWrite(NestedValues, NestedCustomValues, GetNestedSchema());
+        }
+
+        [Test]
+        public static void TestRoundTripCustomDecimal()
+        {
+            // It should be valid to use a custom logical type factory to write decimal data
+            // that supports a different precision than the built in Decimal128 in ParquetSharp,
+            // and use the Column abstraction without needing to manually create a schema.
+            var values = Enumerable.Range(0, 100).Select(i => new CustomDecimal {Value = i}).ToArray();
+            using var decimalType = LogicalType.Decimal(precision: 18, scale: 0);
+            var columns = new Column[] {new Column<CustomDecimal>("Decimal", decimalType)};
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var fileWriter = new ParquetFileWriter(outStream, columns, new CustomDecimalTypeFactory())
+                {
+                    LogicalWriteConverterFactory = new CustomDecimalWriteConverterFactory()
+                };
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<CustomDecimal>();
+                columnWriter.WriteBatch(values);
+                fileWriter.Close();
+            }
+
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input)
+            {
+                LogicalReadConverterFactory = new CustomDecimalReadConverterFactory()
+            };
+            using var groupReader = fileReader.RowGroup(0);
+            using var columnReader = groupReader.Column(0).LogicalReaderOverride<CustomDecimal>();
+
+            var readValues = columnReader.ReadAll(checked((int) groupReader.MetaData.NumRows));
+
+            Assert.AreEqual(readValues.Select(v => v.Value).ToArray(), values.Select(v => v.Value).ToArray());
+        }
+
+        private static GroupNode GetNestedSchema()
+        {
+            using var noneType = LogicalType.None();
+            using var floatNode = new PrimitiveNode("values", Repetition.Required, noneType, PhysicalType.Float);
+            using var groupNode = new GroupNode("group", Repetition.Optional, new[] {floatNode});
+            return new GroupNode("schema", Repetition.Required, new[] {groupNode});
+        }
+
         // Reader tests.
 
-        private static void TestRead<TCustom, TValue>(TCustom[] expected, TValue[] written)
+        private static void TestRead<TCustom, TValue>(TCustom[] expected, TValue[] written, GroupNode? schema = null)
         {
             // Read float values into a custom user-type:
             // - Provide a converter factory such that float values can be written as VolumeInDollars.
             // - Explicitly override the expected type when accessing the LogicalColumnReader.
 
-            using var buffer = WriteTestValues(written);
+            using var buffer = WriteTestValues(written, schema);
             using var input = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(input)
             {
@@ -222,7 +279,7 @@ namespace ParquetSharp.Test
 
         // Writer tests
 
-        private static void TestWrite<TValue, TCustom>(TValue[] expected, TCustom[] written)
+        private static void TestWrite<TValue, TCustom>(TValue[] expected, TCustom[] written, GroupNode? schema = null)
         {
             using var buffer = new ResizableBuffer();
 
@@ -233,15 +290,31 @@ namespace ParquetSharp.Test
 
             using (var output = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<TCustom>("values")}, new WriteTypeFactory())
+                ParquetFileWriter fileWriter;
+                if (schema == null)
                 {
-                    LogicalWriteConverterFactory = new WriteConverterFactory()
-                };
-                using var groupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = groupWriter.NextColumn().LogicalWriterOverride<TCustom>();
+                    fileWriter = new ParquetFileWriter(output, new Column[] {new Column<TCustom>("values")}, new WriteTypeFactory())
+                    {
+                        LogicalWriteConverterFactory = new WriteConverterFactory()
+                    };
+                }
+                else
+                {
+                    using var propertiesBuilder = new WriterPropertiesBuilder();
+                    using var properties = propertiesBuilder.Build();
+                    fileWriter = new ParquetFileWriter(output, schema, properties)
+                    {
+                        LogicalWriteConverterFactory = new WriteConverterFactory()
+                    };
+                }
+                using (fileWriter)
+                {
+                    using var groupWriter = fileWriter.AppendRowGroup();
+                    using var columnWriter = groupWriter.NextColumn().LogicalWriterOverride<TCustom>();
 
-                columnWriter.WriteBatch(written);
-                fileWriter.Close();
+                    columnWriter.WriteBatch(written);
+                    fileWriter.Close();
+                }
             }
 
             CheckWrittenValues(buffer, expected);
@@ -329,14 +402,18 @@ namespace ParquetSharp.Test
             CheckWrittenValues(buffer, expected);
         }
 
-        private static ResizableBuffer WriteTestValues<TValue>(TValue[] written)
+        private static ResizableBuffer WriteTestValues<TValue>(TValue[] written, GroupNode? schema = null)
         {
             var buffer = new ResizableBuffer();
 
             try
             {
                 using var output = new BufferOutputStream(buffer);
-                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<TValue>("values")});
+                using var propertiesBuilder = new WriterPropertiesBuilder();
+                using var properties = propertiesBuilder.Build();
+                using var fileWriter = schema == null
+                    ? new ParquetFileWriter(output, new Column[] {new Column<TValue>("values")}, properties)
+                    : new ParquetFileWriter(output, schema, properties);
                 using var groupWriter = fileWriter.AppendRowGroup();
                 using var columnWriter = groupWriter.NextColumn().LogicalWriter<TValue>();
 
@@ -481,5 +558,77 @@ namespace ParquetSharp.Test
             new[] {new VolumeInDollars(1f), new VolumeInDollars(2f), new VolumeInDollars(3f)},
             new[] {new VolumeInDollars(4f)}
         };
+
+        private static readonly Nested<float>?[] NestedValues =
+        {
+            new Nested<float>(1f), null, new Nested<float>(3f),
+        };
+        private static readonly Nested<VolumeInDollars>?[] NestedCustomValues =
+        {
+            new(new VolumeInDollars(1f)), null, new(new VolumeInDollars(3f))
+        };
+
+        /// <summary>
+        /// Test type to represent a decimal value, ignores scale
+        /// </summary>
+        private struct CustomDecimal
+        {
+            public long Value;
+        }
+
+        private sealed class CustomDecimalTypeFactory : LogicalTypeFactory
+        {
+            public override bool TryGetParquetTypes(Type logicalSystemType, out (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType) entry)
+            {
+                if (logicalSystemType == typeof(CustomDecimal))
+                {
+                    entry = (LogicalType.Decimal(precision: 18, scale: 0), Repetition.Required, PhysicalType.Int64);
+                    return true;
+                }
+                return base.TryGetParquetTypes(logicalSystemType, out entry);
+            }
+        }
+
+        private sealed class CustomDecimalWriteConverterFactory : LogicalWriteConverterFactory
+        {
+            public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ByteBuffer? byteBuffer)
+            {
+                if (typeof(TLogical) == typeof(CustomDecimal))
+                {
+                    return (LogicalWrite<CustomDecimal, long>.Converter) ((s, _, d, _) =>
+                    {
+                        for (var i = 0; i < s.Length; ++i)
+                        {
+                            d[i] = s[i].Value;
+                        }
+                    });
+                }
+                return base.GetConverter<TLogical, TPhysical>(columnDescriptor, byteBuffer);
+            }
+        }
+
+        private sealed class CustomDecimalReadConverterFactory : LogicalReadConverterFactory
+        {
+            public override Delegate? GetDirectReader<TLogical, TPhysical>()
+            {
+                if (typeof(TLogical) == typeof(CustomDecimal)) return null;
+                return base.GetDirectReader<TLogical, TPhysical>();
+            }
+
+            public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ColumnChunkMetaData columnChunkMetaData)
+            {
+                if (typeof(TLogical) == typeof(CustomDecimal))
+                {
+                    return (LogicalRead<CustomDecimal, long>.Converter) ((s, _, d, _) =>
+                    {
+                        for (var i = 0; i < s.Length; ++i)
+                        {
+                            d[i] = new CustomDecimal {Value = s[i]};
+                        }
+                    });
+                }
+                return base.GetConverter<TLogical, TPhysical>(columnDescriptor, columnChunkMetaData);
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ParquetSharp.IO;
@@ -99,6 +100,77 @@ namespace ParquetSharp.Test
             Assert.AreEqual(6, fileMetaData?.NumRows);
             Assert.AreEqual(1, fileMetaData?.NumRowGroups);
             Assert.AreEqual(kvm, fileMetaData?.KeyValueMetadata);
+        }
+
+        [Test]
+        public static void TestStringPathHandling([Values] bool absolutePath)
+        {
+            using var testDir = new TempWorkingDirectory();
+            var path = "test.parquet";
+            if (absolutePath)
+            {
+                path = Path.Combine(testDir.DirectoryPath, path);
+            }
+            WriteAndReadPath(path);
+        }
+
+        [Test]
+        [Platform("Win")]
+        public static void TestWindowsPathHandling()
+        {
+            using var testDir = new TempWorkingDirectory();
+            var path = Path.Combine(testDir.DirectoryPath, "test.parquet");
+
+            WriteAndReadPath(path.Replace('\\', '/'));
+            WriteAndReadPath("//?/" + path);
+            WriteAndReadPath(@"\\?\" + path);
+
+            var networkPath = @"\\localhost\" + path[0] + "$" + path.Substring(2);
+            WriteAndReadPath(networkPath);
+            WriteAndReadPath("//" + networkPath.Substring(2).Replace('\\', '/'));
+            WriteAndReadPath(@"\\?\UNC\" + networkPath.Substring(2));
+            WriteAndReadPath(@"//?/UNC/" + networkPath.Substring(2).Replace('\\', '/'));
+        }
+
+        [Test]
+        [Platform("Win")]
+        [Platform("NetCore")] // Can't easily create a long directory path in .Net Framework
+        public static void TestWindowsLongPathHandling()
+        {
+            using var testDir = new TempWorkingDirectory();
+
+            var longPathBuilder = new StringBuilder(testDir.DirectoryPath + "/");
+            for (var i = 0; i < 20; i++)
+            {
+                longPathBuilder.Append("long_path_component/");
+            }
+            var longDirectoryPath = longPathBuilder.ToString();
+            Directory.CreateDirectory(longDirectoryPath);
+            var longPath = Path.GetFullPath(longDirectoryPath + "test.parquet");
+            WriteAndReadPath(longPath);
+        }
+
+        private static void WriteAndReadPath(string path)
+        {
+            var columns = new Column[]
+            {
+                new Column<int>("x"),
+            };
+            using (var writer = new ParquetFileWriter(path, columns))
+            {
+                writer.Close();
+            }
+
+            try
+            {
+                using var reader = new ParquetFileReader(path);
+                Assert.That(reader.FileMetaData.NumRowGroups, Is.EqualTo(0));
+                Assert.That(reader.FileMetaData.NumColumns, Is.EqualTo(1));
+            }
+            finally
+            {
+                File.Delete(path);
+            }
         }
 
         [Test]
@@ -311,6 +383,27 @@ namespace ParquetSharp.Test
 
             Task.WaitAll(running);
         }
+    }
 
+    internal sealed class TempWorkingDirectory : IDisposable
+    {
+        public TempWorkingDirectory()
+        {
+            _originalWorkingDirectory = Directory.GetCurrentDirectory();
+            _directoryPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(_directoryPath);
+            Directory.SetCurrentDirectory(_directoryPath);
+        }
+
+        public void Dispose()
+        {
+            Directory.SetCurrentDirectory(_originalWorkingDirectory);
+            Directory.Delete(_directoryPath, recursive: true);
+        }
+
+        public string DirectoryPath => _directoryPath;
+
+        private readonly string _directoryPath;
+        private readonly string _originalWorkingDirectory;
     }
 }

@@ -83,10 +83,7 @@ namespace ParquetSharp.RowOriented
         {
             if (_rowGroupWriter == null) throw new InvalidOperationException("writer has been closed or disposed");
 
-            _writeAction(this, _rows, _pos);
-            _pos = 0;
-
-            _rowGroupWriter.Dispose();
+            FlushAndDisposeRowGroup();
             _rowGroupWriter = _parquetFileWriter.AppendRowGroup();
         }
 
@@ -96,6 +93,19 @@ namespace ParquetSharp.RowOriented
             {
                 WriteRow(row);
             }
+        }
+
+        public void WriteRowSpan(ReadOnlySpan<TTuple> rows)
+        {
+            if (_pos + rows.Length > _rows.Length)
+            {
+                var newRows = new TTuple[RoundUpToPowerOf2(_pos + rows.Length)];
+                Array.Copy(_rows, newRows, _pos);
+                _rows = newRows;
+            }
+
+            rows.CopyTo(_rows.AsSpan(_pos, rows.Length));
+            _pos += rows.Length;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -121,14 +131,38 @@ namespace ParquetSharp.RowOriented
 
         private void FlushAndDisposeRowGroup()
         {
-            if (_rowGroupWriter != null)
+            if (_rowGroupWriter == null)
+            {
+                return;
+            }
+
+            try
             {
                 _writeAction(this, _rows, _pos);
                 _pos = 0;
             }
+            finally
+            {
+                // Always set the RowGroupWriter to null to ensure we don't try to re-write again when
+                // this ParquetRowWriter is disposed after encountering an error,
+                // which could lead to writing invalid data (eg. mismatching numbers of rows between columns).
+                var rowGroupWriter = _rowGroupWriter;
+                _rowGroupWriter = null;
+                rowGroupWriter.Dispose();
+            }
+        }
 
-            _rowGroupWriter?.Dispose();
-            _rowGroupWriter = null;
+        private static int RoundUpToPowerOf2(int x)
+        {
+            // TODO: Use BitOperations.RoundUpToPowerOf2 from System.Numerics once we move to dotnet >= 6
+            x--;
+            x |= x >> 1;
+            x |= x >> 2;
+            x |= x >> 4;
+            x |= x >> 8;
+            x |= x >> 16;
+            x++;
+            return x;
         }
 
         private readonly ParquetFileWriter _parquetFileWriter;

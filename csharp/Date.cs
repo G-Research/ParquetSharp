@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace ParquetSharp
@@ -65,7 +66,7 @@ namespace ParquetSharp
 
         public override string ToString()
         {
-            return DateTime.ToString();
+            return DateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         }
 
         private const long BaseDateTimeTicks = 621355968000000000; // new DateTime(1970, 01, 01).Ticks

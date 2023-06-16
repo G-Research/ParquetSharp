@@ -29,6 +29,8 @@ namespace ParquetSharp.Benchmark
                     BenchmarkConverter.TypeToBenchmarks(typeof(FloatTimeSeriesRead), config),
                     BenchmarkConverter.TypeToBenchmarks(typeof(FloatTimeSeriesWrite), config),
                     BenchmarkConverter.TypeToBenchmarks(typeof(FloatArrayTimeSeriesRead), config),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(NestedRead), config),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(NestedWrite), config),
                 });
 
                 // Re-print to the console all the summaries. 

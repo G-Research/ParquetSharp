@@ -24,7 +24,7 @@ namespace ParquetSharp.IO
             _close = Close;
             _closed = Closed;
 
-            Handle = Create(_write, _tell, _flush, _close, _closed);
+            Handle = Create(_write, _tell, _flush, _close, _closed, this);
         }
 
         private static ParquetHandle Create(
@@ -32,10 +32,22 @@ namespace ParquetSharp.IO
             TellDelegate tell,
             FlushDelegate flush,
             CloseDelegate close,
-            ClosedDelegate closed)
+            ClosedDelegate closed,
+            ManagedOutputStream managedStream)
         {
             ExceptionInfo.Check(ManagedOutputStream_Create(write, tell, flush, close, closed, out var handle));
-            return new ParquetHandle(handle, OutputStream_Free);
+
+            void Free(IntPtr ptr)
+            {
+                OutputStream_Free(ptr);
+                // Capture and keep a handle to the managed stream so that if we free the last reference to the
+                // C++ output stream and trigger a stream close, we can ensure the stream hasn't been garbage collected.
+                // Note that this doesn't protect against the case where the C# side handle is disposed or finalized before
+                // the C++ side has finished with it.
+                GC.KeepAlive(managedStream);
+            }
+
+            return new ParquetHandle(handle, Free);
         }
 
         private byte Write(IntPtr src, long nbytes, out string? exception)

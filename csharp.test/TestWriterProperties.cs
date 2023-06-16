@@ -15,15 +15,15 @@ namespace ParquetSharp.Test
         {
             var p = WriterProperties.GetDefaultWriterProperties();
 
-            Assert.AreEqual("parquet-cpp-arrow version 8.0.0", p.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 10.0.1", p.CreatedBy);
             Assert.AreEqual(Compression.Uncompressed, p.Compression(new ColumnPath("anypath")));
             Assert.AreEqual(int.MinValue, p.CompressionLevel(new ColumnPath("anypath")));
             Assert.AreEqual(1024 * 1024, p.DataPageSize);
-            Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryIndexEncoding);
-            Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryPageEncoding);
+            Assert.AreEqual(Encoding.RleDictionary, p.DictionaryIndexEncoding);
+            Assert.AreEqual(Encoding.Plain, p.DictionaryPageEncoding);
             Assert.AreEqual(1024 * 1024, p.DictionaryPagesizeLimit);
             Assert.AreEqual(64 * 1024 * 1024, p.MaxRowGroupLength);
-            Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
+            Assert.AreEqual(ParquetVersion.PARQUET_2_4, p.Version);
             Assert.AreEqual(1024, p.WriteBatchSize);
         }
 
@@ -52,6 +52,57 @@ namespace ParquetSharp.Test
             Assert.AreEqual(789, p.MaxRowGroupLength);
             Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
             Assert.AreEqual(666, p.WriteBatchSize);
+        }
+
+        [Test]
+        [NonParallelizable]
+        public static void TestOverrideDefaults()
+        {
+            try
+            {
+                DefaultWriterProperties.EnableDictionary = false;
+                DefaultWriterProperties.EnableStatistics = false;
+                DefaultWriterProperties.Compression = Compression.Zstd;
+                DefaultWriterProperties.CompressionLevel = 3;
+                DefaultWriterProperties.CreatedBy = "Meeeee!!!";
+                DefaultWriterProperties.DataPagesize = 123;
+                DefaultWriterProperties.DictionaryPagesizeLimit = 456;
+                DefaultWriterProperties.Encoding = Encoding.DeltaByteArray;
+                DefaultWriterProperties.MaxRowGroupLength = 789;
+                DefaultWriterProperties.Version = ParquetVersion.PARQUET_1_0;
+                DefaultWriterProperties.WriteBatchSize = 666;
+
+                using var builder = new WriterPropertiesBuilder();
+                using var p = builder.Build();
+
+                Assert.False(p.DictionaryEnabled(new ColumnPath("anypath")));
+                Assert.False(p.StatisticsEnabled(new ColumnPath("anypath")));
+                Assert.AreEqual("Meeeee!!!", p.CreatedBy);
+                Assert.AreEqual(Compression.Zstd, p.Compression(new ColumnPath("anypath")));
+                Assert.AreEqual(3, p.CompressionLevel(new ColumnPath("anypath")));
+                Assert.AreEqual(123, p.DataPageSize);
+                Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryIndexEncoding);
+                Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryPageEncoding);
+                Assert.AreEqual(456, p.DictionaryPagesizeLimit);
+                Assert.AreEqual(789, p.MaxRowGroupLength);
+                Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
+                Assert.AreEqual(666, p.WriteBatchSize);
+            }
+            finally
+            {
+                // Reset defaults
+                DefaultWriterProperties.EnableDictionary = null;
+                DefaultWriterProperties.EnableStatistics = null;
+                DefaultWriterProperties.Compression = null;
+                DefaultWriterProperties.CompressionLevel = null;
+                DefaultWriterProperties.CreatedBy = null;
+                DefaultWriterProperties.DataPagesize = null;
+                DefaultWriterProperties.DictionaryPagesizeLimit = null;
+                DefaultWriterProperties.Encoding = null;
+                DefaultWriterProperties.MaxRowGroupLength = null;
+                DefaultWriterProperties.Version = null;
+                DefaultWriterProperties.WriteBatchSize = null;
+            }
         }
 
         [Test]
@@ -97,7 +148,7 @@ namespace ParquetSharp.Test
             using var metadataId = groupReader.MetaData.GetColumnChunkMetaData(0);
             using var metadataValue = groupReader.MetaData.GetColumnChunkMetaData(1);
 
-            Assert.AreEqual(new[] {Encoding.PlainDictionary, Encoding.Plain, Encoding.Rle}, metadataId.Encodings);
+            Assert.AreEqual(new[] {Encoding.RleDictionary, Encoding.Plain, Encoding.Rle}, metadataId.Encodings);
             Assert.AreEqual(new[] {Encoding.ByteStreamSplit, Encoding.Rle}, metadataValue.Encodings);
 
             using var idReader = groupReader.Column(0).LogicalReader<int>();

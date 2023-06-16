@@ -107,9 +107,37 @@ namespace ParquetSharp
 
             if (logicalType is DecimalLogicalType)
             {
-                if (descriptor.TypeLength != sizeof(Decimal128)) throw new NotSupportedException($"only {sizeof(Decimal128)} bytes of decimal length is supported");
-                if (descriptor.TypePrecision > 29) throw new NotSupportedException("only max 29 digits of decimal precision is supported");
-                return (typeof(FixedLenByteArray), nullable ? typeof(decimal?) : typeof(decimal));
+                switch (physicalType)
+                {
+                    case PhysicalType.Int32:
+                    {
+                        if (descriptor.TypePrecision > 9)
+                        {
+                            throw new NotSupportedException("A maximum of 9 digits of decimal precision is supported with int32 data");
+                        }
+                        return (typeof(int), nullable ? typeof(decimal?) : typeof(decimal));
+                    }
+                    case PhysicalType.Int64:
+                    {
+                        if (descriptor.TypePrecision > 18)
+                        {
+                            throw new NotSupportedException("A maximum of 18 digits of decimal precision is supported with int64 data");
+                        }
+                        return (typeof(long), nullable ? typeof(decimal?) : typeof(decimal));
+                    }
+                    case PhysicalType.FixedLenByteArray:
+                    {
+                        if (descriptor.TypeLength != sizeof(Decimal128))
+                        {
+                            throw new NotSupportedException($"only {sizeof(Decimal128)} bytes of decimal length is supported with fixed-length byte array data");
+                        }
+                        if (descriptor.TypePrecision > 29)
+                        {
+                            throw new NotSupportedException("only max 29 digits of decimal precision is supported with fixed-length byte array data");
+                        }
+                        return (typeof(FixedLenByteArray), nullable ? typeof(decimal?) : typeof(decimal));
+                    }
+                }
             }
 
             if (logicalType is TimeLogicalType timeLogicalType)

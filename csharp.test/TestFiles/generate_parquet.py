@@ -4,8 +4,9 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pandas as pd
 
-# pd.__version__ == 1.3.3
-# pa.__version__ == 5.0.0
+# These assertions document which versions were used to generate the test data.
+assert pd.__version__ == "1.4.3"
+assert pa.__version__ == "8.0.0"
 
 nested_structure = '''
 [
@@ -46,7 +47,25 @@ nested_structure = '''
 ]
 '''
 
-df = pd.io.json.read_json(nested_structure)
-parquetTable = pa.Table.from_pandas(df, preserve_index=False)
-print(parquetTable.schema)
-pq.write_table(parquetTable, 'nested.parquet', version='2.0')
+pq.write_table(
+    pa.Table.from_pandas(
+        pd.io.json.read_json(nested_structure),
+        preserve_index=False
+    ),
+    'nested.parquet',
+    version='2.0'
+)
+
+pq.write_table(
+    pa.Table.from_pandas(
+        pd.DataFrame({
+            'col1': pd.Series([
+                [('key1', 'aaaa'), ('key2', 'bbbb')],
+                [('key3', '1111'), ('key4', '2222')],
+            ]),
+            'col2': pd.Series(['foo', 'bar'])
+        }),
+        schema=pa.schema([pa.field('col1', pa.map_(pa.string(), pa.string())), pa.field('col2', pa.string())])
+    ),
+    'map.parquet'
+)

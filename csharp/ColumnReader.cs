@@ -74,7 +74,19 @@ namespace ParquetSharp
 
         public LogicalColumnReader LogicalReader(int bufferLength = 4 * 1024)
         {
-            return LogicalColumnReader.Create(this, bufferLength, elementTypeOverride: null);
+            // By default we don't use nested types when reading nested data for simplicity and backwards compatibility,
+            // so  users must opt in to this by using one of the typed methods,
+            // or the overload that takes a useNesting parameter.
+            return LogicalColumnReader.Create(this, bufferLength, elementTypeOverride: null, useNesting: false);
+        }
+
+        /// <summary>
+        /// Overload for creating an untyped LogicalReader that allows specifying whether nested data should
+        /// be read wrapped in the Nested type.
+        /// </summary>
+        public LogicalColumnReader LogicalReader(bool useNesting, int bufferLength = 4 * 1024)
+        {
+            return LogicalColumnReader.Create(this, bufferLength, elementTypeOverride: null, useNesting: useNesting);
         }
 
         public LogicalColumnReader<TElement> LogicalReader<TElement>(int bufferLength = 4 * 1024)

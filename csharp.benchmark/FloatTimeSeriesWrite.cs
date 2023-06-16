@@ -3,10 +3,12 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using ParquetSharp.RowOriented;
 using Parquet;
 using Parquet.Data;
+using Parquet.Schema;
 
 namespace ParquetSharp.Benchmark
 {
@@ -22,9 +24,19 @@ namespace ParquetSharp.Benchmark
             (_dates, _objectIds, _values, numRows) = CreateFloatDataFrame(360);
 
             // For Parquet.NET
-            _allDatesAsDateTimeOffsets = _dates.SelectMany(d => Enumerable.Repeat(new DateTimeOffset(d, TimeSpan.Zero), _objectIds.Length)).ToArray();
+            _allDates = _dates.SelectMany(d => Enumerable.Repeat(d, _objectIds.Length)).ToArray();
             _allObjectIds = _dates.SelectMany(d => _objectIds).ToArray();
             _allValues = _dates.SelectMany((d, i) => _values[i]).ToArray();
+
+            // Pre-computed rows for batch row-oriented
+            _allRows = new (DateTime, int, float)[numRows];
+            for (var i = 0; i != _dates.Length; ++i)
+            {
+                for (var j = 0; j != _objectIds.Length; ++j)
+                {
+                    _allRows[i * _objectIds.Length + j] = (_dates[i], _objectIds[j], _values[i][j]);
+                }
+            }
 
             Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", numRows, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
@@ -172,7 +184,7 @@ namespace ParquetSharp.Benchmark
         }
 
         [Benchmark(Description = "RowOriented")]
-        public long ParquetRowsOriented()
+        public long ParquetRowOriented()
         {
             using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet.roworiented", new[] {"DateTime", "ObjectId", "Value"}))
             {
@@ -208,26 +220,38 @@ namespace ParquetSharp.Benchmark
             rowWriter.Close();
         }
 
+        [Benchmark(Description = "RowOriented (Batched)")]
+        public long ParquetRowOrientedBatched()
+        {
+            using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet.roworiented.batched", new[] {"DateTime", "ObjectId", "Value"}))
+            {
+                rowWriter.WriteRowSpan(_allRows);
+                rowWriter.Close();
+            }
+
+            return new FileInfo("float_timeseries.parquet.roworiented.batched").Length;
+        }
+
         [Benchmark(Description = "Parquet .NET")]
-        public long ParquetDotNet()
+        public async Task<long> ParquetDotNet()
         {
             {
-                var dateTimeField = new DateTimeDataField("DateTime", DateTimeFormat.DateAndTime, hasNulls: false);
+                var dateTimeField = new DateTimeDataField("DateTime", DateTimeFormat.DateAndTime, isNullable: false);
                 var objectIdField = new DataField<int>("ObjectId");
                 var valueField = new DataField<float>("Value");
-                var schema = new Parquet.Data.Schema(dateTimeField, objectIdField, valueField);
+                var schema = new ParquetSchema(dateTimeField, objectIdField, valueField);
 
                 using var stream = File.Create("float_timeseries.parquet.net");
-                using var parquetWriter = new ParquetWriter(schema, stream);
+                using var parquetWriter = await ParquetWriter.CreateAsync(schema, stream);
                 using var groupWriter = parquetWriter.CreateRowGroup();
 
-                var dateTimeColumn = new DataColumn(dateTimeField, _allDatesAsDateTimeOffsets);
+                var dateTimeColumn = new DataColumn(dateTimeField, _allDates);
                 var objectIdColumn = new DataColumn(objectIdField, _allObjectIds);
                 var valueColumn = new DataColumn(valueField, _allValues);
 
-                groupWriter.WriteColumn(dateTimeColumn);
-                groupWriter.WriteColumn(objectIdColumn);
-                groupWriter.WriteColumn(valueColumn);
+                await groupWriter.WriteColumnAsync(dateTimeColumn);
+                await groupWriter.WriteColumnAsync(objectIdColumn);
+                await groupWriter.WriteColumnAsync(valueColumn);
             }
 
             if (Check.Enabled)
@@ -277,7 +301,9 @@ namespace ParquetSharp.Benchmark
         private readonly int[] _objectIds;
         private readonly float[][] _values;
 
-        private readonly DateTimeOffset[] _allDatesAsDateTimeOffsets;
+        private readonly (DateTime, int, float)[] _allRows;
+
+        private readonly DateTime[] _allDates;
         private readonly int[] _allObjectIds;
         private readonly float[] _allValues;
     }

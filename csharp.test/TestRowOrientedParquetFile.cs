@@ -279,6 +279,120 @@ namespace ParquetSharp.Test
                 "Expected a system type of 'System.Nullable`1[System.Int32]' for column 0 (a) but received 'System.Int32'"));
         }
 
+        [Test]
+        public static void TestMultipleRowGroups()
+        {
+            const int numRowGroups = 10;
+            var expectedRows = new Row1[numRowGroups][];
+            for (var i = 0; i < numRowGroups; ++i)
+            {
+                expectedRows[i] = new[]
+                {
+                    new Row1 {A = i, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M},
+                    new Row1 {A = i * 2, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M},
+                    new Row1 {A = i * 3, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M}
+                };
+            }
+
+            using var buffer = new ResizableBuffer();
+            using (var outputStream = new BufferOutputStream(buffer))
+            {
+                using var writer = ParquetFile.CreateRowWriter<Row1>(outputStream);
+
+                for (var i = 0; i < numRowGroups; ++i)
+                {
+                    if (i != 0)
+                    {
+                        writer.StartNewRowGroup();
+                    }
+                    writer.WriteRows(expectedRows[i]);
+                }
+                writer.Close();
+            }
+
+            using var inputStream = new BufferReader(buffer);
+            using var reader = ParquetFile.CreateRowReader<Row1>(inputStream);
+
+            Assert.AreEqual(numRowGroups, reader.FileMetaData.NumRowGroups);
+            for (var i = 0; i < numRowGroups; ++i)
+            {
+                var values = reader.ReadRows(rowGroup: i);
+                Assert.AreEqual(expectedRows[i], values);
+            }
+        }
+
+        [Test]
+        public static void TestWriteMultipleBatches([Values] bool useSpan)
+        {
+            var batchSizes = new[] {2, 1024, 0, 4, 1, 2048};
+            var totalRows = batchSizes.Sum();
+            var batches = new Row1[batchSizes.Length][];
+            var expected = new Row1[totalRows];
+            var offset = 0;
+            for (var batchIdx = 0; batchIdx < batchSizes.Length; ++batchIdx)
+            {
+                var batchSize = batchSizes[batchIdx];
+                batches[batchIdx] = Enumerable.Range(0, batchSize).Select(i => new Row1
+                    {A = batchIdx, B = i, C = new DateTime(2022, 4, 20), D = 123.1M}).ToArray();
+                for (var i = 0; i < batchSize; ++i)
+                {
+                    expected[offset + i] = batches[batchIdx][i];
+                }
+                offset += batchSize;
+            }
+
+            using var buffer = new ResizableBuffer();
+            using (var outputStream = new BufferOutputStream(buffer))
+            {
+                using var writer = ParquetFile.CreateRowWriter<Row1>(outputStream);
+                foreach (var batch in batches)
+                {
+                    if (useSpan)
+                    {
+                        writer.WriteRowSpan(batch);
+                    }
+                    else
+                    {
+                        writer.WriteRows(batch);
+                    }
+                }
+                writer.Close();
+            }
+
+            using var inputStream = new BufferReader(buffer);
+            using var reader = ParquetFile.CreateRowReader<Row1>(inputStream);
+
+            Assert.AreEqual(1, reader.FileMetaData.NumRowGroups);
+            var values = reader.ReadRows(0);
+            Assert.AreEqual(expected, values);
+        }
+
+        [Test]
+        public static void TestWriteErrorHandling()
+        {
+            var rows = new[]
+            {
+                new ThrowingClass {A = 1, B = 2},
+                new ThrowingClass {A = 3, B = 4},
+                new ThrowingClass {A = 5, B = 6},
+            };
+            using var buffer = new ResizableBuffer();
+            using var outputStream = new BufferOutputStream(buffer);
+            var writer = ParquetFile.CreateRowWriter<ThrowingClass>(outputStream);
+
+            try
+            {
+                writer.WriteRows(rows);
+                var exception = Assert.Throws<Exception>(() => writer.Close());
+                Assert.AreEqual("Can't get me", exception!.Message);
+            }
+            finally
+            {
+                // Disposing of the writer shouldn't try to re-write data
+                writer.Dispose();
+            }
+        }
+
         private static void TestRoundtrip<TTuple>(TTuple[] rows)
         {
             RoundTripAndCompare(rows, rows, columnNames: null);
@@ -393,6 +507,19 @@ namespace ParquetSharp.Test
 
             [MapToColumn("D"), ParquetDecimalScale(3)]
             public decimal T;
+        }
+
+        private class ThrowingClass
+        {
+            public int A { get; set; }
+
+            public int B
+            {
+                get => throw new Exception("Can't get me");
+                set => _b = value;
+            }
+
+            private int _b;
         }
 
 #if DUMP_EXPRESSION_TREES
