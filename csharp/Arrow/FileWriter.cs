@@ -52,6 +52,7 @@ namespace ParquetSharp.Arrow
             ExceptionInfo.Check(FileWriter_OpenPath(path, &cSchema, writerPropertiesPtr, arrowPropertiesPtr, out var writer));
             _handle = new ParquetHandle(writer, FileWriter_Free);
 
+            GC.KeepAlive(cSchema);
             GC.KeepAlive(properties);
             GC.KeepAlive(arrowProperties);
         }
@@ -86,6 +87,7 @@ namespace ParquetSharp.Arrow
             _handle = new ParquetHandle(writer, FileWriter_Free);
             _outputStream = outputStream;
 
+            GC.KeepAlive(cSchema);
             GC.KeepAlive(properties);
             GC.KeepAlive(arrowProperties);
         }
@@ -123,6 +125,7 @@ namespace ParquetSharp.Arrow
                 _outputStream.Handle!.IntPtr, &cSchema, writerPropertiesPtr, arrowPropertiesPtr, out var writer));
             _handle = new ParquetHandle(writer, FileWriter_Free);
 
+            GC.KeepAlive(cSchema);
             GC.KeepAlive(properties);
             GC.KeepAlive(arrowProperties);
         }
@@ -194,6 +197,8 @@ namespace ParquetSharp.Arrow
             CArrowSchemaExporter.ExportType(array.Data.DataType, &cType);
             ExceptionInfo.Check(FileWriter_WriteColumnChunk(_handle.IntPtr, &cArray, &cType));
 
+            GC.KeepAlive(cArray);
+            GC.KeepAlive(cType);
             GC.KeepAlive(_handle);
         }
 
@@ -222,6 +227,7 @@ namespace ParquetSharp.Arrow
             CArrowArrayStreamExporter.ExportArrayStream(arrayStream, &cArrayStream);
             ExceptionInfo.Check(FileWriter_WriteChunkedColumnChunk(_handle.IntPtr, &cArrayStream));
 
+            GC.KeepAlive(cArrayStream);
             GC.KeepAlive(_handle);
         }
 
@@ -255,6 +261,7 @@ namespace ParquetSharp.Arrow
             var cArrayStream = new CArrowArrayStream();
             CArrowArrayStreamExporter.ExportArrayStream(arrayStream, &cArrayStream);
             ExceptionInfo.Check(FileWriter_WriteTable(_handle.IntPtr, &cArrayStream, chunkSize));
+            GC.KeepAlive(cArrayStream);
             GC.KeepAlive(_handle);
         }
 
