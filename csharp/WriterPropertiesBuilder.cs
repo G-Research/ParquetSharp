@@ -235,6 +235,31 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Enable writing the page index
+        ///
+        /// The page index contains statistics for data pages and can be used to skip pages
+        /// when scanning data in ordered and unordered columns.
+        ///
+        /// For more details, see https://github.com/apache/parquet-format/blob/master/PageIndex.md
+        /// </summary>
+        public WriterPropertiesBuilder EnableWritePageIndex()
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Write_Page_Index(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Disable writing the page index
+        /// </summary>
+        public WriterPropertiesBuilder DisableWritePageIndex()
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Write_Page_Index(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
         private void ApplyDefaults()
         {
             OnDefaultProperty(DefaultWriterProperties.EnableDictionary, enabled =>
@@ -278,6 +303,18 @@ namespace ParquetSharp
             OnDefaultProperty(DefaultWriterProperties.Version, version => { Version(version); });
 
             OnDefaultProperty(DefaultWriterProperties.WriteBatchSize, writeBatchSize => { WriteBatchSize(writeBatchSize); });
+
+            OnDefaultProperty(DefaultWriterProperties.WritePageIndex, writePageIndex =>
+            {
+                if (writePageIndex)
+                {
+                    EnableWritePageIndex();
+                }
+                else
+                {
+                    DisableWritePageIndex();
+                }
+            });
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -397,6 +434,12 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Write_Batch_Size(IntPtr builder, long writeBatchSize);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Enable_Write_Page_Index(IntPtr builder);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Disable_Write_Page_Index(IntPtr builder);
 
         private readonly ParquetHandle _handle;
     }

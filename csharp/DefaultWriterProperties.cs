@@ -65,5 +65,10 @@ namespace ParquetSharp
         /// Default write batch size
         /// </summary>
         public static long? WriteBatchSize { get; set; }
+
+        /// <summary>
+        /// Write the page index
+        /// </summary>
+        public static bool? WritePageIndex { get; set; }
     }
 }

@@ -64,6 +64,11 @@ extern "C"
 		TRYCATCH(*size = (*writer_properties)->write_batch_size();)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Write_Page_Index(const std::shared_ptr<WriterProperties>* writer_properties, bool* enabled)
+	{
+		TRYCATCH(*enabled = (*writer_properties)->write_page_index();)
+	}
+
 	// ColumnPath taking methods.
 
 	//PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Column_Properties(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, const ColumnProperties** columnProperties)
