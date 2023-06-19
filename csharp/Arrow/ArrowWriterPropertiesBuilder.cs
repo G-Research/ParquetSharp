@@ -69,7 +69,9 @@ namespace ParquetSharp.Arrow
         /// <summary>
         /// EXPERIMENTAL: Write binary serialized Arrow schema to the file,
         /// to enable certain read options (like "read_dictionary") to be set
-        /// automatically
+        /// automatically.
+        /// This also controls whether the metadata from the Arrow schema will be written
+        /// to Parquet key-value metadata.
         /// </summary>
         public ArrowWriterPropertiesBuilder StoreSchema()
         {

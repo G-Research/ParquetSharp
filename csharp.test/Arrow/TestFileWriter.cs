@@ -192,6 +192,49 @@ namespace ParquetSharp.Test.Arrow
             writer.Close();
         }
 
+        [Test]
+        public void TestWriteAndReadMetadata()
+        {
+            // Writing key-value metadata requires using the Arrow schema
+            var metadata = new Dictionary<string, string>
+            {
+                {"foo", "bar"},
+                {"baz", "123"},
+            };
+
+            var fields = new[] {new Field("x", new Apache.Arrow.Types.Int32Type(), false)};
+            var schema = new Apache.Arrow.Schema(fields, metadata);
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                // Storing the schema is required, even to have normal Parquet KV metadata
+                using var builder = new ArrowWriterPropertiesBuilder().StoreSchema();
+                using var props = builder.Build();
+
+                using var writer = new FileWriter(outStream, schema, arrowProperties: props);
+                writer.Close();
+            }
+
+            // Read with Arrow reader
+            using (var inStream = new BufferReader(buffer))
+            {
+                using var reader = new FileReader(inStream);
+                var readMetadata = reader.Schema.Metadata;
+                Assert.That(readMetadata["foo"], Is.EqualTo("bar"));
+                Assert.That(readMetadata["baz"], Is.EqualTo("123"));
+            }
+
+            // Read with standard reader
+            using (var inStream = new BufferReader(buffer))
+            {
+                using var reader = new ParquetFileReader(inStream);
+                var readMetadata = reader.FileMetaData.KeyValueMetadata;
+                Assert.That(readMetadata["foo"], Is.EqualTo("bar"));
+                Assert.That(readMetadata["baz"], Is.EqualTo("123"));
+            }
+        }
+
         private static async Task VerifyData(RandomAccessFile inStream, int expectedRows)
         {
             using var fileReader = new FileReader(inStream);
