@@ -56,4 +56,14 @@ extern "C"
   {
     TRYCATCH(properties->set_pre_buffer(pre_buffer);)
   }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCoerceInt96TimestampUnit(ArrowReaderProperties* properties, ::arrow::TimeUnit::type* unit)
+  {
+    TRYCATCH(*unit = properties->coerce_int96_timestamp_unit();)
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_SetCoerceInt96TimestampUnit(ArrowReaderProperties* properties, ::arrow::TimeUnit::type unit)
+  {
+    TRYCATCH(properties->set_coerce_int96_timestamp_unit(unit);)
+  }
 }

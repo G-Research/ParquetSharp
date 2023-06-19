@@ -86,6 +86,25 @@ namespace ParquetSharp.Arrow
             }
         }
 
+        /// <summary>
+        /// The timestamp unit to use for deprecated INT96-encoded timestamps
+        /// (default is nanoseconds).
+        /// </summary>
+        public Apache.Arrow.Types.TimeUnit CoerceInt96TimestampUnit
+        {
+            get
+            {
+                var cppUnit = ExceptionInfo.Return<ArrowTimeUnit>(Handle, ArrowReaderProperties_GetCoerceInt96TimestampUnit);
+                return ArrowTimeUnitUtils.ToArrow(cppUnit);
+            }
+            set
+            {
+                var cppUnit = ArrowTimeUnitUtils.FromArrow(value);
+                ExceptionInfo.Check(ArrowReaderProperties_SetCoerceInt96TimestampUnit(Handle.IntPtr, cppUnit));
+                GC.KeepAlive(Handle);
+            }
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_GetDefault(out IntPtr readerProperties);
 
@@ -115,6 +134,12 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_SetPreBuffer(IntPtr readerProperties, bool preBuffer);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_GetCoerceInt96TimestampUnit(IntPtr readerProperties, out ArrowTimeUnit unit);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_SetCoerceInt96TimestampUnit(IntPtr readerProperties, ArrowTimeUnit unit);
 
         internal readonly ParquetHandle Handle;
     }
