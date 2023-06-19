@@ -198,6 +198,34 @@ namespace ParquetSharp.Arrow
         }
 
         /// <summary>
+        /// Write a column of data to a row group using an Arrow ChunkedArray
+        /// </summary>
+        /// <param name="array">The array of data for the column</param>
+        public unsafe void WriteColumnChunk(ChunkedArray array)
+        {
+            // Convert the chunked array to a single-column Table so it can be passed through
+            // to the C++ library using the C stream interface.
+            // The field name doesn't matter as this will be ignored on import in the C++ library.
+            var field = new Field("_", array.DataType, true);
+            var schema = new Apache.Arrow.Schema(new[] {field}, null);
+            var arrays = new Apache.Arrow.Array[array.ArrayCount];
+            for (var i = 0; i < array.ArrayCount; ++i)
+            {
+                arrays[i] = array.Array(i);
+            }
+            var column = new Apache.Arrow.Column(field, arrays);
+            var table = new Table(schema, new[] {column});
+
+            var arrayStream = new RecordBatchStream(table);
+
+            var cArrayStream = new CArrowArrayStream();
+            CArrowArrayStreamExporter.ExportArrayStream(arrayStream, &cArrayStream);
+            ExceptionInfo.Check(FileWriter_WriteChunkedColumnChunk(_handle.IntPtr, &cArrayStream));
+
+            GC.KeepAlive(_handle);
+        }
+
+        /// <summary>
         /// Close the file writer, writing the Parquet footer.
         /// This is the recommended way of closing Parquet files, rather than relying on the Dispose() method,
         /// as the latter will gobble exceptions.
@@ -249,6 +277,9 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern unsafe IntPtr FileWriter_WriteColumnChunk(IntPtr writer, CArrowArray* array, CArrowSchema* arrayType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern unsafe IntPtr FileWriter_WriteChunkedColumnChunk(IntPtr writer, CArrowArrayStream* stream);
 
         [DllImport(ParquetDll.Name)]
         private static extern void FileWriter_Free(IntPtr writer);

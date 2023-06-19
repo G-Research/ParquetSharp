@@ -2,6 +2,7 @@
 #include <arrow/c/abi.h>
 #include <arrow/c/bridge.h>
 #include <arrow/record_batch.h>
+#include <arrow/table.h>
 #include <parquet/arrow/writer.h>
 
 #include "cpp/ParquetSharpExport.h"
@@ -111,6 +112,24 @@ extern "C"
       std::shared_ptr<arrow::Array> array;
       PARQUET_ASSIGN_OR_THROW(array, arrow::ImportArray(c_array, array_type));
       PARQUET_THROW_NOT_OK(writer->WriteColumnChunk(*array));
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* FileWriter_WriteChunkedColumnChunk(
+      FileWriter* writer, struct ArrowArrayStream* stream)
+  {
+    TRYCATCH
+    (
+      std::shared_ptr<arrow::RecordBatchReader> reader;
+      PARQUET_ASSIGN_OR_THROW(reader, arrow::ImportRecordBatchReader(stream));
+      std::shared_ptr<arrow::Table> table;
+      PARQUET_ASSIGN_OR_THROW(table, reader->ToTable());
+      if (table->num_columns() != 1)
+      {
+        throw parquet::ParquetException("Expected a single column for column chunk");
+      }
+      std::shared_ptr<arrow::ChunkedArray> array = table->column(0);
+      PARQUET_THROW_NOT_OK(writer->WriteColumnChunk(array));
     )
   }
 

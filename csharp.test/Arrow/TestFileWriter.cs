@@ -173,6 +173,58 @@ namespace ParquetSharp.Test.Arrow
         }
 
         [Test]
+        public async Task TestWriteRowGroupColumnsChunked()
+        {
+            var fields = new[]
+            {
+                new Field("x", new Apache.Arrow.Types.Int32Type(), false),
+                new Field("y", new Apache.Arrow.Types.FloatType(), false),
+            };
+            const int chunkSize = 50;
+            const int rowsPerRowGroup = chunkSize * 2;
+            const int numRowGroups = 10;
+            var schema = new Apache.Arrow.Schema(fields, null);
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var writer = new FileWriter(outStream, schema);
+
+                for (var rowGroupIdx = 0; rowGroupIdx < numRowGroups; ++rowGroupIdx)
+                {
+                    var start0 = rowGroupIdx * rowsPerRowGroup;
+                    var start1 = start0 + chunkSize;
+                    writer.NewRowGroup(rowsPerRowGroup);
+
+                    {
+                        using var intArray0 = new Int32Array.Builder()
+                            .AppendRange(Enumerable.Range(start0, chunkSize))
+                            .Build();
+                        using var intArray1 = new Int32Array.Builder()
+                            .AppendRange(Enumerable.Range(start1, chunkSize))
+                            .Build();
+                        writer.WriteColumnChunk(new ChunkedArray(new Array[] {intArray0, intArray1}));
+                    }
+
+                    {
+                        using var floatArray0 = new FloatArray.Builder()
+                            .AppendRange(Enumerable.Range(start0, chunkSize).Select(i => i / 100.0f))
+                            .Build();
+                        using var floatArray1 = new FloatArray.Builder()
+                            .AppendRange(Enumerable.Range(start1, chunkSize).Select(i => i / 100.0f))
+                            .Build();
+                        writer.WriteColumnChunk(new ChunkedArray(new Array[] {floatArray0, floatArray1}));
+                    }
+                }
+
+                writer.Close();
+            }
+
+            using var inStream = new BufferReader(buffer);
+            await VerifyData(inStream, numRowGroups * rowsPerRowGroup);
+        }
+
+        [Test]
         public void TestWriteWithProperties()
         {
             var fields = new[] {new Field("x", new Apache.Arrow.Types.Int32Type(), false)};
