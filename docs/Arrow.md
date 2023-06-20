@@ -206,3 +206,28 @@ using var arrowProperties = arrowPropertiesBuilder
 using var fileWriter = new FileWriter(
     "data.parquet", schema, properties: properties, arrowProperties: arrowProperties);
 ```
+
+## Limitations
+
+Currently the C data interface implementation in Apache.Arrow only supports
+exporting arrays backed by Arrow's native memory manager,
+and once data has been exported it can no longer continue to be accessed from .NET.
+This means that exporting Arrow data that has been read from an IPC file
+or a Parquet file isn't supported, but you can work around this by cloning
+data before exporting it.
+
+For example, writing data from an `IArrowArrayStream` that doesn't use
+Arrow's native memory manager would look like:
+
+```csharp
+RecordBatch batch;
+while ((batch = await streamReader.ReadNextRecordBatchAsync()) != null)
+{
+    using (batch)
+    {
+        fileWriter.WriteRecordBatch(batch.Clone());
+    }
+}
+```
+
+For more details, see [the Apache Arrow GitHub issue](https://github.com/apache/arrow/issues/36057).
