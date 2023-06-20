@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using Apache.Arrow;
 using BenchmarkDotNet.Attributes;
 using ParquetSharp.RowOriented;
 using Parquet;
@@ -37,6 +39,22 @@ namespace ParquetSharp.Benchmark
                     _allRows[i * _objectIds.Length + j] = (_dates[i], _objectIds[j], _values[i][j]);
                 }
             }
+
+            // Pre-computed Arrow format data
+            var timestampType =
+                new Apache.Arrow.Types.TimestampType(Apache.Arrow.Types.TimeUnit.Millisecond, TimeZoneInfo.Utc);
+            var timestampArray = new TimestampArray.Builder(timestampType)
+                .AppendRange(_allDates.Select(dt => new DateTimeOffset(dt, TimeSpan.Zero))).Build();
+            var idArray = new Int32Array.Builder().AppendRange(_allObjectIds).Build();
+            var valueArray = new FloatArray.Builder().AppendRange(_allValues).Build();
+
+            var schema = new Apache.Arrow.Schema.Builder()
+                .Field(new Apache.Arrow.Field("DateTime", timestampType, false))
+                .Field(new Apache.Arrow.Field("ObjectId", new Apache.Arrow.Types.Int32Type(), false))
+                .Field(new Apache.Arrow.Field("Value", new Apache.Arrow.Types.FloatType(), false))
+                .Build();
+            _recordBatch = new RecordBatch(
+                schema, new IArrowArray[] {timestampArray, idArray, valueArray}, timestampArray.Length);
 
             Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", numRows, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
@@ -85,6 +103,15 @@ namespace ParquetSharp.Benchmark
             using (var fileWriter = new ParquetFileWriter("float_timeseries.parquet", CreateFloatColumns()))
             {
                 ParquetImpl(fileWriter);
+            }
+
+            if (Check.Enabled)
+            {
+                var results = ReadFile("float_timeseries.parquet", _allValues.Length);
+
+                Check.ArraysAreEqual(_allDates, results.dateTimes);
+                Check.ArraysAreEqual(_allObjectIds, results.objectIds);
+                Check.ArraysAreEqual(_allValues, results.values);
             }
 
             return new FileInfo("float_timeseries.parquet").Length;
@@ -232,6 +259,29 @@ namespace ParquetSharp.Benchmark
             return new FileInfo("float_timeseries.parquet.roworiented.batched").Length;
         }
 
+        [Benchmark(Description = "Write Apache Arrow data")]
+        public long ParquetSharpArrow()
+        {
+            using (var fileWriter = new Arrow.FileWriter("float_timeseries.parquet.arrow", _recordBatch.Schema))
+            {
+                // Need to clone the batch here, as the same record batch will be reused for multiple tests
+                // but is consumed by the writing process.
+                fileWriter.WriteRecordBatch(_recordBatch.Clone());
+                fileWriter.Close();
+            }
+
+            if (Check.Enabled)
+            {
+                var results = ReadFile("float_timeseries.parquet.arrow", _allValues.Length);
+
+                Check.ArraysAreEqual(_allDates, results.dateTimes);
+                Check.ArraysAreEqual(_allObjectIds, results.objectIds);
+                Check.ArraysAreEqual(_allValues, results.values);
+            }
+
+            return new FileInfo("float_timeseries.parquet.arrow").Length;
+        }
+
         [Benchmark(Description = "Parquet .NET")]
         public async Task<long> ParquetDotNet()
         {
@@ -256,45 +306,77 @@ namespace ParquetSharp.Benchmark
 
             if (Check.Enabled)
             {
-                // Read content from ParquetSharp and Parquet.NET
-                var baseline = ReadFile("float_timeseries.parquet", _allValues.Length);
                 var results = ReadFile("float_timeseries.parquet.net", _allValues.Length);
 
-                // Prove that the content is the same
-                Check.ArraysAreEqual(baseline.dateTimes, results.dateTimes);
-                Check.ArraysAreEqual(baseline.objectIds, results.objectIds);
-                Check.ArraysAreEqual(baseline.values, results.values);
+                Check.ArraysAreEqual(_allDates, results.dateTimes);
+                Check.ArraysAreEqual(_allObjectIds, results.objectIds);
+                Check.ArraysAreEqual(_allValues, results.values);
             }
 
             return new FileInfo("float_timeseries.parquet.net").Length;
         }
 
+        [GlobalCleanup]
+        public void GlobalCleanup()
+        {
+            _recordBatch.Dispose();
+        }
+
         private static (DateTime[] dateTimes, int[] objectIds, float[] values) ReadFile(string filename, int numRows)
         {
             using var fileReader = new ParquetFileReader(filename);
-            using var groupReader = fileReader.RowGroup(0);
+            var numRowGroups = fileReader.FileMetaData.NumRowGroups;
 
-            DateTime[] dateTimes;
-            using (var dateTimeReader = groupReader.Column(0).LogicalReader<DateTime>())
+            var dateTimes = new List<DateTime[]>();
+            var objectIds = new List<int[]>();
+            var values = new List<float[]>();
+
+            var rowsRead = 0;
+            for (var rowGroupIdx = 0; rowGroupIdx < numRowGroups; ++rowGroupIdx)
             {
-                dateTimes = dateTimeReader.ReadAll(numRows);
-            }
+                using var groupReader = fileReader.RowGroup(rowGroupIdx);
+                var rowCount = (int) Math.Min(numRows - rowsRead, groupReader.MetaData.NumRows);
 
-            int[] objectIds;
-            using (var objectIdReader = groupReader.Column(1).LogicalReader<int>())
-            {
-                objectIds = objectIdReader.ReadAll(numRows);
-            }
+                using (var dateTimeReader = groupReader.Column(0).LogicalReader<DateTime>())
+                {
+                    dateTimes.Add(dateTimeReader.ReadAll(rowCount));
+                }
 
-            float[] values;
-            using (var valueReader = groupReader.Column(2).LogicalReader<float>())
-            {
-                values = valueReader.ReadAll(numRows);
-            }
+                using (var objectIdReader = groupReader.Column(1).LogicalReader<int>())
+                {
+                    objectIds.Add(objectIdReader.ReadAll(rowCount));
+                }
 
+                using (var valueReader = groupReader.Column(2).LogicalReader<float>())
+                {
+                    values.Add(valueReader.ReadAll(rowCount));
+                }
+            }
             fileReader.Close();
 
-            return (dateTimes, objectIds, values);
+            if (numRowGroups == 1)
+            {
+                return (dateTimes[0], objectIds[0], values[0]);
+            }
+            return (
+                ConcatenateArrays(dateTimes),
+                ConcatenateArrays(objectIds),
+                ConcatenateArrays(values));
+        }
+
+        private static T[] ConcatenateArrays<T>(List<T[]> arrays)
+        {
+            var totalLength = arrays.Sum(array => array.Length);
+
+            var result = new T[totalLength];
+            var offset = 0;
+            foreach (var array in arrays)
+            {
+                array.CopyTo(result, offset);
+                offset += array.Length;
+            }
+
+            return result;
         }
 
         private readonly DateTime[] _dates;
@@ -306,5 +388,7 @@ namespace ParquetSharp.Benchmark
         private readonly DateTime[] _allDates;
         private readonly int[] _allObjectIds;
         private readonly float[] _allValues;
+
+        private readonly Apache.Arrow.RecordBatch _recordBatch;
     }
 }
