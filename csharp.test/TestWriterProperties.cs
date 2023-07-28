@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using NUnit.Framework;
 using ParquetSharp.IO;
 using ParquetSharp.Schema;
@@ -15,16 +14,17 @@ namespace ParquetSharp.Test
         {
             var p = WriterProperties.GetDefaultWriterProperties();
 
-            Assert.AreEqual("parquet-cpp-arrow version 10.0.1", p.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 12.0.1", p.CreatedBy);
             Assert.AreEqual(Compression.Uncompressed, p.Compression(new ColumnPath("anypath")));
             Assert.AreEqual(int.MinValue, p.CompressionLevel(new ColumnPath("anypath")));
             Assert.AreEqual(1024 * 1024, p.DataPageSize);
             Assert.AreEqual(Encoding.RleDictionary, p.DictionaryIndexEncoding);
             Assert.AreEqual(Encoding.Plain, p.DictionaryPageEncoding);
             Assert.AreEqual(1024 * 1024, p.DictionaryPagesizeLimit);
-            Assert.AreEqual(64 * 1024 * 1024, p.MaxRowGroupLength);
+            Assert.AreEqual(1024 * 1024, p.MaxRowGroupLength);
             Assert.AreEqual(ParquetVersion.PARQUET_2_4, p.Version);
             Assert.AreEqual(1024, p.WriteBatchSize);
+            Assert.False(p.WritePageIndex);
         }
 
         [Test]
@@ -40,6 +40,8 @@ namespace ParquetSharp.Test
                 .MaxRowGroupLength(789)
                 .Version(ParquetVersion.PARQUET_1_0)
                 .WriteBatchSize(666)
+                .DisableWritePageIndex()
+                .EnableWritePageIndex()
                 .Build();
 
             Assert.AreEqual("Meeeee!!!", p.CreatedBy);
@@ -52,6 +54,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(789, p.MaxRowGroupLength);
             Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
             Assert.AreEqual(666, p.WriteBatchSize);
+            Assert.True(p.WritePageIndex);
         }
 
         [Test]
@@ -71,6 +74,7 @@ namespace ParquetSharp.Test
                 DefaultWriterProperties.MaxRowGroupLength = 789;
                 DefaultWriterProperties.Version = ParquetVersion.PARQUET_1_0;
                 DefaultWriterProperties.WriteBatchSize = 666;
+                DefaultWriterProperties.WritePageIndex = true;
 
                 using var builder = new WriterPropertiesBuilder();
                 using var p = builder.Build();
@@ -87,6 +91,7 @@ namespace ParquetSharp.Test
                 Assert.AreEqual(789, p.MaxRowGroupLength);
                 Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
                 Assert.AreEqual(666, p.WriteBatchSize);
+                Assert.True(p.WritePageIndex);
             }
             finally
             {
@@ -102,6 +107,7 @@ namespace ParquetSharp.Test
                 DefaultWriterProperties.MaxRowGroupLength = null;
                 DefaultWriterProperties.Version = null;
                 DefaultWriterProperties.WriteBatchSize = null;
+                DefaultWriterProperties.WritePageIndex = null;
             }
         }
 
@@ -155,6 +161,49 @@ namespace ParquetSharp.Test
             using var valueReader = groupReader.Column(1).LogicalReader<float>();
 
             Assert.AreEqual(ids, idReader.ReadAll(numRows));
+            Assert.AreEqual(values, valueReader.ReadAll(numRows));
+        }
+
+        [Test]
+        public static void TestByteStreamSplitEncodingWithNulls()
+        {
+            const int numRows = 10230;
+
+            var values = Enumerable.Range(0, numRows)
+                .Select(i => i % 10 == 5 ? null : (float?) (i / 3.14f))
+                .ToArray();
+
+            using var buffer = new ResizableBuffer();
+            using (var output = new BufferOutputStream(buffer))
+            {
+                var columns = new Column[]
+                {
+                    new Column<float?>("value")
+                };
+
+                var p = new WriterPropertiesBuilder()
+                    .Compression(Compression.Snappy)
+                    .DisableDictionary("value")
+                    .Encoding("value", Encoding.ByteStreamSplit)
+                    .Build();
+
+                using var fileWriter = new ParquetFileWriter(output, columns, p);
+                using var groupWriter = fileWriter.AppendRowGroup();
+
+                using var valueWriter = groupWriter.NextColumn().LogicalWriter<float?>();
+                valueWriter.WriteBatch(values);
+
+                fileWriter.Close();
+            }
+
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            using var groupReader = fileReader.RowGroup(0);
+
+            using var columnMetadata = groupReader.MetaData.GetColumnChunkMetaData(0);
+            Assert.AreEqual(new[] {Encoding.ByteStreamSplit, Encoding.Rle}, columnMetadata.Encodings);
+
+            using var valueReader = groupReader.Column(0).LogicalReader<float?>();
             Assert.AreEqual(values, valueReader.ReadAll(numRows));
         }
     }

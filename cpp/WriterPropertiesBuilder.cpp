@@ -169,4 +169,14 @@ extern "C"
 	{
 		TRYCATCH(builder->write_batch_size(write_batch_size);)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Enable_Write_Page_Index(WriterProperties::Builder* builder)
+	{
+		TRYCATCH(builder->enable_write_page_index();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Disable_Write_Page_Index(WriterProperties::Builder* builder)
+	{
+		TRYCATCH(builder->disable_write_page_index();)
+	}
 }
