@@ -237,7 +237,9 @@ jobs:
     - name: Print PATH
       run: echo $PATH
     - name: Check pwsh
-      run: pwsh --version    
+      run: |
+        ls -l /opt/microsoft/powershell/7/pwsh
+        sudo /opt/microsoft/powershell/7/pwsh --version    
 
     - name: Get version
       id: get-version
