@@ -233,6 +233,12 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
+    - name: Print PATH
+      run: echo $PATH
+    - name: Check pwsh
+      run: pwsh --version    
+
     - name: Get version
       id: get-version
       run: echo "version=$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)" >> $env:GITHUB_OUTPUT
