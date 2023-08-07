@@ -239,7 +239,9 @@ jobs:
     - name: Check pwsh
       run: |
         ls -l /opt/microsoft/powershell/7/pwsh
-        sudo /opt/microsoft/powershell/7/pwsh --version    
+        /opt/microsoft/powershell/7/pwsh --version
+        /usr/bin/pwsh --version
+        pwsh --version
 
     - name: Get version
       id: get-version
