@@ -265,10 +265,10 @@ jobs:
         dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
         dotnet remove fsharp.test reference csharp/ParquetSharp.csproj
         dotnet add fsharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
-    - name: Build & Run C# and F# unit tests
-      run: |
-        dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
-        dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
+    - name: Build & Run C# unit tests
+      run: dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
+    - name: Build & Run F# unit tests
+      run: dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
 
   # Virtual job that can be configured as a required check before a PR can be merged.
   all-required-checks-done:
