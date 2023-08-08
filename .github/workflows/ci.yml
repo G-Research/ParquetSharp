@@ -19,7 +19,7 @@ jobs:
   check-format:
     if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     name: Check format
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -49,10 +49,13 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-11, windows-2022]
+        os: [ubuntu-22.04, macos-11, windows-2022]
         arch: [x64, arm64]
         exclude:
         - os: windows-2022
+          arch: arm64
+        include:
+        - os: ubuntu-20.04
           arch: arm64
       fail-fast: false
     name: Build native ${{ matrix.arch }} library (${{ matrix.os }})
@@ -126,11 +129,16 @@ jobs:
                                   rm /tmp/cmake.sh"
 
     # Install arm64 cross-compilation toolchain if required
-    - name: Install arm64 cross-compilation toolchain
-      if: runner.os == 'Linux' && matrix.arch == 'arm64'
+    - name: Install arm64 cross-compilation toolchain - ubuntu 22.04
+      if: runner.os == 'Linux' && matrix.arch == 'arm64' && matrix.os != 'ubuntu-20.04'
       run: |
         sudo apt-get update
-        sudo apt-get --yes install g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu
+        sudo apt install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+    - name: Install required build tool for ubuntu 20.04
+      if: runner.os == 'Linux' && matrix.os == 'ubuntu-20.04'
+      run: |
+        sudo apt-get update
+        sudo apt install build-essential cmake g++-aarch64-linux-gnu gcc-aarch64-linux-gnu
 
     # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
@@ -211,11 +219,11 @@ jobs:
         name: nuget-package
         path: nuget
 
-  # Run .NET unit tests with the nuget package on all platforms and all supported .NET runtimes (thus testing the user workflow). 
+  # Run .NET unit tests with the nuget package on all platforms and all supported .NET runtimes (thus testing the user workflow).
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-11, macos-12, windows-2022]
+        os: [ubuntu-22.04, macos-11, macos-12, windows-2022]
         dotnet: [netcoreapp3.1, net6.0, net7.0]
         arch: [x64]
         include:
