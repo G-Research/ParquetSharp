@@ -233,16 +233,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-
-    - name: Print PATH
-      run: echo $PATH
-    - name: Check pwsh
-      run: |
-        ls -l /opt/microsoft/powershell/7/pwsh
-        /opt/microsoft/powershell/7/pwsh --version
-        /usr/bin/pwsh --version
-        pwsh --version
-
     - name: Get version
       id: get-version
       run: echo "version=$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)" >> $env:GITHUB_OUTPUT
@@ -283,7 +273,9 @@ jobs:
     #     platforms: arm64
     - name: Build & Run C# and F# unit tests
       # if: matrix.arch == 'x64'
-      run: dotnet test csharp.test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
+      run: |
+        dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
+        dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
     # - name: Build & Run F# unit tests (x64)
     #   if: matrix.arch == 'x64'
     #   run: dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
