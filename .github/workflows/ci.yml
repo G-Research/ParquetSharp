@@ -222,7 +222,6 @@ jobs:
         - os: windows-2022
           dotnet: net472
           arch: x64
-        # - os: ubuntu-20.04
         - os: self-hosted
           dotnet: net6.0
           arch: arm64
@@ -266,25 +265,10 @@ jobs:
         dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
         dotnet remove fsharp.test reference csharp/ParquetSharp.csproj
         dotnet add fsharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
-    # - name: Setup QEMU for arm64
-    #   if: matrix.arch == 'arm64'
-    #   uses: docker/setup-qemu-action@v2
-    #   with:
-    #     platforms: arm64
     - name: Build & Run C# and F# unit tests
-      # if: matrix.arch == 'x64'
       run: |
         dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
         dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
-    # - name: Build & Run F# unit tests (x64)
-    #   if: matrix.arch == 'x64'
-    #   run: dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
-    # - name: Build & Run C# unit tests (arm64)
-    #   if: matrix.arch == 'arm64'
-    #   run: dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
-    # - name: Build & Run F# unit tests (arm64)
-    #   if: matrix.arch == 'arm64'
-    #   run: dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
 
   # Virtual job that can be configured as a required check before a PR can be merged.
   all-required-checks-done:
