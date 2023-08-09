@@ -127,10 +127,10 @@ jobs:
 
     # Install arm64 cross-compilation toolchain if required
     - name: Install arm64 cross-compilation toolchain
-      if: runner.os == 'Linux' && matrix.os == 'ubuntu-20.04'
+      if: runner.os == 'Linux' && matrix.arch == 'arm64'
       run: |
         sudo apt-get update
-        sudo apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu
+        sudo apt install g++-aarch64-linux-gnu
 
     # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
