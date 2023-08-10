@@ -23,10 +23,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup .NET SDK v6.0.x
+      - name: Setup .NET SDK v7.0.x
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: 6.0.x
+          dotnet-version: 7.0.x
       - name: Code formating check
         run: |
           dotnet tool restore
@@ -130,7 +130,7 @@ jobs:
       if: runner.os == 'Linux' && matrix.arch == 'arm64'
       run: |
         sudo apt-get update
-        sudo apt-get --yes install g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu
+        sudo apt install g++-aarch64-linux-gnu
 
     # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
@@ -138,10 +138,10 @@ jobs:
       run: brew install bison
 
     # .NET Core Setup (and also MSBuild for Windows).
-    - name: Setup .NET SDK v6.0.x
+    - name: Setup .NET SDK v7.0.x
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 7.0.x
     - name: Setup MSBuild
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1
@@ -199,10 +199,10 @@ jobs:
       run: |
         mkdir bin
         cp -rv artifacts/*-native-library/* bin/
-    - name: Setup .NET SDK v6.0.x
+    - name: Setup .NET SDK v7.0.x
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 7.0.x
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release
     - name: Upload NuGet artifact
@@ -243,11 +243,11 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 3.1.x
-    - name: Setup .NET SDK v5.0.x
-      if: matrix.dotnet == 'net5.0'
+    - name: Setup .NET SDK v7.0.x
+      if: matrix.dotnet == 'net7.0'
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 7.0.x
     - name: Setup .NET SDK v6.0.x
       uses: actions/setup-dotnet@v3
       with:
@@ -302,10 +302,10 @@ jobs:
       with:
         name: nuget-package
         path: nuget
-    - name: Setup .NET SDK v6.0.x
+    - name: Setup .NET SDK v7.0.x
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 7.0.x
     # if version contains "-" treat it as pre-release
     # example: 1.0.0-beta1
     - name: Create release
