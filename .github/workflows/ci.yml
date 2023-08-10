@@ -217,13 +217,11 @@ jobs:
       matrix:
         os: [ubuntu-20.04, macos-11, macos-12, windows-2022, ubuntu-20.04-arm64]
         dotnet: [netcoreapp3.1, net6.0, net7.0]
-        arch: [x64]
         include:
         - os: windows-2022
           dotnet: net472
-          arch: x64
       fail-fast: false
-    name: Test NuGet package (${{ matrix.dotnet }} ${{ matrix.arch }} on ${{ matrix.os }})
+    name: Test NuGet package (${{ matrix.dotnet }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     needs: build-nuget
     steps:
