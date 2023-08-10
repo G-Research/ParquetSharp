@@ -12,6 +12,9 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
+permissions:
+  contents: read
+
 jobs:
 
   # Note that vcpkg dependencies takes the majority of the build time.
@@ -215,18 +218,13 @@ jobs:
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-11, macos-12, windows-2022]
+        os: [ubuntu-20.04, macos-11, macos-12, windows-2022, ubuntu-20.04-arm64]
         dotnet: [netcoreapp3.1, net6.0, net7.0]
-        arch: [x64]
         include:
         - os: windows-2022
           dotnet: net472
-          arch: x64
-        - os: ubuntu-20.04
-          dotnet: net6.0
-          arch: arm64
       fail-fast: false
-    name: Test NuGet package (${{ matrix.dotnet }} ${{ matrix.arch }} on ${{ matrix.os }})
+    name: Test NuGet package (${{ matrix.dotnet }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     needs: build-nuget
     steps:
@@ -265,23 +263,10 @@ jobs:
         dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
         dotnet remove fsharp.test reference csharp/ParquetSharp.csproj
         dotnet add fsharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
-    - name: Setup QEMU for arm64
-      if: matrix.arch == 'arm64'
-      uses: docker/setup-qemu-action@v2
-      with:
-        platforms: arm64
-    - name: Build & Run C# unit tests (x64)
-      if: matrix.arch == 'x64'
+    - name: Build & Run C# unit tests
       run: dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
-    - name: Build & Run F# unit tests (x64)
-      if: matrix.arch == 'x64'
+    - name: Build & Run F# unit tests
       run: dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
-    - name: Build & Run C# unit tests (arm64)
-      if: matrix.arch == 'arm64'
-      run: docker run --rm --platform linux/arm64/v8 -v $PWD:$PWD -w $PWD mcr.microsoft.com/dotnet/sdk:6.0 dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
-    - name: Build & Run F# unit tests (arm64)
-      if: matrix.arch == 'arm64'
-      run: docker run --rm --platform linux/arm64/v8 -v $PWD:$PWD -w $PWD mcr.microsoft.com/dotnet/sdk:6.0 dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
 
   # Virtual job that can be configured as a required check before a PR can be merged.
   all-required-checks-done:
@@ -298,6 +283,8 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && !github.event.repository.fork
     name: Publish release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: all-required-checks-done
     steps:
     - name: Checkout
