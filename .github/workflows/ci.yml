@@ -215,16 +215,16 @@ jobs:
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-11, macos-12, windows-2022]
+        os: [ubuntu-20.04, macos-11, macos-12, windows-2022, self-hosted]
         dotnet: [netcoreapp3.1, net5.0, net6.0]
         arch: [x64]
         include:
         - os: windows-2022
           dotnet: net472
           arch: x64
-        - os: self-hosted
-          dotnet: net6.0
-          arch: arm64
+        # - os: self-hosted
+        #   dotnet: net6.0
+        #   arch: arm64
       fail-fast: false
     name: Test NuGet package (${{ matrix.dotnet }} ${{ matrix.arch }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
