@@ -22,7 +22,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(Encoding.Plain, p.DictionaryPageEncoding);
             Assert.AreEqual(1024 * 1024, p.DictionaryPagesizeLimit);
             Assert.AreEqual(1024 * 1024, p.MaxRowGroupLength);
-            Assert.AreEqual(ParquetVersion.PARQUET_2_4, p.Version);
+            Assert.AreEqual(ParquetVersion.PARQUET_2_6, p.Version);
             Assert.AreEqual(1024, p.WriteBatchSize);
             Assert.False(p.WritePageIndex);
         }
