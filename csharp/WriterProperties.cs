@@ -30,7 +30,19 @@ namespace ParquetSharp
         public long MaxRowGroupLength => ExceptionInfo.Return<long>(Handle, WriterProperties_Max_Row_Group_Length);
         public ParquetVersion Version => ExceptionInfo.Return<ParquetVersion>(Handle, WriterProperties_Version);
         public long WriteBatchSize => ExceptionInfo.Return<long>(Handle, WriterProperties_Write_Batch_Size);
-        public bool WritePageIndex => ExceptionInfo.Return<bool>(Handle, WriterProperties_Write_Page_Index);
+
+        /// <summary>
+        /// Whether writing the page index is enabled for any columns
+        /// </summary>
+        public bool WritePageIndex => ExceptionInfo.Return<bool>(Handle, WriterProperties_Page_Index_Enabled);
+
+        /// <summary>
+        /// Whether writing the page index is enabled for the specified column
+        /// </summary>
+        public bool WritePageIndexForPath(ColumnPath path)
+        {
+            return ExceptionInfo.Return<bool>(Handle, path.Handle, WriterProperties_Page_Index_Enabled_For_Path);
+        }
 
         public Compression Compression(ColumnPath path)
         {
@@ -98,7 +110,10 @@ namespace ParquetSharp
         private static extern IntPtr WriterProperties_Write_Batch_Size(IntPtr writerProperties, out long size);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr WriterProperties_Write_Page_Index(IntPtr writerProperties, out bool enabled);
+        private static extern IntPtr WriterProperties_Page_Index_Enabled(IntPtr writerProperties, out bool enabled);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Page_Index_Enabled_For_Path(IntPtr writerProperties, IntPtr path, out bool enabled);
 
         //[DllImport(ParquetDll.Name)]
         //private static extern IntPtr WriterProperties_Column_Properties(IntPtr writerProperties, IntPtr path, out IntPtr columnProperties);
