@@ -125,7 +125,7 @@ As only 64-bit runtimes are available, ParquetSharp cannot be referenced by a 32
 
 Building ParquetSharp for Windows requires the following dependencies:
 - Visual Studio 2022 (17.0 or higher)
-- Apache Arrow (12.0.1)
+- Apache Arrow (13.0.0)
 
 For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg).
 The build scripts will use an existing vcpkg installation if either of the `VCPKG_INSTALLATION_ROOT` or `VCPKG_ROOT` environment variables are defined,
