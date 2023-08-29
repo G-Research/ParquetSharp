@@ -189,8 +189,8 @@ namespace ParquetSharp.Test
             using var metadataId = groupReader.MetaData.GetColumnChunkMetaData(0);
             using var metadataValue = groupReader.MetaData.GetColumnChunkMetaData(1);
 
-            Assert.AreEqual(new[] {Encoding.RleDictionary, Encoding.Plain, Encoding.Rle}, metadataId.Encodings);
-            Assert.AreEqual(new[] {Encoding.ByteStreamSplit, Encoding.Rle}, metadataValue.Encodings);
+            Assert.That(metadataId.Encodings, Is.EquivalentTo(new[] {Encoding.RleDictionary, Encoding.Plain, Encoding.Rle}));
+            Assert.That(metadataValue.Encodings, Is.EquivalentTo(new[] {Encoding.ByteStreamSplit, Encoding.Rle}));
 
             using var idReader = groupReader.Column(0).LogicalReader<int>();
             using var valueReader = groupReader.Column(1).LogicalReader<float>();
@@ -236,7 +236,7 @@ namespace ParquetSharp.Test
             using var groupReader = fileReader.RowGroup(0);
 
             using var columnMetadata = groupReader.MetaData.GetColumnChunkMetaData(0);
-            Assert.AreEqual(new[] {Encoding.ByteStreamSplit, Encoding.Rle}, columnMetadata.Encodings);
+            Assert.That(columnMetadata.Encodings, Is.EquivalentTo(new[] {Encoding.ByteStreamSplit, Encoding.Rle}));
 
             using var valueReader = groupReader.Column(0).LogicalReader<float?>();
             Assert.AreEqual(values, valueReader.ReadAll(numRows));

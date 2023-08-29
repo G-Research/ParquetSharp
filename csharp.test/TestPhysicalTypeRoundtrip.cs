@@ -201,9 +201,11 @@ namespace ParquetSharp.Test
                 Assert.AreEqual(expected.TypePrecision, descr.TypePrecision);
                 Assert.AreEqual(expected.TypeScale, descr.TypeScale);
 
-                Assert.AreEqual(
-                    expected.Encodings.Where(e => useDictionaryEncoding || e != Encoding.RleDictionary).ToArray(),
-                    chunkMetaData.Encodings.Distinct().ToArray());
+                var expectedEncodings = expected.Encodings
+                    .Where(e => useDictionaryEncoding || e != Encoding.RleDictionary).ToArray();
+                var actualEncodings = chunkMetaData.Encodings.Distinct().ToArray();
+                // Encoding ordering is not important
+                Assert.That(actualEncodings, Is.EquivalentTo(expectedEncodings));
 
                 Assert.AreEqual(expected.Compression, chunkMetaData.Compression);
                 Assert.AreEqual(expected.Values, columnReader.Apply(new PhysicalValueGetter(chunkMetaData.NumValues)).values);
