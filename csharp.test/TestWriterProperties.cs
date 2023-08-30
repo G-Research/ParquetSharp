@@ -61,29 +61,29 @@ namespace ParquetSharp.Test
         public static void TestWritePageIndex()
         {
             using (var p = new WriterPropertiesBuilder()
-                       .DisableWritePageIndex()
-                       .Build())
+                .DisableWritePageIndex()
+                .Build())
             {
                 Assert.False(p.WritePageIndex);
             }
 
             using (var p = new WriterPropertiesBuilder()
-                       .DisableWritePageIndex()
-                       .EnableWritePageIndex("column_a")
-                       .EnableWritePageIndex(new ColumnPath(new [] {"column_b", "nested"}))
-                       .Build())
+                .DisableWritePageIndex()
+                .EnableWritePageIndex("column_a")
+                .EnableWritePageIndex(new ColumnPath(new[] {"column_b", "nested"}))
+                .Build())
             {
-                Assert.True(p.WritePageIndex);  // True if enabled for any path
+                Assert.True(p.WritePageIndex); // True if enabled for any path
                 Assert.False(p.WritePageIndexForPath(new ColumnPath("column_c")));
                 Assert.True(p.WritePageIndexForPath(new ColumnPath("column_a")));
                 Assert.True(p.WritePageIndexForPath(new ColumnPath("column_b.nested")));
             }
 
             using (var p = new WriterPropertiesBuilder()
-                       .EnableWritePageIndex()
-                       .DisableWritePageIndex("column_a")
-                       .DisableWritePageIndex(new ColumnPath(new [] {"column_b", "nested"}))
-                       .Build())
+                .EnableWritePageIndex()
+                .DisableWritePageIndex("column_a")
+                .DisableWritePageIndex(new ColumnPath(new[] {"column_b", "nested"}))
+                .Build())
             {
                 Assert.True(p.WritePageIndex);
                 Assert.True(p.WritePageIndexForPath(new ColumnPath("column_c")));
