@@ -64,9 +64,15 @@ extern "C"
 		TRYCATCH(*size = (*writer_properties)->write_batch_size();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Write_Page_Index(const std::shared_ptr<WriterProperties>* writer_properties, bool* enabled)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Page_Index_Enabled(const std::shared_ptr<WriterProperties>* writer_properties, bool* enabled)
 	{
-		TRYCATCH(*enabled = (*writer_properties)->write_page_index();)
+		// Returns true if the page index is enabled by default or for any specific path
+		TRYCATCH(*enabled = (*writer_properties)->page_index_enabled();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Page_Index_Enabled_For_Path(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, bool* enabled)
+	{
+		TRYCATCH(*enabled = (*writer_properties)->page_index_enabled(*path);)
 	}
 
 	// ColumnPath taking methods.

@@ -236,7 +236,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Enable writing the page index
+        /// Enable writing the page index by default
         ///
         /// The page index contains statistics for data pages and can be used to skip pages
         /// when scanning data in ordered and unordered columns.
@@ -251,11 +251,53 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Disable writing the page index
+        /// Enable writing the page index for a specific column
+        /// </summary>
+        public WriterPropertiesBuilder EnableWritePageIndex(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Write_Page_Index_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(path);
+            return this;
+        }
+
+        /// <summary>
+        /// Enable writing the page index for a specific column
+        /// </summary>
+        public WriterPropertiesBuilder EnableWritePageIndex(string path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Write_Page_Index_By_Path(_handle.IntPtr, path));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Disable writing the page index by default
         /// </summary>
         public WriterPropertiesBuilder DisableWritePageIndex()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Write_Page_Index(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Disable writing the page index for a specific column
+        /// </summary>
+        public WriterPropertiesBuilder DisableWritePageIndex(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Write_Page_Index_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(path);
+            return this;
+        }
+
+        /// <summary>
+        /// Disable writing the page index for a specific column
+        /// </summary>
+        public WriterPropertiesBuilder DisableWritePageIndex(string path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Write_Page_Index_By_Path(_handle.IntPtr, path));
             GC.KeepAlive(_handle);
             return this;
         }
@@ -439,7 +481,19 @@ namespace ParquetSharp
         private static extern IntPtr WriterPropertiesBuilder_Enable_Write_Page_Index(IntPtr builder);
 
         [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Enable_Write_Page_Index_By_Path(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Enable_Write_Page_Index_By_ColumnPath(IntPtr builder, IntPtr path);
+
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Disable_Write_Page_Index(IntPtr builder);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Disable_Write_Page_Index_By_Path(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Disable_Write_Page_Index_By_ColumnPath(IntPtr builder, IntPtr path);
 
         private readonly ParquetHandle _handle;
     }
