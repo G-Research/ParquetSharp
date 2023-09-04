@@ -1,7 +1,8 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "parquetsharp",
   "version-string": "undefined",
+  "builtin-baseline": "2cf957350da28ad032178a974607f59f961217d9",
   "dependencies": [
     "arrow"
   ],
