@@ -2,15 +2,17 @@ Set-StrictMode -Version 3
 $ErrorActionPreference = "Stop"
 
 # Find vcpkg or download it if required
-if ($Env:VCPKG_INSTALLATION_ROOT -ne $null) {
+if ($null -ne $Env:VCPKG_INSTALLATION_ROOT) {
   $vcpkgDir = $Env:VCPKG_INSTALLATION_ROOT
-  echo "Using vcpkg at $vcpkgDir from VCPKG_INSTALLATION_ROOT"
-} elseif ($Env:VCPKG_ROOT -ne $null) {
+  Write-Output "Using vcpkg at $vcpkgDir from VCPKG_INSTALLATION_ROOT"
+}
+elseif ($null -ne $Env:VCPKG_ROOT) {
   $vcpkgDir = $Env:VCPKG_ROOT
-  echo "Using vcpkg at $vcpkgDir from VCPKG_ROOT"
-} else {
-  $vcpkgDir = "$(pwd)/build/vcpkg"
-  echo "Using local vcpkg at $vcpkgDir"
+  Write-Output "Using vcpkg at $vcpkgDir from VCPKG_ROOT"
+}
+else {
+  $vcpkgDir = "$(Get-Location)/build/vcpkg"
+  Write-Output "Using local vcpkg at $vcpkgDir"
   if (-not (Test-Path $vcpkgDir)) {
     git clone https://github.com/microsoft/vcpkg.git $vcpkgDir
     if (-not $?) { throw "git clone failed" }
@@ -23,7 +25,7 @@ $triplet = "x64-windows-static"
 
 $options = @()
 if ($Env:GITHUB_ACTIONS -eq "true") {
-  $customTripletsDir = "$(pwd)/build/custom-triplets"
+  $customTripletsDir = "$(Get-Location)/build/custom-triplets"
   New-Item -Path $customTripletsDir -ItemType "directory" -Force > $null
   $sourceTripletFile = "$vcpkgDir/triplets/$triplet.cmake"
   $customTripletFile = "$customTripletsDir/$triplet.cmake"
