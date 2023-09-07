@@ -117,6 +117,13 @@ jobs:
           vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}
           vcpkg-${{ steps.vcpkg-info.outputs.triplet }}
 
+    # Ensure vcpkg builtin registry is up-to-date
+    - name: Update vcpkg builtin registry
+      working-directory: ${{ steps.vcpkg-info.outputs.root }}
+      run: |
+        git reset --hard
+        git pull
+
     # Setup a CentOS 7 container to build on Linux x64 for backwards compatibility.
     - name: Start CentOS container and install toolchain
       if: runner.os == 'Linux' && matrix.arch == 'x64'

@@ -61,9 +61,13 @@ if [ -z "$VCPKG_INSTALLATION_ROOT" ]; then
   fi
 fi
 
+# Cmake build types
+build_types="Debug Release"
+
 # Only build release configuration in CI
 if [ "$GITHUB_ACTIONS" = "true" ]
 then
+  build_types="Release"
   custom_triplets_dir=$PWD/build/custom-triplets
   mkdir -p "$custom_triplets_dir"
   for vcpkg_triplet_file in $VCPKG_INSTALLATION_ROOT/triplets/{,community/}$triplet.cmake
@@ -77,5 +81,10 @@ then
   options+=" -D VCPKG_OVERLAY_TRIPLETS=$custom_triplets_dir"
 fi
 
-cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake $options
-cmake --build build/$triplet -j
+for build_type in $build_types
+do
+  echo ">> Building ParquetSharpNative $build_type for $triplet"
+  build_dir=build/$triplet-$(tr A-Z a-z <<<$build_type)
+  cmake -B $build_dir -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake -D CMAKE_BUILD_TYPE=$build_type $options
+  cmake --build $build_dir -j
+done
