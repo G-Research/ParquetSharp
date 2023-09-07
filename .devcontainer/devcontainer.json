@@ -1,7 +1,16 @@
 // For format details, see https://aka.ms/devcontainer.json.
 {
 	"name": "ParquetSharp",
+	
+	// Use the prebuilt image. Comment this out if you want to make changes to it.
 	"image": "ghcr.io/g-research/parquetsharp/devcontainer:latest",
+
+	// Uncomment the following lines to build the container locally. You will also need
+	// to comment out the "image" line above.
+	// "build": {
+	// 	"dockerfile": "./Dockerfile",
+	// 	"context": ".."
+	// }, 
 
 	// Necessary for C++ debugger to work.
 	"capAdd": [
