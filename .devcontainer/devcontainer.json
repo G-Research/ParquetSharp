@@ -36,14 +36,12 @@
 					"ctest": {
 						"visibility": "hidden"
 					}
-				},
-
-				// Use the open source C# extension.
-				"dotnet.server.useOmnisharp": true
+				}
 			},
 
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
+				"ms-dotnettools.csdevkit",
 				"ms-dotnettools.csharp",
 				"ms-vscode.cpptools",
 				"ms-vscode.cmake-tools"
@@ -58,7 +56,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "for project in csharp*; do dotnet restore $project; done"
+	// "postCreateCommand": "",
 
 	// Set `remoteUser` to `root` to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	// "remoteUser": "vscode"
