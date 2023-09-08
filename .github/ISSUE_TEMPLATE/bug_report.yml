@@ -7,9 +7,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Thank you for reporting this issue!**
-        
-        To help us understand and address the problem effectively, please provide detailed information. You can refer to [this guide](https://stackoverflow.com/help/mcve) for tips on creating a good bug report.
+        **Thank you for reporting this issue!**        
+        To help us understand and address the problem effectively, please provide detailed information. 
+        You can refer to [this guide](https://stackoverflow.com/help/mcve) for tips on creating a good bug report.
 
   - type: textarea
     id: describe-issue
