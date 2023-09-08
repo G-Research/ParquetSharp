@@ -1,20 +1,20 @@
 name: Bug Report
 description: Create a bug report to help us improve ParquetSharp
-title: "[Bug]: <Summary>"
+title: "[Bug]: <Brief Summary>"
 labels: [ "Bug" ]
 
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting this! Please provide as much info as you can about the issue, so we can best help you. 
-        As a general guidance, pointers from [https://stackoverflow.com/help/mcve](https://stackoverflow.com/help/mcve) 
-        can help you craft a good bug report.
+        **Thank you for reporting this issue!**
+        
+        To help us understand and address the problem effectively, please provide detailed information. You can refer to [this guide](https://stackoverflow.com/help/mcve) for tips on creating a good bug report.
 
   - type: textarea
     id: describe-issue
     attributes:
-      label: Describe the issue
+      label: Issue Description
       description: A clear and concise description of the issue
     validations:
       required: true
@@ -23,17 +23,17 @@ body:
     id: steps-to-reproduce
     attributes:
       label: Steps To Reproduce
-      description: Provide the steps to reproduce the behavior
+      description: Detailed steps to reproduce the behavior
       placeholder: |
-        1. Share your minimal code in a git repository and any action steps
-        2. Share the exact error message observed / current behavior
+        1. Provide a minimal code example or steps.
+        2. Explain the exact error message or current behavior.
     validations:
       required: true
 
   - type: textarea
     id: expected-behavior
     attributes:
-      label: Expected behavior
+      label: Expected Behavior
       description: A clear and concise description of what you expected to happen
     validations:
       required: true
@@ -41,27 +41,27 @@ body:
   - type: textarea
     id: environment
     attributes:
-      label: Environment
-      description: Please complete the following information
+      label: Environment Information
+      description: "Please provide the following details:"
       value: |
-        - ParquetSharp Version:  <!-- [e.g. 1.0.1] -->
-        - .NET Framework/SDK Version: <!-- [e.g. .NET Framework 4.7.2] -->
-        - OS: <!-- [e.g. Windows 10] -->
+        - ParquetSharp Version:  <!-- e.g., 1.0.1 -->
+        - .NET Framework/SDK Version: <!-- e.g., .NET Framework 4.7.2 -->
+        - Operating System: <!-- e.g., Windows 10 -->
     validations:
       required: true
 
   - type: textarea
     id: logs
     attributes:
-      label: Logs
-      description: If applicable, add screenshots/logs to help explain your problem.
+      label: Logs and Screenshots
+      description: If applicable, attach logs, screenshots, or relevant files
     validations:
       required: false
 
   - type: textarea
     id: context
     attributes:
-      label: Additional context
-      description: If applicable, add any other context about the problem here
+      label: Additional Context (Optional)
+      description: You can provide any additional context about the problem here
     validations:
       required: false
