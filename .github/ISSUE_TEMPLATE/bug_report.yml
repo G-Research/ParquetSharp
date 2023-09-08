@@ -1,55 +1,67 @@
 name: Bug Report
 description: Create a bug report to help us improve ParquetSharp
-title: "[BUG] "
+title: "[Bug]: <Summary>"
 labels: [ "Bug" ]
 
 body:
   - type: markdown
     attributes:
       value: |
-        <!-- Please fill out the following information when reporting a bug. -->
-        **Issue Description**
+        Thanks for reporting this! Please provide as much info as you can about the issue, so we can best help you. 
+        As a general guidance, pointers from [https://stackoverflow.com/help/mcve](https://stackoverflow.com/help/mcve) 
+        can help you craft a good bug report.
 
-        **Expected Behavior**
-
-        **Actual Behavior**
-
-        **Steps to Reproduce**
-        1.
-        2.
-        3.
-
-        **Environment**
-        - ParquetSharp Version:
-        - Operating System:
-        - .NET Framework/SDK Version:
-
-        **Additional Information**
-        <!-- Add any additional information that may be relevant to this issue, such as error messages, stack traces, or related issues. -->
-
-        **Screenshots**
-        <!-- If applicable, include screenshots or code snippets that help illustrate the issue. -->
-
-  - type: input
-    id: labels
+  - type: textarea
+    id: describe-issue
     attributes:
-      label: Labels
-      description: "Optional: Add labels to categorize this issue (e.g., bug, enhancement, documentation)."
+      label: Describe the issue
+      description: A clear and concise description of the issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps To Reproduce
+      description: Provide the steps to reproduce the behavior
+      placeholder: |
+        1. Share your minimal code in a git repository and any action steps
+        2. Share the exact error message observed / current behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Please complete the following information
+      value: |
+        - ParquetSharp Version:  <!-- [e.g. 1.0.1] -->
+        - .NET Framework/SDK Version: <!-- [e.g. .NET Framework 4.7.2] -->
+        - OS: <!-- [e.g. Windows 10] -->
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: If applicable, add screenshots/logs to help explain your problem.
     validations:
       required: false
 
-  - type: input
-    id: assignees
+  - type: textarea
+    id: context
     attributes:
-      label: Assignees
-      description: "Optional: Assign this issue to someone."
-    validations:
-      required: false
-
-  - type: input
-    id: related-issues
-    attributes:
-      label: Related Issues
-      description: "Optional: Link to related issues or pull requests."
+      label: Additional context
+      description: If applicable, add any other context about the problem here
     validations:
       required: false
