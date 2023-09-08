@@ -20,6 +20,18 @@ body:
       required: true
 
   - type: textarea
+    id: environment
+    attributes:
+      label: Environment Information
+      description: "Please provide the following details:"
+      value: |
+        - ParquetSharp Version:  <!-- e.g., 1.0.1 -->
+        - .NET Framework/SDK Version: <!-- e.g., .NET Framework 4.7.2 -->
+        - Operating System: <!-- e.g., Windows 10 -->
+    validations:
+      required: true
+
+  - type: textarea
     id: steps-to-reproduce
     attributes:
       label: Steps To Reproduce
@@ -38,22 +50,11 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: environment
-    attributes:
-      label: Environment Information
-      description: "Please provide the following details:"
-      value: |
-        - ParquetSharp Version:  <!-- e.g., 1.0.1 -->
-        - .NET Framework/SDK Version: <!-- e.g., .NET Framework 4.7.2 -->
-        - Operating System: <!-- e.g., Windows 10 -->
-    validations:
-      required: true
 
   - type: textarea
     id: logs
     attributes:
-      label: Logs and Screenshots
+      label: Logs and Screenshots (Optional)
       description: If applicable, attach logs, screenshots, or relevant files
     validations:
       required: false
