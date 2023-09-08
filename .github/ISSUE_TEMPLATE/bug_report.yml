@@ -1,0 +1,55 @@
+name: Bug Report
+description: Create a bug report to help us improve ParquetSharp
+title: "[BUG] "
+labels: [ "Bug" ]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Please fill out the following information when reporting a bug. -->
+        **Issue Description**
+
+        **Expected Behavior**
+
+        **Actual Behavior**
+
+        **Steps to Reproduce**
+        1.
+        2.
+        3.
+
+        **Environment**
+        - ParquetSharp Version:
+        - Operating System:
+        - .NET Framework/SDK Version:
+
+        **Additional Information**
+        <!-- Add any additional information that may be relevant to this issue, such as error messages, stack traces, or related issues. -->
+
+        **Screenshots**
+        <!-- If applicable, include screenshots or code snippets that help illustrate the issue. -->
+
+  - type: input
+    id: labels
+    attributes:
+      label: Labels
+      description: "Optional: Add labels to categorize this issue (e.g., bug, enhancement, documentation)."
+    validations:
+      required: false
+
+  - type: input
+    id: assignees
+    attributes:
+      label: Assignees
+      description: "Optional: Assign this issue to someone."
+    validations:
+      required: false
+
+  - type: input
+    id: related-issues
+    attributes:
+      label: Related Issues
+      description: "Optional: Link to related issues or pull requests."
+    validations:
+      required: false
