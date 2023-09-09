@@ -14,7 +14,7 @@ namespace ParquetSharp.Test
         {
             var p = WriterProperties.GetDefaultWriterProperties();
 
-            Assert.AreEqual("parquet-cpp-arrow version 12.0.1", p.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 13.0.0", p.CreatedBy);
             Assert.AreEqual(Compression.Uncompressed, p.Compression(new ColumnPath("anypath")));
             Assert.AreEqual(int.MinValue, p.CompressionLevel(new ColumnPath("anypath")));
             Assert.AreEqual(1024 * 1024, p.DataPageSize);
@@ -22,7 +22,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(Encoding.Plain, p.DictionaryPageEncoding);
             Assert.AreEqual(1024 * 1024, p.DictionaryPagesizeLimit);
             Assert.AreEqual(1024 * 1024, p.MaxRowGroupLength);
-            Assert.AreEqual(ParquetVersion.PARQUET_2_4, p.Version);
+            Assert.AreEqual(ParquetVersion.PARQUET_2_6, p.Version);
             Assert.AreEqual(1024, p.WriteBatchSize);
             Assert.False(p.WritePageIndex);
         }
@@ -55,6 +55,41 @@ namespace ParquetSharp.Test
             Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
             Assert.AreEqual(666, p.WriteBatchSize);
             Assert.True(p.WritePageIndex);
+        }
+
+        [Test]
+        public static void TestWritePageIndex()
+        {
+            using (var p = new WriterPropertiesBuilder()
+                .DisableWritePageIndex()
+                .Build())
+            {
+                Assert.False(p.WritePageIndex);
+            }
+
+            using (var p = new WriterPropertiesBuilder()
+                .DisableWritePageIndex()
+                .EnableWritePageIndex("column_a")
+                .EnableWritePageIndex(new ColumnPath(new[] {"column_b", "nested"}))
+                .Build())
+            {
+                Assert.True(p.WritePageIndex); // True if enabled for any path
+                Assert.False(p.WritePageIndexForPath(new ColumnPath("column_c")));
+                Assert.True(p.WritePageIndexForPath(new ColumnPath("column_a")));
+                Assert.True(p.WritePageIndexForPath(new ColumnPath("column_b.nested")));
+            }
+
+            using (var p = new WriterPropertiesBuilder()
+                .EnableWritePageIndex()
+                .DisableWritePageIndex("column_a")
+                .DisableWritePageIndex(new ColumnPath(new[] {"column_b", "nested"}))
+                .Build())
+            {
+                Assert.True(p.WritePageIndex);
+                Assert.True(p.WritePageIndexForPath(new ColumnPath("column_c")));
+                Assert.False(p.WritePageIndexForPath(new ColumnPath("column_a")));
+                Assert.False(p.WritePageIndexForPath(new ColumnPath("column_b.nested")));
+            }
         }
 
         [Test]
@@ -154,8 +189,8 @@ namespace ParquetSharp.Test
             using var metadataId = groupReader.MetaData.GetColumnChunkMetaData(0);
             using var metadataValue = groupReader.MetaData.GetColumnChunkMetaData(1);
 
-            Assert.AreEqual(new[] {Encoding.RleDictionary, Encoding.Plain, Encoding.Rle}, metadataId.Encodings);
-            Assert.AreEqual(new[] {Encoding.ByteStreamSplit, Encoding.Rle}, metadataValue.Encodings);
+            Assert.That(metadataId.Encodings, Is.EquivalentTo(new[] {Encoding.RleDictionary, Encoding.Plain, Encoding.Rle}));
+            Assert.That(metadataValue.Encodings, Is.EquivalentTo(new[] {Encoding.ByteStreamSplit, Encoding.Rle}));
 
             using var idReader = groupReader.Column(0).LogicalReader<int>();
             using var valueReader = groupReader.Column(1).LogicalReader<float>();
@@ -201,7 +236,7 @@ namespace ParquetSharp.Test
             using var groupReader = fileReader.RowGroup(0);
 
             using var columnMetadata = groupReader.MetaData.GetColumnChunkMetaData(0);
-            Assert.AreEqual(new[] {Encoding.ByteStreamSplit, Encoding.Rle}, columnMetadata.Encodings);
+            Assert.That(columnMetadata.Encodings, Is.EquivalentTo(new[] {Encoding.ByteStreamSplit, Encoding.Rle}));
 
             using var valueReader = groupReader.Column(0).LogicalReader<float?>();
             Assert.AreEqual(values, valueReader.ReadAll(numRows));

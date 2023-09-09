@@ -175,8 +175,28 @@ extern "C"
 		TRYCATCH(builder->enable_write_page_index();)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Enable_Write_Page_Index_By_Path(WriterProperties::Builder* builder, const char* path)
+	{
+		TRYCATCH(builder->enable_write_page_index(path);)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Enable_Write_Page_Index_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<schema::ColumnPath>* path)
+	{
+		TRYCATCH(builder->enable_write_page_index(*path);)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Disable_Write_Page_Index(WriterProperties::Builder* builder)
 	{
 		TRYCATCH(builder->disable_write_page_index();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Disable_Write_Page_Index_By_Path(WriterProperties::Builder* builder, const char* path)
+	{
+		TRYCATCH(builder->disable_write_page_index(path);)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Disable_Write_Page_Index_By_ColumnPath(WriterProperties::Builder* builder, const std::shared_ptr<schema::ColumnPath>* path)
+	{
+		TRYCATCH(builder->disable_write_page_index(*path);)
 	}
 }
