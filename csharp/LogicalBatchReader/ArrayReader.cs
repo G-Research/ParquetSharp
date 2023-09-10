@@ -93,8 +93,8 @@ namespace ParquetSharp.LogicalBatchReader
         private TLogical[] ReadLogicalTypeArray()
         {
             var valueChunks = new List<TLogical[]>();
-            var innerDefLevel = (short)(_innerNodeIsOptional ? _definitionLevel + 2 : _definitionLevel + 1);
-            var innerRepLevel = (short)(_repetitionLevel + 1);
+            var innerDefLevel = (short) (_innerNodeIsOptional ? _definitionLevel + 2 : _definitionLevel + 1);
+            var innerRepLevel = (short) (_repetitionLevel + 1);
 
             var atArrayStart = true;
             while (!_bufferedReader.IsEofDefinition)

@@ -50,14 +50,14 @@ namespace ParquetSharp.LogicalBatchReader
                         _physicalReader, (_directReader as LogicalRead<TElement, TPhysical>.DirectReader)!);
                 }
 
-                var definitionLevel = (short)(optional ? 1 : 0);
+                var definitionLevel = (short) (optional ? 1 : 0);
                 return (
                     new ScalarReader<TLogical, TPhysical>(_physicalReader, _converter, _buffers, definitionLevel)
                         as ScalarReader<TElement, TPhysical>)!;
             }
 
             // Otherwise we have a more complex structure and use a buffered reader
-            var leafDefinitionLevel = (short)schemaNodes.Count(n => n.Repetition != Repetition.Required);
+            var leafDefinitionLevel = (short) schemaNodes.Count(n => n.Repetition != Repetition.Required);
             var nullableLeafValues = schemaNodes.Last().Repetition == Repetition.Optional;
             _bufferedReader = new BufferedReader<TLogical, TPhysical>(
                 _physicalReader, _converter, _buffers.Values, _buffers.DefLevels, _buffers.RepLevels, leafDefinitionLevel, nullableLeafValues);
@@ -83,7 +83,7 @@ namespace ParquetSharp.LogicalBatchReader
 
             if (TypeUtils.IsNullableNested(typeof(TElement), out var nullableNestedType))
             {
-                if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode { Repetition: Repetition.Optional })
+                if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode {Repetition: Repetition.Optional})
                 {
                     return MakeNestedOptionalReader<TElement>(
                         nullableNestedType, schemaNodes, definitionLevel, repetitionLevel);
@@ -93,7 +93,7 @@ namespace ParquetSharp.LogicalBatchReader
 
             if (TypeUtils.IsNested(typeof(TElement), out var requiredNestedType))
             {
-                if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode { Repetition: Repetition.Required })
+                if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode {Repetition: Repetition.Required})
                 {
                     return MakeNestedReader<TElement>(
                         requiredNestedType, schemaNodes, definitionLevel, repetitionLevel);
@@ -115,8 +115,8 @@ namespace ParquetSharp.LogicalBatchReader
                 // so skip over this level of the type hierarchy and create a reader for the inner type.
                 var optional = groupNode.Repetition == Repetition.Optional;
                 var innerSchema = schemaNodes.AsSpan().Slice(1).ToArray();
-                var innerDefinitionLevel = (short)(definitionLevel + (optional ? 1 : 0));
-                return (ILogicalBatchReader<TElement>)MakeGenericReader(typeof(TElement), innerSchema, innerDefinitionLevel, repetitionLevel);
+                var innerDefinitionLevel = (short) (definitionLevel + (optional ? 1 : 0));
+                return (ILogicalBatchReader<TElement>) MakeGenericReader(typeof(TElement), innerSchema, innerDefinitionLevel, repetitionLevel);
             }
 
             if (typeof(TElement) == typeof(TLogical))
@@ -159,9 +159,9 @@ namespace ParquetSharp.LogicalBatchReader
                                     $"Element type is null for type {typeof(TElement)}, expected an array type");
 
             var optional = schemaNodes[0].Repetition == Repetition.Optional;
-            var arrayDefinitionLevel = (short)(optional ? definitionLevel + 1 : definitionLevel);
-            var innerDefinitionLevel = (short)(arrayDefinitionLevel + 1);
-            var innerRepetitionLevel = (short)(repetitionLevel + 1);
+            var arrayDefinitionLevel = (short) (optional ? definitionLevel + 1 : definitionLevel);
+            var innerDefinitionLevel = (short) (arrayDefinitionLevel + 1);
+            var innerRepetitionLevel = (short) (repetitionLevel + 1);
             var innerSchema = schemaNodes.AsSpan().Slice(2).ToArray();
 
             var innerNodeIsOptional = innerSchema[0].Repetition == Repetition.Optional;
@@ -169,7 +169,7 @@ namespace ParquetSharp.LogicalBatchReader
                 containedType, innerSchema, innerDefinitionLevel, innerRepetitionLevel);
 
             var arrayReaderType = typeof(ArrayReader<,,>).MakeGenericType(typeof(TPhysical), typeof(TLogical), containedType);
-            return (ILogicalBatchReader<TElement>)Activator.CreateInstance(
+            return (ILogicalBatchReader<TElement>) Activator.CreateInstance(
                 arrayReaderType, innerReader, _bufferedReader!, arrayDefinitionLevel, repetitionLevel, innerNodeIsOptional);
         }
 
@@ -187,7 +187,7 @@ namespace ParquetSharp.LogicalBatchReader
             var innerReader = MakeGenericReader(nestedType, innerSchema, definitionLevel, repetitionLevel);
 
             var nestedReaderType = typeof(NestedReader<>).MakeGenericType(nestedType);
-            return (ILogicalBatchReader<TElement>)Activator.CreateInstance(nestedReaderType, innerReader, _buffers.Length);
+            return (ILogicalBatchReader<TElement>) Activator.CreateInstance(nestedReaderType, innerReader, _buffers.Length);
         }
 
         /// <summary>
@@ -206,7 +206,7 @@ namespace ParquetSharp.LogicalBatchReader
 
             var optionalNestedReaderType = typeof(OptionalNestedReader<,,>).MakeGenericType(
                 typeof(TPhysical), typeof(TLogical), nestedType);
-            return (ILogicalBatchReader<TElement>)Activator.CreateInstance(
+            return (ILogicalBatchReader<TElement>) Activator.CreateInstance(
                 optionalNestedReaderType, innerReader, _bufferedReader!, definitionLevel);
         }
 
@@ -224,7 +224,7 @@ namespace ParquetSharp.LogicalBatchReader
             var innerReader = MakeGenericReader(innerType, schemaNodes, definitionLevel, repetitionLevel);
             var optionalReaderType = typeof(OptionalReader<,,>).MakeGenericType(
                 typeof(TPhysical), typeof(TLogical), innerType);
-            return (ILogicalBatchReader<TElement>)Activator.CreateInstance(
+            return (ILogicalBatchReader<TElement>) Activator.CreateInstance(
                 optionalReaderType, innerReader, _bufferedReader!, definitionLevel);
         }
 

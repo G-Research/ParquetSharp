@@ -23,7 +23,7 @@ namespace ParquetSharp.LogicalBatchReader
             while (totalRowsRead < destination.Length && _physicalReader.HasNext)
             {
                 var toRead = destination.Length - totalRowsRead;
-                var rowsRead = checked((int)_directReader(_physicalReader, destination.Slice(totalRowsRead, toRead)));
+                var rowsRead = checked((int) _directReader(_physicalReader, destination.Slice(totalRowsRead, toRead)));
                 totalRowsRead += rowsRead;
             }
             return totalRowsRead;

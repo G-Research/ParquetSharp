@@ -27,9 +27,9 @@ namespace ParquetSharp.LogicalBatchReader
             while (totalRowsRead < destination.Length && _physicalReader.HasNext)
             {
                 var rowsToRead = Math.Min(destination.Length - totalRowsRead, _buffers.Length);
-                var levelsRead = checked((int)_physicalReader.ReadBatch(
+                var levelsRead = checked((int) _physicalReader.ReadBatch(
                     rowsToRead, _buffers.DefLevels, _buffers.RepLevels, _buffers.Values, out var valuesRead));
-                _converter(_buffers.Values.AsSpan(0, checked((int)valuesRead)), _buffers.DefLevels, destination.Slice(totalRowsRead, levelsRead), _definitionLevel);
+                _converter(_buffers.Values.AsSpan(0, checked((int) valuesRead)), _buffers.DefLevels, destination.Slice(totalRowsRead, levelsRead), _definitionLevel);
                 totalRowsRead += levelsRead;
             }
 
