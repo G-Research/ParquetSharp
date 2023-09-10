@@ -1,5 +1,6 @@
 ﻿using System;
 using ParquetSharp.Schema;
+using ParquetSharp.LogicalBatchWriter;
 
 namespace ParquetSharp
 {
