@@ -125,27 +125,68 @@ As only 64-bit runtimes are available, ParquetSharp cannot be referenced by a 32
 
 ## Building
 
-Building ParquetSharp for Windows requires the following dependencies:
-- Visual Studio 2022 (17.0 or higher)
+### Dev Container
+
+ParquetSharp can be built and tested within a [dev container](https://containers.dev). This is a probably the easiest way to get started, as all the C++ dependencies are prebuilt into the container image.
+
+#### GitHub Codespaces
+
+If you have a GitHub account, you can simply open ParquetSharp in a new GitHub Codespace by clicking on the green "Code" button at the top of this page.
+
+Choose the "unspecified" CMake kit when prompted and let the C++ configuration run. Once done, you can build the C++ code via the "Build" button in the status bar at the bottom.
+
+You can then build the C# code by right-clicking the ParquetSharp solution in the Solution Explorer on the left and choosing "Build". The Test Explorer will then get populated with all the C# tests too.
+
+#### Visual Studio Code
+
+If you want to work locally in [Visual Studio Code](https://code.visualstudio.com), all you need is to have [Docker](https://docs.docker.com/get-docker/) and the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) installed.
+
+Simply open up your copy of ParquetSharp in VS Code and click "Reopen in container" when prompted. Once the project has been opened, you can follow the GitHub Codespaces instructions above.
+
+#### CLI
+
+If the CLI is how you roll, then you can install the [Dev Container CLI](https://github.com/devcontainers/cli) tool and issue the following command in the your copy of ParquetSharp to get up and running:
+
+```bash
+devcontainer up
+```
+
+Build the C++ code and run the C# tests with:
+
+```bash
+devcontainer exec ./build_unix.sh
+devcontainer exec dotnet test csharp.test
+```
+
+### Native
+
+Building ParquetSharp natively requires the following dependencies:
+- A modern C++ compiler toolchain
+- .NET SDK 7.0
 - Apache Arrow (13.0.0)
 
-For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://github.com/Microsoft/vcpkg).
-The build scripts will use an existing vcpkg installation if either of the `VCPKG_INSTALLATION_ROOT` or `VCPKG_ROOT` environment variables are defined,
-otherwise vcpkg will be downloaded into the build directory.
-Note that the Windows build needs to be done in a Visual Studio Developer PowerShell for the build script to succeed.
+For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://vcpkg.io).
+The build scripts will use an existing vcpkg installation if either of the `VCPKG_INSTALLATION_ROOT` or `VCPKG_ROOT` environment variables are defined, otherwise vcpkg will be downloaded into the build directory.
 
-**Windows (Visual Studio 2022 Win64 solution)**
-```
-> build_windows.ps1
-> dotnet build csharp.test --configuration=Release
-```
-**Linux and macOS (Makefile)**
-```
-> ./build_unix.sh
-> dotnet build csharp.test --configuration=Release
+#### Windows
+
+Building ParquetSharp on Windows requires Visual Studio 2022 (17.0 or higher).
+
+Open a Visual Studio Developer PowerShell and run the following commands to build the C++ code and run the C# tests:
+
+```pwsh
+build_windows.ps1
+dotnet test csharp.test
 ```
 
-We have had to write our own `FindPackage` macros for most of the dependencies to get us going - it clearly needs more love and attention and is likely to be redundant with some vcpkg helper tools.
+#### Unix
+
+Build the C++ code and run the C# tests with:
+
+```bash
+./build_unix.sh
+dotnet test csharp.test
+```
 
 ## Contributing
 
@@ -153,7 +194,7 @@ We welcome new contributors! We will happily receive PRs for bug fixes or small 
 
 ## License
 
-Copyright 2018-2021 G-Research
+Copyright 2018-2023 G-Research
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use these files except in compliance with the License.
 You may obtain a copy of the License at

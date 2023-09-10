@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ParquetSharp.Schema;
+using ParquetSharp.LogicalBatchReader;
 
 namespace ParquetSharp
 {
