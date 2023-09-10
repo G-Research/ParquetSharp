@@ -92,15 +92,10 @@ namespace ParquetSharp.Arrow
         /// </summary>
         public Apache.Arrow.Types.TimeUnit CoerceInt96TimestampUnit
         {
-            get
-            {
-                var cppUnit = ExceptionInfo.Return<ArrowTimeUnit>(Handle, ArrowReaderProperties_GetCoerceInt96TimestampUnit);
-                return ArrowTimeUnitUtils.ToArrow(cppUnit);
-            }
+            get => ExceptionInfo.Return<Apache.Arrow.Types.TimeUnit>(Handle, ArrowReaderProperties_GetCoerceInt96TimestampUnit);
             set
             {
-                var cppUnit = ArrowTimeUnitUtils.FromArrow(value);
-                ExceptionInfo.Check(ArrowReaderProperties_SetCoerceInt96TimestampUnit(Handle.IntPtr, cppUnit));
+                ExceptionInfo.Check(ArrowReaderProperties_SetCoerceInt96TimestampUnit(Handle.IntPtr, value));
                 GC.KeepAlive(Handle);
             }
         }
@@ -136,10 +131,10 @@ namespace ParquetSharp.Arrow
         private static extern IntPtr ArrowReaderProperties_SetPreBuffer(IntPtr readerProperties, bool preBuffer);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ArrowReaderProperties_GetCoerceInt96TimestampUnit(IntPtr readerProperties, out ArrowTimeUnit unit);
+        private static extern IntPtr ArrowReaderProperties_GetCoerceInt96TimestampUnit(IntPtr readerProperties, out Apache.Arrow.Types.TimeUnit unit);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ArrowReaderProperties_SetCoerceInt96TimestampUnit(IntPtr readerProperties, ArrowTimeUnit unit);
+        private static extern IntPtr ArrowReaderProperties_SetCoerceInt96TimestampUnit(IntPtr readerProperties, Apache.Arrow.Types.TimeUnit unit);
 
         internal readonly ParquetHandle Handle;
     }

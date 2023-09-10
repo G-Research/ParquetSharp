@@ -30,14 +30,7 @@ namespace ParquetSharp.Arrow
         /// <summary>
         /// The unit timestamps will be coerced to if timestamp coercion is enabled
         /// </summary>
-        public Apache.Arrow.Types.TimeUnit CoerceTimestampsUnit
-        {
-            get
-            {
-                var unit = ExceptionInfo.Return<ArrowTimeUnit>(Handle, ArrowWriterProperties_CoerceTimestampsUnit);
-                return ArrowTimeUnitUtils.ToArrow(unit);
-            }
-        }
+        public Apache.Arrow.Types.TimeUnit CoerceTimestampsUnit => ExceptionInfo.Return<Apache.Arrow.Types.TimeUnit>(Handle, ArrowWriterProperties_CoerceTimestampsUnit);
 
         /// <summary>
         /// Whether loss of data when truncating timestamps will be allowed (won't raise an error)
@@ -87,7 +80,7 @@ namespace ParquetSharp.Arrow
         private static extern IntPtr ArrowWriterProperties_CoerceTimestampsEnabled(IntPtr writerProperties, out bool enabled);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ArrowWriterProperties_CoerceTimestampsUnit(IntPtr writerProperties, out ArrowTimeUnit unit);
+        private static extern IntPtr ArrowWriterProperties_CoerceTimestampsUnit(IntPtr writerProperties, out Apache.Arrow.Types.TimeUnit unit);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowWriterProperties_TruncatedTimestampsAllowed(IntPtr writerProperties, out bool allowed);

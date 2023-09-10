@@ -38,8 +38,7 @@ namespace ParquetSharp.Arrow
         /// <param name="unit">time unit to coerce to</param>
         public ArrowWriterPropertiesBuilder CoerceTimestamps(Apache.Arrow.Types.TimeUnit unit)
         {
-            var cppUnit = ArrowTimeUnitUtils.FromArrow(unit);
-            ExceptionInfo.Check(ArrowWriterPropertiesBuilder_CoerceTimestamps(_handle.IntPtr, cppUnit));
+            ExceptionInfo.Check(ArrowWriterPropertiesBuilder_CoerceTimestamps(_handle.IntPtr, unit));
             GC.KeepAlive(_handle);
             return this;
         }
@@ -144,7 +143,7 @@ namespace ParquetSharp.Arrow
             IntPtr builder, out IntPtr arrowWriterProperties);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ArrowWriterPropertiesBuilder_CoerceTimestamps(IntPtr builder, ArrowTimeUnit unit);
+        private static extern IntPtr ArrowWriterPropertiesBuilder_CoerceTimestamps(IntPtr builder, Apache.Arrow.Types.TimeUnit unit);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowWriterPropertiesBuilder_AllowTruncatedTimestamps(IntPtr builder);
