@@ -14,6 +14,7 @@ namespace ParquetSharp
         public delegate IntPtr GetAction<in TArg0, in TArg1, in TArg2, TValue>(TArg0 arg0, TArg1 arg1, TArg2 arg2, out TValue value);
         public delegate IntPtr GetFunction<TValue>(IntPtr handle, out TValue value);
         public delegate IntPtr GetFunction<in TArg0, TValue>(IntPtr handle, TArg0 arg0, out TValue value);
+        public delegate IntPtr GetFunction<in TArg0, in TArg1, TValue>(IntPtr handle, TArg0 arg0, TArg1 arg1, out TValue value);
 
         public static void Check(IntPtr exceptionInfo)
         {
@@ -81,9 +82,22 @@ namespace ParquetSharp
             return value;
         }
 
+        public static TValue Return<TArg0, TArg1, TValue>(ParquetHandle handle, TArg0 arg0, TArg1 arg1, GetFunction<TArg0, TArg1, TValue> getter)
+        {
+            var value = Return(handle.IntPtr, arg0, arg1, getter);
+            GC.KeepAlive(handle);
+            return value;
+        }
+
         public static TValue Return<TArg0, TValue>(IntPtr handle, TArg0 arg0, GetFunction<TArg0, TValue> getter)
         {
             Check(getter(handle, arg0, out var value));
+            return value;
+        }
+
+        public static TValue Return<TArg0, TArg1, TValue>(IntPtr handle, TArg0 arg0, TArg1 arg1, GetFunction<TArg0, TArg1, TValue> getter)
+        {
+            Check(getter(handle, arg0, arg1, out var value));
             return value;
         }
 

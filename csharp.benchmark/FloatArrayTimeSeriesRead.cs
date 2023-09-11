@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Apache.Arrow;
 using BenchmarkDotNet.Attributes;
 using Parquet;
 using Parquet.Data;
@@ -23,7 +25,6 @@ namespace ParquetSharp.Benchmark
             (dates, objectIds, values, _numRows) = CreateFloatArrayDataFrame();
 
             _allDates = dates.SelectMany(d => Enumerable.Repeat(d, objectIds.Length)).ToArray();
-            _allDatesAsDateTimeOffsets = dates.SelectMany(d => Enumerable.Repeat(new DateTimeOffset(d, TimeSpan.Zero), objectIds.Length)).ToArray();
             _allObjectIds = dates.SelectMany(d => objectIds).ToArray();
             _allValues = dates.SelectMany((d, i) => values[i]).ToArray();
 
@@ -92,10 +93,65 @@ namespace ParquetSharp.Benchmark
             {
                 Check.ArraysAreEqual(_allDates, dateTimes);
                 Check.ArraysAreEqual(_allObjectIds, objectIds);
-                Check.ArraysAreEqual(_allValues, values);
+                Check.NestedArraysAreEqual(_allValues, values);
             }
 
             return (dateTimes, objectIds, values);
+        }
+
+        [Benchmark]
+        public void ParquetSharpArrow()
+        {
+            using var fileReader = new Arrow.FileReader(Filename);
+            using var streamReader = fileReader.GetRecordBatchReader();
+
+            var batches = new List<RecordBatch>();
+            try
+            {
+                RecordBatch batch;
+                while ((batch = streamReader.ReadNextRecordBatchAsync().Result) != null)
+                {
+                    batches.Add(batch);
+                }
+
+                if (Check.Enabled)
+                {
+                    var dateTimes = new DateTime[_numRows];
+                    var objectIds = new int[_numRows];
+                    var values = new float[_numRows][];
+
+                    var offset = 0;
+                    foreach (var batchRead in batches)
+                    {
+                        var timestamps = (TimestampArray) batchRead.Column(0);
+                        var idsArray = (Int32Array) batchRead.Column(1);
+                        var floatListArray = (ListArray) batchRead.Column(2);
+                        var floatValuesArray = (FloatArray) floatListArray.Values;
+
+                        for (var i = 0; i < batchRead.Length; ++i)
+                        {
+                            dateTimes[offset + i] = timestamps.GetTimestampUnchecked(i).DateTime;
+                            objectIds[offset + i] = idsArray.GetValue(i) ?? int.MinValue;
+                            var listOffset = floatListArray.ValueOffsets[i];
+                            var listLength = floatListArray.ValueOffsets[i + 1] - listOffset;
+                            values[offset + i] = floatValuesArray.Values.Slice(listOffset, listLength).ToArray();
+                        }
+
+                        offset += batchRead.Length;
+                    }
+
+                    Check.ArraysAreEqual(_allDates, dateTimes);
+                    Check.ArraysAreEqual(_allObjectIds, objectIds);
+                    Check.NestedArraysAreEqual(_allValues, values);
+                }
+            }
+            finally
+            {
+                foreach (var batch in batches)
+                {
+                    batch.Dispose();
+                }
+            }
         }
 
         [Benchmark]
@@ -106,9 +162,10 @@ namespace ParquetSharp.Benchmark
 
             if (Check.Enabled)
             {
-                Check.ArraysAreEqual(_allDatesAsDateTimeOffsets, (DateTimeOffset[]) results[0].Data);
+                Check.ArraysAreEqual(_allDates, (DateTime[]) results[0].Data);
                 Check.ArraysAreEqual(_allObjectIds, (int[]) results[1].Data);
-                Check.ArraysAreEqual(_allValues, (float[][]) results[2].Data);
+                var flattenedValues = _allValues.SelectMany(arr => arr).ToArray();
+                Check.ArraysAreEqual(flattenedValues, (float[]) results[2].Data);
             }
 
             return results;
@@ -151,7 +208,6 @@ namespace ParquetSharp.Benchmark
         private const int NumObjectIds = 1_000;
 
         private readonly DateTime[] _allDates;
-        private readonly DateTimeOffset[] _allDatesAsDateTimeOffsets;
         private readonly int[] _allObjectIds;
         private readonly float[][] _allValues;
         private readonly int _numRows;
