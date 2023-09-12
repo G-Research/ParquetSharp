@@ -98,10 +98,16 @@ namespace ParquetSharp.Test
 
                 foreach (var column in expectedColumns)
                 {
-                    Console.WriteLine("Writing '{0}'", column.Name);
-
-                    using var columnWriter = rowGroupWriter.NextColumn();
-                    columnWriter.Apply(new ValueSetter(column.Values));
+                    try
+                    {
+                        using var columnWriter = rowGroupWriter.NextColumn();
+                        columnWriter.Apply(new ValueSetter(column.Values));
+                    }
+                    catch (Exception)
+                    {
+                        TestContext.WriteLine("Failure writing '{0}'", column.Name);
+                        throw;
+                    }
                 }
 
                 fileWriter.Close();
@@ -136,11 +142,6 @@ namespace ParquetSharp.Test
                     {
                         var column = expectedColumns[i];
                         var range = (r, Math.Min(r + rangeLength, numRows));
-
-                        if (range.Item1 == 0 || range.Item2 == numRows)
-                        {
-                            Console.WriteLine("Writing '{0}' (range: {1})", column.Name, range);
-                        }
 
                         using var columnWriter = rowGroupWriter.Column(i);
                         columnWriter.Apply(new ValueSetter(column.Values, range));
@@ -181,34 +182,39 @@ namespace ParquetSharp.Test
             for (int c = 0; c != fileMetaData.NumColumns; ++c)
             {
                 using var columnReader = rowGroupReader.Column(c);
-
                 var expected = expectedColumns[c];
+                try
+                {
+                    var descr = columnReader.ColumnDescriptor;
+                    using var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
 
-                Console.WriteLine("Reading '{0}'", expected.Name);
+                    Assert.AreEqual(expected.MaxDefinitionlevel, descr.MaxDefinitionLevel);
+                    Assert.AreEqual(expected.MaxRepetitionLevel, descr.MaxRepetitionLevel);
+                    Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
+                    using var logicalType = descr.LogicalType;
+                    Assert.AreEqual(expected.LogicalType, logicalType);
+                    Assert.AreEqual(expected.ColumnOrder, descr.ColumnOrder);
+                    Assert.AreEqual(expected.SortOrder, descr.SortOrder);
+                    Assert.AreEqual(expected.Name, descr.Name);
+                    Assert.AreEqual(expected.TypeLength, descr.TypeLength);
+                    Assert.AreEqual(expected.TypePrecision, descr.TypePrecision);
+                    Assert.AreEqual(expected.TypeScale, descr.TypeScale);
 
-                var descr = columnReader.ColumnDescriptor;
-                using var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
+                    var expectedEncodings = expected.Encodings
+                        .Where(e => useDictionaryEncoding || e != Encoding.RleDictionary).ToArray();
+                    var actualEncodings = chunkMetaData.Encodings.Distinct().ToArray();
+                    // Encoding ordering is not important
+                    Assert.That(actualEncodings, Is.EquivalentTo(expectedEncodings));
 
-                Assert.AreEqual(expected.MaxDefinitionlevel, descr.MaxDefinitionLevel);
-                Assert.AreEqual(expected.MaxRepetitionLevel, descr.MaxRepetitionLevel);
-                Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
-                using var logicalType = descr.LogicalType;
-                Assert.AreEqual(expected.LogicalType, logicalType);
-                Assert.AreEqual(expected.ColumnOrder, descr.ColumnOrder);
-                Assert.AreEqual(expected.SortOrder, descr.SortOrder);
-                Assert.AreEqual(expected.Name, descr.Name);
-                Assert.AreEqual(expected.TypeLength, descr.TypeLength);
-                Assert.AreEqual(expected.TypePrecision, descr.TypePrecision);
-                Assert.AreEqual(expected.TypeScale, descr.TypeScale);
-
-                var expectedEncodings = expected.Encodings
-                    .Where(e => useDictionaryEncoding || e != Encoding.RleDictionary).ToArray();
-                var actualEncodings = chunkMetaData.Encodings.Distinct().ToArray();
-                // Encoding ordering is not important
-                Assert.That(actualEncodings, Is.EquivalentTo(expectedEncodings));
-
-                Assert.AreEqual(expected.Compression, chunkMetaData.Compression);
-                Assert.AreEqual(expected.Values, columnReader.Apply(new PhysicalValueGetter(chunkMetaData.NumValues)).values);
+                    Assert.AreEqual(expected.Compression, chunkMetaData.Compression);
+                    Assert.AreEqual(expected.Values,
+                        columnReader.Apply(new PhysicalValueGetter(chunkMetaData.NumValues)).values);
+                }
+                catch (Exception)
+                {
+                    TestContext.Out.WriteLine("Failure reading '{0}'", expected.Name);
+                    throw;
+                }
             }
         }
 

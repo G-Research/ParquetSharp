@@ -30,11 +30,9 @@ namespace ParquetSharp.Test
 
             foreach (var value in decimals)
             {
-                Console.WriteLine($"{value:E}");
-                Assert.AreEqual(value, new Decimal128(value, multiplier).ToDecimal(multiplier));
+                Assert.That(value, Is.EqualTo(new Decimal128(value, multiplier).ToDecimal(multiplier)));
 
-                Console.WriteLine($"{-value:E}");
-                Assert.AreEqual(-value, new Decimal128(-value, multiplier).ToDecimal(multiplier));
+                Assert.That(-value, Is.EqualTo(new Decimal128(-value, multiplier).ToDecimal(multiplier)));
             }
         }
 
