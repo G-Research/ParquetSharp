@@ -94,8 +94,6 @@ namespace ParquetSharp.Test
                             var column = expectedColumns[i];
                             var range = (r, Math.Min(r + rangeLength, NumRows));
 
-                            Console.WriteLine("Writing '{0}' (element type: {1}) (range: {2})", column.Name, column.Values.GetType().GetElementType(), range);
-
                             using var columnWriter = rowGroupWriter.Column(i).LogicalWriter(writeBufferLength);
                             columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch, range));
                         }

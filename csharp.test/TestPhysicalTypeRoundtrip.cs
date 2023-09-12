@@ -137,11 +137,6 @@ namespace ParquetSharp.Test
                         var column = expectedColumns[i];
                         var range = (r, Math.Min(r + rangeLength, numRows));
 
-                        if (range.Item1 == 0 || range.Item2 == numRows)
-                        {
-                            Console.WriteLine("Writing '{0}' (range: {1})", column.Name, range);
-                        }
-
                         using var columnWriter = rowGroupWriter.Column(i);
                         columnWriter.Apply(new ValueSetter(column.Values, range));
                     }
