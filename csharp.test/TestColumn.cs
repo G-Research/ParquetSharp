@@ -16,29 +16,35 @@ namespace ParquetSharp.Test
             {
                 foreach (var expected in expectedPrimitives)
                 {
-                    Console.WriteLine("Testing primitive type {0}", expected.Type);
+                    try
+                    {
+                        Assert.True(LogicalTypeFactory.Default.IsSupported(expected.Type));
+                        var type = expected.Type;
+                        var column = new Column(type, expected.Name, expected.LogicalTypeOverride);
 
-                    Assert.True(LogicalTypeFactory.Default.IsSupported(expected.Type));
-                    var type = expected.Type;
-                    var column = new Column(type, expected.Name, expected.LogicalTypeOverride);
+                        using var node = column.CreateSchemaNode();
 
-                    using var node = column.CreateSchemaNode();
+                        using var nodeLogicalType = node.LogicalType;
+                        Assert.AreEqual(expected.LogicalType, nodeLogicalType);
+                        Assert.AreEqual(-1, node.FieldId);
+                        Assert.AreEqual(expected.Name, node.Name);
+                        Assert.AreEqual(NodeType.Primitive, node.NodeType);
+                        Assert.AreEqual(null, node.Parent);
+                        Assert.AreEqual(expected.Repetition, node.Repetition);
 
-                    using var nodeLogicalType = node.LogicalType;
-                    Assert.AreEqual(expected.LogicalType, nodeLogicalType);
-                    Assert.AreEqual(-1, node.FieldId);
-                    Assert.AreEqual(expected.Name, node.Name);
-                    Assert.AreEqual(NodeType.Primitive, node.NodeType);
-                    Assert.AreEqual(null, node.Parent);
-                    Assert.AreEqual(expected.Repetition, node.Repetition);
+                        var primitive = (PrimitiveNode) node;
 
-                    var primitive = (PrimitiveNode) node;
-
-                    Assert.AreEqual(expected.ColumnOrder, primitive.ColumnOrder);
-                    Assert.AreEqual(expected.PhysicalType, primitive.PhysicalType);
-                    Assert.AreEqual(expected.Length, primitive.TypeLength);
-                    using var logicalType = primitive.LogicalType;
-                    Assert.AreEqual(expected.LogicalType, logicalType);
+                        Assert.AreEqual(expected.ColumnOrder, primitive.ColumnOrder);
+                        Assert.AreEqual(expected.PhysicalType, primitive.PhysicalType);
+                        Assert.AreEqual(expected.Length, primitive.TypeLength);
+                        using var logicalType = primitive.LogicalType;
+                        Assert.AreEqual(expected.LogicalType, logicalType);
+                    }
+                    catch (Exception)
+                    {
+                        TestContext.Out.WriteLine("Failure testing primitive type {0}", expected.Type);
+                        throw;
+                    }
                 }
             }
             finally

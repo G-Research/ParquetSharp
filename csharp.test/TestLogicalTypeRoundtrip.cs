@@ -37,16 +37,20 @@ namespace ParquetSharp.Test
 
                     foreach (var column in expectedColumns)
                     {
-                        Console.WriteLine("Writing '{0}' ({1})", column.Name, column.Values.GetType().GetElementType());
-
-                        using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter(writeBufferLength);
-                        columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch));
+                        try
+                        {
+                            using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter(writeBufferLength);
+                            columnWriter.Apply(new LogicalValueSetter(column.Values, rowsPerBatch));
+                        }
+                        catch (Exception)
+                        {
+                            TestContext.Out.WriteLine("Failure writing '{0}' ({1})", column.Name, column.Values.GetType().GetElementType());
+                            throw;
+                        }
                     }
 
                     fileWriter.Close();
                 }
-
-                Console.WriteLine();
 
                 // Read back the columns and make sure they match.
                 AssertReadRoundtrip(rowsPerBatch, readBufferLength, buffer, expectedColumns);
@@ -101,8 +105,6 @@ namespace ParquetSharp.Test
 
                     fileWriter.Close();
                 }
-
-                Console.WriteLine();
 
                 // Read back the columns and make sure they match.
                 AssertReadRoundtrip(rowsPerBatch, readBufferLength, buffer, expectedColumns);
@@ -293,38 +295,46 @@ namespace ParquetSharp.Test
                     using var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
                     using var statistics = chunkMetaData.Statistics;
 
-                    Console.WriteLine("Reading '{0}'", expected.Name);
-
-                    using var root = fileMetaData.Schema.ColumnRoot(c);
-                    Assert.AreEqual(expected.Name, root.Name);
-                    using var path = descr.Path;
-                    Assert.AreEqual(expected.Name, path.ToDotVector().First());
-                    Assert.AreEqual(c, fileMetaData.Schema.ColumnIndex(path.ToDotString()));
-                    Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
-                    using var logicalType = descr.LogicalType;
-                    Assert.AreEqual(expected.LogicalType, logicalType);
-                    Assert.AreEqual(expected.Values, columnReader.Apply(new LogicalValueGetter(checked((int) numRows), rowsPerBatch)));
-                    Assert.AreEqual(expected.Length, descr.TypeLength);
-                    Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Precision ?? -1, descr.TypePrecision);
-                    Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Scale ?? -1, descr.TypeScale);
-                    Assert.AreEqual(expected.HasStatistics, chunkMetaData.IsStatsSet);
-
-                    if (expected.HasStatistics)
+                    try
                     {
-                        Assert.AreEqual(expected.HasMinMax, statistics?.HasMinMax);
-                        Assert.AreEqual(expected.NullCount, statistics?.NullCount);
-                        Assert.AreEqual(expected.NumValues, statistics?.NumValues);
-                        Assert.AreEqual(expected.PhysicalType, statistics?.PhysicalType);
+                        using var root = fileMetaData.Schema.ColumnRoot(c);
+                        Assert.AreEqual(expected.Name, root.Name);
+                        using var path = descr.Path;
+                        Assert.AreEqual(expected.Name, path.ToDotVector().First());
+                        Assert.AreEqual(c, fileMetaData.Schema.ColumnIndex(path.ToDotString()));
+                        Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
+                        using var logicalType = descr.LogicalType;
+                        Assert.AreEqual(expected.LogicalType, logicalType);
+                        Assert.AreEqual(expected.Values,
+                            columnReader.Apply(new LogicalValueGetter(checked((int) numRows), rowsPerBatch)));
+                        Assert.AreEqual(expected.Length, descr.TypeLength);
+                        Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Precision ?? -1,
+                            descr.TypePrecision);
+                        Assert.AreEqual((expected.LogicalType as DecimalLogicalType)?.Scale ?? -1, descr.TypeScale);
+                        Assert.AreEqual(expected.HasStatistics, chunkMetaData.IsStatsSet);
 
-                        if (expected.HasMinMax)
+                        if (expected.HasStatistics)
                         {
-                            Assert.AreEqual(expected.Min, expected.Converter(statistics!.MinUntyped, descr));
-                            Assert.AreEqual(expected.Max, expected.Converter(statistics!.MaxUntyped, descr));
+                            Assert.AreEqual(expected.HasMinMax, statistics?.HasMinMax);
+                            Assert.AreEqual(expected.NullCount, statistics?.NullCount);
+                            Assert.AreEqual(expected.NumValues, statistics?.NumValues);
+                            Assert.AreEqual(expected.PhysicalType, statistics?.PhysicalType);
+
+                            if (expected.HasMinMax)
+                            {
+                                Assert.AreEqual(expected.Min, expected.Converter(statistics!.MinUntyped, descr));
+                                Assert.AreEqual(expected.Max, expected.Converter(statistics!.MaxUntyped, descr));
+                            }
+                        }
+                        else
+                        {
+                            Assert.IsNull(statistics);
                         }
                     }
-                    else
+                    catch (Exception)
                     {
-                        Assert.IsNull(statistics);
+                        TestContext.Out.WriteLine("Failure reading '{0}'", expected.Name);
+                        throw;
                     }
                 }
 
