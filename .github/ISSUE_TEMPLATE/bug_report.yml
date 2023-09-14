@@ -50,19 +50,10 @@ body:
     validations:
       required: true
 
-
-  - type: textarea
-    id: screenshots
-    attributes:
-      label: Screenshots (Optional)
-      description: If applicable, add screenshots to help explain your problem.
-    validations:
-      required: false
-
   - type: textarea
     id: context
     attributes:
       label: Additional Context (Optional)
-      description: Add any other context about the problem here.
+      description: Add any other context about the problem here, including log outputs or screenshots if applicable.
     validations:
       required: false
