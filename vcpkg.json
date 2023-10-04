@@ -6,10 +6,7 @@
   "dependencies": [
     "arrow"
   ],
-  "overrides": [
-    {
-      "name": "arrow",
-      "version": "13.0.0"
-    }
-  ]
+  "vcpkg-configuration": {
+    "overlay-ports": ["./ports"]
+  }
 }

@@ -14,7 +14,7 @@ namespace ParquetSharp.Test
         {
             var p = WriterProperties.GetDefaultWriterProperties();
 
-            Assert.AreEqual("parquet-cpp-arrow version 13.0.0", p.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 14.0.0-SNAPSHOT", p.CreatedBy);
             Assert.AreEqual(Compression.Uncompressed, p.Compression(new ColumnPath("anypath")));
             Assert.AreEqual(int.MinValue, p.CompressionLevel(new ColumnPath("anypath")));
             Assert.AreEqual(1024 * 1024, p.DataPageSize);

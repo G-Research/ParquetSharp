@@ -163,7 +163,7 @@ namespace ParquetSharp.Test
 
             var numRows = expectedColumns.First().Values.Length;
 
-            Assert.AreEqual("parquet-cpp-arrow version 13.0.0", fileMetaData.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 14.0.0-SNAPSHOT", fileMetaData.CreatedBy);
             Assert.AreEqual(new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}}, fileMetaData.KeyValueMetadata);
             Assert.AreEqual(expectedColumns.Length, fileMetaData.NumColumns);
             Assert.AreEqual(numRows, fileMetaData.NumRows);
@@ -174,7 +174,7 @@ namespace ParquetSharp.Test
             // The parquet format only stores an integer file version (1 or 2) and
             // 2 gets mapped to the latest 2.x version.
             Assert.AreEqual(ParquetVersion.PARQUET_2_6, fileMetaData.Version);
-            Assert.AreEqual("parquet-cpp-arrow version 13.0.0", fileMetaData.WriterVersion.ToString());
+            Assert.AreEqual("parquet-cpp-arrow version 14.0.0", fileMetaData.WriterVersion.ToString());
 
             using var rowGroupReader = fileReader.RowGroup(0);
             var rowGroupMetaData = rowGroupReader.MetaData;
