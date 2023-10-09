@@ -113,9 +113,6 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestWriterDoubleDispose()
         {
-            // ParquetRowWriter is not double-Dispose safe (Issue 64)
-            // https://github.com/G-Research/ParquetSharp/issues/64
-
             using var buffer = new ResizableBuffer();
             using var outputStream = new BufferOutputStream(buffer);
             using var writer = ParquetFile.CreateRowWriter<(int, double, DateTime)>(outputStream);
