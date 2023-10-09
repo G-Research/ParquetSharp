@@ -4,7 +4,7 @@
 
 **ParquetSharp** is a cross-platform .NET library for reading and writing Apache [Parquet][1] files.
 
-**Apache Parquet** is an [open source][2], column-oriented data file format designed for efficient data storage and retrieval. It provides efficient data compression and encoding schemes with enhanced performance to handle complex data in bulk. Relative to CSV files, <u>Parquet executes queries **34x faster** while taking up **87% less space**</u>.
+**Apache Parquet** is an [open source][2], column-oriented data file format designed for efficient data storage and retrieval. It provides efficient data compression and encoding schemes with enhanced performance to handle complex data in bulk. Relative to CSV files, <u>Parquet executes queries **34x faster** while taking up **87% less space**</u>. [Source][7]
 
 ParquetSharp is implemented in C# as a [PInvoke][2] wrapper around [Apache Parquet C++][3] to provide high performance and compatibility. Check out [ParquetSharp.DataFrame][4] if you need a convenient integration with the .NET [DataFrames][5].
 
@@ -21,6 +21,7 @@ Supported platforms:
 [4]: https://github.com/apache/arrow
 [5]: https://github.com/G-Research/ParquetSharp.DataFrame
 [6]: https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.analysis.dataframe
+[7]: https://towardsdatascience.com/demystifying-the-parquet-file-format-13adb0206705
 
 |                       | Status                                                                                                                                                                                                                         |
 | --------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
