@@ -35,7 +35,7 @@ The following examples show how to write and then read a Parquet file with three
 These use the low-level API, which is the recommended API for working with native .NET types and closely maps to the API of Apache Parquet C++.
 For reading and writing data in the [Apache Arrow](https://arrow.apache.org/) format, an [Arrow based API](docs/Arrow.md) is also provided.
 
-Writing a Parquet File:
+### How to write a Parquet File:
 
 ```csharp
 var timestamps = new DateTime[] { /* ... */ };
@@ -68,7 +68,7 @@ using (var valueWriter = rowGroup.NextColumn().LogicalWriter<float>())
 file.Close();
 ```
 
-Reading the file back:
+### How to read a Parquet file:
 
 ```csharp
 using var file = new ParquetFileReader("float_timeseries.parquet");
@@ -89,8 +89,8 @@ file.Close();
 
 For more detailed information on how to use ParquetSharp, see the following documentation:
 
-* [Writing parquet files](docs/Writing.md)
-* [Reading parquet files](docs/Reading.md)
+* [Writing Parquet files](docs/Writing.md)
+* [Reading Parquet files](docs/Reading.md)
 * [Working with nested data](docs/Nested.md)
 * [Reading and writing Arrow data](docs/Arrow.md) &mdash; how to read and write data using the [Apache Arrow format](https://arrow.apache.org/)
 * [Row-oriented API](docs/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
