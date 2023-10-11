@@ -21,14 +21,14 @@ Supported platforms:
 
 ## Why use Parquet?
 
-**Apache Parquet** is an [open source][2], column-oriented data file format designed for efficient data storage and retrieval. It provides efficient data compression and encoding schemes with enhanced performance to handle complex data in bulk. Relative to CSV files, <u>Parquet executes queries **34x faster** while taking up **87% less space**</u>. [Source][7]
+**Apache Parquet** is an [open source][6], column-oriented data file format designed for efficient data storage and retrieval. It provides efficient data compression and encoding schemes with enhanced performance to handle complex data in bulk. Relative to CSV files, Parquet executes queries **34x faster** while taking up **87% less space**. [Source][7]
 
 [1]: https://parquet.apache.org/
-[2]: https://github.com/apache/parquet-format
-[3]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
-[4]: https://github.com/apache/arrow
-[5]: https://github.com/G-Research/ParquetSharp.DataFrame
-[6]: https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.analysis.dataframe
+[2]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
+[3]: https://github.com/apache/arrow
+[4]: https://github.com/G-Research/ParquetSharp.DataFrame
+[5]: https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.analysis.dataframe
+[6]: https://github.com/apache/parquet-format
 [7]: https://towardsdatascience.com/demystifying-the-parquet-file-format-13adb0206705
 
 ## Quickstart
