@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -9,6 +10,76 @@ namespace ParquetSharp.Test
     [TestFixture]
     internal static class TestDecimal
     {
+        [Test]
+        public static unsafe void TestDecimalConverterToDecimal128RoundTrip()
+        {
+            var precision = 29;
+            var scale = 3;
+            const int arraySize = 16;
+            const int numRows = 1000;
+            var random = new Random(1);
+            var values = Enumerable.Range(0, numRows).Select(i => RandomDecimal(random, 3)).ToArray();
+
+            using var byteBuffer = new ByteBuffer(8 * arraySize * numRows);
+            var converted = new ByteArray[numRows];
+
+            var multiplier = DecimalConverter.GetScaleMultiplier(scale, precision);
+            for (var i = 0; i < numRows; ++i)
+            {
+                converted[i] = byteBuffer.Allocate(arraySize);
+                DecimalConverter.WriteDecimal(values[i], converted[i], multiplier);
+            }
+
+            var read = new decimal[numRows];
+            multiplier = Decimal128.GetScaleMultiplier(scale);
+            for (var i = 0; i < numRows; ++i)
+            {
+                read[i] = (*(Decimal128*) converted[i].Pointer).ToDecimal(multiplier);
+            }
+
+            Assert.That(read, Is.EqualTo(values));
+        }
+
+        [Test]
+        public static unsafe void TestDecimal128ToDecimalConverterRoundTrip()
+        {
+            var precision = 29;
+            var scale = 3;
+            const int arraySize = 16;
+            const int numRows = 1000;
+            var random = new Random(2);
+            var values = Enumerable.Range(0, numRows).Select(i => RandomDecimal(random, 3)).ToArray();
+
+            using var byteBuffer = new ByteBuffer(8 * arraySize * numRows);
+            var converted = new ByteArray[numRows];
+
+            var multiplier = Decimal128.GetScaleMultiplier(scale);
+            for (var i = 0; i < numRows; ++i)
+            {
+                converted[i] = byteBuffer.Allocate(arraySize);
+                *(Decimal128*) converted[i].Pointer = new Decimal128(values[i], multiplier);
+            }
+
+            var read = new decimal[numRows];
+            multiplier = DecimalConverter.GetScaleMultiplier(scale, precision);
+            for (var i = 0; i < numRows; ++i)
+            {
+                read[i] = DecimalConverter.ReadDecimal(converted[i], multiplier);
+            }
+
+            Assert.That(read, Is.EqualTo(values));
+        }
+
+        private static decimal RandomDecimal(Random random, int scale)
+        {
+            var intRange = 1 + (long) int.MaxValue - (long) int.MinValue;
+            var low = (int) (int.MinValue + random.NextInt64(0, intRange));
+            var mid = (int) (int.MinValue + random.NextInt64(0, intRange));
+            var high = (int) (int.MinValue + random.NextInt64(0, intRange));
+            var negative = random.NextSingle() < 0.5;
+            return new decimal(low, mid, high, negative, (byte) scale);
+        }
+
         [Test]
         public static void TestReadInt32PhysicalType()
         {
