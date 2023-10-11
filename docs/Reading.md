@@ -13,6 +13,7 @@ using var input = new ManagedRandomAccessFile(File.OpenRead("data.parquet"));
 using var fileReader = new ParquetFileReader(input);
 ```
 
+### Obtaining file metadata
 The `FileMetaData` property of a `ParquetFileReader` exposes information about the Parquet file and its schema:
 ```csharp
 int numColumns = fileReader.FileMetaData.NumColumns;
@@ -22,11 +23,12 @@ IReadOnlyDictionary<string, string> metadata = fileReader.FileMetaData.KeyValueM
 
 SchemaDescriptor schema = fileReader.FileMetaData.Schema;
 for (int columnIndex = 0; columnIndex < schema.NumColumns; ++columnIndex) {
-    ColumnDescriptor colum = schema.Column(columnIndex);
+    ColumnDescriptor column = schema.Column(columnIndex);
     string columnName = column.Name;
 }
 ```
 
+### Reading row groups
 Parquet files store data in separate row groups, which all share the same schema,
 so if you wish to read all data in a file, you generally want to loop over all of the row groups
 and create a `RowGroupReader` for each one:
@@ -38,6 +40,7 @@ for (int rowGroup = 0; rowGroup < fileReader.FileMetaData.NumRowGroups; ++rowGro
 }
 ```
 
+### Reading columns directly
 The `Column` method of `RowGroupReader` takes an integer column index and returns a `ColumnReader` object,
 which can read primitive values from the column, as well as raw definition level and repetition level data.
 Usually you will not want to use a `ColumnReader` directly, but instead call its `LogicalReader` method to
@@ -46,6 +49,7 @@ There are two variations of this `LogicalReader` method; the plain `LogicalReade
 `LogicalColumnReader`, whereas the generic `LogicalReader<TElement>` method returns a typed `LogicalColumnReader<TElement>`,
 which reads values of the specified element type.
 
+
 If you know ahead of time the data types for the columns you will read, you can simply use the generic methods and
 read values directly. For example, to read data from the first column which represents a timestamp:
 
@@ -53,6 +57,7 @@ read values directly. For example, to read data from the first column which repr
 DateTime[] timestamps = rowGroupReader.Column(0).LogicalReader<DateTime>().ReadAll(numRows);
 ```
 
+### Reading columns with unknown types
 However, if you don't know ahead of time the types for each column, you can implement the
 `ILogicalColumnReaderVisitor<TReturn>` interface to handle column data in a type-safe way, for example:
 
@@ -76,6 +81,8 @@ string columnValues = rowGroupReader.Column(0).LogicalReader().Apply(new ColumnP
 There's a similar `IColumnReaderVisitor<TReturn>` interface for working with `ColumnReader` objects
 and reading physical values in a type-safe way, but most users will want to work at the logical element level.
 
+
+### Reading data in batches
 The `LogicalColumnReader<TElement>` class provides multiple ways to read data.
 It implements `IEnumerable<TElement>` which internally buffers batches of data and iterates over them,
 but for more fine-grained control over reading behaviour, you can read into your own buffer. For example:
