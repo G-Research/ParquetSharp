@@ -28,7 +28,14 @@ namespace ParquetSharp
 
             ExceptionInfo_Free(exceptionInfo);
 
-            throw new ParquetException(type, message);
+            if (type == "OutOfMemoryException")
+            {
+                throw new OutOfMemoryException(message);
+            }
+            else
+            {
+                throw new ParquetException(type, message);
+            }
         }
 
         public static TValue Return<TValue>(GetAction<TValue> getter)
