@@ -20,6 +20,10 @@ struct ExceptionInfo final
 		expression															\
 		return nullptr;														\
 	}																		\
+	catch (const std::bad_alloc& exception)									\
+	{																		\
+		return new ExceptionInfo("OutOfMemoryException", exception.what()); \
+	}																		\
 	catch (const std::exception& exception)									\
 	{																		\
 		return new ExceptionInfo(exception);								\
