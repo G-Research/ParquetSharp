@@ -18,6 +18,8 @@ In this example, we'll open a file using a path:
 using var fileReader = new FileReader("data.parquet");
 ```
 
+### Inspecting the schema
+
 We can then inspect the Arrow schema that will be used when reading the file:
 
 ```csharp
@@ -27,6 +29,8 @@ foreach (var field in schema.FieldsList)
     Console.WriteLine($"field '{field.Name}' data type = '{field.DataType}'");
 }
 ```
+
+### Reading data
 
 To read data from the file, we use the `GetRecordBatchReader` method,
 which returns an `Apache.Arrow.IArrowArrayStream`.
@@ -138,7 +142,9 @@ using var writer = new FileWriter("data.parquet", schema);
 ```
 
 Rather than specifying a file path, we could also write to a .NET `System.IO.Stream`
-or a subclass of `ParquetShap.IO.OutputStream`.
+or a subclass of `ParquetSharp.IO.OutputStream`.
+
+### Writing data in batches
 
 Now we're ready to write batches of data:
 
@@ -158,6 +164,8 @@ if it contains more rows than the chunk size, which can be specified when writin
 writer.WriteRecordBatch(recordBatch, chunkSize: 1024);
 ```
 
+### Writing data one column at a time
+
 Rather than writing record batches, you may also explicitly start Parquet row groups
 and write data one column at a time, for more control over how data is written:
 
@@ -171,6 +179,8 @@ for (var batchNumber = 0; batchNumber < 10; ++batchNumber)
     writer.WriteColumnChunk(recordBatch.Column(2));
 }
 ```
+
+### Closing the file
 
 Finally, we should call the `Close` method when we have finished writing data,
 which will write the Parquet file footer and close the file.
