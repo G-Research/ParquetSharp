@@ -225,11 +225,14 @@ jobs:
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-11, macos-12, windows-2022, ubuntu-20.04-arm64]
+        os: [ubuntu-20.04, macos-11, macos-12, macos-13-xlarge, windows-2022, ubuntu-20.04-arm64]
         dotnet: [netcoreapp3.1, net6.0, net7.0]
         include:
         - os: windows-2022
           dotnet: net472
+        exclude:
+        - os: macos-13-xlarge
+          dotnet: netcoreapp3.1
       fail-fast: false
     name: Test NuGet package (${{ matrix.dotnet }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}

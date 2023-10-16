@@ -2,9 +2,9 @@
 
 ## Introduction
 
-ParquetSharp is a cross-platform .NET library for reading and writing Apache [Parquet][1] files.
+**ParquetSharp** is a cross-platform .NET library for reading and writing Apache [Parquet][1] files.
 
-It is implemented in C# as a [PInvoke][2] wrapper around [Apache Parquet C++][3] to provide high performance and compatibility. Check out [ParquetSharp.DataFrame][4] if you need a convenient integration with the .NET [DataFrames][5].
+ParquetSharp is implemented in C# as a [PInvoke][2] wrapper around [Apache Parquet C++][3] to provide high performance and compatibility. Check out [ParquetSharp.DataFrame][4] if you need a convenient integration with the .NET [DataFrames][5].
 
 Supported platforms:
 
@@ -13,17 +13,23 @@ Supported platforms:
 | x64   | &#x2714; | &#x2714; | &#x2714; |
 | arm64 | &#x2714; |          | &#x2714; |
 
-[1]: https://github.com/apache/parquet-format
-[2]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
-[3]: https://github.com/apache/arrow
-[4]: https://github.com/G-Research/ParquetSharp.DataFrame
-[5]: https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.analysis.dataframe
-
 |                       | Status                                                                                                                                                                                                                         |
 | --------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Release Nuget**     | [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp)                                                                                                        |
 | **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp/absoluteLatest)                                                                                  |
 | **CI Build**          | [![CI Status](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml?query=branch%3Amaster+event%3Apush) |
+
+## Why use Parquet?
+
+**Apache Parquet** is an [open source][6], column-oriented data file format designed for efficient data storage and retrieval. It provides efficient data compression and encoding schemes with enhanced performance to handle complex data in bulk. Relative to CSV files, Parquet executes queries **34x faster** while taking up **87% less space**. [Source][7]
+
+[1]: https://parquet.apache.org/
+[2]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
+[3]: https://github.com/apache/arrow
+[4]: https://github.com/G-Research/ParquetSharp.DataFrame
+[5]: https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.analysis.dataframe
+[6]: https://github.com/apache/parquet-format
+[7]: https://towardsdatascience.com/demystifying-the-parquet-file-format-13adb0206705
 
 ## Quickstart
 
@@ -31,7 +37,7 @@ The following examples show how to write and then read a Parquet file with three
 These use the low-level API, which is the recommended API for working with native .NET types and closely maps to the API of Apache Parquet C++.
 For reading and writing data in the [Apache Arrow](https://arrow.apache.org/) format, an [Arrow based API](docs/Arrow.md) is also provided.
 
-Writing a Parquet File:
+### How to write a Parquet File:
 
 ```csharp
 var timestamps = new DateTime[] { /* ... */ };
@@ -64,7 +70,7 @@ using (var valueWriter = rowGroup.NextColumn().LogicalWriter<float>())
 file.Close();
 ```
 
-Reading the file back:
+### How to read a Parquet file:
 
 ```csharp
 using var file = new ParquetFileReader("float_timeseries.parquet");
@@ -85,8 +91,8 @@ file.Close();
 
 For more detailed information on how to use ParquetSharp, see the following documentation:
 
-* [Writing parquet files](docs/Writing.md)
-* [Reading parquet files](docs/Reading.md)
+* [Writing Parquet files](docs/Writing.md)
+* [Reading Parquet files](docs/Reading.md)
 * [Working with nested data](docs/Nested.md)
 * [Reading and writing Arrow data](docs/Arrow.md) &mdash; how to read and write data using the [Apache Arrow format](https://arrow.apache.org/)
 * [Row-oriented API](docs/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
