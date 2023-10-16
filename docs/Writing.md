@@ -6,9 +6,8 @@ The low-level ParquetSharp API provides the `ParquetFileWriter` class for writin
 
 When writing a Parquet file, you must define the schema up-front, which specifies all of the columns
 in the file along with their names and types.
-This schema can be defined using a graph of `ParquetSharp.Schema.Node` instances,
-starting from a root `GroupNode`,
-but ParquetSharp also provides a convenient higher level API for defining the schema as an array
+
+ParquetSharp provides a convenient higher level API for defining the schema as an array
 of `Column` objects.
 A `Column` can be constructed using only a name and a type parameter that is used to
 determine the logical Parquet type to write:
@@ -24,10 +23,16 @@ var columns = new Column[]
 using var file = new ParquetFileWriter("float_timeseries.parquet", columns);
 ```
 
+The schema can also be defined using a graph of `ParquetSharp.Schema.Node` instances,
+starting from a root `GroupNode`. For concrete examples, see [How to write a file with nested columns](Nested.md).
+
+### Overriding logical types
+
 For more control over how values are represented in the Parquet file,
 you can pass a `LogicalType` instance as the `logicalTypeOverride` parameter of the `Column` constructor.
 
 For example, you may wish to write times or timestamps with millisecond resolution rather than the default microsecond resolution:
+
 ```csharp
 var timestampColumn = new Column<DateTime>(
         "Timestamp", LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Millis));
@@ -37,9 +42,12 @@ var timeColumn = new Column<TimeSpan>(
 
 When writing decimal values, you must provide a `logicalTypeOverride` to define the precision and scale type parameters.
 Currently the precision must be 29.
+
 ```csharp
 var decimalColumn = new Column<decimal>("Values", LogicalType.Decimal(precision: 29, scale: 3);
 ```
+
+### Metadata
 
 As well as defining the file schema, you may optionally provide key-value metadata that is stored in the file when creating
 a `ParquetFileWriter`:
@@ -73,6 +81,7 @@ using (var stream = new FileStream("float_timeseries.parquet", FileMode.Create))
 
 Parquet data is written in batches of column data named row groups.
 To begin writing data, you first create a new row group:
+
 ```csharp
 using RowGroupWriter rowGroup = file.AppendRowGroup();
 ```
@@ -99,6 +108,8 @@ you may append another row group to the file and repeat the row group writing pr
 
 The `NextColumn` method of `RowGroupWriter` returns a `ColumnWriter`, which writes physical values to the file,
 and can write definition level and repetition level data to support nullable and array values.
+
+### Using LogicalColumnWriter
 
 Rather than working with a `ColumnWriter` directly, it's usually more convenient to create a `LogicalColumnWriter`
 with the `ColumnWriter.LogicalWriter<TElement>` method.
@@ -131,6 +142,8 @@ for (int columnIndex = 0; columnIndex < file.NumColumns; ++columnIndex)
     var returnVal = logicalWriter.Apply(new ExampleWriter());
 }
 ```
+
+### Closing the ParquetFileWriter
 
 Note that it's important to explicitly call `Close` on the `ParquetFileWriter` when writing is complete,
 as otherwise any errors encountered when writing may be silently ignored:
