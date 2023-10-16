@@ -14,6 +14,7 @@ using var fileReader = new ParquetFileReader(input);
 ```
 
 ### Obtaining file metadata
+
 The `FileMetaData` property of a `ParquetFileReader` exposes information about the Parquet file and its schema:
 ```csharp
 int numColumns = fileReader.FileMetaData.NumColumns;
@@ -41,6 +42,7 @@ for (int rowGroup = 0; rowGroup < fileReader.FileMetaData.NumRowGroups; ++rowGro
 ```
 
 ### Reading columns directly
+
 The `Column` method of `RowGroupReader` takes an integer column index and returns a `ColumnReader` object,
 which can read primitive values from the column, as well as raw definition level and repetition level data.
 Usually you will not want to use a `ColumnReader` directly, but instead call its `LogicalReader` method to
@@ -58,6 +60,7 @@ DateTime[] timestamps = rowGroupReader.Column(0).LogicalReader<DateTime>().ReadA
 ```
 
 ### Reading columns with unknown types
+
 However, if you don't know ahead of time the types for each column, you can implement the
 `ILogicalColumnReaderVisitor<TReturn>` interface to handle column data in a type-safe way, for example:
 
@@ -106,6 +109,7 @@ The .NET type used to represent read values can optionally be overridden by usin
 For more details, see the [type factories documentation](TypeFactories.md).
 
 ## DateTimeKind when reading Timestamps
+
 When reading Timestamp to a DateTime, ParquetSharp sets the DateTimeKind based on the value of `IsAdjustedToUtc`.
 
 If `IsAdjustedToUtc` is `true` the DateTimeKind will be set to `DateTimeKind.Utc` otherwise it will be set to `DateTimeKind.Unspecified`.
