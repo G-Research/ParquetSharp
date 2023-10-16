@@ -6,9 +6,8 @@ The low-level ParquetSharp API provides the `ParquetFileWriter` class for writin
 
 When writing a Parquet file, you must define the schema up-front, which specifies all of the columns
 in the file along with their names and types.
-This schema can be defined using a graph of `ParquetSharp.Schema.Node` instances,
-starting from a root `GroupNode`,
-but ParquetSharp also provides a convenient higher level API for defining the schema as an array
+
+ParquetSharp provides a convenient higher level API for defining the schema as an array
 of `Column` objects.
 A `Column` can be constructed using only a name and a type parameter that is used to
 determine the logical Parquet type to write:
@@ -23,6 +22,9 @@ var columns = new Column[]
 
 using var file = new ParquetFileWriter("float_timeseries.parquet", columns);
 ```
+
+The schema can also be defined using a graph of `ParquetSharp.Schema.Node` instances,
+starting from a root `GroupNode`. For concrete examples, see [How to write a file with nested columns](Nested.md).
 
 ### Overriding logical types
 
