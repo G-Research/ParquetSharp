@@ -16,6 +16,7 @@ using var fileReader = new ParquetFileReader(input);
 ### Obtaining file metadata
 
 The `FileMetaData` property of a `ParquetFileReader` exposes information about the Parquet file and its schema:
+
 ```csharp
 int numColumns = fileReader.FileMetaData.NumColumns;
 long numRows = fileReader.FileMetaData.NumRows;
@@ -30,6 +31,7 @@ for (int columnIndex = 0; columnIndex < schema.NumColumns; ++columnIndex) {
 ```
 
 ### Reading row groups
+
 Parquet files store data in separate row groups, which all share the same schema,
 so if you wish to read all data in a file, you generally want to loop over all of the row groups
 and create a `RowGroupReader` for each one:
@@ -86,6 +88,7 @@ and reading physical values in a type-safe way, but most users will want to work
 
 
 ### Reading data in batches
+
 The `LogicalColumnReader<TElement>` class provides multiple ways to read data.
 It implements `IEnumerable<TElement>` which internally buffers batches of data and iterates over them,
 but for more fine-grained control over reading behaviour, you can read into your own buffer. For example:
@@ -146,7 +149,7 @@ has the `Computer\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem
 registry key enabled, and the application must have a manifest that specifies it is long path aware,
 for example:
 
-```
+```xml
 <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings xmlns:ws2="http://schemas.microsoft.com/SMI/2016/WindowsSettings">
         <ws2:longPathAware>true</ws2:longPathAware>

@@ -32,6 +32,7 @@ For more control over how values are represented in the Parquet file,
 you can pass a `LogicalType` instance as the `logicalTypeOverride` parameter of the `Column` constructor.
 
 For example, you may wish to write times or timestamps with millisecond resolution rather than the default microsecond resolution:
+
 ```csharp
 var timestampColumn = new Column<DateTime>(
         "Timestamp", LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Millis));
@@ -41,6 +42,7 @@ var timeColumn = new Column<TimeSpan>(
 
 When writing decimal values, you must provide a `logicalTypeOverride` to define the precision and scale type parameters.
 Currently the precision must be 29.
+
 ```csharp
 var decimalColumn = new Column<decimal>("Values", LogicalType.Decimal(precision: 29, scale: 3);
 ```
@@ -79,6 +81,7 @@ using (var stream = new FileStream("float_timeseries.parquet", FileMode.Create))
 
 Parquet data is written in batches of column data named row groups.
 To begin writing data, you first create a new row group:
+
 ```csharp
 using RowGroupWriter rowGroup = file.AppendRowGroup();
 ```
