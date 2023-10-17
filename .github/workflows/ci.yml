@@ -177,6 +177,12 @@ jobs:
       with:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-vcpkg-arrow-logs
         path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
+    - name: Dump vcpkg arrow abi info (Unix)
+      if: runner.os == 'Linux' || runner.os == 'macOS'
+      run: cat ./build/${{ steps.vcpkg-info.outputs.triplet }}-release/vcpkg_installed/${{ steps.vcpkg-info.outputs.triplet }}/share/arrow/vcpkg_abi_info.txt
+    - name: Dump vcpkg arrow abi info (Windows)
+      if: runner.os == 'Windows'
+      run: Get-Content ./build/${{ steps.vcpkg-info.outputs.triplet }}/vcpkg_installed/${{ steps.vcpkg-info.outputs.triplet }}/share/arrow/vcpkg_abi_info.txt
     - name: Build .NET benchmarks & unit tests
       run: |
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
