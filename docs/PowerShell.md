@@ -4,6 +4,7 @@
 
 It's possible to use ParquetSharp from PowerShell.
 You can install ParquetSharp with the [NuGet command line interface](https://docs.microsoft.com/en-us/nuget/reference/nuget-exe-cli-reference).  
+
 First, make sure `nuget.exe` is in your `PATH`, or in the current directory, then run the following to install the latest version of ParquetSharp into a new directory called `lib`:
 
 ```powershell
@@ -34,9 +35,22 @@ Copy-Item -Path ".\lib\ParquetSharp.12.1.0\runtimes\win-x64\native\ParquetSharpN
 The available runtime architectures are `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`.
 
 ### Usage
-Use `Add-Type` to load `ParquetSharp.dll`.
-However, you must ensure that the appropriate `ParquetSharpNative.dll` for your architecture and OS can be loaded as required,
-either by putting it somewhere in your `PATH` or in the same directory as `ParquetSharp.dll`.
-For examples of how to use ParquetSharp from PowerShell,
-see [these scripts from Apteco](https://github.com/Apteco/HelperScripts/tree/master/scripts/parquet).
+Use `Add-Type` to load `ParquetSharp.dll`:
 
+```powershell
+$dlls = Get-ChildItem -Path ".\bin" -Filter "*.dll" | where { @("ParquetSharpNative.dll") -notcontains $_.Name }
+
+$dlls | ForEach {
+    $f = $_
+    Add-Type -Path $f.FullName -Verbose
+}
+```
+
+Now you can use ParquetSharp as usual:
+  
+```powershell  
+$reader = [ParquetSharp.ParquetFileReader]::new("example\example.parquet")
+```
+
+For more detailed examples of how to use ParquetSharp from PowerShell,
+see [these scripts from Apteco](https://github.com/Apteco/HelperScripts/tree/master/scripts/parquet).
