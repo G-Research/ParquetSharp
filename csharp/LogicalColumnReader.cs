@@ -71,6 +71,7 @@ namespace ParquetSharp
         public abstract bool HasNext { get; }
 
         public abstract TReturn Apply<TReturn>(ILogicalColumnReaderVisitor<TReturn> visitor);
+        public abstract long Skip(long numRowsToSkip);
 
         private static bool ContainsNestedType(Type type)
         {
@@ -197,6 +198,11 @@ namespace ParquetSharp
         public override int ReadBatch(Span<TElement> destination)
         {
             return _batchReader.ReadBatch(destination);
+        }
+
+        public override long Skip(long numRowsToSkip)
+        {
+            return Source.Skip(numRowsToSkip);
         }
 
         private readonly ILogicalBatchReader<TElement> _batchReader;
