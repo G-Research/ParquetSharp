@@ -71,6 +71,7 @@ namespace ParquetSharp
         public abstract bool HasNext { get; }
 
         public abstract TReturn Apply<TReturn>(ILogicalColumnReaderVisitor<TReturn> visitor);
+
         public abstract long Skip(long numRowsToSkip);
 
         private static bool ContainsNestedType(Type type)

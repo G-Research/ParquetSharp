@@ -44,8 +44,8 @@ namespace ParquetSharp.Test
         public static void TestSkip()
         {
             const int numRows = 10;
-            var schemaColumns = new Column[] { new Column<int?>("col") };
-            var values = Enumerable.Range(0, numRows).Select(val => (int?)val).ToArray();
+            var schemaColumns = new Column[] {new Column<int?>("col")};
+            var values = Enumerable.Range(0, numRows).Select(val => (int?) val).ToArray();
 
             using var buffer = new ResizableBuffer();
 
