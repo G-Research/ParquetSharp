@@ -31,12 +31,14 @@ Imagine we have the following JSON object we would like to store as Parquet:
 }
 ```
 
+### Building the schema
+
 We will store this data with one object per logical row in the Parquet file.
 We could use a schema with a `message` column and an `ids` column,
 but when both `message` and `ids` are null we would not be able to determine whether
-this is because the top level object was null in the source data,
+this is because the top-level object was null in the source data,
 or we had a non-null object with a null `message` and null `ids`.
-Instead we will represent this data in Parquet with a single
+Instead, we will represent this data in Parquet with a single
 `objects` column.
 
 In the Parquet schema, we have one one top-level group node named `objects`,
@@ -49,7 +51,7 @@ The schema needs to be built from the bottom up, and can be defined as follows:
 using var messageNode = new PrimitiveNode(
         "message", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
 
-// Lists are defined with three nodes, an outer List annotated node,
+// Lists are defined with three nodes: an outer List annotated node,
 // an inner repeated group named "list", and an inner "item" node for list elements.
 using var itemNode = new PrimitiveNode(
         "item", Repetition.Required, LogicalType.None(), PhysicalType.Int32);
@@ -66,6 +68,8 @@ using var groupNode = new GroupNode(
 using var schema = new GroupNode(
         "schema", Repetition.Required, new Node[] {groupNode});
 ```
+
+### Writing data
 
 We can then create a `ParquetFileWriter` with this schema:
 
@@ -165,9 +169,9 @@ for (var i = 0; i < numRows; ++i)
 }
 ```
 
-Reading data wrapped in the `Nested` type is optional and this type can be ommitted
-from the `TElement` parameter passed to the `LogicalReader<TElement>` method to read unwrapped values,
-for example:
+Reading data wrapped in the `Nested` type is optional. The `Nested` type can be omitted
+from the `TElement` parameter passed to the `LogicalReader<TElement>` method to read unwrapped values.
+For example:
 
 ```csharp
 using var messagesReader = groupReader.Column(0).LogicalReader<string?>();
@@ -181,7 +185,7 @@ If using the non-generic `LogicalReader` method,
 the `Nested` wrapper type is not used by default for simplicity and backwards compatibility,
 but this behaviour can be changed by using the override that takes a `useNesting` parameter.
 
-## Maps
+## Working with .NET Dictionary data
 
 The Map logical type in Parquet represents a map from keys to values,
 and is a special case of nested data.
@@ -196,8 +200,9 @@ The first contains arrays of the map keys,
 and the second contains arrays of the map values,
 and the arrays corresponding to the same row must have the same length.
 
-The following example shows how dotnet dictionary data might be written
-and then read from Parquet:
+### Writing dictionary data
+
+The following example shows how to write dictionary data to Parquet:
 
 ```csharp
 // Start with a single column of dictionary data
@@ -231,7 +236,13 @@ using (var fileWriter = new ParquetFileWriter("map_data.parquet", schema, writer
     valueWriter.WriteBatch(values);
     fileWriter.Close();
 }
+```
 
+### Reading dictionary data
+
+We can read data from a Parquet file into a `Dictionary` array as follows:
+
+```csharp
 // Read back key and value columns from the file
 string[][] readKeys;
 int[][] readValues;
