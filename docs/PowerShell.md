@@ -36,21 +36,17 @@ Copy-Item -Path ".\lib\ParquetSharp.12.1.0\runtimes\win-x64\native\ParquetSharpN
 The available runtime architectures are `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`.
 
 ### Usage
-Use `Add-Type` to load `ParquetSharp.dll`:
+Use `Add-Type` to load `ParquetSharp.dll`. Note that we're using custom directories:
 
 ```powershell
-$dlls = Get-ChildItem -Path ".\bin" -Filter "*.dll" | where { @("ParquetSharpNative.dll") -notcontains $_.Name }
-
-$dlls | ForEach {
-    $f = $_
-    Add-Type -Path $f.FullName -Verbose
-}
+# Replace path with the appropriate versions of ParquetSharp
+Add-Type -Path ".\lib\ParquetSharp.12.1.0\lib\net471\ParquetSharp.dll"
 ```
 
 Now you can use ParquetSharp as usual:
   
 ```powershell  
-$reader = [ParquetSharp.ParquetFileReader]::new("example\example.parquet")
+$reader = New-Object -TypeName ParquetSharp.ParquetFileReader -ArgumentList "./data.parquet"
 ```
 
 For more detailed examples of how to use ParquetSharp from PowerShell,
