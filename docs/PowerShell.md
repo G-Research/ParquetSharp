@@ -1,8 +1,9 @@
 # ParquetSharp in PowerShell
 
+The main requirement to using ParquetSharp from PowerShell is that `ParquetSharpNative.dll` is in the `PATH` or in the same directory as `ParquetSharp.dll`. The following guide shows one possible approach to achieve this:
+
 ### Installation
 
-It's possible to use ParquetSharp from PowerShell.
 You can install ParquetSharp with the [NuGet command line interface](https://docs.microsoft.com/en-us/nuget/reference/nuget-exe-cli-reference).  
 
 First, make sure `nuget.exe` is in your `PATH`, or in the current directory, then run the following to install the latest version of ParquetSharp into a new directory called `lib`:
