@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using ParquetSharp.IO;
@@ -13,20 +12,20 @@ namespace ParquetSharp.Test
         [Test]
         public static unsafe void TestDecimalConverterToDecimal128RoundTrip()
         {
-            var precision = 29;
-            var scale = 3;
-            const int arraySize = 16;
+            const int precision = 29;
+            const int scale = 3;
+            const int typeLength = 16;
             const int numRows = 1000;
             var random = new Random(1);
             var values = Enumerable.Range(0, numRows).Select(i => RandomDecimal(random, 3)).ToArray();
 
-            using var byteBuffer = new ByteBuffer(8 * arraySize * numRows);
+            using var byteBuffer = new ByteBuffer(8 * typeLength * numRows);
             var converted = new ByteArray[numRows];
 
             var multiplier = DecimalConverter.GetScaleMultiplier(scale, precision);
             for (var i = 0; i < numRows; ++i)
             {
-                converted[i] = byteBuffer.Allocate(arraySize);
+                converted[i] = byteBuffer.Allocate(typeLength);
                 DecimalConverter.WriteDecimal(values[i], converted[i], multiplier);
             }
 
@@ -43,20 +42,20 @@ namespace ParquetSharp.Test
         [Test]
         public static unsafe void TestDecimal128ToDecimalConverterRoundTrip()
         {
-            var precision = 29;
-            var scale = 3;
-            const int arraySize = 16;
+            const int precision = 29;
+            const int scale = 3;
+            const int typeLength = 16;
             const int numRows = 1000;
             var random = new Random(2);
             var values = Enumerable.Range(0, numRows).Select(i => RandomDecimal(random, 3)).ToArray();
 
-            using var byteBuffer = new ByteBuffer(8 * arraySize * numRows);
+            using var byteBuffer = new ByteBuffer(8 * typeLength * numRows);
             var converted = new ByteArray[numRows];
 
             var multiplier = Decimal128.GetScaleMultiplier(scale);
             for (var i = 0; i < numRows; ++i)
             {
-                converted[i] = byteBuffer.Allocate(arraySize);
+                converted[i] = byteBuffer.Allocate(typeLength);
                 *(Decimal128*) converted[i].Pointer = new Decimal128(values[i], multiplier);
             }
 
@@ -81,10 +80,10 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestReadInt32PhysicalType()
+        public static void TestInt32DecimalRoundTrip()
         {
-            // ParquetSharp doesn't currently support writing decimal values
-            // with int32 physical type, so we need to define the schema manually.
+            // The Column class doesn't support overriding the physical type,
+            // so we need to define the schema manually.
             using var decimalType = LogicalType.Decimal(precision: 9, scale: 4);
             using var colNode = new PrimitiveNode("value", Repetition.Required, decimalType, PhysicalType.Int32);
             using var schema = new GroupNode("schema", Repetition.Required, new Node[] {colNode});
@@ -93,8 +92,8 @@ namespace ParquetSharp.Test
                 .Select(i => i - 5_000)
                 .Concat(new[] {int.MinValue, int.MinValue + 1, int.MaxValue - 1, int.MaxValue})
                 .ToArray();
-            var scale = new decimal(10000);
-            var expectedValues = physicalValues.Select(v => new decimal(v) / scale).ToArray();
+            var multiplier = new decimal(10000);
+            var decimalValues = physicalValues.Select(v => new decimal(v) / multiplier).ToArray();
 
             using var buffer = new ResizableBuffer();
             using (var outStream = new BufferOutputStream(buffer))
@@ -103,9 +102,9 @@ namespace ParquetSharp.Test
                 using var writerProperties = propertiesBuilder.Build();
                 using var fileWriter = new ParquetFileWriter(outStream, schema, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = (ColumnWriter<int>) rowGroupWriter.NextColumn();
+                using var columnWriter = (LogicalColumnWriter<decimal>) rowGroupWriter.NextColumn().LogicalWriter();
 
-                columnWriter.WriteBatch(physicalValues);
+                columnWriter.WriteBatch(decimalValues);
 
                 fileWriter.Close();
             }
@@ -117,34 +116,29 @@ namespace ParquetSharp.Test
             using var columnReader = groupReader.Column(0).LogicalReader<decimal>();
             var readValues = columnReader.ReadAll((int) groupReader.MetaData.NumRows);
 
-            Assert.That(readValues, Is.EqualTo(expectedValues));
+            Assert.That(readValues, Is.EqualTo(decimalValues));
         }
 
         [Test]
-        public static void TestReadNullableDataWithInt32PhysicalType()
+        public static void TestNullableInt32DecimalRoundTrip()
         {
             using var decimalType = LogicalType.Decimal(precision: 9, scale: 4);
             using var colNode = new PrimitiveNode("value", Repetition.Optional, decimalType, PhysicalType.Int32);
             using var schema = new GroupNode("schema", Repetition.Required, new Node[] {colNode});
 
-            var physicalValues = new List<int>();
-            var defLevels = new List<short>();
-            var expectedValues = new List<decimal?>();
-
             const int numValues = 10_000;
+            var decimalValues = new decimal?[numValues];
+
             for (var i = 0; i < numValues; ++i)
             {
                 if (i % 10 == 0)
                 {
-                    defLevels.Add(0);
-                    expectedValues.Add(null);
+                    decimalValues[i] = null;
                 }
                 else
                 {
                     var physicalValue = i - 5_000;
-                    physicalValues.Add(physicalValue);
-                    defLevels.Add(1);
-                    expectedValues.Add(new decimal(physicalValue) / 10_000);
+                    decimalValues[i] = new decimal(physicalValue) / 10_000;
                 }
             }
 
@@ -155,9 +149,9 @@ namespace ParquetSharp.Test
                 using var writerProperties = propertiesBuilder.Build();
                 using var fileWriter = new ParquetFileWriter(outStream, schema, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = (ColumnWriter<int>) rowGroupWriter.NextColumn();
+                using var columnWriter = (LogicalColumnWriter<decimal?>) rowGroupWriter.NextColumn().LogicalWriter();
 
-                columnWriter.WriteBatch(numValues, defLevels.ToArray(), null, physicalValues.ToArray());
+                columnWriter.WriteBatch(decimalValues);
 
                 fileWriter.Close();
             }
@@ -169,14 +163,14 @@ namespace ParquetSharp.Test
             using var columnReader = groupReader.Column(0).LogicalReader<decimal?>();
             var readValues = columnReader.ReadAll((int) groupReader.MetaData.NumRows);
 
-            Assert.That(readValues, Is.EqualTo(expectedValues.ToArray()));
+            Assert.That(readValues, Is.EqualTo(decimalValues.ToArray()));
         }
 
         [Test]
-        public static void TestReadInt64PhysicalType()
+        public static void TestInt64DecimalRoundTrip()
         {
-            // ParquetSharp doesn't currently support writing decimal values
-            // with int64 physical type, so we need to define the schema manually.
+            // The Column class doesn't support overriding the physical type,
+            // so we need to define the schema manually.
             using var decimalType = LogicalType.Decimal(precision: 10, scale: 4);
             using var colNode = new PrimitiveNode("value", Repetition.Required, decimalType, PhysicalType.Int64);
             using var schema = new GroupNode("schema", Repetition.Required, new Node[] {colNode});
@@ -185,8 +179,8 @@ namespace ParquetSharp.Test
                 .Select(i => (long) (i - 5_000))
                 .Concat(new[] {long.MinValue, long.MinValue + 1, long.MaxValue - 1, long.MaxValue})
                 .ToArray();
-            var scale = new decimal(10000);
-            var expectedValues = physicalValues.Select(v => new decimal(v) / scale).ToArray();
+            var multiplier = new decimal(10000);
+            var decimalValues = physicalValues.Select(v => new decimal(v) / multiplier).ToArray();
 
             using var buffer = new ResizableBuffer();
             using (var outStream = new BufferOutputStream(buffer))
@@ -195,9 +189,9 @@ namespace ParquetSharp.Test
                 using var writerProperties = propertiesBuilder.Build();
                 using var fileWriter = new ParquetFileWriter(outStream, schema, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = (ColumnWriter<long>) rowGroupWriter.NextColumn();
+                using var columnWriter = (LogicalColumnWriter<decimal>) rowGroupWriter.NextColumn().LogicalWriter();
 
-                columnWriter.WriteBatch(physicalValues);
+                columnWriter.WriteBatch(decimalValues);
 
                 fileWriter.Close();
             }
@@ -209,34 +203,29 @@ namespace ParquetSharp.Test
             using var columnReader = groupReader.Column(0).LogicalReader<decimal>();
             var readValues = columnReader.ReadAll((int) groupReader.MetaData.NumRows);
 
-            Assert.That(readValues, Is.EqualTo(expectedValues));
+            Assert.That(readValues, Is.EqualTo(decimalValues));
         }
 
         [Test]
-        public static void TestReadNullableDataWithInt64PhysicalType()
+        public static void TestNullableInt64DecimalRoundTrip()
         {
             using var decimalType = LogicalType.Decimal(precision: 10, scale: 4);
             using var colNode = new PrimitiveNode("value", Repetition.Optional, decimalType, PhysicalType.Int64);
             using var schema = new GroupNode("schema", Repetition.Required, new Node[] {colNode});
 
-            var physicalValues = new List<long>();
-            var defLevels = new List<short>();
-            var expectedValues = new List<decimal?>();
-
             const int numValues = 10_000;
+            var decimalValues = new decimal?[numValues];
+
             for (var i = 0; i < numValues; ++i)
             {
                 if (i % 10 == 0)
                 {
-                    defLevels.Add(0);
-                    expectedValues.Add(null);
+                    decimalValues[i] = null;
                 }
                 else
                 {
                     var physicalValue = i - 5_000;
-                    physicalValues.Add(physicalValue);
-                    defLevels.Add(1);
-                    expectedValues.Add(new decimal(physicalValue) / 10_000);
+                    decimalValues[i] = new decimal(physicalValue) / 10_000;
                 }
             }
 
@@ -247,9 +236,9 @@ namespace ParquetSharp.Test
                 using var writerProperties = propertiesBuilder.Build();
                 using var fileWriter = new ParquetFileWriter(outStream, schema, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
-                using var columnWriter = (ColumnWriter<long>) rowGroupWriter.NextColumn();
+                using var columnWriter = (LogicalColumnWriter<decimal?>) rowGroupWriter.NextColumn().LogicalWriter();
 
-                columnWriter.WriteBatch(numValues, defLevels.ToArray(), null, physicalValues.ToArray());
+                columnWriter.WriteBatch(decimalValues);
 
                 fileWriter.Close();
             }
@@ -261,7 +250,7 @@ namespace ParquetSharp.Test
             using var columnReader = groupReader.Column(0).LogicalReader<decimal?>();
             var readValues = columnReader.ReadAll((int) groupReader.MetaData.NumRows);
 
-            Assert.That(readValues, Is.EqualTo(expectedValues.ToArray()));
+            Assert.That(readValues, Is.EqualTo(decimalValues.ToArray()));
         }
     }
 }

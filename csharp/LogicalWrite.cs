@@ -98,25 +98,52 @@ namespace ParquetSharp
             if (typeof(TLogical) == typeof(decimal))
             {
                 ValidateDecimalColumn(columnDescriptor);
-                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 var multiplier = DecimalConverter.GetScaleMultiplier(columnDescriptor.TypeScale, columnDescriptor.TypePrecision);
-                if (TypeUtils.UseDecimal128(columnDescriptor))
+                if (typeof(TPhysical) == typeof(FixedLenByteArray))
                 {
-                    return (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal128(s, d, multiplier, byteBuffer));
+                    if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
+                    if (TypeUtils.UseDecimal128(columnDescriptor))
+                    {
+                        return (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal128(s, d, multiplier, byteBuffer));
+                    }
+                    return (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal(s, d, multiplier, byteBuffer, columnDescriptor.TypeLength));
                 }
-                return (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal(s, d, multiplier, byteBuffer, columnDescriptor.TypeLength));
+                if (typeof(TPhysical) == typeof(int))
+                {
+                    return (LogicalWrite<decimal, int>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal(s, d, multiplier));
+                }
+                if (typeof(TPhysical) == typeof(long))
+                {
+                    return (LogicalWrite<decimal, long>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal(s, d, multiplier));
+                }
+                throw new NotSupportedException("Writing decimal data is only supported with fixed-length byte array, int32, and int64 physical types");
             }
 
             if (typeof(TLogical) == typeof(decimal?))
             {
                 ValidateDecimalColumn(columnDescriptor);
-                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
                 var multiplier = DecimalConverter.GetScaleMultiplier(columnDescriptor.TypeScale, columnDescriptor.TypePrecision);
-                if (TypeUtils.UseDecimal128(columnDescriptor))
+                if (typeof(TPhysical) == typeof(FixedLenByteArray))
                 {
-                    return (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertDecimal128(s, dl, d, multiplier, nl, byteBuffer));
+                    if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
+                    if (TypeUtils.UseDecimal128(columnDescriptor))
+                    {
+                        return (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) =>
+                            LogicalWrite.ConvertDecimal128(s, dl, d, multiplier, nl, byteBuffer));
+                    }
+
+                    return (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) =>
+                        LogicalWrite.ConvertDecimal(s, dl, d, multiplier, nl, byteBuffer, columnDescriptor.TypeLength));
                 }
-                return (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertDecimal(s, dl, d, multiplier, nl, byteBuffer, columnDescriptor.TypeLength));
+                if (typeof(TPhysical) == typeof(int))
+                {
+                    return (LogicalWrite<decimal?, int>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertDecimal(s, dl, d, multiplier, nl));
+                }
+                if (typeof(TPhysical) == typeof(long))
+                {
+                    return (LogicalWrite<decimal?, long>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertDecimal(s, dl, d, multiplier, nl));
+                }
+                throw new NotSupportedException("Writing decimal data is only supported with fixed-length byte array, int32, and int64 physical types");
             }
 
             if (typeof(TLogical) == typeof(Guid))
@@ -270,17 +297,16 @@ namespace ParquetSharp
             throw new NotSupportedException($"unsupported logical system type {typeof(TLogical)} with logical type {logicalType}");
         }
 
-        private static void ValidateDecimalColumn(ColumnDescriptor columnDescriptor)
+        private static unsafe void ValidateDecimalColumn(ColumnDescriptor columnDescriptor)
         {
-            if (typeof(TPhysical) != typeof(FixedLenByteArray))
-            {
-                throw new NotSupportedException("Writing decimal data is only supported with a fixed-length byte array physical type");
-            }
-            var maxPrecision = DecimalConverter.MaxPrecision(columnDescriptor.TypeLength);
+            var typeLength = typeof(TPhysical) == typeof(FixedLenByteArray) ? columnDescriptor.TypeLength : sizeof(TPhysical);
+
+            var maxPrecision = DecimalConverter.MaxPrecision(typeLength);
             if (columnDescriptor.TypePrecision > maxPrecision)
             {
                 throw new NotSupportedException(
-                    $"A maximum of {maxPrecision} digits of decimal precision is supported with fixed length byte arrays of length {columnDescriptor.TypeLength}");
+                    $"A maximum of {maxPrecision} digits of decimal precision is supported with a type length of {typeLength} " +
+                    $"(requested precision is {columnDescriptor.TypePrecision})");
             }
         }
     }
@@ -476,6 +502,56 @@ namespace ParquetSharp
                     var byteArray = byteBuffer.Allocate(typeLength);
                     DecimalConverter.WriteDecimal(value.Value, byteArray, multiplier);
                     destination[dst++] = new FixedLenByteArray(byteArray.Pointer);
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        public static void ConvertDecimal(ReadOnlySpan<decimal> source, Span<int> destination, decimal multiplier)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                destination[i] = (int) (source[i] * multiplier);
+            }
+        }
+
+        public static void ConvertDecimal(ReadOnlySpan<decimal?> source, Span<short> defLevels, Span<int> destination, decimal multiplier, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i < source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = (int) (value.Value * multiplier);
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        public static void ConvertDecimal(ReadOnlySpan<decimal> source, Span<long> destination, decimal multiplier)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                destination[i] = (long) (source[i] * multiplier);
+            }
+        }
+
+        public static void ConvertDecimal(ReadOnlySpan<decimal?> source, Span<short> defLevels, Span<long> destination, decimal multiplier, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i < source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = (long) (value.Value * multiplier);
                     defLevels[i] = (short) (nullLevel + 1);
                 }
             }
