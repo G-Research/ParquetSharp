@@ -129,6 +129,9 @@ namespace ParquetSharp.RowOriented
         private readonly ParquetFileReader _parquetFileReader;
         private readonly ReadAction _readAction;
         private readonly ExplicitColumnMapping? _columnMapping;
-        private RowGroupReader? _rowGroupReader;
+        private RowGroupReader? _rowGroupReader;        
+
+        public LogicalTypeFactory LogicalTypeFactory { get; set; } = LogicalTypeFactory.Default;
+        public LogicalReadConverterFactory LogicalReadConverterFactory { get; set; } = LogicalReadConverterFactory.Default;
     }
 }
