@@ -78,6 +78,8 @@ namespace ParquetSharp.RowOriented
         public ColumnDescriptor ColumnDescriptor(int i) => _parquetFileWriter.ColumnDescriptor(i);
         public FileMetaData? FileMetaData => _parquetFileWriter.FileMetaData;
         public IReadOnlyDictionary<string, string> KeyValueMetadata => _parquetFileWriter.KeyValueMetadata;
+        public LogicalTypeFactory LogicalTypeFactory { get; set; } = LogicalTypeFactory.Default;
+        public LogicalWriteConverterFactory LogicalWriteConverterFactory { get; set; } = LogicalWriteConverterFactory.Default;
 
         public void StartNewRowGroup()
         {
