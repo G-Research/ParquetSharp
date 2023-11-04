@@ -20,11 +20,15 @@ namespace ParquetSharp.RowOriented
         /// <summary>
         /// Create a row-oriented reader from a file.
         /// </summary>
-        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path)
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path, LogicalReadConverterFactory? logicalReadConverterFactory = null)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
-            return new ParquetRowReader<TTuple>(path, readDelegate, fields);
+            var reader = new ParquetRowReader<TTuple>(path, readDelegate, fields);
+            if (logicalReadConverterFactory != null) {
+                reader.LogicalReadConverterFactory = logicalReadConverterFactory;
+            }
+            return reader;
         }
 
         public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path, ReaderProperties readerProperties)
@@ -49,6 +53,11 @@ namespace ParquetSharp.RowOriented
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
             return new ParquetRowReader<TTuple>(randomAccessFile, readerProperties, readDelegate, fields);
+        }
+
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>()
+        {
+
         }
 
         /// <summary>
