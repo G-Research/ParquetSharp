@@ -6,6 +6,7 @@ using ParquetSharp.IO;
 using ParquetSharp.RowOriented;
 using NUnit.Framework;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 #if DUMP_EXPRESSION_TREES
 using System.Linq.Expressions;
@@ -454,6 +455,25 @@ namespace ParquetSharp.Test
 
             [ParquetDecimalScale(3)]
             public decimal D { get; set; }
+        }
+
+        private sealed class Row3 : IEquatable<Row3>
+        {
+            public int A;
+            public VolumeInDollars B;
+            public bool Equals(Row3? other)
+            {
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return A == other.A && B.Equals(other.B);
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private readonly struct VolumeInDollars
+        {
+            public VolumeInDollars(float value) { Value = value; }
+            public readonly float Value;
         }
 
         private struct MappedRow1
