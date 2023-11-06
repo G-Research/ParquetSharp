@@ -45,23 +45,26 @@ namespace ParquetSharp.RowOriented
         /// <summary>
         /// Create a row-oriented reader from an input stream.
         /// </summary>
-        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile)
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile, LogicalReadConverterFactory? logicalReadConverterFactory = null)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
-            return new ParquetRowReader<TTuple>(randomAccessFile, readDelegate, fields);
+            var reader = new ParquetRowReader<TTuple>(randomAccessFile, readDelegate, fields);
+            if (logicalReadConverterFactory != null) {
+                reader.LogicalReadConverterFactory = logicalReadConverterFactory;
+            }
+            return reader;
         }
 
-        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile, ReaderProperties readerProperties)
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile, ReaderProperties readerProperties, LogicalReadConverterFactory? logicalReadConverterFactory = null)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
-            return new ParquetRowReader<TTuple>(randomAccessFile, readerProperties, readDelegate, fields);
-        }
-
-        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>()
-        {
-
+            var reader = new ParquetRowReader<TTuple>(randomAccessFile, readerProperties, readDelegate, fields);
+            if (logicalReadConverterFactory != null) {
+                reader.LogicalReadConverterFactory = logicalReadConverterFactory;
+            }
+            return reader;
         }
 
         /// <summary>
