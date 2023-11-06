@@ -31,11 +31,15 @@ namespace ParquetSharp.RowOriented
             return reader;
         }
 
-        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path, ReaderProperties readerProperties)
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path, ReaderProperties readerProperties, LogicalReadConverterFactory? logicalReadConverterFactory = null)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
-            return new ParquetRowReader<TTuple>(path, readerProperties, readDelegate, fields);
+            var reader = new ParquetRowReader<TTuple>(path, readerProperties, readDelegate, fields);
+            if (logicalReadConverterFactory != null) {
+                reader.LogicalReadConverterFactory = logicalReadConverterFactory;
+            }
+            return reader;
         }
 
         /// <summary>
