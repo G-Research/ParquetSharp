@@ -72,5 +72,55 @@ namespace ParquetSharp.Test
 
             Assert.AreEqual(numToSkip, skipped);
         }
+
+        [Test]
+        public static void SkipIntArrayColumn()
+        {
+            var idColumn = new Column<int>("id");
+            var arrayColumn = new Column<int[]>("array_col");
+
+            var idValues = new int[] { 1, 2, 3 };
+            var arrayValues = new int[][] {
+                new int[] { 10, 20 },
+                new int[] { 30 },
+                new int[] { 40, 50, 60 }
+            };
+
+            var buffer = new ResizableBuffer();
+            {
+                using var outStream = new BufferOutputStream(buffer);
+                using var writer = new ParquetFileWriter(outStream, new Column[] { idColumn, arrayColumn });
+                using (var rowGroupWriter = writer.AppendRowGroup())
+                {
+                    using (var idWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
+                    {
+                        idWriter.WriteBatch(idValues);
+                    }
+
+                    using var arrayWriter = rowGroupWriter.NextColumn().LogicalWriter<int[]>();
+                    foreach (var array in arrayValues)
+                    {
+                        arrayWriter.WriteBatch(new[] { array });
+                    }
+                }
+                writer.Close();
+            }
+
+            using var inStream = new BufferReader(buffer);
+            using var reader = new ParquetFileReader(inStream);
+            using var rowGroupReader = reader.RowGroup(0);
+            using (var idReader = rowGroupReader.Column(0).LogicalReader<int>())
+            {
+                var read = new int[3];
+                idReader.ReadBatch(read, 0, 3);
+                Assert.AreEqual(idValues, read);
+            }
+
+            using var arrayReader = rowGroupReader.Column(1).LogicalReader<int[]>();
+            var readArray = new int[3][];
+            // TODO: Add Skip here
+            arrayReader.ReadBatch(readArray, 0, 3);
+            Assert.AreEqual(arrayValues, readArray);
+        }
     }
 }
