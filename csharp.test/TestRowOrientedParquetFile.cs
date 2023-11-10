@@ -67,6 +67,17 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestCustomTypeRoundtrip()
+        {
+            TestRoundtrip(new[]
+            {
+                new Row3 {A = 123, B = new VolumeInDollars(3.14f)},
+                new Row3 {A = 456, B = new VolumeInDollars(1.27f)},
+                new Row3 {A = 789, B = new VolumeInDollars(6.66f)}
+            });
+        }
+
+        [Test]
         public static void TestMappedToColumnAttributeOnRead()
         {
             TestRoundtripMapped<Row1, MappedRow1>(new[]
@@ -403,6 +414,11 @@ namespace ParquetSharp.Test
             RoundTripAndCompare(rows, rows, columnNames);
         }
 
+        private static void TestCustomTypeRoundtrip<TTuple>(TTuple[] rows)
+        {
+            CustomTypeRoundTripAndCompare(rows, rows, columnNames: null, new LogicalReadConverterFactory(), new LogicalWriteConverterFactory());
+        }
+
         private static void TestRoundtripMapped<TTupleWrite, TTupleRead>(TTupleWrite[] rows)
         {
             var expectedRows = rows.Select(
@@ -425,6 +441,24 @@ namespace ParquetSharp.Test
 
             using var inputStream = new BufferReader(buffer);
             using var reader = ParquetFile.CreateRowReader<TTupleRead>(inputStream);
+
+            var values = reader.ReadRows(rowGroup: 0);
+            Assert.AreEqual(expectedRows, values);
+        }
+
+        private static void CustomTypeRoundTripAndCompare<TTupleWrite, TTupleRead>(TTupleWrite[] rows, IEnumerable<TTupleRead> expectedRows, string[]? columnNames, LogicalReadConverterFactory logicalReadConverterFactory, LogicalWriteConverterFactory logicalWriteConverterFactory) {
+            using var buffer = new ResizableBuffer();
+
+            using (var outputStream = new BufferOutputStream(buffer))
+            {
+                using var writer = ParquetFile.CreateRowWriter<TTupleWrite>(outputStream, columnNames, logicalWriteConverterFactory);
+
+                writer.WriteRows(rows);
+                writer.Close();
+            }
+
+            using var inputStream = new BufferReader(buffer);
+            using var reader = ParquetFile.CreateRowReader<TTupleRead>(inputStream, logicalReadConverterFactory);
 
             var values = reader.ReadRows(rowGroup: 0);
             Assert.AreEqual(expectedRows, values);
@@ -470,10 +504,11 @@ namespace ParquetSharp.Test
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private readonly struct VolumeInDollars
+        private readonly struct VolumeInDollars : IEquatable<VolumeInDollars>
         {
             public VolumeInDollars(float value) { Value = value; }
             public readonly float Value;
+            public bool Equals(VolumeInDollars other) => Value.Equals(other.Value);
         }
 
         private struct MappedRow1
