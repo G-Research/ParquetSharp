@@ -75,14 +75,11 @@ namespace ParquetSharp.RowOriented
             string[]? columnNames = null,
             Compression compression = Compression.Snappy,
             IReadOnlyDictionary<string, string>? keyValueMetadata = null,
+            LogicalTypeFactory? logicalTypeFactory = null,
             LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
-            var writer = new ParquetRowWriter<TTuple>(path, columns, compression, keyValueMetadata, writeDelegate);
-            if (logicalWriteConverterFactory != null) {
-                writer.LogicalWriteConverterFactory = logicalWriteConverterFactory;
-            }
-            return writer;
+            return new ParquetRowWriter<TTuple>(path, columns, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
         }
 
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
@@ -90,14 +87,11 @@ namespace ParquetSharp.RowOriented
             WriterProperties writerProperties,
             string[]? columnNames = null,
             IReadOnlyDictionary<string, string>? keyValueMetadata = null,
+            LogicalTypeFactory? logicalTypeFactory = null,
             LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
-            var writer = new ParquetRowWriter<TTuple>(path, columns, writerProperties, keyValueMetadata, writeDelegate);
-            if (logicalWriteConverterFactory != null) {
-                writer.LogicalWriteConverterFactory = logicalWriteConverterFactory;
-            }
-            return writer;
+            return new ParquetRowWriter<TTuple>(path, columns, writerProperties, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
         }
 
         /// <summary>
@@ -108,14 +102,11 @@ namespace ParquetSharp.RowOriented
             string[]? columnNames = null,
             Compression compression = Compression.Snappy,
             IReadOnlyDictionary<string, string>? keyValueMetadata = null,
+            LogicalTypeFactory? logicalTypeFactory = null,
             LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
-            var writer = new ParquetRowWriter<TTuple>(outputStream, columns, compression, keyValueMetadata, writeDelegate);
-            if (logicalWriteConverterFactory != null) {
-                writer.LogicalWriteConverterFactory = logicalWriteConverterFactory;
-            }
-            return writer;
+            return new ParquetRowWriter<TTuple>(outputStream, columns, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
         }
 
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
@@ -123,14 +114,11 @@ namespace ParquetSharp.RowOriented
             WriterProperties writerProperties,
             string[]? columnNames = null,
             IReadOnlyDictionary<string, string>? keyValueMetadata = null,
+            LogicalTypeFactory? logicalTypeFactory = null,
             LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
-            var writer = new ParquetRowWriter<TTuple>(outputStream, columns, writerProperties, keyValueMetadata, writeDelegate);
-            if (logicalWriteConverterFactory != null) {
-                writer.LogicalWriteConverterFactory = logicalWriteConverterFactory;
-            }
-            return writer;
+            return new ParquetRowWriter<TTuple>(outputStream, columns, writerProperties, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
         }
 
         /// <summary>
@@ -142,14 +130,11 @@ namespace ParquetSharp.RowOriented
             Column[] columns,
             Compression compression = Compression.Snappy,
             IReadOnlyDictionary<string, string>? keyValueMetadata = null,
+            LogicalTypeFactory? logicalTypeFactory = null,
             LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
         {
             var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
-            var writer = new ParquetRowWriter<TTuple>(path, columnsToUse, compression, keyValueMetadata, writeDelegate);
-            if (logicalWriteConverterFactory != null) {
-                writer.LogicalWriteConverterFactory = logicalWriteConverterFactory;
-            }
-            return writer;
+            return new ParquetRowWriter<TTuple>(path, columnsToUse, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
         }
 
         /// <summary>
@@ -161,14 +146,11 @@ namespace ParquetSharp.RowOriented
             WriterProperties writerProperties,
             Column[] columns,
             IReadOnlyDictionary<string, string>? keyValueMetadata = null,
+            LogicalTypeFactory? logicalTypeFactory = null,
             LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
         {
             var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
-            var writer = new ParquetRowWriter<TTuple>(path, columnsToUse, writerProperties, keyValueMetadata, writeDelegate);
-            if (logicalWriteConverterFactory != null) {
-                writer.LogicalWriteConverterFactory = logicalWriteConverterFactory;
-            }
-            return writer;
+            return new ParquetRowWriter<TTuple>(path, columnsToUse, writerProperties, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
         }
 
         /// <summary>
@@ -180,14 +162,11 @@ namespace ParquetSharp.RowOriented
             Column[] columns,
             Compression compression = Compression.Snappy,
             IReadOnlyDictionary<string, string>? keyValueMetadata = null,
+            LogicalTypeFactory? logicalTypeFactory = null,
             LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
         {
             var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
-            var writer = new ParquetRowWriter<TTuple>(outputStream, columnsToUse, compression, keyValueMetadata, writeDelegate);
-            if (logicalWriteConverterFactory != null) {
-                writer.LogicalWriteConverterFactory = logicalWriteConverterFactory;
-            }
-            return writer;
+            return new ParquetRowWriter<TTuple>(outputStream, columnsToUse, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
         }
 
         /// <summary>
@@ -199,14 +178,11 @@ namespace ParquetSharp.RowOriented
             WriterProperties writerProperties,
             Column[] columns,
             IReadOnlyDictionary<string, string>? keyValueMetadata = null,
+            LogicalTypeFactory? logicalTypeFactory = null,
             LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
         {
             var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
-            var writer = new ParquetRowWriter<TTuple>(outputStream, columnsToUse, writerProperties, keyValueMetadata, writeDelegate);
-            if (logicalWriteConverterFactory != null) {
-                writer.LogicalWriteConverterFactory = logicalWriteConverterFactory;
-            }
-            return writer;
+            return new ParquetRowWriter<TTuple>(outputStream, columnsToUse, writerProperties, keyValueMetadata, writeDelegate);
         }
 
         private static ParquetRowReader<TTuple>.ReadAction GetOrCreateReadDelegate<TTuple>(MappedField[] fields)
