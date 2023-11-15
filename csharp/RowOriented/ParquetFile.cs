@@ -20,51 +20,49 @@ namespace ParquetSharp.RowOriented
         /// <summary>
         /// Create a row-oriented reader from a file.
         /// </summary>
-        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(
+            string path,
+            LogicalTypeFactory? logicalTypeFactory = null,
+            LogicalReadConverterFactory? logicalReadConverterFactory = null)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
-            var reader = new ParquetRowReader<TTuple>(path, readDelegate, fields);
-            if (logicalReadConverterFactory != null) {
-                reader.LogicalReadConverterFactory = logicalReadConverterFactory;
-            }
-            return reader;
+            return new ParquetRowReader<TTuple>(path, readDelegate, fields, logicalTypeFactory, logicalReadConverterFactory);
         }
 
-        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path, ReaderProperties readerProperties, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(
+            string path,
+            ReaderProperties readerProperties,
+            LogicalTypeFactory? logicalTypeFactory = null,
+            LogicalReadConverterFactory? logicalReadConverterFactory = null)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
-            var reader = new ParquetRowReader<TTuple>(path, readerProperties, readDelegate, fields);
-            if (logicalReadConverterFactory != null) {
-                reader.LogicalReadConverterFactory = logicalReadConverterFactory;
-            }
-            return reader;
+            return new ParquetRowReader<TTuple>(path, readerProperties, readDelegate, fields, logicalTypeFactory, logicalReadConverterFactory);
         }
 
         /// <summary>
         /// Create a row-oriented reader from an input stream.
         /// </summary>
-        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(
+            RandomAccessFile randomAccessFile,
+            LogicalTypeFactory? logicalTypeFactory = null,
+            LogicalReadConverterFactory? logicalReadConverterFactory = null)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
-            var reader = new ParquetRowReader<TTuple>(randomAccessFile, readDelegate, fields);
-            if (logicalReadConverterFactory != null) {
-                reader.LogicalReadConverterFactory = logicalReadConverterFactory;
-            }
-            return reader;
+            return new ParquetRowReader<TTuple>(randomAccessFile, readDelegate, fields, logicalTypeFactory, logicalReadConverterFactory);
         }
 
-        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile, ReaderProperties readerProperties, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(
+            RandomAccessFile randomAccessFile,
+            ReaderProperties readerProperties,
+            LogicalTypeFactory? logicalTypeFactory = null,
+            LogicalReadConverterFactory? logicalReadConverterFactory = null)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
-            var reader = new ParquetRowReader<TTuple>(randomAccessFile, readerProperties, readDelegate, fields);
-            if (logicalReadConverterFactory != null) {
-                reader.LogicalReadConverterFactory = logicalReadConverterFactory;
-            }
-            return reader;
+            return new ParquetRowReader<TTuple>(randomAccessFile, readerProperties, readDelegate, fields, logicalTypeFactory, logicalReadConverterFactory);
         }
 
         /// <summary>

@@ -461,7 +461,7 @@ namespace ParquetSharp.Test
             }
 
             using var inputStream = new BufferReader(buffer);
-            using var reader = ParquetFile.CreateRowReader<TTupleRead>(inputStream, logicalReadConverterFactory);
+            using var reader = ParquetFile.CreateRowReader<TTupleRead>(inputStream, logicalTypeFactory: logicalTypeFactory, logicalReadConverterFactory: logicalReadConverterFactory);
 
             var values = reader.ReadRows(rowGroup: 0);
             Assert.AreEqual(expectedRows, values);
