@@ -142,7 +142,7 @@ namespace ParquetSharp.LogicalBatchReader
 
         public long Skip(long numRowsToSkip)
         {
-            for(var i = 0; i < numRowsToSkip; i++)
+            for (var i = 0; i < numRowsToSkip; i++)
             {
                 ReadInnerTypeArray();
             }

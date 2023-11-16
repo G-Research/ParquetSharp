@@ -79,17 +79,18 @@ namespace ParquetSharp.Test
             var idColumn = new Column<int>("id");
             var arrayColumn = new Column<int[]>("array_col");
 
-            var idValues = new int[] { 1, 2, 3 };
-            var arrayValues = new int[][] {
-                new int[] { 10, 20 },
-                new int[] { 30 },
-                new int[] { 40, 50, 60 }
+            var idValues = new int[] {1, 2, 3};
+            var arrayValues = new int[][]
+            {
+                new int[] {10, 20},
+                new int[] {30},
+                new int[] {40, 50, 60}
             };
 
             var buffer = new ResizableBuffer();
             {
                 using var outStream = new BufferOutputStream(buffer);
-                using var writer = new ParquetFileWriter(outStream, new Column[] { idColumn, arrayColumn });
+                using var writer = new ParquetFileWriter(outStream, new Column[] {idColumn, arrayColumn});
                 using (var rowGroupWriter = writer.AppendRowGroup())
                 {
                     using (var idWriter = rowGroupWriter.NextColumn().LogicalWriter<int>())
@@ -100,7 +101,7 @@ namespace ParquetSharp.Test
                     using var arrayWriter = rowGroupWriter.NextColumn().LogicalWriter<int[]>();
                     foreach (var array in arrayValues)
                     {
-                        arrayWriter.WriteBatch(new[] { array });
+                        arrayWriter.WriteBatch(new[] {array});
                     }
                 }
                 writer.Close();
