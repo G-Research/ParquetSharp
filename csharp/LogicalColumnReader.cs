@@ -203,7 +203,18 @@ namespace ParquetSharp
 
         public override long Skip(long numRowsToSkip)
         {
-            return Source.Skip(numRowsToSkip);
+            var isArray = typeof(TElement).IsArray;
+            if (isArray)
+            {
+                var arrayReader = _batchReader as IArraySkippable;
+                if (arrayReader != null)
+                    return arrayReader.Skip(numRowsToSkip);
+                return 0;
+            }
+            else
+            {
+                return Source.Skip(numRowsToSkip);
+            }
         }
 
         private readonly ILogicalBatchReader<TElement> _batchReader;

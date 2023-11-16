@@ -109,18 +109,14 @@ namespace ParquetSharp.Test
             using var inStream = new BufferReader(buffer);
             using var reader = new ParquetFileReader(inStream);
             using var rowGroupReader = reader.RowGroup(0);
-            using (var idReader = rowGroupReader.Column(0).LogicalReader<int>())
-            {
-                var read = new int[3];
-                idReader.ReadBatch(read, 0, 3);
-                Assert.AreEqual(idValues, read);
-            }
 
             using var arrayReader = rowGroupReader.Column(1).LogicalReader<int[]>();
-            var readArray = new int[3][];
-            // TODO: Add Skip here
-            arrayReader.ReadBatch(readArray, 0, 3);
-            Assert.AreEqual(arrayValues, readArray);
+            arrayReader.Skip(1);
+
+            var readArray = new int[2][];
+            arrayReader.ReadBatch(readArray, 0, 2);
+
+            Assert.AreEqual(arrayValues.Skip(1).ToArray(), readArray);
         }
     }
 }
