@@ -9,7 +9,7 @@ namespace ParquetSharp.LogicalBatchReader
     /// <typeparam name="TPhysical">The underlying physical type of leaf values in the column</typeparam>
     /// <typeparam name="TLogical">The .NET logical type for the column leaf values</typeparam>
     /// <typeparam name="TItem">The type of items contained in the array</typeparam>
-    internal sealed class ArrayReader<TPhysical, TLogical, TItem> : IArraySkippable, ILogicalBatchReader<TItem[]?>
+    internal sealed class ArrayReader<TPhysical, TLogical, TItem> : ILogicalBatchReader<TItem[]?>
         where TPhysical : unmanaged
     {
         public ArrayReader(
@@ -155,10 +155,5 @@ namespace ParquetSharp.LogicalBatchReader
         private readonly short _definitionLevel;
         private readonly short _repetitionLevel;
         private readonly bool _innerNodeIsOptional;
-    }
-
-    internal interface IArraySkippable
-    {
-        public long Skip(long numRowsToSkip);
     }
 }
