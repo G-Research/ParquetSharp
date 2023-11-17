@@ -451,7 +451,7 @@ namespace ParquetSharp.Test
             var logicalReadConverterFactory = new ReadConverterFactory();
             var logicalWriteConverterFactory = new WriteConverterFactory();
             var logicalWriteTypeFactory = new WriteTypeFactory();
-            var logicalReadTypeFactory = new ReadTypeFactoryNoOverride();
+            var logicalReadTypeFactory = new ReadTypeFactory();
 
             using (var outputStream = new BufferOutputStream(buffer))
             {
@@ -518,14 +518,14 @@ namespace ParquetSharp.Test
         /// <summary>
         /// A logical type factory that supports our user custom type (for the read tests only). Ignore overrides (used by unit tests that cannot provide a columnLogicalTypeOverride).
         /// </summary>
-        private sealed class ReadTypeFactoryNoOverride : LogicalTypeFactory
+        private sealed class ReadTypeFactory : LogicalTypeFactory
         {
             public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeOverride)
             {
                 // We have to use the column name to know what type to expose.
                 Assert.IsNull(columnLogicalTypeOverride);
                 using var descriptorPath = descriptor.Path;
-                return base.GetSystemTypes(descriptor, descriptorPath.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null);
+                return base.GetSystemTypes(descriptor, descriptorPath.ToDotVector().First() == "B" ? typeof(VolumeInDollars) : null);
             }
         }
 
