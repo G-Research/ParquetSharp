@@ -450,18 +450,19 @@ namespace ParquetSharp.Test
             using var buffer = new ResizableBuffer();
             var logicalReadConverterFactory = new ReadConverterFactory();
             var logicalWriteConverterFactory = new WriteConverterFactory();
-            var logicalTypeFactory = new WriteTypeFactory();
+            var logicalWriteTypeFactory = new WriteTypeFactory();
+            var logicalReadTypeFactory = new ReadTypeFactoryNoOverride();
 
             using (var outputStream = new BufferOutputStream(buffer))
             {
-                using var writer = ParquetFile.CreateRowWriter<TTupleWrite>(outputStream, columnNames, logicalTypeFactory: logicalTypeFactory, logicalWriteConverterFactory: logicalWriteConverterFactory);
+                using var writer = ParquetFile.CreateRowWriter<TTupleWrite>(outputStream, columnNames, logicalTypeFactory: logicalWriteTypeFactory, logicalWriteConverterFactory: logicalWriteConverterFactory);
 
                 writer.WriteRows(rows);
                 writer.Close();
             }
 
             using var inputStream = new BufferReader(buffer);
-            using var reader = ParquetFile.CreateRowReader<TTupleRead>(inputStream, logicalTypeFactory: logicalTypeFactory, logicalReadConverterFactory: logicalReadConverterFactory);
+            using var reader = ParquetFile.CreateRowReader<TTupleRead>(inputStream, logicalTypeFactory: logicalReadTypeFactory, logicalReadConverterFactory: logicalReadConverterFactory);
 
             var values = reader.ReadRows(rowGroup: 0);
             Assert.AreEqual(expectedRows, values);
@@ -512,6 +513,20 @@ namespace ParquetSharp.Test
             public VolumeInDollars(float value) { Value = value; }
             public readonly float Value;
             public bool Equals(VolumeInDollars other) => Value.Equals(other.Value);
+        }
+
+        /// <summary>
+        /// A logical type factory that supports our user custom type (for the read tests only). Ignore overrides (used by unit tests that cannot provide a columnLogicalTypeOverride).
+        /// </summary>
+        private sealed class ReadTypeFactoryNoOverride : LogicalTypeFactory
+        {
+            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeOverride)
+            {
+                // We have to use the column name to know what type to expose.
+                Assert.IsNull(columnLogicalTypeOverride);
+                using var descriptorPath = descriptor.Path;
+                return base.GetSystemTypes(descriptor, descriptorPath.ToDotVector().First() == "values" ? typeof(VolumeInDollars) : null);
+            }
         }
 
         /// <summary>
