@@ -20,10 +20,44 @@ namespace ParquetSharp.RowOriented
         /// <summary>
         /// Create a row-oriented reader from a file.
         /// </summary>
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path)
+        {
+            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
+            return new ParquetRowReader<TTuple>(path, readDelegate, fields);
+        }
+
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path, ReaderProperties readerProperties)
+        {
+            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
+            return new ParquetRowReader<TTuple>(path, readerProperties, readDelegate, fields);
+        }
+
+        /// <summary>
+        /// Create a row-oriented reader from an input stream.
+        /// </summary>
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile)
+        {
+            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
+            return new ParquetRowReader<TTuple>(randomAccessFile, readDelegate, fields);
+        }
+
+        public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile, ReaderProperties readerProperties)
+        {
+            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
+            return new ParquetRowReader<TTuple>(randomAccessFile, readerProperties, readDelegate, fields);
+        }
+
+        /// <summary>
+        /// Create a row-oriented reader from a file using custom types.
+        /// </summary>
         public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(
             string path,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalReadConverterFactory logicalReadConverterFactory)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
@@ -33,8 +67,8 @@ namespace ParquetSharp.RowOriented
         public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(
             string path,
             ReaderProperties readerProperties,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalReadConverterFactory logicalReadConverterFactory)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
@@ -42,12 +76,12 @@ namespace ParquetSharp.RowOriented
         }
 
         /// <summary>
-        /// Create a row-oriented reader from an input stream.
+        /// Create a row-oriented reader from an input stream using custom types.
         /// </summary>
         public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(
             RandomAccessFile randomAccessFile,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalReadConverterFactory logicalReadConverterFactory)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
@@ -57,8 +91,8 @@ namespace ParquetSharp.RowOriented
         public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(
             RandomAccessFile randomAccessFile,
             ReaderProperties readerProperties,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalReadConverterFactory logicalReadConverterFactory)
         {
             var fields = GetFieldsAndProperties(typeof(TTuple));
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
@@ -72,24 +106,20 @@ namespace ParquetSharp.RowOriented
             string path,
             string[]? columnNames = null,
             Compression compression = Compression.Snappy,
-            IReadOnlyDictionary<string, string>? keyValueMetadata = null,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
-            return new ParquetRowWriter<TTuple>(path, columns, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+            return new ParquetRowWriter<TTuple>(path, columns, compression, keyValueMetadata, writeDelegate);
         }
 
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
             string path,
             WriterProperties writerProperties,
             string[]? columnNames = null,
-            IReadOnlyDictionary<string, string>? keyValueMetadata = null,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
-            return new ParquetRowWriter<TTuple>(path, columns, writerProperties, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+            return new ParquetRowWriter<TTuple>(path, columns, writerProperties, keyValueMetadata, writeDelegate);
         }
 
         /// <summary>
@@ -99,24 +129,20 @@ namespace ParquetSharp.RowOriented
             OutputStream outputStream,
             string[]? columnNames = null,
             Compression compression = Compression.Snappy,
-            IReadOnlyDictionary<string, string>? keyValueMetadata = null,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
-            return new ParquetRowWriter<TTuple>(outputStream, columns, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+            return new ParquetRowWriter<TTuple>(outputStream, columns, compression, keyValueMetadata, writeDelegate);
         }
 
         public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
             OutputStream outputStream,
             WriterProperties writerProperties,
             string[]? columnNames = null,
-            IReadOnlyDictionary<string, string>? keyValueMetadata = null,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
-            return new ParquetRowWriter<TTuple>(outputStream, columns, writerProperties, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+            return new ParquetRowWriter<TTuple>(outputStream, columns, writerProperties, keyValueMetadata, writeDelegate);
         }
 
         /// <summary>
@@ -127,12 +153,10 @@ namespace ParquetSharp.RowOriented
             string path,
             Column[] columns,
             Compression compression = Compression.Snappy,
-            IReadOnlyDictionary<string, string>? keyValueMetadata = null,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
-            return new ParquetRowWriter<TTuple>(path, columnsToUse, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+            return new ParquetRowWriter<TTuple>(path, columnsToUse, compression, keyValueMetadata, writeDelegate);
         }
 
         /// <summary>
@@ -143,12 +167,10 @@ namespace ParquetSharp.RowOriented
             string path,
             WriterProperties writerProperties,
             Column[] columns,
-            IReadOnlyDictionary<string, string>? keyValueMetadata = null,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
-            return new ParquetRowWriter<TTuple>(path, columnsToUse, writerProperties, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+            return new ParquetRowWriter<TTuple>(path, columnsToUse, writerProperties, keyValueMetadata, writeDelegate);
         }
 
         /// <summary>
@@ -159,12 +181,10 @@ namespace ParquetSharp.RowOriented
             OutputStream outputStream,
             Column[] columns,
             Compression compression = Compression.Snappy,
-            IReadOnlyDictionary<string, string>? keyValueMetadata = null,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
-            return new ParquetRowWriter<TTuple>(outputStream, columnsToUse, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+            return new ParquetRowWriter<TTuple>(outputStream, columnsToUse, compression, keyValueMetadata, writeDelegate);
         }
 
         /// <summary>
@@ -175,12 +195,128 @@ namespace ParquetSharp.RowOriented
             OutputStream outputStream,
             WriterProperties writerProperties,
             Column[] columns,
-            IReadOnlyDictionary<string, string>? keyValueMetadata = null,
-            LogicalTypeFactory? logicalTypeFactory = null,
-            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
         {
             var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
             return new ParquetRowWriter<TTuple>(outputStream, columnsToUse, writerProperties, keyValueMetadata, writeDelegate);
+        }
+
+        /// <summary>
+        /// Create a row-oriented writer to a file using custom types. By default, the column names are reflected from the tuple public fields and properties.
+        /// </summary>
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            string path,
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalWriteConverterFactory logicalWriteConverterFactory,
+            string[]? columnNames = null,
+            Compression compression = Compression.Snappy,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
+            return new ParquetRowWriter<TTuple>(path, columns, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+        }
+
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            string path,
+            WriterProperties writerProperties,
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalWriteConverterFactory logicalWriteConverterFactory,
+            string[]? columnNames = null,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
+            return new ParquetRowWriter<TTuple>(path, columns, writerProperties, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+        }
+
+        /// <summary>
+        /// Create a row-oriented writer to an output stream using custom types. By default, the column names are reflected from the tuple public fields and properties.
+        /// </summary>
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            OutputStream outputStream,
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalWriteConverterFactory logicalWriteConverterFactory,
+            string[]? columnNames = null,
+            Compression compression = Compression.Snappy,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
+            return new ParquetRowWriter<TTuple>(outputStream, columns, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+        }
+
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            OutputStream outputStream,
+            WriterProperties writerProperties,
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalWriteConverterFactory logicalWriteConverterFactory,
+            string[]? columnNames = null,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columns, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columnNames);
+            return new ParquetRowWriter<TTuple>(outputStream, columns, writerProperties, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+        }
+
+        /// <summary>
+        /// Create a row-oriented writer to a file path using the specified column definitions and custom types.
+        /// Note that any MapToColumn or ParquetDecimalScale attributes will be overridden by the column definitions.
+        /// </summary>
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            string path,
+            Column[] columns,
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalWriteConverterFactory logicalWriteConverterFactory,
+            Compression compression = Compression.Snappy,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
+            return new ParquetRowWriter<TTuple>(path, columnsToUse, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+        }
+
+        /// <summary>
+        /// Create a row-oriented writer to a file path using the specified writerProperties and column definitions and custom types.
+        /// Note that any MapToColumn or ParquetDecimalScale attributes will be overridden by the column definitions.
+        /// </summary>
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            string path,
+            WriterProperties writerProperties,
+            Column[] columns,
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalWriteConverterFactory logicalWriteConverterFactory,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
+            return new ParquetRowWriter<TTuple>(path, columnsToUse, writerProperties, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+        }
+
+        /// <summary>
+        /// Create a row-oriented writer to an output stream using the specified column definitions and custom types.
+        /// Note that any MapToColumn or ParquetDecimalScale attributes will be overridden by the column definitions.
+        /// </summary>
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            OutputStream outputStream,
+            Column[] columns,
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalWriteConverterFactory logicalWriteConverterFactory,
+            Compression compression = Compression.Snappy,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
+            return new ParquetRowWriter<TTuple>(outputStream, columnsToUse, compression, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
+        }
+
+        /// <summary>
+        /// Create a row-oriented writer to an output stream using the specified writerProperties, column definitions and custom types.
+        /// Note that any MapToColumn or ParquetDecimalScale attributes will be overridden by the column definitions.
+        /// </summary>
+        public static ParquetRowWriter<TTuple> CreateRowWriter<TTuple>(
+            OutputStream outputStream,
+            WriterProperties writerProperties,
+            Column[] columns,
+            LogicalTypeFactory logicalTypeFactory,
+            LogicalWriteConverterFactory logicalWriteConverterFactory,
+            IReadOnlyDictionary<string, string>? keyValueMetadata = null)
+        {
+            var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
+            return new ParquetRowWriter<TTuple>(outputStream, columnsToUse, writerProperties, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
         }
 
         private static ParquetRowReader<TTuple>.ReadAction GetOrCreateReadDelegate<TTuple>(MappedField[] fields)
