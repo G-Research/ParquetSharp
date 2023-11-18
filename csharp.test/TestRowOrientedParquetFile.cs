@@ -446,7 +446,8 @@ namespace ParquetSharp.Test
             Assert.AreEqual(expectedRows, values);
         }
 
-        private static void CustomTypeRoundTripAndCompare<TTupleWrite, TTupleRead>(TTupleWrite[] rows, IEnumerable<TTupleRead> expectedRows, string[]? columnNames) {
+        private static void CustomTypeRoundTripAndCompare<TTupleWrite, TTupleRead>(TTupleWrite[] rows, IEnumerable<TTupleRead> expectedRows, string[]? columnNames)
+        {
             using var buffer = new ResizableBuffer();
             var logicalReadConverterFactory = new ReadConverterFactory();
             var logicalWriteConverterFactory = new WriteConverterFactory();
@@ -455,7 +456,7 @@ namespace ParquetSharp.Test
 
             using (var outputStream = new BufferOutputStream(buffer))
             {
-                using var writer = ParquetFile.CreateRowWriter<TTupleWrite>(outputStream, columnNames, logicalTypeFactory: logicalWriteTypeFactory, logicalWriteConverterFactory: logicalWriteConverterFactory);
+                using var writer = ParquetFile.CreateRowWriter<TTupleWrite>(outputStream, columnNames: columnNames, logicalTypeFactory: logicalWriteTypeFactory, logicalWriteConverterFactory: logicalWriteConverterFactory);
 
                 writer.WriteRows(rows);
                 writer.Close();
@@ -499,6 +500,7 @@ namespace ParquetSharp.Test
         {
             public int A;
             public VolumeInDollars B;
+
             public bool Equals(Row3? other)
             {
                 if (ReferenceEquals(null, other)) return false;
