@@ -18,6 +18,46 @@ namespace ParquetSharp.RowOriented
             Column[] columns,
             Compression compression,
             IReadOnlyDictionary<string, string>? keyValueMetadata,
+            WriteAction writeAction)
+            : this(new ParquetFileWriter(path, columns, compression), writeAction)
+        {
+        }
+
+        internal ParquetRowWriter(
+            string path,
+            Column[] columns,
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string>? keyValueMetadata,
+            WriteAction writeAction)
+            : this(new ParquetFileWriter(path, columns, writerProperties, keyValueMetadata), writeAction)
+        {
+        }
+
+        internal ParquetRowWriter(
+            OutputStream outputStream,
+            Column[] columns,
+            Compression compression,
+            IReadOnlyDictionary<string, string>? keyValueMetadata,
+            WriteAction writeAction)
+            : this(new ParquetFileWriter(outputStream, columns, compression, keyValueMetadata), writeAction)
+        {
+        }
+
+        internal ParquetRowWriter(
+            OutputStream outputStream,
+            Column[] columns,
+            WriterProperties writerProperties,
+            IReadOnlyDictionary<string, string>? keyValueMetadata,
+            WriteAction writeAction)
+            : this(new ParquetFileWriter(outputStream, columns, writerProperties, keyValueMetadata), writeAction)
+        {
+        }
+
+        internal ParquetRowWriter(
+            string path,
+            Column[] columns,
+            Compression compression,
+            IReadOnlyDictionary<string, string>? keyValueMetadata,
             WriteAction writeAction,
             LogicalTypeFactory? logicalTypeFactory = null,
             LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
@@ -59,6 +99,14 @@ namespace ParquetSharp.RowOriented
             LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
             : this(new ParquetFileWriter(outputStream, columns, logicalTypeFactory, writerProperties, keyValueMetadata), writeAction, logicalWriteConverterFactory)
         {
+        }
+
+        private ParquetRowWriter(ParquetFileWriter parquetFileWriter, WriteAction writeAction)
+        {
+            _parquetFileWriter = parquetFileWriter;
+            _rowGroupWriter = _parquetFileWriter.AppendRowGroup();
+            _writeAction = writeAction;
+            _rows = new TTuple[1024];
         }
 
         private ParquetRowWriter(ParquetFileWriter parquetFileWriter, WriteAction writeAction, LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
