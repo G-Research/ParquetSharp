@@ -19,7 +19,7 @@ namespace ParquetSharp.RowOriented
             Compression compression,
             IReadOnlyDictionary<string, string>? keyValueMetadata,
             WriteAction writeAction)
-            : this(new ParquetFileWriter(path, columns, compression), writeAction)
+            : this(new ParquetFileWriter(path, columns, compression, keyValueMetadata), writeAction)
         {
         }
 
