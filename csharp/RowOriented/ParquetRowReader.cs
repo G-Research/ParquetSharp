@@ -49,7 +49,7 @@ namespace ParquetSharp.RowOriented
             {
                 _parquetFileReader.LogicalReadConverterFactory = logicalReadConverterFactory;
             }
-            
+
             _readAction = readAction;
             _columnMapping = HasExplicitColumnMapping(fields) ? new ExplicitColumnMapping(this, fields) : null;
         }

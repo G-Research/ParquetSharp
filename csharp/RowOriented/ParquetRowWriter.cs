@@ -109,7 +109,7 @@ namespace ParquetSharp.RowOriented
             {
                 _parquetFileWriter.LogicalWriteConverterFactory = logicalWriteConverterFactory;
             }
-            
+
             _rowGroupWriter = _parquetFileWriter.AppendRowGroup();
             _writeAction = writeAction;
             _rows = new TTuple[1024];
