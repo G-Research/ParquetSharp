@@ -53,7 +53,7 @@ namespace ParquetSharp
                 {
                     throw;
                 }
-                var elementType = logicalReaderType.GetGenericArguments()[2];
+                var elementType = logicalReaderType.GetGenericArguments()[0];
                 var expectedElementType = typeof(TElement);
                 var message =
                     $"Tried to get a LogicalColumnReader for column {columnReader.ColumnIndex} ('{colName}') " +
@@ -125,16 +125,16 @@ namespace ParquetSharp
         {
             var converterFactory = columnReader.LogicalReadConverterFactory;
 
-            var converter = (LogicalRead<TLogical, TPhysical>.Converter)converterFactory.GetConverter<TLogical, TPhysical>(columnReader.ColumnDescriptor, columnReader.ColumnChunkMetaData);
+            var converter = (LogicalRead<TLogical, TPhysical>.Converter) converterFactory.GetConverter<TLogical, TPhysical>(columnReader.ColumnDescriptor, columnReader.ColumnChunkMetaData);
             var schemaNodes = GetSchemaNodesPath(columnReader.ColumnDescriptor.SchemaNode);
             ILogicalBatchReader<TElement> batchReader;
             try
             {
                 var buffer = new LogicalColumnStreamBuffer(columnReader.ColumnDescriptor, typeof(TPhysical), bufferLength);
 
-                var directReader = (LogicalRead<TLogical, TPhysical>.DirectReader?)converterFactory.GetDirectReader<TLogical, TPhysical>();
+                var directReader = (LogicalRead<TLogical, TPhysical>.DirectReader?) converterFactory.GetDirectReader<TLogical, TPhysical>();
                 var readerFactory = new LogicalBatchReaderFactory<TPhysical, TLogical>(
-                    (ColumnReader<TPhysical>)columnReader, (TPhysical[])buffer.Buffer, buffer.DefLevels, buffer.RepLevels, directReader, converter);
+                    (ColumnReader<TPhysical>) columnReader, (TPhysical[]) buffer.Buffer, buffer.DefLevels, buffer.RepLevels, directReader, converter);
                 batchReader = readerFactory.GetReader<TElement>(schemaNodes);
             }
             finally

@@ -50,7 +50,7 @@ namespace ParquetSharp
                 {
                     throw;
                 }
-                var elementType = logicalWriterType.GetGenericArguments()[2];
+                var elementType = logicalWriterType.GetGenericArguments()[0];
                 var expectedElementType = typeof(TElementType);
                 var message =
                     $"Tried to get a LogicalColumnWriter for column {columnWriter.ColumnIndex} ('{colName}') " +
@@ -101,7 +101,7 @@ namespace ParquetSharp
                 : null;
 
             // Convert logical values into physical values at the lowest array level
-            var converter = (LogicalWrite<TLogical, TPhysical>.Converter)(
+            var converter = (LogicalWrite<TLogical, TPhysical>.Converter) (
                 columnWriter.LogicalWriteConverterFactory.GetConverter<TLogical, TPhysical>(columnWriter.ColumnDescriptor, byteBuffer));
 
             var schemaNodes = GetSchemaNodesPath(columnWriter.ColumnDescriptor.SchemaNode);
@@ -110,7 +110,7 @@ namespace ParquetSharp
             {
                 var buffer = new LogicalColumnStreamBuffer(columnWriter.ColumnDescriptor, typeof(TPhysical), bufferLength);
                 var factory = new LogicalBatchWriterFactory<TPhysical, TLogical>(
-                    (ColumnWriter<TPhysical>)columnWriter, (TPhysical[])buffer.Buffer, buffer.DefLevels, buffer.RepLevels, byteBuffer, converter);
+                    (ColumnWriter<TPhysical>) columnWriter, (TPhysical[]) buffer.Buffer, buffer.DefLevels, buffer.RepLevels, byteBuffer, converter);
                 batchWriter = factory.GetWriter<TElement>(schemaNodes);
             }
             finally
