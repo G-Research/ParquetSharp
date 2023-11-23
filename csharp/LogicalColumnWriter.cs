@@ -10,8 +10,8 @@ namespace ParquetSharp
     /// </summary>
     public abstract class LogicalColumnWriter : LogicalColumnStream<ColumnWriter>
     {
-        protected LogicalColumnWriter(ColumnWriter columnWriter, Type elementType, int bufferLength)
-            : base(columnWriter, columnWriter.ColumnDescriptor, elementType, columnWriter.ElementType, bufferLength)
+        protected LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength)
+            : base(columnWriter, columnWriter.ColumnDescriptor, bufferLength)
         {
         }
 
@@ -88,7 +88,7 @@ namespace ParquetSharp
     public abstract class LogicalColumnWriter<TElement> : LogicalColumnWriter
     {
         protected LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength)
-            : base(columnWriter, typeof(TElement), bufferLength)
+            : base(columnWriter, bufferLength)
         {
         }
 
@@ -127,8 +127,9 @@ namespace ParquetSharp
             var schemaNodes = GetSchemaNodesPath(ColumnDescriptor.SchemaNode);
             try
             {
+                var buffer = new LogicalColumnStreamBuffer(ColumnDescriptor, typeof(TPhysical), bufferLength);
                 var factory = new LogicalBatchWriterFactory<TPhysical, TLogical>(
-                    (ColumnWriter<TPhysical>) Source, (TPhysical[]) Buffer, DefLevels, RepLevels, _byteBuffer, converter);
+                    (ColumnWriter<TPhysical>) Source, (TPhysical[]) buffer.Buffer, buffer.DefLevels, buffer.RepLevels, _byteBuffer, converter);
                 _batchWriter = factory.GetWriter<TElement>(schemaNodes);
             }
             finally

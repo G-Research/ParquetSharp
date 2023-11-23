@@ -13,8 +13,8 @@ namespace ParquetSharp
     /// </summary>
     public abstract class LogicalColumnReader : LogicalColumnStream<ColumnReader>
     {
-        protected LogicalColumnReader(ColumnReader columnReader, Type elementType, int bufferLength)
-            : base(columnReader, columnReader.ColumnDescriptor, elementType, columnReader.ElementType, bufferLength)
+        protected LogicalColumnReader(ColumnReader columnReader, int bufferLength)
+            : base(columnReader, columnReader.ColumnDescriptor, bufferLength)
         {
         }
 
@@ -116,7 +116,7 @@ namespace ParquetSharp
     public abstract class LogicalColumnReader<TElement> : LogicalColumnReader, IEnumerable<TElement>
     {
         protected LogicalColumnReader(ColumnReader columnReader, int bufferLength)
-            : base(columnReader, typeof(TElement), bufferLength)
+            : base(columnReader, bufferLength)
         {
         }
 
@@ -178,9 +178,11 @@ namespace ParquetSharp
             var schemaNodes = GetSchemaNodesPath(ColumnDescriptor.SchemaNode);
             try
             {
+                var buffer = new LogicalColumnStreamBuffer(columnReader.ColumnDescriptor, typeof(TPhysical), bufferLength);
+
                 var directReader = (LogicalRead<TLogical, TPhysical>.DirectReader?) converterFactory.GetDirectReader<TLogical, TPhysical>();
                 var readerFactory = new LogicalBatchReaderFactory<TPhysical, TLogical>(
-                    (ColumnReader<TPhysical>) Source, (TPhysical[]) Buffer, DefLevels, RepLevels, directReader, converter);
+                    (ColumnReader<TPhysical>) Source, (TPhysical[]) buffer.Buffer, buffer.DefLevels, buffer.RepLevels, directReader, converter);
                 _batchReader = readerFactory.GetReader<TElement>(schemaNodes);
             }
             finally
