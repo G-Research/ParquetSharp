@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ParquetSharp
 {
-    internal struct LogicalColumnStreamBuffer
+    internal readonly struct LogicalColumnStreamBuffer
     {
         public readonly Array Buffer;
         public readonly short[]? DefLevels;
