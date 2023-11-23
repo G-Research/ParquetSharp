@@ -49,7 +49,7 @@ namespace ParquetSharp
                 var logicalReaderType = reader.GetType();
                 var colName = columnReader.ColumnDescriptor.Name;
                 reader.Dispose();
-                if (logicalReaderType.GetGenericTypeDefinition() != typeof(LogicalColumnReaderBatch<>))
+                if (logicalReaderType.GetGenericTypeDefinition() != typeof(LogicalColumnReader<>))
                 {
                     throw;
                 }
@@ -113,11 +113,12 @@ namespace ParquetSharp
         }
     }
 
-    public abstract class LogicalColumnReader<TElement> : LogicalColumnReader, IEnumerable<TElement>
+    public sealed class LogicalColumnReader<TElement> : LogicalColumnReader, IEnumerable<TElement>
     {
-        protected LogicalColumnReader(ColumnReader columnReader, int bufferLength)
+        private LogicalColumnReader(ColumnReader columnReader, int bufferLength, ILogicalBatchReader<TElement> batchReader)
             : base(columnReader, bufferLength)
         {
+            _batchReader = batchReader;
         }
 
         internal static LogicalColumnReader<TElement> Create<TPhysical, TLogical>(ColumnReader columnReader, int bufferLength) where TPhysical : unmanaged
@@ -143,7 +144,7 @@ namespace ParquetSharp
                     node.Dispose();
                 }
             }
-            return new LogicalColumnReaderBatch<TElement>(columnReader, bufferLength, batchReader);
+            return new LogicalColumnReader<TElement>(columnReader, bufferLength, batchReader);
         }
 
         public override TReturn Apply<TReturn>(ILogicalColumnReaderVisitor<TReturn> visitor)
@@ -189,20 +190,9 @@ namespace ParquetSharp
             return ReadBatch(destination.AsSpan(start, length));
         }
 
-        public abstract int ReadBatch(Span<TElement> destination);
-    }
-
-    internal sealed class LogicalColumnReaderBatch<TElement> : LogicalColumnReader<TElement>
-    {
-        internal LogicalColumnReaderBatch(ColumnReader columnReader, int bufferLength, ILogicalBatchReader<TElement> batchReader)
-            : base(columnReader, bufferLength)
-        {
-            _batchReader = batchReader;
-        }
-
         public override bool HasNext => _batchReader.HasNext();
 
-        public override int ReadBatch(Span<TElement> destination)
+        public int ReadBatch(Span<TElement> destination)
         {
             return _batchReader.ReadBatch(destination);
         }
