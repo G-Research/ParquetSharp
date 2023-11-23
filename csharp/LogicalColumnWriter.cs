@@ -46,7 +46,7 @@ namespace ParquetSharp
                 var logicalWriterType = writer.GetType();
                 var colName = columnWriter.ColumnDescriptor.Name;
                 writer.Dispose();
-                if (logicalWriterType.GetGenericTypeDefinition() != typeof(LogicalColumnWriterBatch<>))
+                if (logicalWriterType.GetGenericTypeDefinition() != typeof(LogicalColumnWriter<>))
                 {
                     throw;
                 }
@@ -77,7 +77,7 @@ namespace ParquetSharp
 
             public LogicalColumnWriter OnColumnDescriptor<TPhysical, TLogical, TElement>() where TPhysical : unmanaged
             {
-                return LogicalColumnWriterBatch<TElement>.Create<TPhysical, TLogical>(_columnWriter, _bufferLength);
+                return LogicalColumnWriter<TElement>.Create<TPhysical, TLogical>(_columnWriter, _bufferLength);
             }
 
             private readonly ColumnWriter _columnWriter;
@@ -85,34 +85,9 @@ namespace ParquetSharp
         }
     }
 
-    public abstract class LogicalColumnWriter<TElement> : LogicalColumnWriter
+    public sealed class LogicalColumnWriter<TElement> : LogicalColumnWriter
     {
-        protected LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength)
-            : base(columnWriter, bufferLength)
-        {
-        }
-
-        public override TReturn Apply<TReturn>(ILogicalColumnWriterVisitor<TReturn> visitor)
-        {
-            return visitor.OnLogicalColumnWriter(this);
-        }
-
-        public void WriteBatch(TElement[] values)
-        {
-            WriteBatch(values.AsSpan());
-        }
-
-        public void WriteBatch(TElement[] values, int start, int length)
-        {
-            WriteBatch(values.AsSpan(start, length));
-        }
-
-        public abstract void WriteBatch(ReadOnlySpan<TElement> values);
-    }
-
-    internal sealed class LogicalColumnWriterBatch<TElement> : LogicalColumnWriter<TElement>
-    {
-        internal LogicalColumnWriterBatch(ColumnWriter columnWriter, int bufferLength, ByteBuffer? byteBuffer, ILogicalBatchWriter<TElement> batchWriter)
+        private LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength, ByteBuffer? byteBuffer, ILogicalBatchWriter<TElement> batchWriter)
             : base(columnWriter, bufferLength)
         {
             _byteBuffer = byteBuffer;
@@ -146,7 +121,7 @@ namespace ParquetSharp
                 }
             }
 
-            return new LogicalColumnWriterBatch<TElement>(columnWriter, bufferLength, byteBuffer, batchWriter);
+            return new LogicalColumnWriter<TElement>(columnWriter, bufferLength, byteBuffer, batchWriter);
         }
 
         public override void Dispose()
@@ -156,7 +131,22 @@ namespace ParquetSharp
             base.Dispose();
         }
 
-        public override void WriteBatch(ReadOnlySpan<TElement> values)
+        public override TReturn Apply<TReturn>(ILogicalColumnWriterVisitor<TReturn> visitor)
+        {
+            return visitor.OnLogicalColumnWriter(this);
+        }
+
+        public void WriteBatch(TElement[] values)
+        {
+            WriteBatch(values.AsSpan());
+        }
+
+        public void WriteBatch(TElement[] values, int start, int length)
+        {
+            WriteBatch(values.AsSpan(start, length));
+        }
+
+        public void WriteBatch(ReadOnlySpan<TElement> values)
         {
             _batchWriter.WriteBatch(values);
         }
