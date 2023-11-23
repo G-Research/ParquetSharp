@@ -49,7 +49,7 @@ namespace ParquetSharp
                 var logicalReaderType = reader.GetType();
                 var colName = columnReader.ColumnDescriptor.Name;
                 reader.Dispose();
-                if (logicalReaderType.GetGenericTypeDefinition() != typeof(LogicalColumnReader<,,>))
+                if (logicalReaderType.GetGenericTypeDefinition() != typeof(LogicalColumnReaderBatch<>))
                 {
                     throw;
                 }
@@ -105,7 +105,7 @@ namespace ParquetSharp
 
             public LogicalColumnReader OnColumnDescriptor<TPhysical, TLogical, TElement>() where TPhysical : unmanaged
             {
-                return new LogicalColumnReader<TPhysical, TLogical, TElement>(_columnReader, _bufferLength);
+                return LogicalColumnReader<TElement>.Create<TPhysical, TLogical>(_columnReader, _bufferLength);
             }
 
             private readonly ColumnReader _columnReader;
@@ -118,6 +118,32 @@ namespace ParquetSharp
         protected LogicalColumnReader(ColumnReader columnReader, int bufferLength)
             : base(columnReader, bufferLength)
         {
+        }
+
+        internal static LogicalColumnReader<TElement> Create<TPhysical, TLogical>(ColumnReader columnReader, int bufferLength) where TPhysical : unmanaged
+        {
+            var converterFactory = columnReader.LogicalReadConverterFactory;
+
+            var converter = (LogicalRead<TLogical, TPhysical>.Converter)converterFactory.GetConverter<TLogical, TPhysical>(columnReader.ColumnDescriptor, columnReader.ColumnChunkMetaData);
+            var schemaNodes = GetSchemaNodesPath(columnReader.ColumnDescriptor.SchemaNode);
+            ILogicalBatchReader<TElement> batchReader;
+            try
+            {
+                var buffer = new LogicalColumnStreamBuffer(columnReader.ColumnDescriptor, typeof(TPhysical), bufferLength);
+
+                var directReader = (LogicalRead<TLogical, TPhysical>.DirectReader?)converterFactory.GetDirectReader<TLogical, TPhysical>();
+                var readerFactory = new LogicalBatchReaderFactory<TPhysical, TLogical>(
+                    (ColumnReader<TPhysical>)columnReader, (TPhysical[])buffer.Buffer, buffer.DefLevels, buffer.RepLevels, directReader, converter);
+                batchReader = readerFactory.GetReader<TElement>(schemaNodes);
+            }
+            finally
+            {
+                foreach (var node in schemaNodes)
+                {
+                    node.Dispose();
+                }
+            }
+            return new LogicalColumnReaderBatch<TElement>(columnReader, bufferLength, batchReader);
         }
 
         public override TReturn Apply<TReturn>(ILogicalColumnReaderVisitor<TReturn> visitor)
@@ -166,32 +192,12 @@ namespace ParquetSharp
         public abstract int ReadBatch(Span<TElement> destination);
     }
 
-    internal sealed class LogicalColumnReader<TPhysical, TLogical, TElement> : LogicalColumnReader<TElement>
-        where TPhysical : unmanaged
+    internal sealed class LogicalColumnReaderBatch<TElement> : LogicalColumnReader<TElement>
     {
-        internal LogicalColumnReader(ColumnReader columnReader, int bufferLength)
+        internal LogicalColumnReaderBatch(ColumnReader columnReader, int bufferLength, ILogicalBatchReader<TElement> batchReader)
             : base(columnReader, bufferLength)
         {
-            var converterFactory = columnReader.LogicalReadConverterFactory;
-
-            var converter = (LogicalRead<TLogical, TPhysical>.Converter) converterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, columnReader.ColumnChunkMetaData);
-            var schemaNodes = GetSchemaNodesPath(ColumnDescriptor.SchemaNode);
-            try
-            {
-                var buffer = new LogicalColumnStreamBuffer(columnReader.ColumnDescriptor, typeof(TPhysical), bufferLength);
-
-                var directReader = (LogicalRead<TLogical, TPhysical>.DirectReader?) converterFactory.GetDirectReader<TLogical, TPhysical>();
-                var readerFactory = new LogicalBatchReaderFactory<TPhysical, TLogical>(
-                    (ColumnReader<TPhysical>) Source, (TPhysical[]) buffer.Buffer, buffer.DefLevels, buffer.RepLevels, directReader, converter);
-                _batchReader = readerFactory.GetReader<TElement>(schemaNodes);
-            }
-            finally
-            {
-                foreach (var node in schemaNodes)
-                {
-                    node.Dispose();
-                }
-            }
+            _batchReader = batchReader;
         }
 
         public override bool HasNext => _batchReader.HasNext();
