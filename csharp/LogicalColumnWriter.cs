@@ -46,7 +46,7 @@ namespace ParquetSharp
                 var logicalWriterType = writer.GetType();
                 var colName = columnWriter.ColumnDescriptor.Name;
                 writer.Dispose();
-                if (logicalWriterType.GetGenericTypeDefinition() != typeof(LogicalColumnWriter<,,>))
+                if (logicalWriterType.GetGenericTypeDefinition() != typeof(LogicalColumnWriterBatch<>))
                 {
                     throw;
                 }
@@ -77,7 +77,7 @@ namespace ParquetSharp
 
             public LogicalColumnWriter OnColumnDescriptor<TPhysical, TLogical, TElement>() where TPhysical : unmanaged
             {
-                return new LogicalColumnWriter<TPhysical, TLogical, TElement>(_columnWriter, _bufferLength);
+                return LogicalColumnWriterBatch<TElement>.Create<TPhysical, TLogical>(_columnWriter, _bufferLength);
             }
 
             private readonly ColumnWriter _columnWriter;
@@ -110,27 +110,33 @@ namespace ParquetSharp
         public abstract void WriteBatch(ReadOnlySpan<TElement> values);
     }
 
-    internal sealed class LogicalColumnWriter<TPhysical, TLogical, TElement> : LogicalColumnWriter<TElement>
-        where TPhysical : unmanaged
+    internal sealed class LogicalColumnWriterBatch<TElement> : LogicalColumnWriter<TElement>
     {
-        internal LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength)
+        internal LogicalColumnWriterBatch(ColumnWriter columnWriter, int bufferLength, ByteBuffer? byteBuffer, ILogicalBatchWriter<TElement> batchWriter)
             : base(columnWriter, bufferLength)
         {
-            _byteBuffer = typeof(TPhysical) == typeof(ByteArray) || typeof(TPhysical) == typeof(FixedLenByteArray)
+            _byteBuffer = byteBuffer;
+            _batchWriter = batchWriter;
+        }
+
+        internal static LogicalColumnWriter<TElement> Create<TPhysical, TLogical>(ColumnWriter columnWriter, int bufferLength) where TPhysical : unmanaged
+        {
+            var byteBuffer = typeof(TPhysical) == typeof(ByteArray) || typeof(TPhysical) == typeof(FixedLenByteArray)
                 ? new ByteBuffer(bufferLength)
                 : null;
 
             // Convert logical values into physical values at the lowest array level
-            var converter = (LogicalWrite<TLogical, TPhysical>.Converter) (
-                columnWriter.LogicalWriteConverterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, _byteBuffer));
+            var converter = (LogicalWrite<TLogical, TPhysical>.Converter)(
+                columnWriter.LogicalWriteConverterFactory.GetConverter<TLogical, TPhysical>(columnWriter.ColumnDescriptor, byteBuffer));
 
-            var schemaNodes = GetSchemaNodesPath(ColumnDescriptor.SchemaNode);
+            var schemaNodes = GetSchemaNodesPath(columnWriter.ColumnDescriptor.SchemaNode);
+            ILogicalBatchWriter<TElement> batchWriter;
             try
             {
-                var buffer = new LogicalColumnStreamBuffer(ColumnDescriptor, typeof(TPhysical), bufferLength);
+                var buffer = new LogicalColumnStreamBuffer(columnWriter.ColumnDescriptor, typeof(TPhysical), bufferLength);
                 var factory = new LogicalBatchWriterFactory<TPhysical, TLogical>(
-                    (ColumnWriter<TPhysical>) Source, (TPhysical[]) buffer.Buffer, buffer.DefLevels, buffer.RepLevels, _byteBuffer, converter);
-                _batchWriter = factory.GetWriter<TElement>(schemaNodes);
+                    (ColumnWriter<TPhysical>)columnWriter, (TPhysical[])buffer.Buffer, buffer.DefLevels, buffer.RepLevels, byteBuffer, converter);
+                batchWriter = factory.GetWriter<TElement>(schemaNodes);
             }
             finally
             {
@@ -139,6 +145,8 @@ namespace ParquetSharp
                     node.Dispose();
                 }
             }
+
+            return new LogicalColumnWriterBatch<TElement>(columnWriter, bufferLength, byteBuffer, batchWriter);
         }
 
         public override void Dispose()
