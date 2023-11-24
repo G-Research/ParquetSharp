@@ -142,9 +142,25 @@ namespace ParquetSharp.LogicalBatchReader
 
         public long Skip(long numRowsToSkip)
         {
+            var innerDefLevel = (short) (_innerNodeIsOptional ? _definitionLevel + 2 : _definitionLevel + 1);
+            var innerRepLevel = (short) (_repetitionLevel + 1);
+
             for (var i = 0; i < numRowsToSkip; i++)
             {
-                ReadInnerTypeArray();
+                var atArrayStart = true;
+                while (!_bufferedReader.IsEofDefinition)
+                {
+                    var reachedArrayEnd = _bufferedReader.ReadValuesAtRepetitionLevel(innerRepLevel, innerDefLevel, atArrayStart, out _);
+                    if (reachedArrayEnd && atArrayStart)
+                    {
+                        break;
+                    }
+                    atArrayStart = false;
+                    if (reachedArrayEnd)
+                    {
+                        break;
+                    }
+                }
             }
 
             return numRowsToSkip;
