@@ -241,6 +241,26 @@ nd that the file exists on disk.
 ```
 To resolve this, make sure that the "Desktop development with C++" option is selected when installing Visual Studio Build Tools. If installation is successful, the required directory and files should be present. 
 
+Another common issue is the following:
+```pwsh
+CMake Error at CMakeLists.txt:2 (project):
+  The CMAKE_C_COMPILER:
+
+    C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.37.32822/bin/Hostx64/x64/cl.exe
+
+  is not a full path to an existing compiler tool.
+
+CMake Error at CMakeLists.txt:2 (project):
+  The CMAKE_CXX_COMPILER:
+
+    C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.37.32822/bin/Hostx64/x64/cl.exe
+
+  is not a full path to an existing compiler tool.
+```
+This is also related to installed Visual Studio modules. Make sure to install "C++/CLI support for build tools" from the list of optional components for Desktop development with C++ for the relevant version of Visual Studio.
+
+For any other build issues, please [open a new discussion](https://github.com/G-Research/ParquetSharp/discussions).
+
 ## Contributing
 
 We welcome new contributors! We will happily receive PRs for bug fixes or small changes. If you're contemplating something larger please get in touch first by opening a GitHub Issue describing the problem and how you propose to solve it.
