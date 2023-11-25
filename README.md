@@ -232,6 +232,15 @@ could not find any instance of Visual Studio.
 ```
 This is a known issue: [(1)](https://stackoverflow.com/questions/60068168/cmake-problem-could-not-find-any-instance-of-visual-studio) [(2)](https://stackoverflow.com/questions/59953960/cmake-and-vs-2017-could-not-find-any-instance-of-visual-studio). It can be solved by ensuring that all required Visual Studio Build Tools are properly installed and that the relevant version of Visual Studio is available, and finally rebooting the machine. Another potential solution is to reinstall Visual Studio with the required build tools.
 
+When building, you may come across the following problem with `Microsoft.Cpp.Default.props`: 
+```pwsh
+error MSB4019: The imported project "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\V
+C\v170\Microsoft.Cpp.Default.props" was not found. Confirm that the expression in the Import declaration "C:\Program Fi
+les (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\\Microsoft.Cpp.Default.props" is correct, a
+nd that the file exists on disk.
+```
+To resolve this, make sure that the "Desktop development with C++" option is selected when installing Visual Studio Build Tools. If installation is successful, the required directory and files should be present. 
+
 ## Contributing
 
 We welcome new contributors! We will happily receive PRs for bug fixes or small changes. If you're contemplating something larger please get in touch first by opening a GitHub Issue describing the problem and how you propose to solve it.
