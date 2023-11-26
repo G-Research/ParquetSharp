@@ -37,7 +37,7 @@ namespace ParquetSharp
 
         internal ColumnWriter(IntPtr handle, RowGroupWriter rowGroupWriter, int columnIndex)
         {
-            Handle = handle;
+            _handle = handle;
             RowGroupWriter = rowGroupWriter;
             ColumnIndex = columnIndex;
         }
@@ -159,7 +159,22 @@ namespace ParquetSharp
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatchSpaced_FixedLenByteArray(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, byte* validBits, long validBitsOffset, FixedLenByteArray* values);
 
-        protected readonly IntPtr Handle;
+        protected IntPtr Handle
+        {
+            get
+            {
+                var currentColumn = RowGroupWriter.CurrentColumn;
+                if (ColumnIndex != currentColumn)
+                {
+                    throw new Exception($"Writer for column {ColumnIndex} is no longer valid, " +
+                                        $"the current column for the row group writer is {currentColumn}");
+                }
+
+                return _handle;
+            }
+        }
+
+        private readonly IntPtr _handle;
         internal readonly RowGroupWriter RowGroupWriter;
     }
 
