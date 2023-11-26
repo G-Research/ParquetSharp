@@ -163,11 +163,14 @@ namespace ParquetSharp
         {
             get
             {
-                var currentColumn = RowGroupWriter.CurrentColumn;
-                if (ColumnIndex != currentColumn)
+                if (!RowGroupWriter.Buffered)
                 {
-                    throw new Exception($"Writer for column {ColumnIndex} is no longer valid, " +
-                                        $"the current column for the row group writer is {currentColumn}");
+                    var currentColumn = RowGroupWriter.CurrentColumn;
+                    if (ColumnIndex != currentColumn)
+                    {
+                        throw new Exception($"Writer for column {ColumnIndex} is no longer valid, " +
+                                            $"the current column for the row group writer is {currentColumn}");
+                    }
                 }
 
                 return _handle;
