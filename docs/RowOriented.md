@@ -68,6 +68,117 @@ using (var rowReader = ParquetFile.CreateRowReader<MyRow>("example.parquet"))
 }
 ```
 
+## Reading and writing custom types
+
+The row-oriented API supports reading and writing custom types by providing a `LogicalTypeFactory` and a `LogicalReadConverterFactory` or `LogicalWriteConverterFactory`.
+
+### Writing custom types
+
+```csharp
+using var buffer = new ResizableBuffer();
+var logicalWriteConverterFactory = new WriteConverterFactory();
+var logicalWriteTypeFactory = new WriteTypeFactory();
+
+var rows = new[]
+            {
+                new Row3 {A = 123, B = new VolumeInDollars(3.14f)},
+                new Row3 {A = 456, B = new VolumeInDollars(1.27f)},
+                new Row3 {A = 789, B = new VolumeInDollars(6.66f)}
+            };
+
+using (var outputStream = new BufferOutputStream(buffer))
+{
+    using var writer = ParquetFile.CreateRowWriter<TTupleWrite>(outputStream, logicalTypeFactory: logicalWriteTypeFactory, logicalWriteConverterFactory: logicalWriteConverterFactory);
+
+    writer.WriteRows(rows);
+    writer.Close();
+}
+```
+
+### Reading custom types
+
+```csharp
+using var buffer = new ResizableBuffer();
+var logicalReadConverterFactory = new ReadConverterFactory();
+var logicalReadTypeFactory = new ReadTypeFactory();
+
+using var inputStream = new BufferReader(buffer);
+using var reader = ParquetFile.CreateRowReader<TTupleRead>(inputStream, logicalTypeFactory: logicalReadTypeFactory, logicalReadConverterFactory: logicalReadConverterFactory);
+
+var values = reader.ReadRows(rowGroup: 0);
+```
+
+### Example types and factories
+```csharp
+private sealed class Row3 : IEquatable<Row3>
+{
+    public int A;
+    public VolumeInDollars B;
+
+    public bool Equals(Row3? other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return A == other.A && B.Equals(other.B);
+    }
+}
+
+[StructLayout(LayoutKind.Sequential)]
+private readonly struct VolumeInDollars : IEquatable<VolumeInDollars>
+{
+    public VolumeInDollars(float value) { Value = value; }
+    public readonly float Value;
+    public bool Equals(VolumeInDollars other) => Value.Equals(other.Value);
+}
+
+private sealed class WriteTypeFactory : LogicalTypeFactory
+{
+    public override bool TryGetParquetTypes(Type logicalSystemType, out (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType) entry)
+    {
+        if (logicalSystemType == typeof(VolumeInDollars)) return base.TryGetParquetTypes(typeof(float), out entry);
+        return base.TryGetParquetTypes(logicalSystemType, out entry);
+    }
+}
+
+private sealed class WriteConverterFactory : LogicalWriteConverterFactory
+{
+    public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ByteBuffer? byteBuffer)
+    {
+        if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalWrite.GetNativeConverter<VolumeInDollars, float>();
+        return base.GetConverter<TLogical, TPhysical>(columnDescriptor, byteBuffer);
+    }
+}
+
+private sealed class ReadTypeFactory : LogicalTypeFactory
+{
+    public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeOverride)
+    {
+        // We have to use the column name to know what type to expose.
+        Assert.IsNull(columnLogicalTypeOverride);
+        using var descriptorPath = descriptor.Path;
+        return base.GetSystemTypes(descriptor, descriptorPath.ToDotVector().First() == "B" ? typeof(VolumeInDollars) : null);
+    }
+}
+
+private sealed class ReadConverterFactory : LogicalReadConverterFactory
+{
+    public override Delegate? GetDirectReader<TLogical, TPhysical>()
+    {
+        // Optional: the following is an optimisation and not stricly needed (but helps with speed).
+        // Since VolumeInDollars is bitwise identical to float, we can read the values in-place.
+        if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalRead.GetDirectReader<VolumeInDollars, float>();
+        return base.GetDirectReader<TLogical, TPhysical>();
+    }
+
+    public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ColumnChunkMetaData columnChunkMetaData)
+    {
+        // VolumeInDollars is bitwise identical to float, so we can reuse the native converter.
+        if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalRead.GetNativeConverter<VolumeInDollars, float>();
+        return base.GetConverter<TLogical, TPhysical>(columnDescriptor, columnChunkMetaData);
+    }
+}
+```
+
 ## Using the row-oriented API from F#
 
 The row-oriented API works with F# types,

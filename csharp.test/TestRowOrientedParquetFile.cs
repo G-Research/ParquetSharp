@@ -6,6 +6,7 @@ using ParquetSharp.IO;
 using ParquetSharp.RowOriented;
 using NUnit.Framework;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 #if DUMP_EXPRESSION_TREES
 using System.Linq.Expressions;
@@ -62,6 +63,17 @@ namespace ParquetSharp.Test
                 new Row2 {A = 123, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M},
                 new Row2 {A = 456, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M},
                 new Row2 {A = 789, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M}
+            });
+        }
+
+        [Test]
+        public static void TestCustomTypeRoundtrip()
+        {
+            TestCustomTypeRoundtrip(new[]
+            {
+                new Row3 {A = 123, B = new VolumeInDollars(3.14f)},
+                new Row3 {A = 456, B = new VolumeInDollars(1.27f)},
+                new Row3 {A = 789, B = new VolumeInDollars(6.66f)}
             });
         }
 
@@ -402,6 +414,11 @@ namespace ParquetSharp.Test
             RoundTripAndCompare(rows, rows, columnNames);
         }
 
+        private static void TestCustomTypeRoundtrip<TTuple>(TTuple[] rows)
+        {
+            CustomTypeRoundTripAndCompare(rows, rows);
+        }
+
         private static void TestRoundtripMapped<TTupleWrite, TTupleRead>(TTupleWrite[] rows)
         {
             var expectedRows = rows.Select(
@@ -424,6 +441,29 @@ namespace ParquetSharp.Test
 
             using var inputStream = new BufferReader(buffer);
             using var reader = ParquetFile.CreateRowReader<TTupleRead>(inputStream);
+
+            var values = reader.ReadRows(rowGroup: 0);
+            Assert.AreEqual(expectedRows, values);
+        }
+
+        private static void CustomTypeRoundTripAndCompare<TTupleWrite, TTupleRead>(TTupleWrite[] rows, IEnumerable<TTupleRead> expectedRows)
+        {
+            using var buffer = new ResizableBuffer();
+            var logicalWriteConverterFactory = new WriteConverterFactory();
+            var logicalWriteTypeFactory = new WriteTypeFactory();
+            var logicalReadConverterFactory = new ReadConverterFactory();
+            var logicalReadTypeFactory = new ReadTypeFactory();
+
+            using (var outputStream = new BufferOutputStream(buffer))
+            {
+                using var writer = ParquetFile.CreateRowWriter<TTupleWrite>(outputStream, logicalTypeFactory: logicalWriteTypeFactory, logicalWriteConverterFactory: logicalWriteConverterFactory);
+
+                writer.WriteRows(rows);
+                writer.Close();
+            }
+
+            using var inputStream = new BufferReader(buffer);
+            using var reader = ParquetFile.CreateRowReader<TTupleRead>(inputStream, logicalTypeFactory: logicalReadTypeFactory, logicalReadConverterFactory: logicalReadConverterFactory);
 
             var values = reader.ReadRows(rowGroup: 0);
             Assert.AreEqual(expectedRows, values);
@@ -454,6 +494,86 @@ namespace ParquetSharp.Test
 
             [ParquetDecimalScale(3)]
             public decimal D { get; set; }
+        }
+
+        private sealed class Row3 : IEquatable<Row3>
+        {
+            public int A;
+            public VolumeInDollars B;
+
+            public bool Equals(Row3? other)
+            {
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return A == other.A && B.Equals(other.B);
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private readonly struct VolumeInDollars : IEquatable<VolumeInDollars>
+        {
+            public VolumeInDollars(float value) { Value = value; }
+            public readonly float Value;
+            public bool Equals(VolumeInDollars other) => Value.Equals(other.Value);
+        }
+
+        /// <summary>
+        /// A logical type factory that supports our user custom type (for the read tests only). Ignore overrides (used by unit tests that cannot provide a columnLogicalTypeOverride).
+        /// </summary>
+        private sealed class ReadTypeFactory : LogicalTypeFactory
+        {
+            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeOverride)
+            {
+                // We have to use the column name to know what type to expose.
+                Assert.IsNull(columnLogicalTypeOverride);
+                using var descriptorPath = descriptor.Path;
+                return base.GetSystemTypes(descriptor, descriptorPath.ToDotVector().First() == "B" ? typeof(VolumeInDollars) : null);
+            }
+        }
+
+        /// <summary>
+        /// A read converter factory that supports our custom type.
+        /// </summary>
+        private sealed class ReadConverterFactory : LogicalReadConverterFactory
+        {
+            public override Delegate? GetDirectReader<TLogical, TPhysical>()
+            {
+                // Optional: the following is an optimisation and not stricly needed (but helps with speed).
+                // Since VolumeInDollars is bitwise identical to float, we can read the values in-place.
+                if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalRead.GetDirectReader<VolumeInDollars, float>();
+                return base.GetDirectReader<TLogical, TPhysical>();
+            }
+
+            public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ColumnChunkMetaData columnChunkMetaData)
+            {
+                // VolumeInDollars is bitwise identical to float, so we can reuse the native converter.
+                if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalRead.GetNativeConverter<VolumeInDollars, float>();
+                return base.GetConverter<TLogical, TPhysical>(columnDescriptor, columnChunkMetaData);
+            }
+        }
+
+        /// <summary>
+        /// A logical type factory that supports our user custom type (for the write tests only). Rely on overrides (used by unit tests that can provide a columnLogicalTypeOverride).
+        /// </summary>
+        private sealed class WriteTypeFactory : LogicalTypeFactory
+        {
+            public override bool TryGetParquetTypes(Type logicalSystemType, out (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType) entry)
+            {
+                if (logicalSystemType == typeof(VolumeInDollars)) return base.TryGetParquetTypes(typeof(float), out entry);
+                return base.TryGetParquetTypes(logicalSystemType, out entry);
+            }
+        }
+
+        /// <summary>
+        /// A write converter factory that supports our custom type.
+        /// </summary>
+        private sealed class WriteConverterFactory : LogicalWriteConverterFactory
+        {
+            public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ByteBuffer? byteBuffer)
+            {
+                if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalWrite.GetNativeConverter<VolumeInDollars, float>();
+                return base.GetConverter<TLogical, TPhysical>(columnDescriptor, byteBuffer);
+            }
         }
 
         private struct MappedRow1
