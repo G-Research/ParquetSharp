@@ -71,9 +71,6 @@ using (var rowReader = ParquetFile.CreateRowReader<MyRow>("example.parquet"))
 ## Reading and writing custom types
 
 The row-oriented API supports reading and writing custom types by providing a `LogicalReadConverterFactory` or `LogicalWriteConverterFactory`.
-The `LogicalTypeFactory` is required if the custom type is used for creating the schema (when writing), or if accessing a `LogicalColumnReader`
-or `LogicalColumnWriter` without explicitly overriding the element type (e.g. `columnWriter.LogicalReaderOverride<CustomType>()`). It is needed
-in order to establish the proper logical type mapping.
 
 ### Writing custom types
 

@@ -449,9 +449,9 @@ namespace ParquetSharp.Test
         private static void CustomTypeRoundTripAndCompare<TTupleWrite, TTupleRead>(TTupleWrite[] rows, IEnumerable<TTupleRead> expectedRows)
         {
             using var buffer = new ResizableBuffer();
-            var logicalReadConverterFactory = new ReadConverterFactory();
             var logicalWriteConverterFactory = new WriteConverterFactory();
             var logicalWriteTypeFactory = new WriteTypeFactory();
+            var logicalReadConverterFactory = new ReadConverterFactory();
             var logicalReadTypeFactory = new ReadTypeFactory();
 
             using (var outputStream = new BufferOutputStream(buffer))
