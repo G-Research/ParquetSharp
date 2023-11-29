@@ -13,13 +13,16 @@ namespace ParquetSharp.RowOriented
     {
         internal delegate void WriteAction(ParquetRowWriter<TTuple> parquetRowWriter, TTuple[] rows, int length);
 
+
         internal ParquetRowWriter(
             string path,
             Column[] columns,
             Compression compression,
             IReadOnlyDictionary<string, string>? keyValueMetadata,
-            WriteAction writeAction)
-            : this(new ParquetFileWriter(path, columns, compression, keyValueMetadata), writeAction)
+            WriteAction writeAction,
+            LogicalTypeFactory? logicalTypeFactory = null,
+            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            : this(new ParquetFileWriter(path, columns, logicalTypeFactory, compression, keyValueMetadata), writeAction, logicalWriteConverterFactory)
         {
         }
 
@@ -28,8 +31,10 @@ namespace ParquetSharp.RowOriented
             Column[] columns,
             WriterProperties writerProperties,
             IReadOnlyDictionary<string, string>? keyValueMetadata,
-            WriteAction writeAction)
-            : this(new ParquetFileWriter(path, columns, writerProperties, keyValueMetadata), writeAction)
+            WriteAction writeAction,
+            LogicalTypeFactory? logicalTypeFactory = null,
+            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            : this(new ParquetFileWriter(path, columns, logicalTypeFactory, writerProperties, keyValueMetadata), writeAction, logicalWriteConverterFactory)
         {
         }
 
@@ -38,8 +43,10 @@ namespace ParquetSharp.RowOriented
             Column[] columns,
             Compression compression,
             IReadOnlyDictionary<string, string>? keyValueMetadata,
-            WriteAction writeAction)
-            : this(new ParquetFileWriter(outputStream, columns, compression, keyValueMetadata), writeAction)
+            WriteAction writeAction,
+            LogicalTypeFactory? logicalTypeFactory = null,
+            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            : this(new ParquetFileWriter(outputStream, columns, logicalTypeFactory, compression, keyValueMetadata), writeAction, logicalWriteConverterFactory)
         {
         }
 
@@ -48,14 +55,22 @@ namespace ParquetSharp.RowOriented
             Column[] columns,
             WriterProperties writerProperties,
             IReadOnlyDictionary<string, string>? keyValueMetadata,
-            WriteAction writeAction)
-            : this(new ParquetFileWriter(outputStream, columns, writerProperties, keyValueMetadata), writeAction)
+            WriteAction writeAction,
+            LogicalTypeFactory? logicalTypeFactory = null,
+            LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
+            : this(new ParquetFileWriter(outputStream, columns, logicalTypeFactory, writerProperties, keyValueMetadata), writeAction, logicalWriteConverterFactory)
         {
         }
 
-        private ParquetRowWriter(ParquetFileWriter parquetFileWriter, WriteAction writeAction)
+        private ParquetRowWriter(ParquetFileWriter parquetFileWriter, WriteAction writeAction, LogicalWriteConverterFactory? logicalWriteConverterFactory = null)
         {
             _parquetFileWriter = parquetFileWriter;
+
+            if (logicalWriteConverterFactory != null)
+            {
+                _parquetFileWriter.LogicalWriteConverterFactory = logicalWriteConverterFactory;
+            }
+
             _rowGroupWriter = _parquetFileWriter.AppendRowGroup();
             _writeAction = writeAction;
             _rows = new TTuple[1024];
