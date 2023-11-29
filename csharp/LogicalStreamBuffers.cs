@@ -7,22 +7,12 @@ namespace ParquetSharp
     /// </summary>
     internal struct LogicalStreamBuffers<TPhysical>
     {
-        public LogicalStreamBuffers(TPhysical[] values, short[]? defLevels, short[]? repLevels)
+        public LogicalStreamBuffers(ColumnDescriptor descriptor, int bufferLength)
         {
-            Values = values;
-            DefLevels = defLevels;
-            RepLevels = repLevels;
-            Length = values.Length;
-            if (defLevels != null && defLevels.Length != Length)
-            {
-                throw new Exception(
-                    $"Expected definition levels buffer length ({defLevels.Length}) to match values buffer length ({values.Length}");
-            }
-            if (repLevels != null && repLevels.Length != Length)
-            {
-                throw new Exception(
-                    $"Expected repetition levels buffer length ({repLevels.Length}) to match values buffer length ({values.Length}");
-            }
+            Values = new TPhysical[bufferLength];
+            DefLevels = descriptor.MaxDefinitionLevel == 0 ? null : new short[bufferLength];
+            RepLevels = descriptor.MaxRepetitionLevel == 0 ? null : new short[bufferLength];
+            Length = bufferLength;
         }
 
         public readonly TPhysical[] Values;

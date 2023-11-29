@@ -108,9 +108,8 @@ namespace ParquetSharp
             ILogicalBatchWriter<TElement> batchWriter;
             try
             {
-                var buffer = new LogicalColumnStreamBuffer(columnWriter.ColumnDescriptor, typeof(TPhysical), bufferLength);
                 var factory = new LogicalBatchWriterFactory<TPhysical, TLogical>(
-                    (ColumnWriter<TPhysical>) columnWriter, (TPhysical[]) buffer.Buffer, buffer.DefLevels, buffer.RepLevels, byteBuffer, converter);
+                    (ColumnWriter<TPhysical>) columnWriter, byteBuffer, converter, bufferLength);
                 batchWriter = factory.GetWriter<TElement>(schemaNodes);
             }
             finally

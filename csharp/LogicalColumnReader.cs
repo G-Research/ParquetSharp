@@ -130,11 +130,8 @@ namespace ParquetSharp
             ILogicalBatchReader<TElement> batchReader;
             try
             {
-                var buffer = new LogicalColumnStreamBuffer(columnReader.ColumnDescriptor, typeof(TPhysical), bufferLength);
-
                 var directReader = (LogicalRead<TLogical, TPhysical>.DirectReader?) converterFactory.GetDirectReader<TLogical, TPhysical>();
-                var readerFactory = new LogicalBatchReaderFactory<TPhysical, TLogical>(
-                    (ColumnReader<TPhysical>) columnReader, (TPhysical[]) buffer.Buffer, buffer.DefLevels, buffer.RepLevels, directReader, converter);
+                var readerFactory = new LogicalBatchReaderFactory<TPhysical, TLogical>((ColumnReader<TPhysical>) columnReader, directReader, converter, bufferLength);
                 batchReader = readerFactory.GetReader<TElement>(schemaNodes);
             }
             finally
