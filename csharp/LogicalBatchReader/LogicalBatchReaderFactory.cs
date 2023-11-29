@@ -14,14 +14,12 @@ namespace ParquetSharp.LogicalBatchReader
     {
         public LogicalBatchReaderFactory(
             ColumnReader<TPhysical> physicalReader,
-            TPhysical[] buffer,
-            short[]? defLevels,
-            short[]? repLevels,
             LogicalRead<TLogical, TPhysical>.DirectReader? directReader,
-            LogicalRead<TLogical, TPhysical>.Converter converter)
+            LogicalRead<TLogical, TPhysical>.Converter converter,
+            int bufferLength)
         {
             _physicalReader = physicalReader;
-            _buffers = new LogicalStreamBuffers<TPhysical>(buffer, defLevels, repLevels);
+            _buffers = new LogicalStreamBuffers<TPhysical>(physicalReader.ColumnDescriptor, bufferLength);
             _converter = converter;
             _directReader = directReader;
         }

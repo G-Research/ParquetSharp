@@ -6,16 +6,12 @@ namespace ParquetSharp
     public abstract class LogicalColumnStream<TSource> : IDisposable
         where TSource : class, IDisposable
     {
-        protected LogicalColumnStream(TSource source, ColumnDescriptor descriptor, Type elementType, Type physicalType, int bufferLength)
+        protected LogicalColumnStream(TSource source, ColumnDescriptor descriptor, int bufferLength)
         {
             Source = source ?? throw new ArgumentNullException(nameof(source));
             ColumnDescriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
             BufferLength = bufferLength;
             LogicalType = descriptor.LogicalType;
-
-            Buffer = Array.CreateInstance(physicalType, bufferLength);
-            DefLevels = descriptor.MaxDefinitionLevel == 0 ? null : new short[bufferLength];
-            RepLevels = descriptor.MaxRepetitionLevel == 0 ? null : new short[bufferLength];
         }
 
         public virtual void Dispose()
@@ -70,9 +66,5 @@ namespace ParquetSharp
         public ColumnDescriptor ColumnDescriptor { get; }
         public int BufferLength { get; }
         public LogicalType LogicalType { get; }
-
-        protected readonly Array Buffer;
-        protected readonly short[]? DefLevels;
-        protected readonly short[]? RepLevels;
     }
 }
