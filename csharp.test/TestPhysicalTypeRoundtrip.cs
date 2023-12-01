@@ -13,13 +13,35 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestRoundTrip([Values(true, false)] bool useDictionaryEncoding)
         {
-            TestRoundTrip(CreateExpectedColumns(72), useDictionaryEncoding);
+            var expectedColumns = CreateExpectedColumns(72);
+            try
+            {
+                TestRoundTrip(expectedColumns, useDictionaryEncoding);
+            }
+            finally
+            {
+                foreach (var col in expectedColumns)
+                {
+                    col.Dispose();
+                }
+            }
         }
 
         [Test]
         public static void TestRoundTripBuffered([Values(true, false)] bool useDictionaryEncoding)
         {
-            TestRoundTripBuffered(CreateExpectedColumns(72), useDictionaryEncoding);
+            var expectedColumns = CreateExpectedColumns(72);
+            try
+            {
+                TestRoundTripBuffered(expectedColumns, useDictionaryEncoding);
+            }
+            finally
+            {
+                foreach (var col in expectedColumns)
+                {
+                    col.Dispose();
+                }
+            }
         }
 
         [Test]
@@ -27,7 +49,18 @@ namespace ParquetSharp.Test
         {
             // BUG: causes Encodings to return duplicated entries.
 
-            TestRoundTrip(CreateExpectedColumns(720_000), useDictionaryEncoding);
+            var expectedColumns = CreateExpectedColumns(720_000);
+            try
+            {
+                TestRoundTrip(expectedColumns, useDictionaryEncoding);
+            }
+            finally
+            {
+                foreach (var col in expectedColumns)
+                {
+                    col.Dispose();
+                }
+            }
         }
 
         [Test]
@@ -35,13 +68,24 @@ namespace ParquetSharp.Test
         {
             // BUG: causes Encodings to return duplicated entries.
 
-            TestRoundTripBuffered(CreateExpectedColumns(720_000), useDictionaryEncoding);
+            var expectedColumns = CreateExpectedColumns(720_000);
+            try
+            {
+                TestRoundTripBuffered(expectedColumns, useDictionaryEncoding);
+            }
+            finally
+            {
+                foreach (var col in expectedColumns)
+                {
+                    col.Dispose();
+                }
+            }
         }
 
         private static void TestRoundTrip(ExpectedColumn[] expectedColumns, bool useDictionaryEncoding)
         {
-            var schema = CreateSchema(expectedColumns);
-            var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
+            using var schema = CreateSchema(expectedColumns);
+            using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
             var keyValueMetadata = new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}};
 
             using var buffer = new ResizableBuffer();
@@ -54,10 +98,16 @@ namespace ParquetSharp.Test
 
                 foreach (var column in expectedColumns)
                 {
-                    Console.WriteLine("Writing '{0}'", column.Name);
-
-                    using var columnWriter = rowGroupWriter.NextColumn();
-                    columnWriter.Apply(new ValueSetter(column.Values));
+                    try
+                    {
+                        using var columnWriter = rowGroupWriter.NextColumn();
+                        columnWriter.Apply(new ValueSetter(column.Values));
+                    }
+                    catch (Exception)
+                    {
+                        TestContext.WriteLine("Failure writing '{0}'", column.Name);
+                        throw;
+                    }
                 }
 
                 fileWriter.Close();
@@ -71,8 +121,8 @@ namespace ParquetSharp.Test
         {
             // Same as the default round-trip test, but use buffered row groups.
 
-            var schema = CreateSchema(expectedColumns);
-            var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
+            using var schema = CreateSchema(expectedColumns);
+            using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
             var keyValueMetadata = new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}};
 
             using var buffer = new ResizableBuffer();
@@ -92,11 +142,6 @@ namespace ParquetSharp.Test
                     {
                         var column = expectedColumns[i];
                         var range = (r, Math.Min(r + rangeLength, numRows));
-
-                        if (range.Item1 == 0 || range.Item2 == numRows)
-                        {
-                            Console.WriteLine("Writing '{0}' (range: {1})", column.Name, range);
-                        }
 
                         using var columnWriter = rowGroupWriter.Column(i);
                         columnWriter.Apply(new ValueSetter(column.Values, range));
@@ -118,14 +163,18 @@ namespace ParquetSharp.Test
 
             var numRows = expectedColumns.First().Values.Length;
 
-            Assert.AreEqual("parquet-cpp-arrow version 5.0.0", fileMetaData.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 14.0.1", fileMetaData.CreatedBy);
             Assert.AreEqual(new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}}, fileMetaData.KeyValueMetadata);
             Assert.AreEqual(expectedColumns.Length, fileMetaData.NumColumns);
             Assert.AreEqual(numRows, fileMetaData.NumRows);
             Assert.AreEqual(1, fileMetaData.NumRowGroups);
             Assert.AreEqual(1 + expectedColumns.Length, fileMetaData.NumSchemaElements);
-            Assert.AreEqual(ParquetVersion.PARQUET_1_0, fileMetaData.Version);
-            Assert.AreEqual("parquet-cpp-arrow version 5.0.0", fileMetaData.WriterVersion.ToString());
+            // The default format version to write is 2.4, but this doesn't correspond exactly
+            // to the version read from the file metadata.
+            // The parquet format only stores an integer file version (1 or 2) and
+            // 2 gets mapped to the latest 2.x version.
+            Assert.AreEqual(ParquetVersion.PARQUET_2_6, fileMetaData.Version);
+            Assert.AreEqual("parquet-cpp-arrow version 14.0.1", fileMetaData.WriterVersion.ToString());
 
             using var rowGroupReader = fileReader.RowGroup(0);
             var rowGroupMetaData = rowGroupReader.MetaData;
@@ -133,46 +182,65 @@ namespace ParquetSharp.Test
             for (int c = 0; c != fileMetaData.NumColumns; ++c)
             {
                 using var columnReader = rowGroupReader.Column(c);
-
                 var expected = expectedColumns[c];
+                try
+                {
+                    var descr = columnReader.ColumnDescriptor;
+                    using var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
 
-                Console.WriteLine("Reading '{0}'", expected.Name);
+                    Assert.AreEqual(expected.MaxDefinitionlevel, descr.MaxDefinitionLevel);
+                    Assert.AreEqual(expected.MaxRepetitionLevel, descr.MaxRepetitionLevel);
+                    Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
+                    using var logicalType = descr.LogicalType;
+                    Assert.AreEqual(expected.LogicalType, logicalType);
+                    Assert.AreEqual(expected.ColumnOrder, descr.ColumnOrder);
+                    Assert.AreEqual(expected.SortOrder, descr.SortOrder);
+                    Assert.AreEqual(expected.Name, descr.Name);
+                    Assert.AreEqual(expected.TypeLength, descr.TypeLength);
+                    Assert.AreEqual(expected.TypePrecision, descr.TypePrecision);
+                    Assert.AreEqual(expected.TypeScale, descr.TypeScale);
 
-                var descr = columnReader.ColumnDescriptor;
-                var chunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
+                    var expectedEncodings = expected.Encodings
+                        .Where(e => useDictionaryEncoding || e != Encoding.RleDictionary).ToArray();
+                    var actualEncodings = chunkMetaData.Encodings.Distinct().ToArray();
+                    // Encoding ordering is not important
+                    Assert.That(actualEncodings, Is.EquivalentTo(expectedEncodings));
 
-                Assert.AreEqual(expected.MaxDefinitionlevel, descr.MaxDefinitionLevel);
-                Assert.AreEqual(expected.MaxRepetitionLevel, descr.MaxRepetitionLevel);
-                Assert.AreEqual(expected.PhysicalType, descr.PhysicalType);
-                Assert.AreEqual(expected.LogicalType, descr.LogicalType);
-                Assert.AreEqual(expected.ColumnOrder, descr.ColumnOrder);
-                Assert.AreEqual(expected.SortOrder, descr.SortOrder);
-                Assert.AreEqual(expected.Name, descr.Name);
-                Assert.AreEqual(expected.TypeLength, descr.TypeLength);
-                Assert.AreEqual(expected.TypePrecision, descr.TypePrecision);
-                Assert.AreEqual(expected.TypeScale, descr.TypeScale);
-
-                Assert.AreEqual(
-                    expected.Encodings.Where(e => useDictionaryEncoding || e != Encoding.PlainDictionary).ToArray(),
-                    chunkMetaData.Encodings.Distinct().ToArray());
-
-                Assert.AreEqual(expected.Compression, chunkMetaData.Compression);
-                Assert.AreEqual(expected.Values, columnReader.Apply(new PhysicalValueGetter(chunkMetaData.NumValues)).values);
+                    Assert.AreEqual(expected.Compression, chunkMetaData.Compression);
+                    Assert.AreEqual(expected.Values,
+                        columnReader.Apply(new PhysicalValueGetter(chunkMetaData.NumValues)).values);
+                }
+                catch (Exception)
+                {
+                    TestContext.Out.WriteLine("Failure reading '{0}'", expected.Name);
+                    throw;
+                }
             }
         }
 
         private static GroupNode CreateSchema(ExpectedColumn[] expectedColumns)
         {
+            using var noneLogicalType = LogicalType.None();
             var fields = expectedColumns
-                .Select(f => new PrimitiveNode(f.Name, Repetition.Required, LogicalType.None(), f.PhysicalType))
+                .Select(f => new PrimitiveNode(f.Name, Repetition.Required, noneLogicalType, f.PhysicalType))
                 .ToArray();
 
-            return new GroupNode("schema", Repetition.Required, fields);
+            try
+            {
+                return new GroupNode("schema", Repetition.Required, fields);
+            }
+            finally
+            {
+                foreach (var node in fields)
+                {
+                    node.Dispose();
+                }
+            }
         }
 
         private static WriterProperties CreateWriterProperties(ExpectedColumn[] expectedColumns, bool useDictionaryEncoding)
         {
-            var builder = new WriterPropertiesBuilder();
+            using var builder = new WriterPropertiesBuilder();
 
             builder.Compression(Compression.Snappy);
 
@@ -232,7 +300,7 @@ namespace ParquetSharp.Test
             };
         }
 
-        private sealed class ExpectedColumn
+        private sealed class ExpectedColumn : IDisposable
         {
             public string Name = ""; // TODO replace with init;
             public Array Values = new object[0]; // TODO replace with init;
@@ -240,15 +308,31 @@ namespace ParquetSharp.Test
             public int MaxDefinitionlevel = 0;
             public int MaxRepetitionLevel = 0;
             public PhysicalType PhysicalType;
-            public LogicalType LogicalType = LogicalType.None();
             public ColumnOrder ColumnOrder = ColumnOrder.TypeDefinedOrder;
             public SortOrder SortOrder = SortOrder.Signed;
             public int TypeLength = 0;
             public int TypePrecision = -1;
             public int TypeScale = -1;
 
-            public Encoding[] Encodings = {Encoding.PlainDictionary, Encoding.Plain, Encoding.Rle};
+            private LogicalType _logicalType = LogicalType.None();
+
+            public LogicalType LogicalType
+            {
+                get => _logicalType;
+                set
+                {
+                    _logicalType.Dispose();
+                    _logicalType = value;
+                }
+            }
+
+            public Encoding[] Encodings = {Encoding.RleDictionary, Encoding.Plain, Encoding.Rle};
             public Compression Compression = Compression.Snappy;
+
+            public void Dispose()
+            {
+                _logicalType.Dispose();
+            }
         }
     }
 }

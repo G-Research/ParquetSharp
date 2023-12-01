@@ -47,4 +47,9 @@ extern "C"
 	{
 		TRYCATCH(*total_compressed_bytes = row_group_writer->total_compressed_bytes();)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* RowGroupWriter_Buffered(const RowGroupWriter* row_group_writer, bool* buffered)
+	{
+		TRYCATCH(*buffered = row_group_writer->buffered();)
+	}
 }

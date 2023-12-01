@@ -37,11 +37,24 @@ namespace ParquetSharp.Schema
 
         public override Node DeepClone()
         {
-            return new GroupNode(
-                Name,
-                Repetition,
-                Fields.Select(f => f.DeepClone()).ToArray(),
-                LogicalType is NoneLogicalType ? null : LogicalType);
+            using var logicalType = LogicalType;
+            var fields = Fields;
+            var clonedFields = fields.Select(f => f.DeepClone()).ToArray();
+            try
+            {
+                return new GroupNode(
+                    Name,
+                    Repetition,
+                    clonedFields,
+                    logicalType is NoneLogicalType ? null : logicalType);
+            }
+            finally
+            {
+                foreach (var field in fields.Concat(clonedFields))
+                {
+                    field.Dispose();
+                }
+            }
         }
 
         private static unsafe IntPtr Make(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType? logicalType)

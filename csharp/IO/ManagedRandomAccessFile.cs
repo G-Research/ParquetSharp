@@ -25,7 +25,7 @@ namespace ParquetSharp.IO
             _seek = Seek;
             _closed = Closed;
 
-            Handle = Create(_read, _close, _getSize, _tell, _seek, _closed);
+            Handle = Create(_read, _close, _getSize, _tell, _seek, _closed, this);
         }
 
         private static ParquetHandle Create(
@@ -34,28 +34,54 @@ namespace ParquetSharp.IO
             GetSizeDelegate getSize,
             TellDelegate tell,
             SeekDelegate seek,
-            ClosedDelegate closed)
+            ClosedDelegate closed,
+            ManagedRandomAccessFile managedFile)
         {
             ExceptionInfo.Check(ManagedRandomAccessFile_Create(read, close, getSize, tell, seek, closed, out var handle));
-            return new ParquetHandle(handle, RandomAccessFile_Free);
+
+            void Free(IntPtr ptr)
+            {
+                RandomAccessFile_Free(ptr);
+                // Capture and keep a handle to the managed file instance so that if we free the last reference to the
+                // C++ random access file and trigger a file close, we can ensure the file hasn't been garbage collected.
+                // Note that this doesn't protect against the case where the C# side handle is disposed or finalized before
+                // the C++ side has finished with it.
+                GC.KeepAlive(managedFile);
+            }
+
+            return new ParquetHandle(handle, Free);
         }
 
         private byte Read(long nbytes, IntPtr bytesRead, IntPtr dest, out string? exception)
         {
             try
             {
-#if NETSTANDARD20
-                unsafe
-                {
-                    var read = Stream.Read(new Span<byte>(dest.ToPointer(), (int)nbytes));
-                    Marshal.WriteInt64(bytes_read, read);
-                }
-#else
-                var buffer = new byte[(int) nbytes];
-                var read = _stream.Read(buffer, 0, (int) nbytes);
-                Marshal.Copy(buffer, 0, dest, read);
-                Marshal.WriteInt64(bytesRead, read);
+#if !NETSTANDARD2_1_OR_GREATER
+                var buffer = new byte[(int) Math.Min(nbytes, MaxArraySize)];
 #endif
+                var totalRead = 0L;
+                while (totalRead < nbytes)
+                {
+                    var bytesToRead = (int) Math.Min(nbytes - totalRead, MaxArraySize);
+                    int read;
+#if NETSTANDARD2_1_OR_GREATER
+                    unsafe
+                    {
+                        read = _stream.Read(new Span<byte>(dest.ToPointer(), bytesToRead));
+                    }
+#else
+                    read = _stream.Read(buffer, 0, bytesToRead);
+                    Marshal.Copy(buffer, 0, dest, read);
+#endif
+                    if (read == 0)
+                    {
+                        break;
+                    }
+                    totalRead += read;
+                    dest = IntPtr.Add(dest, read);
+                }
+
+                Marshal.WriteInt64(bytesRead, totalRead);
                 exception = null;
                 return 0;
             }
@@ -188,5 +214,9 @@ namespace ParquetSharp.IO
         // ReSharper disable NotAccessedField.Local
         private string? _exceptionMessage;
         // ReSharper restore NotAccessedField.Local
+
+        // Maximum size of a byte array,
+        // see https://docs.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/runtime/gcallowverylargeobjects-element#remarks
+        private const long MaxArraySize = 2_147_483_591;
     }
 }

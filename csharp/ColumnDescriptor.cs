@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 
@@ -32,12 +33,17 @@ namespace ParquetSharp
 
         public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, IColumnDescriptorVisitor<TReturn> visitor)
         {
-            return Apply(typeFactory, null, visitor);
+            return Apply(typeFactory, null, false, visitor);
         }
 
         public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride, IColumnDescriptorVisitor<TReturn> visitor)
         {
-            var types = GetSystemTypes(typeFactory, columnLogicalTypeOverride);
+            return Apply(typeFactory, columnLogicalTypeOverride, false, visitor);
+        }
+
+        public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride, bool useNesting, IColumnDescriptorVisitor<TReturn> visitor)
+        {
+            var types = GetSystemTypes(typeFactory, columnLogicalTypeOverride, useNesting);
             var visitorApply = VisitorCache.GetOrAdd((types.physicalType, types.logicalType, types.elementType, typeof(TReturn)), t =>
             {
 
@@ -58,27 +64,82 @@ namespace ParquetSharp
             return ((Func<IColumnDescriptorVisitor<TReturn>, TReturn>) visitorApply)(visitor);
         }
 
+        public (Type physicalType, Type logicalType, Type elementType) GetSystemTypes(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride)
+        {
+            return GetSystemTypes(typeFactory, columnLogicalTypeOverride, useNesting: false);
+        }
+
         /// <summary>
         /// Get the System.Type instances that represent this column.
         /// PhysicalType is the actual type on disk (e.g. ByteArray).
         /// LogicalType is the most nested logical type (e.g. string).
         /// ElementType is the type represented by the column (e.g. string[][][]).
         /// </summary>
-        public (Type physicalType, Type logicalType, Type elementType) GetSystemTypes(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride)
+        /// <param name="typeFactory">Type factory to get logical types</param>
+        /// <param name="columnLogicalTypeOverride">Overrides the default logical type to use</param>
+        /// <param name="useNesting">Controls whether schema nodes tested in groups should result in a corresponding Nested type</param>
+        public (Type physicalType, Type logicalType, Type elementType) GetSystemTypes(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride, bool useNesting)
         {
             var (physicalType, logicalType) = typeFactory.GetSystemTypes(this, columnLogicalTypeOverride);
-            var elementType = logicalType;
+            var elementType = NonNullable(logicalType);
 
-            for (var node = SchemaNode; node != null; node = node.Parent)
+            var node = SchemaNode;
+            while (node != null)
             {
-                if (node.LogicalType.Type == LogicalTypeEnum.List)
+                using var nodeLogicalType = node.LogicalType;
+                var parent = node.Parent;
+                using var parentType = parent?.LogicalType;
+
+                if (node.Repetition == Repetition.Repeated)
                 {
-                    elementType = elementType.MakeArrayType();
+                    if (parent != null &&
+                        parentType!.Type is LogicalTypeEnum.List or LogicalTypeEnum.Map &&
+                        parent.Repetition is Repetition.Optional or Repetition.Required)
+                    {
+                        // This node is the middle repeated group of a list, or the middle key_value
+                        // group in a map.
+                        // See https://github.com/apache/parquet-format/blob/master/LogicalTypes.md
+                        elementType = elementType.MakeArrayType();
+                        // Skip over the parent list or map node to avoid wrapping it in a Nested type
+                        node.Dispose();
+                        node = parent;
+                        parent = node.Parent;
+                    }
+                    else
+                    {
+                        using var nodePath = node.Path;
+                        throw new Exception(
+                            $"Invalid Parquet schema, found a repeated node '{nodePath.ToDotString()}' " +
+                            "that is not the child of a valid list or map annotated group.");
+                    }
                 }
+                else
+                {
+                    if (node is Schema.GroupNode && parent != null && useNesting)
+                    {
+                        // This is a group node and not the root schema node, so we nest elements within the Nested type.
+                        elementType = typeof(Nested<>).MakeGenericType(elementType);
+                    }
+
+                    if (node.Repetition == Repetition.Optional &&
+                        elementType.BaseType != typeof(object) &&
+                        elementType.BaseType != typeof(Array) &&
+                        !TypeUtils.IsNullable(elementType, out _))
+                    {
+                        // Node is optional and the element type is not already a nullable type
+                        elementType = typeof(Nullable<>).MakeGenericType(elementType);
+                    }
+                }
+
+                node.Dispose();
+                node = parent;
             }
 
             return (physicalType, logicalType, elementType);
         }
+
+        private static Type NonNullable(Type type) =>
+            type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) ? type.GetGenericArguments().Single() : type;
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnDescriptor_Max_Definition_Level(IntPtr columnDescriptor, out short maxDefinitionLevel);

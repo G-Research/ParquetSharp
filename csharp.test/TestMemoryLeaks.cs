@@ -63,8 +63,9 @@ namespace ParquetSharp.Test
 
         private void CreateParquetFile(ResizableBuffer buffer)
         {
+            using var timestampType = LogicalType.Timestamp(true, TimeUnit.Millis);
             using (var output = new BufferOutputStream(buffer))
-            using (var fileWriter = new ParquetFileWriter(output, CreateFloatColumns(), keyValueMetadata: _keyValueProperties))
+            using (var fileWriter = new ParquetFileWriter(output, CreateFloatColumns(timestampType), keyValueMetadata: _keyValueProperties))
             {
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
 
@@ -121,11 +122,11 @@ namespace ParquetSharp.Test
             }
         }
 
-        private static Column[] CreateFloatColumns()
+        private static Column[] CreateFloatColumns(LogicalType timestampType)
         {
             return new Column[]
             {
-                new Column<DateTime>("DateTime", LogicalType.Timestamp(true, TimeUnit.Millis)),
+                new Column<DateTime>("DateTime", timestampType),
                 new Column<int>("ObjectId"),
                 new Column<float>("Value")
             };

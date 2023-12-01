@@ -55,7 +55,7 @@ namespace ParquetSharp.Test
                 }
             });
 
-            StringAssert.StartsWith("Unable to cast object of type", exception?.Message);
+            Assert.That(exception?.Message, Does.StartWith("Tried to get a LogicalColumnReader"));
         }
 
         [Test]
@@ -96,13 +96,14 @@ namespace ParquetSharp.Test
                     using (var columnReader = rowGroupReader.Column(c))
                     {
                         var descr = columnReader.ColumnDescriptor;
-                        var colChunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
+                        using var colChunkMetaData = rowGroupMetaData.GetColumnChunkMetaData(c);
 
                         Console.WriteLine("  - reader type: {0}", columnReader.Type);
                         Console.WriteLine("  - max definition level: {0}", descr.MaxDefinitionLevel);
                         Console.WriteLine("  - max repetition level: {0}", descr.MaxRepetitionLevel);
                         Console.WriteLine("  - physical type: {0}", descr.PhysicalType);
-                        Console.WriteLine("  - logical type: {0}", descr.LogicalType);
+                        using var logicalType = descr.LogicalType;
+                        Console.WriteLine("  - logical type: {0}", logicalType);
                         Console.WriteLine("  - column order: {0}", descr.ColumnOrder);
                         Console.WriteLine("  - sort order: {0}", descr.SortOrder);
                         Console.WriteLine("  - name: {0}", descr.Name);

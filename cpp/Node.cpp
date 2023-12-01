@@ -28,6 +28,11 @@ extern "C"
 		TRYCATCH(*logical_type = new std::shared_ptr((*node)->logical_type());)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* Node_Converted_Type(const std::shared_ptr<const schema::Node>* node, ConvertedType::type* converted_type)
+	{
+		TRYCATCH(*converted_type = (*node)->converted_type();)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* Node_Name(const std::shared_ptr<const schema::Node>* node, const char** name)
 	{
 		TRYCATCH(*name = (*node)->name().c_str();)

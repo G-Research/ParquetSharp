@@ -1,29 +1,16 @@
 include(GenerateExportHeader)
 
-find_package(Arrow REQUIRED)
-find_package(Boost COMPONENTS filesystem regex system REQUIRED)
+find_package(Arrow CONFIG REQUIRED)
 find_package(unofficial-brotli CONFIG REQUIRED)
 find_package(BZip2 REQUIRED)
-find_package(gflags CONFIG REQUIRED)
-find_package(glog CONFIG REQUIRED)
 find_package(lz4 CONFIG REQUIRED)
-find_package(OpenSSL REQUIRED)
+find_package(Parquet CONFIG REQUIRED)
 find_package(re2 CONFIG REQUIRED)
 find_package(Snappy CONFIG REQUIRED)
 find_package(Thrift CONFIG REQUIRED)
-find_package(utf8proc REQUIRED)
+find_package(unofficial-utf8proc CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(Zstd REQUIRED)
-find_package(ParquetCpp REQUIRED)
-
-if (WIN32)
-	set(Crypto_LIBRARIES crypt32)
-endif ()
-
-if (UNIX)
-	find_package(Threads REQUIRED)
-	set(Threads_LIBRARIES Threads::Threads)
-endif ()
+find_package(zstd CONFIG REQUIRED)
 
 add_library(ParquetSharpNative SHARED 
 	AesKey.h
@@ -75,6 +62,11 @@ add_library(ParquetSharpNative SHARED
 	TypedStatistics.cpp
 	WriterProperties.cpp
 	WriterPropertiesBuilder.cpp
+	arrow/ArrowReaderProperties.cpp
+	arrow/ArrowWriterProperties.cpp
+	arrow/ArrowWriterPropertiesBuilder.cpp
+	arrow/FileReader.cpp
+	arrow/FileWriter.cpp
 )
 
 generate_export_header(ParquetSharpNative 
@@ -84,36 +76,30 @@ generate_export_header(ParquetSharpNative
 
 include_directories(
 	${PROJECT_BINARY_DIR}
-	${ParquetCpp_INCLUDE_DIRS})
+	${PARQUET_INCLUDE_DIRS})
 
 target_link_libraries(ParquetSharpNative PRIVATE
-	${ParquetCpp_LIBRARIES}
-	${Arrow_LIBRARIES}
-	${Boost_LIBRARIES}
-	unofficial::brotli::brotlidec-static unofficial::brotli::brotlienc-static unofficial::brotli::brotlicommon-static
+	Parquet::parquet_static
+	Arrow::arrow_static
+	unofficial::brotli::brotlidec unofficial::brotli::brotlienc unofficial::brotli::brotlicommon
 	BZip2::BZip2
-	${Crypto_LIBRARIES}
-	glog::glog
 	lz4::lz4
-	${SSL_LIBRARIES}
 	re2::re2
 	Snappy::snappy
 	thrift::thrift
-	${utf8proc_LIBRARIES}
+	utf8proc
 	ZLIB::ZLIB
-	${Zstd_LIBRARIES} 
-	${Threads_LIBRARIES}
-	${CMAKE_DL_LIBS}
+	zstd::libzstd_static
 )
-	
+
 add_definitions(-DARROW_STATIC)
 add_definitions(-DARROW_NO_DEPRECATED_API)
 add_definitions(-DPARQUET_STATIC)
 
 if (UNIX AND CMAKE_BUILD_TYPE STREQUAL Release)
-  if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
-    set(STRIP_OPTIONS -x)
-  endif()
-  add_custom_command(TARGET ParquetSharpNative POST_BUILD
-    COMMAND ${CMAKE_STRIP} ${STRIP_OPTIONS} $<TARGET_FILE:ParquetSharpNative>)
+	if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+		set(STRIP_OPTIONS -x)
+	endif()
+	add_custom_command(TARGET ParquetSharpNative POST_BUILD
+		COMMAND ${CMAKE_STRIP} ${STRIP_OPTIONS} $<TARGET_FILE:ParquetSharpNative>)
 endif ()

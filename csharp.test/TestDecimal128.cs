@@ -30,11 +30,9 @@ namespace ParquetSharp.Test
 
             foreach (var value in decimals)
             {
-                Console.WriteLine($"{value:E}");
-                Assert.AreEqual(value, new Decimal128(value, multiplier).ToDecimal(multiplier));
+                Assert.That(value, Is.EqualTo(new Decimal128(value, multiplier).ToDecimal(multiplier)));
 
-                Console.WriteLine($"{-value:E}");
-                Assert.AreEqual(-value, new Decimal128(-value, multiplier).ToDecimal(multiplier));
+                Assert.That(-value, Is.EqualTo(new Decimal128(-value, multiplier).ToDecimal(multiplier)));
             }
         }
 
@@ -48,6 +46,7 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        [SetCulture("en-US")]
         public static void TestScaleOverflow()
         {
             var exception = Assert.Throws<OverflowException>(() =>
@@ -62,7 +61,8 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestAgainstThirdParty()
         {
-            var columns = new Column[] {new Column<decimal>("Decimal", LogicalType.Decimal(precision: 29, scale: 3))};
+            using var decimalType = LogicalType.Decimal(precision: 29, scale: 3);
+            var columns = new Column[] {new Column<decimal>("Decimal", decimalType)};
             var values = Enumerable.Range(0, 10_000)
                 .Select(i => ((decimal) i * i * i) / 1000 - 10)
                 .Concat(new[] {decimal.MinValue / 1000, decimal.MaxValue / 1000})
@@ -73,7 +73,13 @@ namespace ParquetSharp.Test
             // Write using ParquetSharp
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, columns, Compression.Snappy);
+                // Specify we want to write version 1.0 format, as 2.x uses RleDictionary
+                // which is only supported by Parquet.Net since 4.0.2, which also dropped support for .NET framework
+                using var propertiesBuilder = new WriterPropertiesBuilder()
+                    .Compression(Compression.Snappy)
+                    .Version(ParquetVersion.PARQUET_1_0);
+                using var writerProperties = propertiesBuilder.Build();
+                using var fileWriter = new ParquetFileWriter(outStream, columns, writerProperties);
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>();
 
@@ -89,6 +95,36 @@ namespace ParquetSharp.Test
 
             var read = (decimal[]) rowGroupReader.ReadColumn(fileReader.Schema.GetDataFields()[0]).Data;
             Assert.AreEqual(values, read);
+        }
+
+        [Test]
+        public static void TestThrowsWithUnsupportedPrecision()
+        {
+            using var decimalType = LogicalType.Decimal(precision: 28, scale: 3);
+            var columns = new Column[] {new Column<decimal>("Decimal", decimalType)};
+
+            using var buffer = new ResizableBuffer();
+            using var outStream = new BufferOutputStream(buffer);
+            using var fileWriter = new ParquetFileWriter(outStream, columns);
+            using var rowGroupWriter = fileWriter.AppendRowGroup();
+            var exception = Assert.Throws<NotSupportedException>(() => { rowGroupWriter.NextColumn().LogicalWriter<decimal>(); });
+            Assert.That(exception!.Message, Does.Contain("29 digits of precision"));
+            fileWriter.Close();
+        }
+
+        [Test]
+        public static void TestThrowsWithUnsupportedLength()
+        {
+            using var decimalType = LogicalType.Decimal(precision: 29, scale: 3);
+            var columns = new Column[] {new Column(typeof(decimal), "Decimal", decimalType, 13)};
+
+            using var buffer = new ResizableBuffer();
+            using var outStream = new BufferOutputStream(buffer);
+            using var fileWriter = new ParquetFileWriter(outStream, columns);
+            using var rowGroupWriter = fileWriter.AppendRowGroup();
+            var exception = Assert.Throws<NotSupportedException>(() => { rowGroupWriter.NextColumn().LogicalWriter<decimal>(); });
+            Assert.That(exception!.Message, Does.Contain("16 bytes of decimal length"));
+            fileWriter.Close();
         }
     }
 }

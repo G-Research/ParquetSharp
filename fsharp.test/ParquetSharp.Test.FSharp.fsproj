@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net7.0</TargetFrameworks>
+    <!-- Avoid building for older frameworks when testing locally. -->
+    <!-- This is to speed up the build process and avoid errors when the required runtimes are not installed. -->
+    <TargetFrameworks Condition="'$(CI)' == 'true'">$(TargetFrameworks);netcoreapp3.1;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(CI)' == 'true' AND '$(OS)'=='Windows_NT'">$(TargetFrameworks);net472</TargetFrameworks>
+    <PlatformTarget Condition="'$(TargetFramework)'=='net472'">x64</PlatformTarget>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FsUnit" Version="5.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\csharp\ParquetSharp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="TestRowOrientedApi.fs" />
+  </ItemGroup>
+
+</Project>

@@ -12,7 +12,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>1591;</NoWarn>
-    <Version>5.0.0-beta3</Version>
+    <Version>14.0.1-beta1</Version>
     <Company>G-Research</Company>
     <Authors>G-Research</Authors>
     <Product>ParquetSharp</Product>
@@ -79,7 +79,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="Apache.Arrow" Version="13.0.0" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
   </ItemGroup>
 
 </Project>

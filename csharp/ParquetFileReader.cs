@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using ParquetSharp.IO;
 
@@ -7,33 +8,70 @@ namespace ParquetSharp
     public sealed class ParquetFileReader : IDisposable
     {
         public ParquetFileReader(string path)
-            : this(path, ReaderProperties.GetDefaultReaderProperties())
+            : this(path, null)
         {
         }
 
         public ParquetFileReader(RandomAccessFile randomAccessFile)
-            : this(randomAccessFile, ReaderProperties.GetDefaultReaderProperties())
+            : this(randomAccessFile, null)
         {
         }
 
-        public ParquetFileReader(string path, ReaderProperties readerProperties)
+        /// <summary>
+        /// Create a new ParquetFileReader for reading from a .NET stream
+        /// </summary>
+        /// <param name="stream">The stream to read</param>
+        /// <param name="leaveOpen">Whether to keep the stream open after the reader is closed</param>
+        public ParquetFileReader(Stream stream, bool leaveOpen = false)
+            : this(stream, null, leaveOpen)
+        {
+        }
+
+        public ParquetFileReader(string path, ReaderProperties? readerProperties)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
-            if (readerProperties == null) throw new ArgumentNullException(nameof(readerProperties));
+            path = LongPath.EnsureLongPathSafe(path);
 
-            ExceptionInfo.Check(ParquetFileReader_OpenFile(path, readerProperties.Handle.IntPtr, out var reader));
+            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var properties = readerProperties ?? defaultProperties!;
+
+            ExceptionInfo.Check(ParquetFileReader_OpenFile(path, properties.Handle.IntPtr, out var reader));
             _handle = new ParquetHandle(reader, ParquetFileReader_Free);
 
             GC.KeepAlive(readerProperties);
         }
 
-        public ParquetFileReader(RandomAccessFile randomAccessFile, ReaderProperties readerProperties)
+        public ParquetFileReader(RandomAccessFile randomAccessFile, ReaderProperties? readerProperties)
         {
             if (randomAccessFile == null) throw new ArgumentNullException(nameof(randomAccessFile));
             if (randomAccessFile.Handle == null) throw new ArgumentNullException(nameof(randomAccessFile.Handle));
-            if (readerProperties == null) throw new ArgumentNullException(nameof(readerProperties));
 
-            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle, readerProperties.Handle.IntPtr, ParquetFileReader_Open), ParquetFileReader_Free);
+            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var properties = readerProperties ?? defaultProperties!;
+
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle, properties.Handle.IntPtr, ParquetFileReader_Open), ParquetFileReader_Free);
+            _randomAccessFile = randomAccessFile;
+
+            GC.KeepAlive(readerProperties);
+        }
+
+        /// <summary>
+        /// Create a new ParquetFileReader for reading from a .NET stream
+        /// </summary>
+        /// <param name="stream">The stream to read</param>
+        /// <param name="readerProperties">Configures the reader properties</param>
+        /// <param name="leaveOpen">Whether to keep the stream open after the reader is closed</param>
+        public ParquetFileReader(Stream stream, ReaderProperties? readerProperties, bool leaveOpen = false)
+        {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+
+            using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
+            var properties = readerProperties ?? defaultProperties!;
+            var randomAccessFile = new ManagedRandomAccessFile(stream, leaveOpen);
+
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle!, properties.Handle.IntPtr, ParquetFileReader_Open), ParquetFileReader_Free);
+            _randomAccessFile = randomAccessFile;
+            _ownedFile = true;
 
             GC.KeepAlive(readerProperties);
         }
@@ -42,6 +80,10 @@ namespace ParquetSharp
         {
             _fileMetaData?.Dispose();
             _handle.Dispose();
+            if (_ownedFile)
+            {
+                _randomAccessFile?.Dispose();
+            }
         }
 
         public void Close()
@@ -79,5 +121,7 @@ namespace ParquetSharp
 
         private readonly ParquetHandle _handle;
         private FileMetaData? _fileMetaData;
+        private readonly RandomAccessFile? _randomAccessFile; // Keep a handle to the input file to prevent GC
+        private readonly bool _ownedFile; // Whether this reader created the RandomAccessFile
     }
 }

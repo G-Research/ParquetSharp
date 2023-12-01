@@ -31,10 +31,11 @@ namespace ParquetSharp.Schema
 
         public override Node DeepClone()
         {
+            using var logicalType = LogicalType;
             return new PrimitiveNode(
                 Name,
                 Repetition,
-                LogicalType,
+                logicalType,
                 PhysicalType,
                 TypeLength);
         }

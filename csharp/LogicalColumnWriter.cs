@@ -1,5 +1,6 @@
 ﻿using System;
 using ParquetSharp.Schema;
+using ParquetSharp.LogicalBatchWriter;
 
 namespace ParquetSharp
 {
@@ -9,8 +10,8 @@ namespace ParquetSharp
     /// </summary>
     public abstract class LogicalColumnWriter : LogicalColumnStream<ColumnWriter>
     {
-        protected LogicalColumnWriter(ColumnWriter columnWriter, Type elementType, int bufferLength)
-            : base(columnWriter, columnWriter.ColumnDescriptor, elementType, columnWriter.ElementType, bufferLength)
+        protected LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength)
+            : base(columnWriter, columnWriter.ColumnDescriptor, bufferLength)
         {
         }
 
@@ -22,10 +23,13 @@ namespace ParquetSharp
             // then we already know what the column writer logical system type should be.
             var columns = columnWriter.RowGroupWriter.ParquetFileWriter.Columns;
             var columnLogicalTypeOverride = GetLeafElementType(elementTypeOverride ?? columns?[columnWriter.ColumnIndex].LogicalSystemType);
+            // Nested types must be used if writing data with a nested structure
+            const bool useNesting = true;
 
             return columnWriter.ColumnDescriptor.Apply(
                 columnWriter.LogicalTypeFactory,
                 columnLogicalTypeOverride,
+                useNesting,
                 new Creator(columnWriter, bufferLength));
         }
 
@@ -36,6 +40,23 @@ namespace ParquetSharp
             try
             {
                 return (LogicalColumnWriter<TElementType>) writer;
+            }
+            catch (InvalidCastException exception)
+            {
+                var logicalWriterType = writer.GetType();
+                var colName = columnWriter.ColumnDescriptor.Name;
+                writer.Dispose();
+                if (logicalWriterType.GetGenericTypeDefinition() != typeof(LogicalColumnWriter<>))
+                {
+                    throw;
+                }
+                var elementType = logicalWriterType.GetGenericArguments()[0];
+                var expectedElementType = typeof(TElementType);
+                var message =
+                    $"Tried to get a LogicalColumnWriter for column {columnWriter.ColumnIndex} ('{colName}') " +
+                    $"with an element type of '{expectedElementType}' " +
+                    $"but the actual element type is '{elementType}'.";
+                throw new InvalidCastException(message, exception);
             }
             catch
             {
@@ -56,7 +77,7 @@ namespace ParquetSharp
 
             public LogicalColumnWriter OnColumnDescriptor<TPhysical, TLogical, TElement>() where TPhysical : unmanaged
             {
-                return new LogicalColumnWriter<TPhysical, TLogical, TElement>(_columnWriter, _bufferLength);
+                return LogicalColumnWriter<TElement>.Create<TPhysical, TLogical>(_columnWriter, _bufferLength);
             }
 
             private readonly ColumnWriter _columnWriter;
@@ -64,11 +85,49 @@ namespace ParquetSharp
         }
     }
 
-    public abstract class LogicalColumnWriter<TElement> : LogicalColumnWriter
+    public sealed class LogicalColumnWriter<TElement> : LogicalColumnWriter
     {
-        protected LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength)
-            : base(columnWriter, typeof(TElement), bufferLength)
+        private LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength, ByteBuffer? byteBuffer, ILogicalBatchWriter<TElement> batchWriter)
+            : base(columnWriter, bufferLength)
         {
+            _byteBuffer = byteBuffer;
+            _batchWriter = batchWriter;
+        }
+
+        internal static LogicalColumnWriter<TElement> Create<TPhysical, TLogical>(ColumnWriter columnWriter, int bufferLength) where TPhysical : unmanaged
+        {
+            var byteBuffer = typeof(TPhysical) == typeof(ByteArray) || typeof(TPhysical) == typeof(FixedLenByteArray)
+                ? new ByteBuffer(bufferLength)
+                : null;
+
+            // Convert logical values into physical values at the lowest array level
+            var converter = (LogicalWrite<TLogical, TPhysical>.Converter) (
+                columnWriter.LogicalWriteConverterFactory.GetConverter<TLogical, TPhysical>(columnWriter.ColumnDescriptor, byteBuffer));
+
+            var schemaNodes = GetSchemaNodesPath(columnWriter.ColumnDescriptor.SchemaNode);
+            ILogicalBatchWriter<TElement> batchWriter;
+            try
+            {
+                var factory = new LogicalBatchWriterFactory<TPhysical, TLogical>(
+                    (ColumnWriter<TPhysical>) columnWriter, byteBuffer, converter, bufferLength);
+                batchWriter = factory.GetWriter<TElement>(schemaNodes);
+            }
+            finally
+            {
+                foreach (var node in schemaNodes)
+                {
+                    node.Dispose();
+                }
+            }
+
+            return new LogicalColumnWriter<TElement>(columnWriter, bufferLength, byteBuffer, batchWriter);
+        }
+
+        public override void Dispose()
+        {
+            _byteBuffer?.Dispose();
+
+            base.Dispose();
         }
 
         public override TReturn Apply<TReturn>(ILogicalColumnWriterVisitor<TReturn> visitor)
@@ -86,208 +145,12 @@ namespace ParquetSharp
             WriteBatch(values.AsSpan(start, length));
         }
 
-        public abstract void WriteBatch(ReadOnlySpan<TElement> values);
-    }
-
-    internal sealed class LogicalColumnWriter<TPhysical, TLogical, TElement> : LogicalColumnWriter<TElement>
-        where TPhysical : unmanaged
-    {
-        internal LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength)
-            : base(columnWriter, bufferLength)
+        public void WriteBatch(ReadOnlySpan<TElement> values)
         {
-            _byteBuffer = typeof(TPhysical) == typeof(ByteArray) || typeof(TPhysical) == typeof(FixedLenByteArray)
-                ? new ByteBuffer(bufferLength)
-                : null;
-
-            // Convert logical values into physical values at the lowest array level
-            _converter = (LogicalWrite<TLogical, TPhysical>.Converter) columnWriter.LogicalWriteConverterFactory.GetConverter<TLogical, TPhysical>(ColumnDescriptor, _byteBuffer);
-        }
-
-        public override void Dispose()
-        {
-            _byteBuffer?.Dispose();
-
-            base.Dispose();
-        }
-
-        public override void WriteBatch(ReadOnlySpan<TElement> values)
-        {
-            // Handle arrays separately
-            if (typeof(TElement) != typeof(byte[]) && typeof(TElement).IsArray)
-            {
-                WriteArray(values.ToArray(), SchemaNodesPath, typeof(TElement), 0, 0, 0);
-            }
-            else
-            {
-                WriteBatchSimple(values);
-            }
-        }
-
-        private void WriteArray(Array array, ReadOnlySpan<Node> schemaNodes, Type elementType, short repetitionLevel, short nullDefinitionLevel, short firstLeafRepLevel)
-        {
-            if (elementType.IsArray && elementType != typeof(byte[]))
-            {
-                if (schemaNodes.Length >= 2)
-                {
-
-                    var slicedNodes = schemaNodes;
-                    while (slicedNodes.Length > 2 && slicedNodes[0].LogicalType.Type != LogicalTypeEnum.List) // Our list may be nested in structs
-                    {
-                        nullDefinitionLevel += (short) (slicedNodes[0].Repetition == Repetition.Optional ? 1 : 0);
-                        slicedNodes = slicedNodes.Slice(1); // skip ahead to the first list node in hierarchy 
-                    }
-
-                    if (slicedNodes[0] is GroupNode {LogicalType: ListLogicalType, Repetition: Repetition.Optional} &&
-                        slicedNodes[1] is GroupNode {LogicalType: NoneLogicalType, Repetition: Repetition.Repeated})
-                    {
-                        var containedType = elementType.GetElementType() ?? throw new NullReferenceException("element type is null");
-
-                        WriteArrayIntermediateLevel(
-                            array,
-                            slicedNodes.Slice(2),
-                            containedType,
-                            nullDefinitionLevel,
-                            repetitionLevel,
-                            firstLeafRepLevel
-                        );
-
-                        return;
-                    }
-                }
-
-                throw new Exception("elementType is an array but schema does not match the expected layout");
-            }
-
-            if (schemaNodes.Length == 1)
-            {
-                bool isOptional = schemaNodes[0].Repetition == Repetition.Optional;
-
-                short leafDefinitionLevel = isOptional ? (short) (nullDefinitionLevel + 1) : nullDefinitionLevel;
-                short leafNullDefinitionLevel = isOptional ? nullDefinitionLevel : (short) -1;
-
-                WriteArrayFinalLevel(array, repetitionLevel, firstLeafRepLevel, leafDefinitionLevel, leafNullDefinitionLevel);
-
-                return;
-            }
-
-            throw new Exception("ParquetSharp does not understand the schema used");
-        }
-
-        private void WriteArrayIntermediateLevel(Array values, ReadOnlySpan<Node> schemaNodes, Type elementType, short nullDefinitionLevel, short repetitionLevel, short firstLeafRepLevel)
-        {
-            var columnWriter = (ColumnWriter<TPhysical>) Source;
-
-            for (var i = 0; i < values.Length; i++)
-            {
-                var currentLeafRepLevel = i > 0 ? repetitionLevel : firstLeafRepLevel;
-
-                var item = values.GetValue(i);
-
-                if (item != null)
-                {
-                    if (!(item is Array a))
-                    {
-                        throw new Exception("non-array encountered at non-leaf level");
-                    }
-                    if (a.Length > 0)
-                    {
-                        // We have a positive length array, call the top level array writer on its values
-                        WriteArray(a, schemaNodes, elementType, (short) (repetitionLevel + 1), (short) (nullDefinitionLevel + 2), currentLeafRepLevel);
-                    }
-                    else
-                    {
-                        // Write that we have a zero length array
-                        columnWriter.WriteBatchSpaced(1, new[] {(short) (nullDefinitionLevel + 1)}, new[] {currentLeafRepLevel}, new byte[] {0}, 0, new TPhysical[] { });
-                    }
-                }
-                else
-                {
-                    // Write that this item is null
-                    columnWriter.WriteBatchSpaced(1, new[] {nullDefinitionLevel}, new[] {currentLeafRepLevel}, new byte[] {0}, 0, new TPhysical[] { });
-                }
-            }
-        }
-
-        /// <summary>
-        /// Write implementation for writing the deepest level array.
-        /// </summary>
-        private void WriteArrayFinalLevel(
-            Array values,
-            short repetitionLevel, short leafFirstRepLevel,
-            short leafDefinitionLevel,
-            short nullDefinitionLevel)
-        {
-            ReadOnlySpan<TLogical> valuesSpan = (TLogical[]) values;
-
-            if (DefLevels == null) throw new InvalidOperationException("DefLevels should not be null.");
-            if (RepLevels == null) throw new InvalidOperationException("RepLevels should not be null.");
-
-            var rowsWritten = 0;
-            var columnWriter = (ColumnWriter<TPhysical>) Source;
-            var buffer = (TPhysical[]) Buffer;
-            var firstItem = true;
-
-            while (rowsWritten < values.Length)
-            {
-                var bufferLength = Math.Min(values.Length - rowsWritten, buffer.Length);
-
-                _converter(valuesSpan.Slice(rowsWritten, bufferLength), DefLevels, buffer, nullDefinitionLevel);
-
-                for (int i = 0; i < bufferLength; i++)
-                {
-                    RepLevels[i] = repetitionLevel;
-
-                    // If the leaves are required, we have to write the deflevel because the converter won't do this for us.
-                    if (nullDefinitionLevel == -1)
-                    {
-                        DefLevels[i] = leafDefinitionLevel;
-                    }
-                }
-
-                if (firstItem)
-                {
-                    RepLevels[0] = leafFirstRepLevel;
-                }
-
-                columnWriter.WriteBatch(bufferLength, DefLevels, RepLevels, buffer);
-                rowsWritten += bufferLength;
-                firstItem = false;
-
-                _byteBuffer?.Clear();
-            }
-        }
-
-        /// <summary>
-        /// Fast implementation when a column contains only flat primitive values.
-        /// </summary>
-        private void WriteBatchSimple<TTLogical>(ReadOnlySpan<TTLogical> values)
-        {
-            if (typeof(TTLogical) != typeof(TLogical)) throw new ArgumentException("generic logical type should never be different");
-
-            var rowsWritten = 0;
-            var nullLevel = DefLevels == null ? (short) -1 : (short) 0;
-            var columnWriter = (ColumnWriter<TPhysical>) Source;
-            var buffer = (TPhysical[]) Buffer;
-
-            var converter = _converter as LogicalWrite<TTLogical, TPhysical>.Converter;
-            if (converter == null)
-            {
-                throw new InvalidCastException("failed to cast writer convert");
-            }
-
-            while (rowsWritten < values.Length)
-            {
-                var bufferLength = Math.Min(values.Length - rowsWritten, buffer.Length);
-
-                converter(values.Slice(rowsWritten, bufferLength), DefLevels, buffer, nullLevel);
-                columnWriter.WriteBatch(bufferLength, DefLevels, RepLevels, buffer);
-                rowsWritten += bufferLength;
-
-                _byteBuffer?.Clear();
-            }
+            _batchWriter.WriteBatch(values);
         }
 
         private readonly ByteBuffer? _byteBuffer;
-        private readonly LogicalWrite<TLogical, TPhysical>.Converter _converter;
+        private readonly ILogicalBatchWriter<TElement> _batchWriter;
     }
 }

@@ -3,32 +3,37 @@ name: CI
 on:
   push:
   pull_request:
+  schedule:
+    # Run daily at 00:00 so we get notified if CI is broken before a pull request
+    # is submitted.
+    - cron:  '0 0 * * *'
 
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
-  DOTNET_NOLOGO: true
-  dotnet_3_version: '3.1.414'
-  dotnet_5_version: '5.0.402'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+permissions:
+  contents: read
 
 jobs:
 
   # Note that vcpkg dependencies takes the majority of the build time.
-  # We cache them using GitHub Actions cache and export, making the scripts below a bit more complex.
+  # We cache them using GitHub Actions cache, making the scripts below a bit more complex.
   check-format:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
+    if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     name: Check format
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v1
+        uses: actions/checkout@v3
+      - name: Setup .NET SDK v7.0.x
+        uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.dotnet_5_version }}
+          dotnet-version: 7.0.x
       - name: Code formating check
         run: |
           dotnet tool restore
-          dotnet jb cleanupcode "csharp" "csharp.test" "csharp.benchmark" --profile="Built-in: Reformat Code" --settings="ParquetSharp.DotSettings" --dotnetcoresdk=${{ env.dotnet_5_version }} --verbosity=WARN
+          dotnet jb cleanupcode "csharp" "csharp.test" "csharp.benchmark" --profile="Built-in: Reformat Code" --settings="ParquetSharp.DotSettings" --verbosity=WARN
 
           files=($(git diff --name-only))
           if [ ${#files[@]} -gt 0 ]
@@ -44,35 +49,24 @@ jobs:
     # Other jobs will be skipped too, as they depend on this one.
     # This prevents duplicate CI runs for our own pull requests, whilst preserving the ability to
     # run the CI for each branch push to a fork, and for each pull request originating from a fork.
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
+    if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-latest, windows-latest]
+        os: [ubuntu-20.04, macos-11, windows-2022]
         arch: [x64, arm64]
         exclude:
-        - os: windows-latest
+        - os: windows-2022
           arch: arm64
       fail-fast: false
     name: Build native ${{ matrix.arch }} library (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    # Find out which vcpkg version we are using.
-    - name: Resolve vcpkg version
-      id: resolve-vcpkg-version
-      run: |
-        read -r vcpkg_url vcpkg_ref << EOF
-        $(cat vcpkg_version.txt)
-        EOF
-        if [ ${#vcpkg_ref} -eq 40 ]; then commit_id=$vcpkg_ref; else commit_id=$(git ls-remote $vcpkg_url $vcpkg_ref | cut -f1); fi
-        echo "::set-output name=commit-id::$commit_id"
-      shell: bash
-
-    # Compute vcpkg triplet
-    - name: Compute vcpkg triplet
-      id: vcpkg-triplet
+    # Compute vcpkg triplet and root
+    - name: Compute vcpkg triplet and root
+      id: vcpkg-info
       run: |
         triplet="${{ matrix.arch }}-"
         case ${{ runner.os }} in
@@ -86,91 +80,123 @@ jobs:
             triplet+="windows-static"
             ;;
         esac
-        echo "::set-output name=triplet::$triplet"
+        echo "triplet=$triplet" >> $GITHUB_OUTPUT
+        echo "root=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_OUTPUT
+      shell: bash
+
+    # Get cmake version, which is used by vcpkg binary caching
+    - name: Get cmake version
+      id: cmake-info
+      run: echo "version=$(cmake --version | head -n1 | awk '{print $3}')" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Runner-info
+      id: runner-info
+      run: |
+        echo "info=$ImageOS-$ImageVersion" >> $GITHUB_OUTPUT
       shell: bash
 
     # Check for cached vcpkg dependencies (use these if we can).
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: cache/vcpkg
-        key: vcpkg-${{ steps.vcpkg-triplet.outputs.triplet }}-${{ steps.resolve-vcpkg-version.outputs.commit-id }}
-    - name: Use cached vcpkg dependencies
-      if: steps.get-cached-vcpkg.outputs.cache-hit == 'true'
+        # https://vcpkg.readthedocs.io/en/stable/users/binarycaching/
+        # Binary caching relies on hashing everything that contributes to a particular package build. This includes:
+        # - The triplet file and name
+        # - The C and C++ compilers executable
+        # - The version of CMake used
+        # - Every file in the port directory
+        # - & more... (subject to change without notice)
+        #
+        # We use Vcpkg and C/C++ compilers which are preinstalled on the runner, so we include the runner's image identity as part of the hash key.
+        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}-runner:${{ steps.runner-info.outputs.info }}
+        restore-keys: |
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}
+
+    # Ensure vcpkg builtin registry is up-to-date
+    - name: Update vcpkg builtin registry
+      working-directory: ${{ steps.vcpkg-info.outputs.root }}
       run: |
-        mkdir build
-        mv cache/vcpkg build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}
-      shell: bash
+        git reset --hard
+        git pull
+
+    # Setup a CentOS 7 container to build on Linux x64 for backwards compatibility.
+    - name: Start CentOS container and install toolchain
+      if: runner.os == 'Linux' && matrix.arch == 'x64'
+      run: |
+        docker run -d --name centos --entrypoint tail -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT centos:7 -f /dev/null
+        docker exec centos sh -c "yum install -y centos-release-scl epel-release && \
+                                  yum install -y devtoolset-7 rh-git227 flex bison perl-Data-Dumper perl-IPC-Cmd && \
+                                  curl -fsSL -o /tmp/cmake.sh https://github.com/Kitware/CMake/releases/download/v${{ steps.cmake-info.outputs.version }}/cmake-${{ steps.cmake-info.outputs.version }}-linux-x86_64.sh && \
+                                  sh /tmp/cmake.sh --skip-license --prefix=/usr/local && \
+                                  rm /tmp/cmake.sh"
 
     # Install arm64 cross-compilation toolchain if required
     - name: Install arm64 cross-compilation toolchain
       if: runner.os == 'Linux' && matrix.arch == 'arm64'
       run: |
         sudo apt-get update
-        sudo apt-get --yes install g++-aarch64-linux-gnu pkg-config-aarch64-linux-gnu
+        sudo apt install g++-aarch64-linux-gnu
 
-    # Build vcpkg dependencies (if no cache hit).
-    - name: Install vcpkg build dependencies (Linux)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get --yes install flex bison
+    # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'macOS'
-      run: brew install bison pkg-config
-    - name: Compile vcpkg dependencies (Unix)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
-      run: ./vcpkg_unix.sh ${{ matrix.arch }}
-    - name: Compile vcpkg dependencies (Windows)
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && runner.os == 'Windows'
-      run: ./vcpkg_windows.bat
-    - name: Upload vcpkg arrow logs
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-vcpkg-arrow-logs
-        path: build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/buildtrees/arrow/*.log
-    - name: Cleanup vcpkg build
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: rm -rf build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/{buildtrees,downloads}
-      shell: bash
-    - name: Export vcpkg dependencies
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true'
-      run: build/vcpkg.${{ steps.vcpkg-triplet.outputs.triplet }}/vcpkg export --x-all-installed --raw --output=../../cache/vcpkg
-      shell: bash
+      if: runner.os == 'macOS'
+      run: brew install bison
 
     # .NET Core Setup (and also MSBuild for Windows).
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+    - name: Setup .NET SDK v7.0.x
+      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: ${{ env.dotnet_3_version }}
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: ${{ env.dotnet_5_version }}
-    - name: Pin .NET Core SDK
-      run: dotnet new globaljson --sdk-version ${{ env.dotnet_5_version }}
+        dotnet-version: 7.0.x
     - name: Setup MSBuild
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1
 
-    # Compile ParquetSharp (and upload the native library as an artifact).
+    # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
-      run: ./build_unix.sh ${{ matrix.arch }}
+      run: |
+        if [ "${{ runner.os }}" == "Linux" ] && [ "${{ matrix.arch }}" == "x64" ]; then
+          exec="docker exec -w $PWD -e GITHUB_ACTIONS -e VCPKG_BINARY_SOURCES -e VCPKG_INSTALLATION_ROOT centos scl enable devtoolset-7 rh-git227 --"
+        fi
+        $exec ./build_unix.sh ${{ matrix.arch }}
+      env:
+        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
-      run: ./build_windows.bat
+      run: ./build_windows.ps1
+      env:
+        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
+    - name: Upload vcpkg arrow logs
+      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ steps.vcpkg-info.outputs.triplet }}-vcpkg-arrow-logs
+        path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
+    - name: Dump vcpkg arrow abi info (Unix)
+      if: runner.os == 'Linux' || runner.os == 'macOS'
+      run: cat ./build/${{ steps.vcpkg-info.outputs.triplet }}-release/vcpkg_installed/${{ steps.vcpkg-info.outputs.triplet }}/share/arrow/vcpkg_abi_info.txt
+    - name: Dump vcpkg arrow abi info (Windows)
+      if: runner.os == 'Windows'
+      run: Get-Content ./build/${{ steps.vcpkg-info.outputs.triplet }}/vcpkg_installed/${{ steps.vcpkg-info.outputs.triplet }}/share/arrow/vcpkg_abi_info.txt
     - name: Build .NET benchmarks & unit tests
       run: |
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
         dotnet build csharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
+        dotnet build fsharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
     - name: Upload native ParquetSharp library
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: ${{ steps.vcpkg-triplet.outputs.triplet }}-native-library
+        name: ${{ steps.vcpkg-info.outputs.triplet }}-native-library
         path: bin
+
+    - name: Stop CentOS container
+      if: runner.os == 'Linux' && matrix.arch == 'x64'
+      run: docker rm -f centos
 
   # Download all native shared libraries and create the nuget package.
   # Upload nuget package as an artifact.
@@ -180,25 +206,23 @@ jobs:
     needs: build-native
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Download all artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         path: artifacts
     - name: Copy native ParquetSharp libraries
       run: |
         mkdir bin
         cp -rv artifacts/*-native-library/* bin/
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+    - name: Setup .NET SDK v7.0.x
+      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: ${{ env.dotnet_5_version }}
-    - name: Pin .NET Core SDK
-      run: dotnet new globaljson --sdk-version ${{ env.dotnet_5_version }}
+        dotnet-version: 7.0.x
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release
     - name: Upload NuGet artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: nuget-package
         path: nuget
@@ -207,59 +231,44 @@ jobs:
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, macos-latest, windows-latest]
-        dotnet: [3, 5]
-        arch: [x64]
+        os: [ubuntu-20.04, macos-11, macos-12, macos-13-xlarge, windows-2022, ubuntu-20.04-arm64]
+        dotnet: [netcoreapp3.1, net6.0, net7.0]
         include:
-        - os: windows-latest
-          dotnet: 4
-          arch: x64
-        - os: ubuntu-20.04
-          dotnet: 5
-          arch: arm64
+        - os: windows-2022
+          dotnet: net472
+        exclude:
+        - os: macos-13-xlarge
+          dotnet: netcoreapp3.1
       fail-fast: false
-    name: Test NuGet package (.NET ${{ matrix.dotnet }} ${{ matrix.arch }} on ${{ matrix.os }})
+    name: Test NuGet package (${{ matrix.dotnet }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     needs: build-nuget
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Get version
       id: get-version
-      run: echo "::set-output name=version::$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)"
+      run: echo "version=$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)" >> $env:GITHUB_OUTPUT
       shell: pwsh
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: nuget-package
         path: nuget
-    - name: Setup .NET variables
-      id: dotnet
-      shell: bash
-      run: |
-        major=${{ matrix.dotnet }}
-        case $major in
-          3)
-            framework=netcoreapp3.1
-            ;;
-          4)
-            framework=net472
-            # We build for .NET framework with .NET Core 3.1 SDK
-            major=3
-            ;;
-          5)
-            framework=net5.0
-            ;;
-        esac
-        version=dotnet_${major}_version
-        echo "::set-output name=version::${!version}"
-        echo "::set-output name=framework::$framework"
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+    - name: Setup .NET Core SDK v3.1.x
+      if: matrix.dotnet == 'netcoreapp3.1'
+      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: ${{ steps.dotnet.outputs.version }}
-    - name: Pin .NET Core SDK
-      run: dotnet new globaljson --sdk-version ${{ steps.dotnet.outputs.version }}
+        dotnet-version: 3.1.x
+    - name: Setup .NET SDK v6.0.x
+      if: matrix.dotnet == 'net6.0'
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Setup .NET SDK v7.0.x
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
     - name: Add local NuGet feed
       run: |
         dotnet new nugetconfig
@@ -268,19 +277,16 @@ jobs:
       run: |
         dotnet remove csharp.test reference csharp/ParquetSharp.csproj
         dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
-    - name: Setup QEMU for arm64
-      if: matrix.arch == 'arm64'
-      uses: docker/setup-qemu-action@v1
-      with:
-        platforms: arm64
-    - name: Build & Run .NET unit tests (x64)
-      if: matrix.arch == 'x64'
-      run: dotnet test csharp.test --configuration=Release --framework ${{ steps.dotnet.outputs.framework }}
-    - name: Build & Run .NET unit tests (arm64)
-      if: matrix.arch == 'arm64'
-      run: docker run --rm --platform linux/arm64/v8 -v $PWD:$PWD -w $PWD mcr.microsoft.com/dotnet/sdk:${{ steps.dotnet.outputs.version }} dotnet test csharp.test --configuration=Release --framework ${{ steps.dotnet.outputs.framework }}
+        dotnet remove fsharp.test reference csharp/ParquetSharp.csproj
+        dotnet add fsharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
+    - name: Build & Run C# unit tests
+      run: dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
+    - name: Build & Run F# unit tests
+      run: dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
 
   # Virtual job that can be configured as a required check before a PR can be merged.
+  # As GitHub considers a check as successful if it is skipped, we need to check its status in
+  # another workflow (check-required.yml) and create a check there.
   all-required-checks-done:
     name: All required checks done
     needs:
@@ -295,10 +301,12 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && !github.event.repository.fork
     name: Publish release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: all-required-checks-done
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Check version
       id: check-version
       shell: pwsh
@@ -309,12 +317,16 @@ jobs:
           echo "::error ::There is a mismatch between the project version ($version) and the tag ($tag)"
           exit 1
         }
-        echo "::set-output name=version::$version"
+        echo "version=$version" >> $env:GITHUB_OUTPUT
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: nuget-package
         path: nuget
+    - name: Setup .NET SDK v7.0.x
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
     # if version contains "-" treat it as pre-release
     # example: 1.0.0-beta1
     - name: Create release

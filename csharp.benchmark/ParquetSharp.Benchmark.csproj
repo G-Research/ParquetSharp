@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <TargetFramework>net7.0</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <AssemblyName>ParquetSharp.Benchmark</AssemblyName>
@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
-    <PackageReference Include="Parquet.Net" Version="3.8.6" />
+    <PackageReference Include="Parquet.Net" Version="4.6.2" />
   </ItemGroup>
 
   <ItemGroup>

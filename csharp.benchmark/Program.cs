@@ -3,8 +3,10 @@ using System.Linq;
 using BenchmarkDotNet.Analysers;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Exporters;
+using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Toolchains.InProcess.Emit;
 
 namespace ParquetSharp.Benchmark
 {
@@ -16,18 +18,35 @@ namespace ParquetSharp.Benchmark
             {
                 Console.WriteLine("Working directory: {0}", Environment.CurrentDirectory);
 
-                var config = DefaultConfig
-                        .Instance
+                IConfig config;
+                if (Check.Enabled)
+                {
+                    // When checking enabled, only run each test once and use the in-process toolchain to allow debugging
+                    config = ManualConfig
+                        .CreateEmpty()
+                        .AddLogger(DefaultConfig.Instance.GetLoggers().ToArray())
+                        .AddColumnProvider(DefaultConfig.Instance.GetColumnProviders().ToArray())
                         .AddColumn(new SizeInBytesColumn())
                         .WithOptions(ConfigOptions.Default | ConfigOptions.StopOnFirstError)
-                    ;
+                        .AddJob(Job.Dry.WithToolchain(new InProcessEmitToolchain(TimeSpan.FromHours(1.0), true)));
+                }
+                else
+                {
+                    config = DefaultConfig
+                        .Instance
+                        .AddColumn(new SizeInBytesColumn())
+                        .WithOptions(ConfigOptions.Default | ConfigOptions.StopOnFirstError);
+                }
 
                 var summaries = BenchmarkRunner.Run(new[]
                 {
                     BenchmarkConverter.TypeToBenchmarks(typeof(DecimalRead), config),
                     BenchmarkConverter.TypeToBenchmarks(typeof(DecimalWrite), config),
                     BenchmarkConverter.TypeToBenchmarks(typeof(FloatTimeSeriesRead), config),
-                    BenchmarkConverter.TypeToBenchmarks(typeof(FloatTimeSeriesWrite), config)
+                    BenchmarkConverter.TypeToBenchmarks(typeof(FloatTimeSeriesWrite), config),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(FloatArrayTimeSeriesRead), config),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(NestedRead), config),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(NestedWrite), config),
                 });
 
                 // Re-print to the console all the summaries. 

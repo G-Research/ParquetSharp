@@ -2,9 +2,11 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Parquet;
 using Parquet.Data;
+using Parquet.Schema;
 
 namespace ParquetSharp.Benchmark
 {
@@ -45,24 +47,24 @@ namespace ParquetSharp.Benchmark
         }
 
         [Benchmark]
-        public long ParquetDotNet()
+        public async Task<long> ParquetDotNet()
         {
             {
-                var valueField = new DecimalDataField("Value", precision: 29, scale: 3, hasNulls: false);
-                var schema = new Parquet.Data.Schema(valueField);
+                var valueField = new DecimalDataField("Value", precision: 29, scale: 3, isNullable: false);
+                var schema = new ParquetSchema(valueField);
 
                 using var stream = File.Create("decimal_timeseries.parquet.net");
-                using var parquetWriter = new ParquetWriter(schema, stream);
+                using var parquetWriter = await ParquetWriter.CreateAsync(schema, stream);
                 using var groupWriter = parquetWriter.CreateRowGroup();
 
-                groupWriter.WriteColumn(new DataColumn(valueField, _values));
+                await groupWriter.WriteColumnAsync(new DataColumn(valueField, _values));
             }
 
             if (Check.Enabled)
             {
                 // Read content from ParquetSharp and Parquet.NET
-                var baseline = ReadFile("decimal_timeseries.parquet");
-                var results = ReadFile("decimal_timeseries.parquet.net");
+                var baseline = await ReadFile("decimal_timeseries.parquet");
+                var results = await ReadFile("decimal_timeseries.parquet.net");
 
                 // Prove that the content is the same
                 Check.ArraysAreEqual(_values, baseline);
@@ -72,11 +74,10 @@ namespace ParquetSharp.Benchmark
             return new FileInfo("decimal_timeseries.parquet.net").Length;
         }
 
-        private static decimal[] ReadFile(string filename)
+        private static async Task<decimal[]> ReadFile(string filename)
         {
-            using var stream = File.OpenRead(filename);
-            using var parquetReader = new ParquetReader(stream);
-            var results = parquetReader.ReadEntireRowGroup();
+            using var parquetReader = await ParquetReader.CreateAsync(filename);
+            var results = await parquetReader.ReadEntireRowGroupAsync();
 
             return (decimal[]) results[0].Data;
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using NUnit.Framework;
 
 namespace ParquetSharp.Test
@@ -17,6 +18,18 @@ namespace ParquetSharp.Test
 
             Assert.AreEqual(min, DateTimeNanos.MinDateTimeValue);
             Assert.AreEqual(max, DateTimeNanos.MaxDateTimeValue);
+        }
+
+        [TestCase("yyyy-MM-dd HH:mm:ss.fffffffff", "2022-03-16 09:54:21.059004712")]
+        [TestCase(null, "2022-03-16 09:54:21.059004712")]
+        [TestCase("fffffffff", "059004712")]
+        [TestCase("yyyy-MM-dd HH:mm:ss (fffffffff)", "2022-03-16 09:54:21 (059004712)")]
+        [TestCase("fffffffff yyyy-MM-dd fffffffff HH:mm:ss fffffffff", "059004712 2022-03-16 059004712 09:54:21 059004712")]
+        [TestCase("o", "2022-03-16T09:54:21.0590047")]
+        public static void TestToString(string? format, string expected)
+        {
+            var dateTime = new DateTimeNanos(1647424461059004712);
+            Assert.AreEqual(expected, dateTime.ToString(format, CultureInfo.InvariantCulture));
         }
     }
 }

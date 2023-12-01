@@ -1,0 +1,72 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+	"name": "ParquetSharp",
+	
+	// Use the prebuilt image. Comment this out if you want to make changes to it.
+	"image": "ghcr.io/g-research/parquetsharp/devcontainer:latest",
+
+	// Uncomment the following lines to build the container locally. You will also need
+	// to comment out the "image" line above.
+	// "build": {
+	// 	"dockerfile": "./Dockerfile",
+	// 	"context": ".."
+	// }, 
+
+	// Necessary for C++ debugger to work.
+	"capAdd": [
+		"SYS_PTRACE"
+	],
+	"securityOpt": [
+		"seccomp=unconfined"
+	],
+
+	// Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": {
+				// Use vcpkg.
+				"cmake.configureEnvironment": {
+					"CMAKE_TOOLCHAIN_FILE": "/opt/vcpkg/scripts/buildsystems/vcpkg.cmake"
+				},
+
+				// Run cmake configure on open.
+				"cmake.configureOnOpen": true,
+
+				// Remove some cmake elements from the status bar.
+				"cmake.statusbar.advanced": {
+					"buildTarget": {
+						"visibility": "hidden"
+					},
+					"kit": {
+						"visibility": "hidden"
+					},
+					"ctest": {
+						"visibility": "hidden"
+					}
+				}
+			},
+
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"ms-dotnettools.csdevkit",
+				"ms-dotnettools.csharp",
+				"ms-vscode.cpptools",
+				"ms-vscode.cmake-tools"
+			]
+		}
+	},
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "",
+
+	// Set `remoteUser` to `root` to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	// "remoteUser": "vscode"
+}

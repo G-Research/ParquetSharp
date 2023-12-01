@@ -10,6 +10,8 @@ namespace ParquetSharp
     public static class LogicalRead<TLogical, TPhysical>
         where TPhysical : unmanaged
     {
+        private const string UseDateTimeKindUnspecifiedSwitchName = "ParquetSharp.ReadDateTimeKindAsUnspecified";
+
         public delegate long DirectReader(ColumnReader<TPhysical> columnReader, Span<TLogical> destination);
 
         public delegate void Converter(ReadOnlySpan<TPhysical> source, ReadOnlySpan<short> defLevels, Span<TLogical> destination, short definedLevel);
@@ -124,13 +126,35 @@ namespace ParquetSharp
             if (typeof(TLogical) == typeof(decimal))
             {
                 var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
-                return (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal128(s, d, multiplier));
+                if (typeof(TPhysical) == typeof(int))
+                {
+                    return (LogicalRead<decimal, int>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal32(s, d, multiplier));
+                }
+                if (typeof(TPhysical) == typeof(long))
+                {
+                    return (LogicalRead<decimal, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal64(s, d, multiplier));
+                }
+                if (typeof(TPhysical) == typeof(FixedLenByteArray))
+                {
+                    return (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal128(s, d, multiplier));
+                }
             }
 
             if (typeof(TLogical) == typeof(decimal?))
             {
                 var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
-                return (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal128(s, dl, d, multiplier, del));
+                if (typeof(TPhysical) == typeof(int))
+                {
+                    return (LogicalRead<decimal?, int>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal32(s, dl, d, multiplier, del));
+                }
+                if (typeof(TPhysical) == typeof(long))
+                {
+                    return (LogicalRead<decimal?, long>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal64(s, dl, d, multiplier, del));
+                }
+                if (typeof(TPhysical) == typeof(FixedLenByteArray))
+                {
+                    return (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal128(s, dl, d, multiplier, del));
+                }
             }
 
             if (typeof(TLogical) == typeof(Guid))
@@ -153,16 +177,28 @@ namespace ParquetSharp
                 return LogicalRead.GetNullableNativeConverter<Date, int>();
             }
 
-            var logicalType = columnDescriptor.LogicalType;
+            using var logicalType = columnDescriptor.LogicalType;
 
             if (typeof(TLogical) == typeof(DateTime))
             {
-                switch (((TimestampLogicalType) logicalType).TimeUnit)
+                var timestampType = (TimestampLogicalType) logicalType;
+
+                DateTimeKind kind;
+                if (AppContext.TryGetSwitch(UseDateTimeKindUnspecifiedSwitchName, out var useDateTimeKindUnspecified) && useDateTimeKindUnspecified)
+                {
+                    kind = DateTimeKind.Unspecified;
+                }
+                else
+                {
+                    kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+                }
+
+                switch (timestampType.TimeUnit)
                 {
                     case TimeUnit.Millis:
-                        return (LogicalRead<DateTime, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertDateTimeMillis(s, d));
+                        return (LogicalRead<DateTime, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertDateTimeMillis(s, d, kind));
                     case TimeUnit.Micros:
-                        return (LogicalRead<DateTime, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertDateTimeMicros(s, d));
+                        return (LogicalRead<DateTime, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertDateTimeMicros(s, d, kind));
                 }
             }
 
@@ -173,12 +209,26 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(DateTime?))
             {
-                switch (((TimestampLogicalType) logicalType).TimeUnit)
+                var timestampType = (TimestampLogicalType) logicalType;
+
+                DateTimeKind kind;
+                if (AppContext.TryGetSwitch(UseDateTimeKindUnspecifiedSwitchName, out var useDateTimeKindUnspecified) && useDateTimeKindUnspecified)
+                {
+                    kind = DateTimeKind.Unspecified;
+                }
+                else
+                {
+                    kind = timestampType.IsAdjustedToUtc ? DateTimeKind.Utc : DateTimeKind.Unspecified;
+                }
+
+                switch (timestampType.TimeUnit)
                 {
                     case TimeUnit.Millis:
-                        return (LogicalRead<DateTime?, long>.Converter) LogicalRead.ConvertDateTimeMillis;
+                        return (LogicalRead<DateTime?, long>.Converter) (
+                            (source, rep, dest, def) => LogicalRead.ConvertDateTimeMillis(source, rep, dest, def, kind));
                     case TimeUnit.Micros:
-                        return (LogicalRead<DateTime?, long>.Converter) LogicalRead.ConvertDateTimeMicros;
+                        return (LogicalRead<DateTime?, long>.Converter) (
+                            (source, rep, dest, def) => LogicalRead.ConvertDateTimeMicros(source, rep, dest, def, kind));
                     case TimeUnit.Nanos:
                         return (LogicalRead<TPhysical?, TPhysical>.Converter) LogicalRead.ConvertNative;
                 }
@@ -364,6 +414,38 @@ namespace ParquetSharp
             }
         }
 
+        public static void ConvertDecimal32(ReadOnlySpan<int> source, Span<decimal> destination, decimal multiplier)
+        {
+            for (int i = 0; i < destination.Length; ++i)
+            {
+                destination[i] = source[i] / multiplier;
+            }
+        }
+
+        public static void ConvertDecimal32(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<decimal?> destination, decimal multiplier, short definedLevel)
+        {
+            for (int i = 0, src = 0; i < destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] != definedLevel ? default(decimal?) : source[src++] / multiplier;
+            }
+        }
+
+        public static void ConvertDecimal64(ReadOnlySpan<long> source, Span<decimal> destination, decimal multiplier)
+        {
+            for (int i = 0; i < destination.Length; ++i)
+            {
+                destination[i] = source[i] / multiplier;
+            }
+        }
+
+        public static void ConvertDecimal64(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<decimal?> destination, decimal multiplier, short definedLevel)
+        {
+            for (int i = 0, src = 0; i < destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] != definedLevel ? default(decimal?) : source[src++] / multiplier;
+            }
+        }
+
         public static void ConvertDecimal128(ReadOnlySpan<FixedLenByteArray> source, Span<decimal> destination, decimal multiplier)
         {
             for (int i = 0; i < destination.Length; ++i)
@@ -396,39 +478,35 @@ namespace ParquetSharp
             }
         }
 
-        public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination)
+        public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination, DateTimeKind kind = DateTimeKind.Unspecified)
         {
-            var dst = MemoryMarshal.Cast<DateTime, long>(destination);
-
             for (int i = 0; i < destination.Length; ++i)
             {
-                dst[i] = ToDateTimeMicrosTicks(source[i]);
+                destination[i] = new DateTime(ToDateTimeMicrosTicks(source[i]), kind);
             }
         }
 
-        public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short definedLevel)
+        public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short definedLevel, DateTimeKind kind = DateTimeKind.Unspecified)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] != definedLevel ? default(DateTime?) : ToDateTimeMicros(source[src++]);
+                destination[i] = defLevels[i] != definedLevel ? default(DateTime?) : new DateTime(ToDateTimeMicrosTicks(source[src++]), kind);
             }
         }
 
-        public static void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination)
+        public static void ConvertDateTimeMillis(ReadOnlySpan<long> source, Span<DateTime> destination, DateTimeKind kind = DateTimeKind.Unspecified)
         {
-            var dst = MemoryMarshal.Cast<DateTime, long>(destination);
-
             for (int i = 0; i < destination.Length; ++i)
             {
-                dst[i] = ToDateTimeMillisTicks(source[i]);
+                destination[i] = new DateTime(ToDateTimeMillisTicks(source[i]), kind);
             }
         }
 
-        public static void ConvertDateTimeMillis(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short definedLevel)
+        public static void ConvertDateTimeMillis(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<DateTime?> destination, short definedLevel, DateTimeKind kind = DateTimeKind.Unspecified)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] != definedLevel ? default(DateTime?) : ToDateTimeMillis(source[src++]);
+                destination[i] = defLevels[i] != definedLevel ? default(DateTime?) : new DateTime(ToDateTimeMillisTicks(source[src++]), kind);
             }
         }
 
@@ -468,7 +546,7 @@ namespace ParquetSharp
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
-                destination[i] = defLevels[i] != definedLevel ? null : ToString(source[src++], byteArrayCache);
+                destination[i] = defLevels.IsEmpty || defLevels[i] == definedLevel ? ToString(source[src++], byteArrayCache) : null;
             }
         }
 

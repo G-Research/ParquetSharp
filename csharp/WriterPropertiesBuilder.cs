@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ParquetSharp.Schema;
 
@@ -13,6 +14,7 @@ namespace ParquetSharp
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Create(out var handle));
             _handle = new ParquetHandle(handle, WriterPropertiesBuilder_Free);
+            ApplyDefaults();
         }
 
         public void Dispose()
@@ -233,6 +235,149 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Enable writing the page index by default
+        ///
+        /// The page index contains statistics for data pages and can be used to skip pages
+        /// when scanning data in ordered and unordered columns.
+        ///
+        /// For more details, see https://github.com/apache/parquet-format/blob/master/PageIndex.md
+        /// </summary>
+        public WriterPropertiesBuilder EnableWritePageIndex()
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Write_Page_Index(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Enable writing the page index for a specific column
+        /// </summary>
+        public WriterPropertiesBuilder EnableWritePageIndex(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Write_Page_Index_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(path);
+            return this;
+        }
+
+        /// <summary>
+        /// Enable writing the page index for a specific column
+        /// </summary>
+        public WriterPropertiesBuilder EnableWritePageIndex(string path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Write_Page_Index_By_Path(_handle.IntPtr, path));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Disable writing the page index by default
+        /// </summary>
+        public WriterPropertiesBuilder DisableWritePageIndex()
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Write_Page_Index(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Disable writing the page index for a specific column
+        /// </summary>
+        public WriterPropertiesBuilder DisableWritePageIndex(ColumnPath path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Write_Page_Index_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
+            GC.KeepAlive(_handle);
+            GC.KeepAlive(path);
+            return this;
+        }
+
+        /// <summary>
+        /// Disable writing the page index for a specific column
+        /// </summary>
+        public WriterPropertiesBuilder DisableWritePageIndex(string path)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Write_Page_Index_By_Path(_handle.IntPtr, path));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        private void ApplyDefaults()
+        {
+            OnDefaultProperty(DefaultWriterProperties.EnableDictionary, enabled =>
+            {
+                if (enabled)
+                {
+                    EnableDictionary();
+                }
+                else
+                {
+                    DisableDictionary();
+                }
+            });
+
+            OnDefaultProperty(DefaultWriterProperties.EnableStatistics, enabled =>
+            {
+                if (enabled)
+                {
+                    EnableStatistics();
+                }
+                else
+                {
+                    DisableStatistics();
+                }
+            });
+
+            OnDefaultProperty(DefaultWriterProperties.Compression, compression => { Compression(compression); });
+
+            OnDefaultProperty(DefaultWriterProperties.CompressionLevel, compressionLevel => { CompressionLevel(compressionLevel); });
+
+            OnDefaultRefProperty(DefaultWriterProperties.CreatedBy, createdBy => { CreatedBy(createdBy); });
+
+            OnDefaultProperty(DefaultWriterProperties.DataPagesize, dataPagesize => { DataPagesize(dataPagesize); });
+
+            OnDefaultProperty(DefaultWriterProperties.DictionaryPagesizeLimit, dictionaryPagesizeLimit => { DictionaryPagesizeLimit(dictionaryPagesizeLimit); });
+
+            OnDefaultProperty(DefaultWriterProperties.Encoding, encoding => { Encoding(encoding); });
+
+            OnDefaultProperty(DefaultWriterProperties.MaxRowGroupLength, maxRowGroupLength => { MaxRowGroupLength(maxRowGroupLength); });
+
+            OnDefaultProperty(DefaultWriterProperties.Version, version => { Version(version); });
+
+            OnDefaultProperty(DefaultWriterProperties.WriteBatchSize, writeBatchSize => { WriteBatchSize(writeBatchSize); });
+
+            OnDefaultProperty(DefaultWriterProperties.WritePageIndex, writePageIndex =>
+            {
+                if (writePageIndex)
+                {
+                    EnableWritePageIndex();
+                }
+                else
+                {
+                    DisableWritePageIndex();
+                }
+            });
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void OnDefaultProperty<T>(T? defaultPropertyValue, Action<T> setProperty)
+            where T : struct
+        {
+            if (defaultPropertyValue.HasValue)
+            {
+                setProperty(defaultPropertyValue.Value);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void OnDefaultRefProperty<T>(T? defaultPropertyValue, Action<T> setProperty)
+        {
+            if (defaultPropertyValue != null)
+            {
+                setProperty(defaultPropertyValue);
+            }
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Create(out IntPtr builder);
 
@@ -331,6 +476,24 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Write_Batch_Size(IntPtr builder, long writeBatchSize);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Enable_Write_Page_Index(IntPtr builder);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Enable_Write_Page_Index_By_Path(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Enable_Write_Page_Index_By_ColumnPath(IntPtr builder, IntPtr path);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Disable_Write_Page_Index(IntPtr builder);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Disable_Write_Page_Index_By_Path(IntPtr builder, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Disable_Write_Page_Index_By_ColumnPath(IntPtr builder, IntPtr path);
 
         private readonly ParquetHandle _handle;
     }

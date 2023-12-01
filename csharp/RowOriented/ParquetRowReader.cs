@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
 using ParquetSharp.IO;
 
@@ -14,31 +13,45 @@ namespace ParquetSharp.RowOriented
     {
         internal delegate void ReadAction(ParquetRowReader<TTuple> parquetRowReader, TTuple[] rows, int length);
 
-        internal ParquetRowReader(string path, ReadAction readAction, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
-            : this(new ParquetFileReader(path), readAction, fields)
+        /// <summary>
+        /// Create a new ParquetRowReader.
+        /// </summary>
+        internal ParquetRowReader(string path, ReadAction readAction, MappedField[] fields, LogicalTypeFactory? logicalTypeFactory = null, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            : this(new ParquetFileReader(path), readAction, fields, logicalTypeFactory, logicalReadConverterFactory)
         {
         }
 
-        internal ParquetRowReader(string path, ReaderProperties readerProperties, ReadAction readAction, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
-            : this(new ParquetFileReader(path, readerProperties), readAction, fields)
+        internal ParquetRowReader(string path, ReaderProperties readerProperties, ReadAction readAction, MappedField[] fields, LogicalTypeFactory? logicalTypeFactory = null, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            : this(new ParquetFileReader(path, readerProperties), readAction, fields, logicalTypeFactory, logicalReadConverterFactory)
         {
         }
 
-        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReadAction readAction, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
-            : this(new ParquetFileReader(randomAccessFile), readAction, fields)
+        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReadAction readAction, MappedField[] fields, LogicalTypeFactory? logicalTypeFactory = null, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            : this(new ParquetFileReader(randomAccessFile), readAction, fields, logicalTypeFactory, logicalReadConverterFactory)
         {
         }
 
-        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReaderProperties readerProperties, ReadAction readAction, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
-            : this(new ParquetFileReader(randomAccessFile, readerProperties), readAction, fields)
+        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReaderProperties readerProperties, ReadAction readAction, MappedField[] fields, LogicalTypeFactory? logicalTypeFactory = null, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            : this(new ParquetFileReader(randomAccessFile, readerProperties), readAction, fields, logicalTypeFactory, logicalReadConverterFactory)
         {
         }
 
-        internal ParquetRowReader(ParquetFileReader parquetFileReader, ReadAction readAction, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
+        internal ParquetRowReader(ParquetFileReader parquetFileReader, ReadAction readAction, MappedField[] fields, LogicalTypeFactory? logicalTypeFactory = null, LogicalReadConverterFactory? logicalReadConverterFactory = null)
         {
             _parquetFileReader = parquetFileReader;
+
+            if (logicalTypeFactory != null)
+            {
+                _parquetFileReader.LogicalTypeFactory = logicalTypeFactory;
+            }
+
+            if (logicalReadConverterFactory != null)
+            {
+                _parquetFileReader.LogicalReadConverterFactory = logicalReadConverterFactory;
+            }
+
             _readAction = readAction;
-            _columnMapping = HasExplicitColumndMapping(fields) ? new ExplicitColumnMapping(this, fields) : null;
+            _columnMapping = HasExplicitColumnMapping(fields) ? new ExplicitColumnMapping(this, fields) : null;
         }
 
         public void Dispose()
@@ -72,10 +85,10 @@ namespace ParquetSharp.RowOriented
             }
         }
 
-        private static bool HasExplicitColumndMapping((string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
+        private static bool HasExplicitColumnMapping(MappedField[] fields)
         {
-            var noneMapped = Array.TrueForAll(fields, f => f.mappedColumn == null);
-            var allMapped = Array.TrueForAll(fields, f => f.mappedColumn != null);
+            var noneMapped = Array.TrueForAll(fields, f => f.MappedColumn == null);
+            var allMapped = Array.TrueForAll(fields, f => f.MappedColumn != null);
 
             if (!allMapped && !noneMapped)
             {
@@ -90,9 +103,9 @@ namespace ParquetSharp.RowOriented
         /// </summary>
         private sealed class ExplicitColumnMapping
         {
-            public ExplicitColumnMapping(ParquetRowReader<TTuple> parquetRowReader, (string name, string? mappedColumn, Type type, MemberInfo info)[] fields)
+            public ExplicitColumnMapping(ParquetRowReader<TTuple> parquetRowReader, MappedField[] fields)
             {
-                var allUnique = fields.GroupBy(x => x.mappedColumn).All(g => g.Count() == 1);
+                var allUnique = fields.GroupBy(x => x.MappedColumn).All(g => g.Count() == 1);
                 if (!allUnique)
                 {
                     throw new ArgumentException("when using MapToColumnAttribute, each field must map to a unique column");
@@ -108,13 +121,13 @@ namespace ParquetSharp.RowOriented
 
                 for (var fieldIndex = 0; fieldIndex < fields.Length; ++fieldIndex)
                 {
-                    var mappedColumn = fields[fieldIndex].mappedColumn ?? throw new InvalidOperationException("mapped column name is null");
+                    var mappedColumn = fields[fieldIndex].MappedColumn ?? throw new InvalidOperationException("mapped column name is null");
 
                     if (!fileColumns.TryGetValue(mappedColumn, out _))
                     {
                         throw new ArgumentException(
-                            $"{typeof(TTuple)} maps field '{fields[fieldIndex].name}' to parquet column " +
-                            $"'{fields[fieldIndex].mappedColumn}' but the target column does not exist in the input parquet file."
+                            $"{typeof(TTuple)} maps field '{fields[fieldIndex].Name}' to parquet column " +
+                            $"'{fields[fieldIndex].MappedColumn}' but the target column does not exist in the input parquet file."
                         );
                     }
 
