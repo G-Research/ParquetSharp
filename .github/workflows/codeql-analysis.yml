@@ -36,7 +36,6 @@ jobs:
     - run: |
         sudo apt-get update
         sudo apt-get --yes install flex bison
-        ./vcpkg_unix.sh
         ./build_unix.sh
         dotnet build csharp.benchmark --configuration=Release
         dotnet build csharp.test --configuration=Release
