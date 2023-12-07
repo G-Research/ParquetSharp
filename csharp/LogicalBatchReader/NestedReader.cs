@@ -44,7 +44,7 @@ namespace ParquetSharp.LogicalBatchReader
 
         public long Skip(long numRowsToSkip)
         {
-            throw new NotImplementedException();
+            return _innerReader.Skip(numRowsToSkip);
         }
 
         private readonly ILogicalBatchReader<TItem> _innerReader;

@@ -36,7 +36,17 @@ namespace ParquetSharp.LogicalBatchReader
 
         public long Skip(long numRowsToSkip)
         {
-            throw new NotImplementedException();
+            for (var i = 0; i < numRowsToSkip; ++i)
+            {
+                if (_bufferedReader.IsEofDefinition)
+                {
+                    return i;
+                }
+                _bufferedReader.ReadValue();
+                _bufferedReader.NextDefinition();
+            }
+
+            return numRowsToSkip;
         }
 
         private readonly BufferedReader<TLogical, TPhysical> _bufferedReader;
