@@ -125,7 +125,7 @@ namespace ParquetSharp.Test
                 {
                     continue;
                 }
-                if (type.IsAssignableTo(typeof(TestCase)))
+                if (typeof(TestCase).IsAssignableFrom(type))
                 {
                     yield return (TestCase) Activator.CreateInstance(type)!;
                 }
