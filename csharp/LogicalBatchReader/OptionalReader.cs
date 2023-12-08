@@ -55,7 +55,6 @@ namespace ParquetSharp.LogicalBatchReader
 
         public long Skip(long numRowsToSkip)
         {
-            var innerValue = new TItem[1];
             for (var i = 0; i < numRowsToSkip; ++i)
             {
                 if (_bufferedReader.IsEofDefinition)
@@ -65,7 +64,7 @@ namespace ParquetSharp.LogicalBatchReader
                 var defn = _bufferedReader.GetCurrentDefinition();
                 if (defn.DefLevel >= _definitionLevel)
                 {
-                    _innerReader.ReadBatch(innerValue);
+                    _innerReader.Skip(1);
                 }
                 else
                 {
