@@ -161,10 +161,6 @@ namespace ParquetSharp.LogicalBatchReader
                         ReadInnerTypeArray();
                     }
                 }
-                else if (defn.DefLevel == _definitionLevel)
-                {
-                    _bufferedReader.NextDefinition();
-                }
                 else
                 {
                     _bufferedReader.NextDefinition();
