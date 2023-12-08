@@ -86,6 +86,24 @@ namespace ParquetSharp.LogicalBatchReader
             return values.ToArray();
         }
 
+        private void SkipInnerTypeArray()
+        {
+            var value = new TItem[1];
+
+            var firstValue = true;
+            while (!_bufferedReader.IsEofDefinition)
+            {
+                var defn = _bufferedReader.GetCurrentDefinition();
+                if (!firstValue && defn.RepLevel <= _repetitionLevel)
+                {
+                    break;
+                }
+
+                _innerReader.ReadBatch(value);
+                firstValue = false;
+            }
+        }
+
         /// <summary>
         /// Read an array of values directly from the buffered reader, for when the items in arrays
         /// are the leaf level logical values.
@@ -135,6 +153,29 @@ namespace ParquetSharp.LogicalBatchReader
             return values;
         }
 
+        private void SkipLogicalTypeArray()
+        {
+            var innerDefLevel = (short) (_innerNodeIsOptional ? _definitionLevel + 2 : _definitionLevel + 1);
+            var innerRepLevel = (short) (_repetitionLevel + 1);
+
+            var atArrayStart = true;
+            while (!_bufferedReader.IsEofDefinition)
+            {
+                var reachedArrayEnd =
+                    _bufferedReader.ReadValuesAtRepetitionLevel(innerRepLevel, innerDefLevel, atArrayStart,
+                        out var _);
+                if (reachedArrayEnd && atArrayStart)
+                {
+                    return;
+                }
+                atArrayStart = false;
+                if (reachedArrayEnd)
+                {
+                    return;
+                }
+            }
+        }
+
         public bool HasNext()
         {
             return !_bufferedReader.IsEofDefinition;
@@ -154,11 +195,11 @@ namespace ParquetSharp.LogicalBatchReader
                 {
                     if (typeof(TItem) == typeof(TLogical))
                     {
-                        ReadLogicalTypeArray();
+                        SkipLogicalTypeArray();
                     }
                     else
                     {
-                        ReadInnerTypeArray();
+                        SkipInnerTypeArray();
                     }
                 }
                 else
