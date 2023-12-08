@@ -72,6 +72,11 @@ namespace ParquetSharp
 
         public abstract TReturn Apply<TReturn>(ILogicalColumnReaderVisitor<TReturn> visitor);
 
+        /// <summary>
+        /// Skips logical rows for all reader types, including <see cref="ArrayReader{TPhysical, TLogical, TItem}"/>
+        /// </summary>
+        /// <param name="numRowsToSkip">number of rows to skip</param>
+        /// <returns>the number of logical rows skipped</returns>
         public abstract long Skip(long numRowsToSkip);
 
         private static bool ContainsNestedType(Type type)
