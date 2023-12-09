@@ -27,6 +27,7 @@ namespace ParquetSharp
         public long NumRows => ExceptionInfo.Return<long>(_handle, RowGroupWriter_Num_Rows);
         public long TotalBytesWritten => ExceptionInfo.Return<long>(_handle, RowGroupWriter_Total_Bytes_Written);
         public long TotalCompressedBytes => ExceptionInfo.Return<long>(_handle, RowGroupWriter_Total_Compressed_Bytes);
+        public bool Buffered => ExceptionInfo.Return<bool>(_handle, RowGroupWriter_Buffered);
 
         public ColumnWriter Column(int i)
         {
@@ -61,6 +62,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr RowGroupWriter_Total_Compressed_Bytes(IntPtr rowGroupWriter, out long totalCompressedBytes);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr RowGroupWriter_Buffered(IntPtr rowGroupWriter, out bool buffered);
 
         private readonly IntPtr _handle;
         internal readonly ParquetFileWriter ParquetFileWriter;

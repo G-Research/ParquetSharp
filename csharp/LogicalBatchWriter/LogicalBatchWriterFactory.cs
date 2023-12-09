@@ -13,14 +13,12 @@ namespace ParquetSharp.LogicalBatchWriter
     {
         public LogicalBatchWriterFactory(
             ColumnWriter<TPhysical> physicalWriter,
-            TPhysical[] buffer,
-            short[]? defLevels,
-            short[]? repLevels,
             ByteBuffer? byteBuffer,
-            LogicalWrite<TLogical, TPhysical>.Converter converter)
+            LogicalWrite<TLogical, TPhysical>.Converter converter,
+            int bufferLength)
         {
             _physicalWriter = physicalWriter;
-            _buffers = new LogicalStreamBuffers<TPhysical>(buffer, defLevels, repLevels);
+            _buffers = new LogicalStreamBuffers<TPhysical>(physicalWriter.ColumnDescriptor, bufferLength);
             _byteBuffer = byteBuffer;
             _converter = converter;
         }

@@ -13,29 +13,43 @@ namespace ParquetSharp.RowOriented
     {
         internal delegate void ReadAction(ParquetRowReader<TTuple> parquetRowReader, TTuple[] rows, int length);
 
-        internal ParquetRowReader(string path, ReadAction readAction, MappedField[] fields)
-            : this(new ParquetFileReader(path), readAction, fields)
+        /// <summary>
+        /// Create a new ParquetRowReader.
+        /// </summary>
+        internal ParquetRowReader(string path, ReadAction readAction, MappedField[] fields, LogicalTypeFactory? logicalTypeFactory = null, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            : this(new ParquetFileReader(path), readAction, fields, logicalTypeFactory, logicalReadConverterFactory)
         {
         }
 
-        internal ParquetRowReader(string path, ReaderProperties readerProperties, ReadAction readAction, MappedField[] fields)
-            : this(new ParquetFileReader(path, readerProperties), readAction, fields)
+        internal ParquetRowReader(string path, ReaderProperties readerProperties, ReadAction readAction, MappedField[] fields, LogicalTypeFactory? logicalTypeFactory = null, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            : this(new ParquetFileReader(path, readerProperties), readAction, fields, logicalTypeFactory, logicalReadConverterFactory)
         {
         }
 
-        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReadAction readAction, MappedField[] fields)
-            : this(new ParquetFileReader(randomAccessFile), readAction, fields)
+        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReadAction readAction, MappedField[] fields, LogicalTypeFactory? logicalTypeFactory = null, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            : this(new ParquetFileReader(randomAccessFile), readAction, fields, logicalTypeFactory, logicalReadConverterFactory)
         {
         }
 
-        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReaderProperties readerProperties, ReadAction readAction, MappedField[] fields)
-            : this(new ParquetFileReader(randomAccessFile, readerProperties), readAction, fields)
+        internal ParquetRowReader(RandomAccessFile randomAccessFile, ReaderProperties readerProperties, ReadAction readAction, MappedField[] fields, LogicalTypeFactory? logicalTypeFactory = null, LogicalReadConverterFactory? logicalReadConverterFactory = null)
+            : this(new ParquetFileReader(randomAccessFile, readerProperties), readAction, fields, logicalTypeFactory, logicalReadConverterFactory)
         {
         }
 
-        internal ParquetRowReader(ParquetFileReader parquetFileReader, ReadAction readAction, MappedField[] fields)
+        internal ParquetRowReader(ParquetFileReader parquetFileReader, ReadAction readAction, MappedField[] fields, LogicalTypeFactory? logicalTypeFactory = null, LogicalReadConverterFactory? logicalReadConverterFactory = null)
         {
             _parquetFileReader = parquetFileReader;
+
+            if (logicalTypeFactory != null)
+            {
+                _parquetFileReader.LogicalTypeFactory = logicalTypeFactory;
+            }
+
+            if (logicalReadConverterFactory != null)
+            {
+                _parquetFileReader.LogicalReadConverterFactory = logicalReadConverterFactory;
+            }
+
             _readAction = readAction;
             _columnMapping = HasExplicitColumnMapping(fields) ? new ExplicitColumnMapping(this, fields) : null;
         }

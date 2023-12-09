@@ -81,7 +81,7 @@ include_directories(
 target_link_libraries(ParquetSharpNative PRIVATE
 	Parquet::parquet_static
 	Arrow::arrow_static
-	unofficial::brotli::brotlidec-static unofficial::brotli::brotlienc-static unofficial::brotli::brotlicommon-static
+	unofficial::brotli::brotlidec unofficial::brotli::brotlienc unofficial::brotli::brotlicommon
 	BZip2::BZip2
 	lz4::lz4
 	re2::re2
