@@ -99,7 +99,7 @@ namespace ParquetSharp.LogicalBatchReader
                     break;
                 }
 
-                _innerReader.ReadBatch(value);
+                _innerReader.Skip(1);
                 firstValue = false;
             }
         }
