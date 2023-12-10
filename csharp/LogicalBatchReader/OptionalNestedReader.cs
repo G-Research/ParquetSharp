@@ -52,6 +52,28 @@ namespace ParquetSharp.LogicalBatchReader
             return _innerReader.HasNext();
         }
 
+        public long Skip(long numRowsToSkip)
+        {
+            for (var i = 0; i < numRowsToSkip; ++i)
+            {
+                if (_bufferedReader.IsEofDefinition)
+                {
+                    return i;
+                }
+                var defn = _bufferedReader.GetCurrentDefinition();
+                if (defn.DefLevel >= _definitionLevel)
+                {
+                    _innerReader.Skip(1);
+                }
+                else
+                {
+                    _bufferedReader.NextDefinition();
+                }
+            }
+
+            return numRowsToSkip;
+        }
+
         private readonly ILogicalBatchReader<TItem> _innerReader;
         private readonly BufferedReader<TLogical, TPhysical> _bufferedReader;
         private readonly short _definitionLevel;

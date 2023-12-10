@@ -42,6 +42,11 @@ namespace ParquetSharp.LogicalBatchReader
             return _innerReader.HasNext();
         }
 
+        public long Skip(long numRowsToSkip)
+        {
+            return _innerReader.Skip(numRowsToSkip);
+        }
+
         private readonly ILogicalBatchReader<TItem> _innerReader;
         private readonly TItem[] _buffer;
     }

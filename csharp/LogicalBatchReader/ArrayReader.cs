@@ -86,6 +86,24 @@ namespace ParquetSharp.LogicalBatchReader
             return values.ToArray();
         }
 
+        private void SkipInnerTypeArray()
+        {
+            var value = new TItem[1];
+
+            var firstValue = true;
+            while (!_bufferedReader.IsEofDefinition)
+            {
+                var defn = _bufferedReader.GetCurrentDefinition();
+                if (!firstValue && defn.RepLevel <= _repetitionLevel)
+                {
+                    break;
+                }
+
+                _innerReader.Skip(1);
+                firstValue = false;
+            }
+        }
+
         /// <summary>
         /// Read an array of values directly from the buffered reader, for when the items in arrays
         /// are the leaf level logical values.
@@ -135,9 +153,62 @@ namespace ParquetSharp.LogicalBatchReader
             return values;
         }
 
+        private void SkipLogicalTypeArray()
+        {
+            var innerDefLevel = (short) (_innerNodeIsOptional ? _definitionLevel + 2 : _definitionLevel + 1);
+            var innerRepLevel = (short) (_repetitionLevel + 1);
+
+            var atArrayStart = true;
+            while (!_bufferedReader.IsEofDefinition)
+            {
+                var reachedArrayEnd =
+                    _bufferedReader.ReadValuesAtRepetitionLevel(innerRepLevel, innerDefLevel, atArrayStart,
+                        out var _);
+                if (reachedArrayEnd && atArrayStart)
+                {
+                    return;
+                }
+                atArrayStart = false;
+                if (reachedArrayEnd)
+                {
+                    return;
+                }
+            }
+        }
+
         public bool HasNext()
         {
             return !_bufferedReader.IsEofDefinition;
+        }
+
+        public long Skip(long numRowsToSkip)
+        {
+            for (var i = 0; i < numRowsToSkip; ++i)
+            {
+                if (_bufferedReader.IsEofDefinition)
+                {
+                    return i;
+                }
+
+                var defn = _bufferedReader.GetCurrentDefinition();
+                if (defn.DefLevel > _definitionLevel)
+                {
+                    if (typeof(TItem) == typeof(TLogical))
+                    {
+                        SkipLogicalTypeArray();
+                    }
+                    else
+                    {
+                        SkipInnerTypeArray();
+                    }
+                }
+                else
+                {
+                    _bufferedReader.NextDefinition();
+                }
+            }
+
+            return numRowsToSkip;
         }
 
         private readonly ILogicalBatchReader<TItem> _innerReader;
