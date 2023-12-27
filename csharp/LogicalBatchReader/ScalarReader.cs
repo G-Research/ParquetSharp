@@ -41,6 +41,11 @@ namespace ParquetSharp.LogicalBatchReader
             return _physicalReader.HasNext;
         }
 
+        public long Skip(long numRowsToSkip)
+        {
+            return _physicalReader.Skip(numRowsToSkip);
+        }
+
         private readonly ColumnReader<TPhysical> _physicalReader;
         private readonly LogicalRead<TLogical, TPhysical>.Converter _converter;
         private readonly LogicalStreamBuffers<TPhysical> _buffers;

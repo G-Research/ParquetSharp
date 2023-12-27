@@ -70,6 +70,12 @@ namespace ParquetSharp
 
         public abstract Type ElementType { get; }
         public abstract TReturn Apply<TReturn>(IColumnReaderVisitor<TReturn> visitor);
+
+        /// <summary>
+        /// Skip physical row values
+        /// </summary>
+        /// <param name="numRowsToSkip">number of rows to skip</param>
+        /// <returns>the number of physical rows skipped</returns>
         public abstract long Skip(long numRowsToSkip);
 
         public LogicalColumnReader LogicalReader(int bufferLength = 4 * 1024)

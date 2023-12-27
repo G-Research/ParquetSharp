@@ -148,7 +148,7 @@ namespace ParquetSharp.Arrow
         ///
         /// The table data will be chunked into row groups that respect the maximum
         /// chunk size specified if required.
-        /// This method requires tha the columns in the table use equal chunking.
+        /// This method requires that the columns in the table use equal chunking.
         /// </summary>
         /// <param name="table">The table to write</param>
         /// <param name="chunkSize">The maximum length of row groups to write</param>

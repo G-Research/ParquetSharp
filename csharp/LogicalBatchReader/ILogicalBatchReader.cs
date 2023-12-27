@@ -11,5 +11,7 @@ namespace ParquetSharp.LogicalBatchReader
         int ReadBatch(Span<TElement> destination);
 
         bool HasNext();
+
+        long Skip(long numRowsToSkip);
     }
 }
