@@ -46,15 +46,15 @@ FROM cpp AS vcpkg
 
 USER vscode
 
+# Copy our vcpkg manifest
+COPY --chown=vscode:vscode vcpkg.json /tmp/build/
+
 # Install vcpkg
 RUN sudo mkdir -p $VCPKG_ROOT \
  && sudo chown vscode:vscode $VCPKG_ROOT \
  && git clone https://github.com/microsoft/vcpkg.git $VCPKG_ROOT \
  && cd $VCPKG_ROOT \
  && ./bootstrap-vcpkg.sh -disableMetrics
-
-# Copy our vcpkg manifest
-COPY --chown=vscode:vscode vcpkg.json /tmp/build/
 
 # Populate the vcpkg binary cache with all of our dependencies
 RUN cd /tmp/build \
