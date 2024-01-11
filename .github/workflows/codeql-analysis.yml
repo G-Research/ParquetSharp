@@ -26,7 +26,7 @@ jobs:
     - name: Compute vcpkg triplet and root
       id: vcpkg-info
       run: |
-        triplet="${{ matrix.arch }}-"
+        triplet="x64-"
         case ${{ runner.os }} in
           Linux)
             triplet+="linux"
