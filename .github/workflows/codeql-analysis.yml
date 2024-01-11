@@ -74,6 +74,7 @@ jobs:
           vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}
           vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}
           vcpkg-${{ steps.vcpkg-info.outputs.triplet }}
+
     # Ensure vcpkg builtin registry is up-to-date
     - name: Update vcpkg builtin registry
       working-directory: ${{ steps.vcpkg-info.outputs.root }}
@@ -86,12 +87,12 @@ jobs:
       with:
         languages: cpp, csharp
 
-    - run: |
-        sudo apt-get update
-        sudo apt-get --yes install flex bison
+    - name: Build C++ library and CSharp projects
+      run: |
         ./build_unix.sh
         dotnet build csharp.benchmark --configuration=Release
         dotnet build csharp.test --configuration=Release
         dotnet build csharp --configuration=Release
+
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
