@@ -22,10 +22,24 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Compute root
-    - name: Compute root
+    # Compute vcpkg triplet and root
+    - name: Compute vcpkg triplet and root
       id: vcpkg-info
-      run: echo "root=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_OUTPUT
+      run: |
+        triplet="${{ matrix.arch }}-"
+        case ${{ runner.os }} in
+          Linux)
+            triplet+="linux"
+            ;;
+          macOS)
+            triplet+="osx"
+            ;;
+          Windows)
+            triplet+="windows-static"
+            ;;
+        esac
+        echo "triplet=$triplet" >> $GITHUB_OUTPUT
+        echo "root=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_OUTPUT
       shell: bash
 
     # Get cmake version, which is used by vcpkg binary caching
@@ -36,7 +50,8 @@ jobs:
 
     - name: Runner-info
       id: runner-info
-      run: echo "info=$ImageOS-$ImageVersion" >> $GITHUB_OUTPUT
+      run: |
+        echo "info=$ImageOS-$ImageVersion" >> $GITHUB_OUTPUT
       shell: bash
 
     # Check for cached vcpkg dependencies (use these if we can).
@@ -54,19 +69,17 @@ jobs:
         # - & more... (subject to change without notice)
         #
         # We use Vcpkg and C/C++ compilers which are preinstalled on the runner, so we include the runner's image identity as part of the hash key.
-        key: vcpkg-linux-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}-runner:${{ steps.runner-info.outputs.info }}
+        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}-runner:${{ steps.runner-info.outputs.info }}
         restore-keys: |
-          vcpkg-linux-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}
-          vcpkg-linux-cmake:${{ steps.cmake-info.outputs.version }}
-          vcpkg-linux
-
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}
     # Ensure vcpkg builtin registry is up-to-date
     - name: Update vcpkg builtin registry
       working-directory: ${{ steps.vcpkg-info.outputs.root }}
       run: |
         git reset --hard
         git pull
-
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
@@ -80,6 +93,5 @@ jobs:
         dotnet build csharp.benchmark --configuration=Release
         dotnet build csharp.test --configuration=Release
         dotnet build csharp --configuration=Release
-
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
