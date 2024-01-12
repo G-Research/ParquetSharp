@@ -18,24 +18,68 @@ jobs:
       contents: read
       security-events: write
 
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'cpp', 'csharp' ]
-
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
+    # Compute vcpkg triplet and root
+    - name: Compute vcpkg triplet and root
+      id: vcpkg-info
+      run: |
+        triplet="x64-"
+        case ${{ runner.os }} in
+          Linux)
+            triplet+="linux"
+            ;;
+          macOS)
+            triplet+="osx"
+            ;;
+          Windows)
+            triplet+="windows-static"
+            ;;
+        esac
+        echo "triplet=$triplet" >> $GITHUB_OUTPUT
+        echo "root=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_OUTPUT
+      shell: bash
+
+    # Get cmake version, which is used by vcpkg binary caching
+    - name: Get cmake version
+      id: cmake-info
+      run: echo "version=$(cmake --version | head -n1 | awk '{print $3}')" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Runner-info
+      id: runner-info
+      run: |
+        echo "info=$ImageOS-$ImageVersion" >> $GITHUB_OUTPUT
+      shell: bash
+
+    # Check for cached vcpkg dependencies (use these if we can).
+    - name: Get cached vcpkg dependencies
+      id: get-cached-vcpkg
+      uses: actions/cache@v3
+      with:
+        path: cache/vcpkg
+        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}-runner:${{ steps.runner-info.outputs.info }}
+        restore-keys: |
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}
+          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}
+
+    # Ensure vcpkg builtin registry is up-to-date
+    - name: Update vcpkg builtin registry
+      working-directory: ${{ steps.vcpkg-info.outputs.root }}
+      run: |
+        git reset --hard
+        git pull
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
-        languages: ${{ matrix.language }}
+        languages: cpp, csharp
 
-    - run: |
-        sudo apt-get update
-        sudo apt-get --yes install flex bison
+    - name: Build C++ library and CSharp projects
+      run: |
         ./build_unix.sh
         dotnet build csharp.benchmark --configuration=Release
         dotnet build csharp.test --configuration=Release
