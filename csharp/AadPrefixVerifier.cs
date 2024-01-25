@@ -26,7 +26,7 @@ namespace ParquetSharp
 
         internal static AadPrefixVerifier GetGcHandleTarget(IntPtr handle)
         {
-            return (AadPrefixVerifier) GCHandle.FromIntPtr(handle).Target;
+            return (AadPrefixVerifier) GCHandle.FromIntPtr(handle).Target!;
         }
 
         internal delegate void FreeGcHandleFunc(IntPtr handle);
@@ -46,7 +46,7 @@ namespace ParquetSharp
 
             try
             {
-                var obj = (AadPrefixVerifier) GCHandle.FromIntPtr(handle).Target;
+                var obj = (AadPrefixVerifier) GCHandle.FromIntPtr(handle).Target!;
                 var aadPrefixStr = StringUtil.PtrToStringUtf8(aadPrefix);
                 obj.Verify(aadPrefixStr);
             }

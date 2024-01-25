@@ -438,7 +438,7 @@ namespace ParquetSharp.RowOriented
                 );
 
                 // Write the buffer to Parquet.
-                var writeCall = Expression.Call(writer, GetWriteMethod<TTuple>(buffer.Type.GetElementType()), buffer, length);
+                var writeCall = Expression.Call(writer, GetWriteMethod<TTuple>(buffer.Type.GetElementType()!), buffer, length);
 
                 return Expression.Block(
                     new[] {buffer, index},

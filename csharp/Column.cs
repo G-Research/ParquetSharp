@@ -119,7 +119,7 @@ namespace ParquetSharp
 
             if (type.IsArray)
             {
-                var item = CreateSchemaNode(logicalTypeFactory, type.GetElementType(), "item", logicalTypeOverride, length);
+                var item = CreateSchemaNode(logicalTypeFactory, type.GetElementType()!, "item", logicalTypeOverride, length);
                 var list = new GroupNode("list", Repetition.Repeated, new[] {item});
 
                 try

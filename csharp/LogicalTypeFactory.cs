@@ -50,7 +50,7 @@ namespace ParquetSharp
 
                 if (type.IsArray)
                 {
-                    type = type.GetElementType();
+                    type = type.GetElementType()!;
                     continue;
                 }
 
