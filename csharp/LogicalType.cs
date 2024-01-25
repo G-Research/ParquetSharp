@@ -20,7 +20,8 @@ namespace ParquetSharp
         Json = 12,
         Bson = 13,
         Uuid = 14,
-        None = 15
+        Float16 = 15,
+        None = 16
     }
 
     public abstract class LogicalType : IDisposable, IEquatable<LogicalType>

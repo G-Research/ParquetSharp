@@ -52,7 +52,8 @@ namespace
 		static_assert(LogicalType::Type::JSON == 12);
 		static_assert(LogicalType::Type::BSON == 13);
 		static_assert(LogicalType::Type::UUID == 14);
-		static_assert(LogicalType::Type::NONE == 15);
+		static_assert(LogicalType::Type::FLOAT16 == 15);
+		static_assert(LogicalType::Type::NONE == 16);
 
 		static_assert(ParquetCipher::AES_GCM_V1 == 0);
 		static_assert(ParquetCipher::AES_GCM_CTR_V1 == 1);
