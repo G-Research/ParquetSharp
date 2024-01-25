@@ -74,6 +74,11 @@ namespace ParquetSharp
             return ExceptionInfo.Return<ulong>(Handle, path.Handle, WriterProperties_Max_Statistics_Size);
         }
 
+        /// <summary>
+        /// Whether CRC checksums are written for data pages
+        /// </summary>
+        public bool PageChecksumEnabled => ExceptionInfo.Return<bool>(Handle, WriterProperties_Page_Checksum_Enabled);
+
         internal readonly ParquetHandle Handle;
 
         [DllImport(ParquetDll.Name)]
@@ -114,6 +119,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Page_Index_Enabled_For_Path(IntPtr writerProperties, IntPtr path, out bool enabled);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Page_Checksum_Enabled(IntPtr writerProperties, out bool enabled);
 
         //[DllImport(ParquetDll.Name)]
         //private static extern IntPtr WriterProperties_Column_Properties(IntPtr writerProperties, IntPtr path, out IntPtr columnProperties);

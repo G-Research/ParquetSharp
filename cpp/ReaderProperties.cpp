@@ -56,4 +56,19 @@ extern "C"
 			*file_decryption_properties = p ? new std::shared_ptr(p) : nullptr;
 		)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* ReaderProperties_Page_Checksum_Verification(const ReaderProperties* reader_properties, bool* verification_enabled)
+	{
+		TRYCATCH(*verification_enabled = reader_properties->page_checksum_verification();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* ReaderProperties_Enable_Page_Checksum_Verification(ReaderProperties* reader_properties)
+	{
+		TRYCATCH(reader_properties->set_page_checksum_verification(true);)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* ReaderProperties_Disable_Page_Checksum_Verification(ReaderProperties* reader_properties)
+	{
+		TRYCATCH(reader_properties->set_page_checksum_verification(false);)
+	}
 }

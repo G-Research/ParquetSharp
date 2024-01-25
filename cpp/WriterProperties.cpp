@@ -75,6 +75,11 @@ extern "C"
 		TRYCATCH(*enabled = (*writer_properties)->page_index_enabled(*path);)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Page_Checksum_Enabled(const std::shared_ptr<WriterProperties>* writer_properties, bool* enabled)
+	{
+		TRYCATCH(*enabled = (*writer_properties)->page_checksum_enabled();)
+	}
+
 	// ColumnPath taking methods.
 
 	//PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Column_Properties(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, const ColumnProperties** columnProperties)

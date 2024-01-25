@@ -25,6 +25,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(ParquetVersion.PARQUET_2_6, p.Version);
             Assert.AreEqual(1024, p.WriteBatchSize);
             Assert.False(p.WritePageIndex);
+            Assert.False(p.PageChecksumEnabled);
         }
 
         [Test]
@@ -42,6 +43,7 @@ namespace ParquetSharp.Test
                 .WriteBatchSize(666)
                 .DisableWritePageIndex()
                 .EnableWritePageIndex()
+                .EnablePageChecksum()
                 .Build();
 
             Assert.AreEqual("Meeeee!!!", p.CreatedBy);
@@ -55,6 +57,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
             Assert.AreEqual(666, p.WriteBatchSize);
             Assert.True(p.WritePageIndex);
+            Assert.True(p.PageChecksumEnabled);
         }
 
         [Test]
@@ -110,6 +113,7 @@ namespace ParquetSharp.Test
                 DefaultWriterProperties.Version = ParquetVersion.PARQUET_1_0;
                 DefaultWriterProperties.WriteBatchSize = 666;
                 DefaultWriterProperties.WritePageIndex = true;
+                DefaultWriterProperties.PageChecksumEnabled = true;
 
                 using var builder = new WriterPropertiesBuilder();
                 using var p = builder.Build();
@@ -127,6 +131,7 @@ namespace ParquetSharp.Test
                 Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
                 Assert.AreEqual(666, p.WriteBatchSize);
                 Assert.True(p.WritePageIndex);
+                Assert.True(p.PageChecksumEnabled);
             }
             finally
             {
@@ -143,6 +148,7 @@ namespace ParquetSharp.Test
                 DefaultWriterProperties.Version = null;
                 DefaultWriterProperties.WriteBatchSize = null;
                 DefaultWriterProperties.WritePageIndex = null;
+                DefaultWriterProperties.PageChecksumEnabled = null;
             }
         }
 
