@@ -664,7 +664,20 @@ namespace ParquetSharp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe Half ToHalf(FixedLenByteArray source)
         {
-            return *(Half*) source.Pointer;
+            if (BitConverter.IsLittleEndian)
+            {
+                return *(Half*) source.Pointer;
+            }
+            else
+            {
+                // Float-16 values are always stored in little-endian order
+                var value = (Half) 0.0f;
+                var dest = (byte*) &value;
+                var src = (byte*) source.Pointer;
+                dest[1] = src[0];
+                dest[0] = src[1];
+                return value;
+            }
         }
 #endif
 

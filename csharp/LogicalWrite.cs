@@ -445,7 +445,7 @@ namespace ParquetSharp
         {
             for (int i = 0; i < source.Length; ++i)
             {
-                destination[i] = FromFixedLength(in source[i], byteBuffer);
+                destination[i] = FromHalf(in source[i], byteBuffer);
             }
         }
 
@@ -460,7 +460,7 @@ namespace ParquetSharp
                 }
                 else
                 {
-                    destination[dst++] = FromFixedLength(value.Value, byteBuffer);
+                    destination[dst++] = FromHalf(value.Value, byteBuffer);
                     defLevels[i] = (short) (nullLevel + 1);
                 }
             }
@@ -642,13 +642,6 @@ namespace ParquetSharp
             // as the bytes 00 11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff.
             //
             // But Guid endianess is platform dependent (and ToByteArray() uses a little endian representation).
-            void Swap<T>(ref T lhs, ref T rhs)
-            {
-                var temp = lhs;
-                lhs = rhs;
-                rhs = temp;
-            }
-
             if (BitConverter.IsLittleEndian)
             {
                 // ReSharper disable once PossibleNullReferenceException
@@ -660,6 +653,25 @@ namespace ParquetSharp
 
             return array;
         }
+
+#if NET5_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe FixedLenByteArray FromHalf(in Half value, ByteBuffer byteBuffer)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                return FromFixedLength(value, byteBuffer);
+            }
+            else
+            {
+                // Float-16 values are always stored in little-endian order
+                var array = FromFixedLength(value, byteBuffer);
+                var p = (byte*) array.Pointer;
+                Swap(ref p[0], ref p[1]);
+                return array;
+            }
+        }
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long FromDateTimeMicros(DateTime source)
@@ -722,6 +734,14 @@ namespace ParquetSharp
             *(TValue*) byteArray.Pointer = value;
 
             return new FixedLenByteArray(byteArray.Pointer);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Swap<T>(ref T lhs, ref T rhs)
+        {
+            var tmp = lhs;
+            lhs = rhs;
+            rhs = tmp;
         }
 
         public const long DateTimeOffset = 621355968000000000; // new DateTime(1970, 01, 01).Ticks
