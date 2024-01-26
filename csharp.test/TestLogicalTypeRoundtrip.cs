@@ -1633,6 +1633,30 @@ namespace ParquetSharp.Test
                 },
                 new ExpectedColumn
                 {
+                    Name = "half_field",
+                    PhysicalType = PhysicalType.FixedLenByteArray,
+                    LogicalType = LogicalType.Float16(),
+                    Length = 2,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 5 == 0 ? Half.NaN : (Half) Math.Sqrt(i)).ToArray(),
+                    Min = (Half) 1.0,
+                    Max = (Half) Math.Sqrt(NumRows - 1),
+                    Converter = (v, _) => LogicalRead.ToHalf((FixedLenByteArray) v)
+                },
+                new ExpectedColumn
+                {
+                    Name = "half?_field",
+                    PhysicalType = PhysicalType.FixedLenByteArray,
+                    LogicalType = LogicalType.Float16(),
+                    Length = 2,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (Half?) null : i % 5 == 0 ? Half.NaN : (Half) Math.Sqrt(i)).ToArray(),
+                    NullCount = (NumRows + 10) / 11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
+                    Min = (Half) 1.0,
+                    Max = (Half) Math.Sqrt(NumRows - 1),
+                    Converter = (v, _) => LogicalRead.ToHalf((FixedLenByteArray) v)
+                },
+                new ExpectedColumn
+                {
                     Name = "float_field",
                     PhysicalType = PhysicalType.Float,
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 5 == 0 ? float.NaN : (float) Math.Sqrt(i)).ToArray(),

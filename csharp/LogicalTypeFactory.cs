@@ -232,6 +232,10 @@ namespace ParquetSharp
                 {typeof(ulong?), (LogicalType.Int(64, isSigned: false), Repetition.Optional, PhysicalType.Int64)},
                 {typeof(Int96), (LogicalType.None(), Repetition.Required, PhysicalType.Int96)},
                 {typeof(Int96?), (LogicalType.None(), Repetition.Optional, PhysicalType.Int96)},
+#if NET5_0_OR_GREATER
+                {typeof(Half), (LogicalType.Float16(), Repetition.Required, PhysicalType.FixedLenByteArray)},
+                {typeof(Half?), (LogicalType.Float16(), Repetition.Optional, PhysicalType.FixedLenByteArray)},
+#endif
                 {typeof(float), (LogicalType.None(), Repetition.Required, PhysicalType.Float)},
                 {typeof(float?), (LogicalType.None(), Repetition.Optional, PhysicalType.Float)},
                 {typeof(double), (LogicalType.None(), Repetition.Required, PhysicalType.Double)},

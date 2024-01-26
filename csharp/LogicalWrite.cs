@@ -211,6 +211,20 @@ namespace ParquetSharp
                 return (LogicalWrite<byte[], ByteArray>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertByteArray(s, dl, d, nl, byteBuffer));
             }
 
+#if NET5_0_OR_GREATER
+            if (typeof(TLogical) == typeof(Half))
+            {
+                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
+                return (LogicalWrite<Half, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertHalf(s, d, byteBuffer));
+            }
+
+            if (typeof(TLogical) == typeof(Half?))
+            {
+                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
+                return (LogicalWrite<Half?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertHalf(s, dl, d, nl, byteBuffer));
+            }
+#endif
+
             throw new NotSupportedException($"unsupported logical system type {typeof(TLogical)} with logical type {logicalType}");
         }
 
@@ -425,6 +439,33 @@ namespace ParquetSharp
                 }
             }
         }
+
+#if NET5_0_OR_GREATER
+        public static void ConvertHalf(ReadOnlySpan<Half> source, Span<FixedLenByteArray> destination, ByteBuffer byteBuffer)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                destination[i] = FromFixedLength(in source[i], byteBuffer);
+            }
+        }
+
+        public static void ConvertHalf(ReadOnlySpan<Half?> source, Span<short> defLevels, Span<FixedLenByteArray> destination, short nullLevel, ByteBuffer byteBuffer)
+        {
+            for (int i = 0, dst = 0; i < source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = FromFixedLength(value.Value, byteBuffer);
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+#endif
 
         public static void ConvertDateTimeMicros(ReadOnlySpan<DateTime> source, Span<long> destination)
         {

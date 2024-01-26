@@ -21,10 +21,15 @@ namespace ParquetSharp
         {
             var isDecimal = logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?);
             var isUuid = logicalSystemType == typeof(Guid) || logicalSystemType == typeof(Guid?);
+#if NET5_0_OR_GREATER
+            var isHalf = logicalSystemType == typeof(Half) || logicalSystemType == typeof(Half?);
+#else
+            var isHalf = false;
+#endif
 
-            if (length != -1 && !isDecimal && !isUuid)
+            if (length != -1 && !isDecimal && !isUuid && !isHalf)
             {
-                throw new ArgumentException("length can only be set with the decimal or Guid type");
+                throw new ArgumentException("length can only be set with the decimal, Guid or Half type");
             }
 
             if (isDecimal && !(logicalTypeOverride is DecimalLogicalType))
@@ -105,6 +110,13 @@ namespace ParquetSharp
             {
                 return 16;
             }
+
+#if NET5_0_OR_GREATER
+            if (logicalSystemType == typeof(Half) || logicalSystemType == typeof(Half?))
+            {
+                return 2;
+            }
+#endif
 
             return -1;
         }
