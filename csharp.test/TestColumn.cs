@@ -73,7 +73,7 @@ namespace ParquetSharp.Test
 
             Assert.That(
                 exception?.Message,
-                Contains.Substring("JSON can not be applied to primitive type INT64"));
+                Contains.Substring("JSON cannot be applied to primitive type INT64"));
         }
 
         private static ExpectedPrimitive[] CreateExpectedPrimitives()
