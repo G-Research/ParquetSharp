@@ -27,7 +27,7 @@ namespace ParquetSharp
             var isHalf = false;
 #endif
 
-            if (length != -1 && !isDecimal && !isUuid && !isHalf)
+            if (length != -1 && !(isDecimal || isUuid || isHalf))
             {
                 throw new ArgumentException("length can only be set with the decimal, Guid or Half type");
             }

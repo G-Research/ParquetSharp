@@ -76,6 +76,7 @@ namespace ParquetSharp
         /// </summary>
         /// <returns>New Float16 LogicalType</returns>
         public static LogicalType Float16() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Float16));
+
         public static LogicalType None() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_None));
 
         internal static LogicalType Create(IntPtr handle)
