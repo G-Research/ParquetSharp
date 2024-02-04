@@ -1631,6 +1631,7 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (Int96?) null : new Int96(i, i * i, i * i * i)).ToArray(),
                     HasStatistics = false
                 },
+#if NET5_0_OR_GREATER
                 new ExpectedColumn
                 {
                     Name = "half_field",
@@ -1655,6 +1656,7 @@ namespace ParquetSharp.Test
                     Max = (Half) Math.Sqrt(NumRows - 1),
                     Converter = (v, _) => LogicalRead.ToHalf((FixedLenByteArray) v)
                 },
+#endif
                 new ExpectedColumn
                 {
                     Name = "float_field",
