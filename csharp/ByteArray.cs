@@ -23,7 +23,7 @@ namespace ParquetSharp
             return Length == other.Length && Pointer == other.Pointer;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is ByteArray other && Equals(other);
         }

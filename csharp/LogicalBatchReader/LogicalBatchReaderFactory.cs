@@ -168,7 +168,7 @@ namespace ParquetSharp.LogicalBatchReader
 
             var arrayReaderType = typeof(ArrayReader<,,>).MakeGenericType(typeof(TPhysical), typeof(TLogical), containedType);
             return (ILogicalBatchReader<TElement>) Activator.CreateInstance(
-                arrayReaderType, innerReader, _bufferedReader!, arrayDefinitionLevel, repetitionLevel, innerNodeIsOptional);
+                arrayReaderType, innerReader, _bufferedReader!, arrayDefinitionLevel, repetitionLevel, innerNodeIsOptional)!;
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace ParquetSharp.LogicalBatchReader
             var innerReader = MakeGenericReader(nestedType, innerSchema, definitionLevel, repetitionLevel);
 
             var nestedReaderType = typeof(NestedReader<>).MakeGenericType(nestedType);
-            return (ILogicalBatchReader<TElement>) Activator.CreateInstance(nestedReaderType, innerReader, _buffers.Length);
+            return (ILogicalBatchReader<TElement>) Activator.CreateInstance(nestedReaderType, innerReader, _buffers.Length)!;
         }
 
         /// <summary>
@@ -205,7 +205,7 @@ namespace ParquetSharp.LogicalBatchReader
             var optionalNestedReaderType = typeof(OptionalNestedReader<,,>).MakeGenericType(
                 typeof(TPhysical), typeof(TLogical), nestedType);
             return (ILogicalBatchReader<TElement>) Activator.CreateInstance(
-                optionalNestedReaderType, innerReader, _bufferedReader!, definitionLevel);
+                optionalNestedReaderType, innerReader, _bufferedReader!, definitionLevel)!;
         }
 
         /// <summary>
@@ -223,7 +223,7 @@ namespace ParquetSharp.LogicalBatchReader
             var optionalReaderType = typeof(OptionalReader<,,>).MakeGenericType(
                 typeof(TPhysical), typeof(TLogical), innerType);
             return (ILogicalBatchReader<TElement>) Activator.CreateInstance(
-                optionalReaderType, innerReader, _bufferedReader!, definitionLevel);
+                optionalReaderType, innerReader, _bufferedReader!, definitionLevel)!;
         }
 
         /// <summary>
@@ -246,7 +246,7 @@ namespace ParquetSharp.LogicalBatchReader
             return genericMethod.MakeGenericMethod(elementType).Invoke(this, new object[]
             {
                 schemaNodes, nullDefinitionLevel, repetitionLevel
-            });
+            })!;
         }
 
         private readonly ColumnReader<TPhysical> _physicalReader;

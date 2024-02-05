@@ -25,7 +25,7 @@ namespace ParquetSharp
 
         internal static DecryptionKeyRetriever GetGcHandleTarget(IntPtr handle)
         {
-            return (DecryptionKeyRetriever) GCHandle.FromIntPtr(handle).Target;
+            return (DecryptionKeyRetriever) GCHandle.FromIntPtr(handle).Target!;
         }
 
         internal delegate void FreeGcHandleFunc(IntPtr handle);
@@ -45,7 +45,7 @@ namespace ParquetSharp
 
             try
             {
-                var obj = (DecryptionKeyRetriever) GCHandle.FromIntPtr(handle).Target;
+                var obj = (DecryptionKeyRetriever) GCHandle.FromIntPtr(handle).Target!;
                 var keyMetadataStr = StringUtil.PtrToStringUtf8(keyMetadata);
                 key = new AesKey(obj.GetKey(keyMetadataStr));
             }
