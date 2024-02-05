@@ -21,7 +21,7 @@ namespace ParquetSharp
             return Pointer == other.Pointer;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is FixedLenByteArray other && Equals(other);
         }

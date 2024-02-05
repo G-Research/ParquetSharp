@@ -167,6 +167,18 @@ namespace ParquetSharp
                 return (LogicalRead<Guid?, FixedLenByteArray>.Converter) LogicalRead.ConvertUuid;
             }
 
+#if NET5_0_OR_GREATER
+            if (typeof(TLogical) == typeof(Half))
+            {
+                return (LogicalRead<Half, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertHalf(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(Half?))
+            {
+                return (LogicalRead<Half?, FixedLenByteArray>.Converter) LogicalRead.ConvertHalf;
+            }
+#endif
+
             if (typeof(TLogical) == typeof(Date))
             {
                 return LogicalRead.GetNativeConverter<Date, int>();
@@ -478,6 +490,24 @@ namespace ParquetSharp
             }
         }
 
+#if NET5_0_OR_GREATER
+        public static void ConvertHalf(ReadOnlySpan<FixedLenByteArray> source, Span<Half> destination)
+        {
+            for (int i = 0; i < destination.Length; ++i)
+            {
+                destination[i] = ToHalf(source[i]);
+            }
+        }
+
+        public static void ConvertHalf(ReadOnlySpan<FixedLenByteArray> source, ReadOnlySpan<short> defLevels, Span<Half?> destination, short definedLevel)
+        {
+            for (int i = 0, src = 0; i < destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] != definedLevel ? default(Half?) : ToHalf(source[src++]);
+            }
+        }
+#endif
+
         public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination, DateTimeKind kind = DateTimeKind.Unspecified)
         {
             for (int i = 0; i < destination.Length; ++i)
@@ -629,6 +659,27 @@ namespace ParquetSharp
                 return new Guid(a, b, c, p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
             }
         }
+
+#if NET5_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe Half ToHalf(FixedLenByteArray source)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                return *(Half*) source.Pointer;
+            }
+            else
+            {
+                // Float-16 values are always stored in little-endian order
+                var value = (Half) 0.0f;
+                var dest = (byte*) &value;
+                var src = (byte*) source.Pointer;
+                dest[1] = src[0];
+                dest[0] = src[1];
+                return value;
+            }
+        }
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DateTime ToDateTimeMicros(long source)

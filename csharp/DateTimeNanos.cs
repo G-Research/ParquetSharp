@@ -35,7 +35,7 @@ namespace ParquetSharp
             return Ticks == other.Ticks;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is DateTimeNanos date && Equals(date);
         }
@@ -45,7 +45,7 @@ namespace ParquetSharp
             return Ticks.GetHashCode();
         }
 
-        public int CompareTo(object obj)
+        public int CompareTo(object? obj)
         {
             return obj switch
             {

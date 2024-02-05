@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -40,7 +41,11 @@ namespace ParquetSharp
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if (NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER)
+        public bool TryGetValue(TPhysical physical, [MaybeNullWhen(false)] out TLogical logical)
+#else
         public bool TryGetValue(TPhysical physical, out TLogical logical)
+#endif
         {
             if (_map == null) throw new InvalidOperationException("cache is not in a usable state");
             return _map.TryGetValue(physical, out logical);

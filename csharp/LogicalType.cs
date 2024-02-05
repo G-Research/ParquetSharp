@@ -68,6 +68,15 @@ namespace ParquetSharp
         public static LogicalType Json() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_JSON));
         public static LogicalType Bson() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_BSON));
         public static LogicalType Uuid() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_UUID));
+
+        /// <summary>
+        /// Create a Float16 LogicalType
+        ///
+        /// This can be used to annotate a 2-byte fixed-length byte array
+        /// </summary>
+        /// <returns>New Float16 LogicalType</returns>
+        public static LogicalType Float16() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_Float16));
+
         public static LogicalType None() => Create(ExceptionInfo.Return<IntPtr>(LogicalType_None));
 
         internal static LogicalType Create(IntPtr handle)
@@ -95,6 +104,7 @@ namespace ParquetSharp
                 LogicalTypeEnum.Json => new JsonLogicalType(handle),
                 LogicalTypeEnum.Bson => new BsonLogicalType(handle),
                 LogicalTypeEnum.Uuid => new UuidLogicalType(handle),
+                LogicalTypeEnum.Float16 => new Float16LogicalType(handle),
                 LogicalTypeEnum.None => new NoneLogicalType(handle),
                 _ => throw new ArgumentOutOfRangeException($"unknown logical type {type}")
             };
@@ -156,6 +166,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr LogicalType_UUID(out IntPtr logicalType);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr LogicalType_Float16(out IntPtr logicalType);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr LogicalType_None(out IntPtr logicalType);
@@ -275,6 +288,11 @@ namespace ParquetSharp
     public sealed class UuidLogicalType : LogicalType
     {
         internal UuidLogicalType(IntPtr handle) : base(handle) { }
+    }
+
+    public sealed class Float16LogicalType : LogicalType
+    {
+        internal Float16LogicalType(IntPtr handle) : base(handle) { }
     }
 
     public sealed class NoneLogicalType : LogicalType

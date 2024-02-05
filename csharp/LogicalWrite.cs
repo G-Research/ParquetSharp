@@ -211,6 +211,20 @@ namespace ParquetSharp
                 return (LogicalWrite<byte[], ByteArray>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertByteArray(s, dl, d, nl, byteBuffer));
             }
 
+#if NET5_0_OR_GREATER
+            if (typeof(TLogical) == typeof(Half))
+            {
+                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
+                return (LogicalWrite<Half, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertHalf(s, d, byteBuffer));
+            }
+
+            if (typeof(TLogical) == typeof(Half?))
+            {
+                if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
+                return (LogicalWrite<Half?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertHalf(s, dl, d, nl, byteBuffer));
+            }
+#endif
+
             throw new NotSupportedException($"unsupported logical system type {typeof(TLogical)} with logical type {logicalType}");
         }
 
@@ -426,6 +440,33 @@ namespace ParquetSharp
             }
         }
 
+#if NET5_0_OR_GREATER
+        public static void ConvertHalf(ReadOnlySpan<Half> source, Span<FixedLenByteArray> destination, ByteBuffer byteBuffer)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                destination[i] = FromHalf(in source[i], byteBuffer);
+            }
+        }
+
+        public static void ConvertHalf(ReadOnlySpan<Half?> source, Span<short> defLevels, Span<FixedLenByteArray> destination, short nullLevel, ByteBuffer byteBuffer)
+        {
+            for (int i = 0, dst = 0; i < source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = FromHalf(value.Value, byteBuffer);
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+#endif
+
         public static void ConvertDateTimeMicros(ReadOnlySpan<DateTime> source, Span<long> destination)
         {
             for (int i = 0; i < source.Length; ++i)
@@ -601,13 +642,6 @@ namespace ParquetSharp
             // as the bytes 00 11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff.
             //
             // But Guid endianess is platform dependent (and ToByteArray() uses a little endian representation).
-            void Swap<T>(ref T lhs, ref T rhs)
-            {
-                var temp = lhs;
-                lhs = rhs;
-                rhs = temp;
-            }
-
             if (BitConverter.IsLittleEndian)
             {
                 // ReSharper disable once PossibleNullReferenceException
@@ -619,6 +653,25 @@ namespace ParquetSharp
 
             return array;
         }
+
+#if NET5_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe FixedLenByteArray FromHalf(in Half value, ByteBuffer byteBuffer)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                return FromFixedLength(value, byteBuffer);
+            }
+            else
+            {
+                // Float-16 values are always stored in little-endian order
+                var array = FromFixedLength(value, byteBuffer);
+                var p = (byte*) array.Pointer;
+                Swap(ref p[0], ref p[1]);
+                return array;
+            }
+        }
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long FromDateTimeMicros(DateTime source)
@@ -681,6 +734,14 @@ namespace ParquetSharp
             *(TValue*) byteArray.Pointer = value;
 
             return new FixedLenByteArray(byteArray.Pointer);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Swap<T>(ref T lhs, ref T rhs)
+        {
+            var tmp = lhs;
+            lhs = rhs;
+            rhs = tmp;
         }
 
         public const long DateTimeOffset = 621355968000000000; // new DateTime(1970, 01, 01).Ticks

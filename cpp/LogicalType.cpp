@@ -106,6 +106,11 @@ extern "C"
 		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::UUID());)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_Float16(const std::shared_ptr<const LogicalType>** logical_type)
+	{
+		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::Float16());)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* LogicalType_None(const std::shared_ptr<const LogicalType>** logical_type)
 	{
 		TRYCATCH(*logical_type = new std::shared_ptr(LogicalType::None());)

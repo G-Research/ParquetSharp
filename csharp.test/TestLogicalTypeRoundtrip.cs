@@ -1631,6 +1631,32 @@ namespace ParquetSharp.Test
                     Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (Int96?) null : new Int96(i, i * i, i * i * i)).ToArray(),
                     HasStatistics = false
                 },
+#if NET5_0_OR_GREATER
+                new ExpectedColumn
+                {
+                    Name = "half_field",
+                    PhysicalType = PhysicalType.FixedLenByteArray,
+                    LogicalType = LogicalType.Float16(),
+                    Length = 2,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 5 == 0 ? Half.NaN : (Half) Math.Sqrt(i)).ToArray(),
+                    Min = (Half) 1.0,
+                    Max = (Half) Math.Sqrt(NumRows - 1),
+                    Converter = (v, _) => LogicalRead.ToHalf((FixedLenByteArray) v)
+                },
+                new ExpectedColumn
+                {
+                    Name = "half?_field",
+                    PhysicalType = PhysicalType.FixedLenByteArray,
+                    LogicalType = LogicalType.Float16(),
+                    Length = 2,
+                    Values = Enumerable.Range(0, NumRows).Select(i => i % 11 == 0 ? (Half?) null : i % 5 == 0 ? Half.NaN : (Half) Math.Sqrt(i)).ToArray(),
+                    NullCount = (NumRows + 10) / 11,
+                    NumValues = NumRows - (NumRows + 10) / 11,
+                    Min = (Half) 1.0,
+                    Max = (Half) Math.Sqrt(NumRows - 1),
+                    Converter = (v, _) => LogicalRead.ToHalf((FixedLenByteArray) v)
+                },
+#endif
                 new ExpectedColumn
                 {
                     Name = "float_field",

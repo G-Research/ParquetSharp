@@ -121,7 +121,7 @@ namespace ParquetSharp.LogicalBatchWriter
             var arrayWriterType = typeof(ArrayWriter<,>).MakeGenericType(containedType, typeof(TPhysical));
             return (ILogicalBatchWriter<TElement>) Activator.CreateInstance(
                 arrayWriterType, writer0, writer1, _physicalWriter, optional,
-                arrayDefinitionLevel, repetitionLevel, firstRepetitionLevel);
+                arrayDefinitionLevel, repetitionLevel, firstRepetitionLevel)!;
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace ParquetSharp.LogicalBatchWriter
 
             var nestedWriterType = typeof(NestedWriter<>).MakeGenericType(nestedType);
             return (ILogicalBatchWriter<TElement>) Activator.CreateInstance(
-                nestedWriterType, firstInnerWriter, innerWriter, _buffers.Length);
+                nestedWriterType, firstInnerWriter, innerWriter, _buffers.Length)!;
         }
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace ParquetSharp.LogicalBatchWriter
             var optionalNestedWriterType = typeof(OptionalNestedWriter<,>).MakeGenericType(nestedType, typeof(TPhysical));
             return (ILogicalBatchWriter<TElement>) Activator.CreateInstance(
                 optionalNestedWriterType, firstInnerWriter, innerWriter, _physicalWriter, _buffers,
-                definitionLevel, repetitionLevel, firstRepetitionLevel);
+                definitionLevel, repetitionLevel, firstRepetitionLevel)!;
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace ParquetSharp.LogicalBatchWriter
             return genericMethod.MakeGenericMethod(elementType).Invoke(this, new object[]
             {
                 schemaNodes, nullDefinitionLevel, repetitionLevel, firstRepetitionLevel
-            });
+            })!;
         }
 
         private readonly ByteBuffer? _byteBuffer;
