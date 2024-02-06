@@ -70,5 +70,10 @@ namespace ParquetSharp
         /// Write the page index
         /// </summary>
         public static bool? WritePageIndex { get; set; }
+
+        /// <summary>
+        /// Write CRC page checksums
+        /// </summary>
+        public static bool? PageChecksumEnabled { get; set; }
     }
 }

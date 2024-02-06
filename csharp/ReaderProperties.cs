@@ -59,6 +59,23 @@ namespace ParquetSharp
             GC.KeepAlive(Handle);
         }
 
+        /// <summary>
+        /// Whether page checksums are verified during reading to check for data corruption
+        /// </summary>
+        public bool PageChecksumVerification => ExceptionInfo.Return<bool>(Handle, ReaderProperties_Page_Checksum_Verification);
+
+        public void EnablePageChecksumVerification()
+        {
+            ExceptionInfo.Check(ReaderProperties_Enable_Page_Checksum_Verification(Handle.IntPtr));
+            GC.KeepAlive(Handle);
+        }
+
+        public void DisablePageChecksumVerification()
+        {
+            ExceptionInfo.Check(ReaderProperties_Disable_Page_Checksum_Verification(Handle.IntPtr));
+            GC.KeepAlive(Handle);
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Get_Default_Reader_Properties(out IntPtr readerProperties);
 
@@ -85,6 +102,15 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Get_File_Decryption_Properties(IntPtr readerProperties, out IntPtr fileDecryptionProperties);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_Page_Checksum_Verification(IntPtr readerProperties, [MarshalAs(UnmanagedType.I1)] out bool enabled);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_Enable_Page_Checksum_Verification(IntPtr readerProperties);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_Disable_Page_Checksum_Verification(IntPtr readerProperties);
 
         internal readonly ParquetHandle Handle;
     }

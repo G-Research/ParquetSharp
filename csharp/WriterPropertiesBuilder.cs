@@ -302,6 +302,26 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Enable writing CRC checksums for data pages
+        /// </summary>
+        public WriterPropertiesBuilder EnablePageChecksum()
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Page_Checksum(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Disable writing CRC checksums for data pages
+        /// </summary>
+        public WriterPropertiesBuilder DisablePageChecksum()
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Page_Checksum(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
         private void ApplyDefaults()
         {
             OnDefaultProperty(DefaultWriterProperties.EnableDictionary, enabled =>
@@ -355,6 +375,18 @@ namespace ParquetSharp
                 else
                 {
                     DisableWritePageIndex();
+                }
+            });
+
+            OnDefaultProperty(DefaultWriterProperties.PageChecksumEnabled, checksumEnabled =>
+            {
+                if (checksumEnabled)
+                {
+                    EnablePageChecksum();
+                }
+                else
+                {
+                    DisablePageChecksum();
                 }
             });
         }
@@ -494,6 +526,12 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Disable_Write_Page_Index_By_ColumnPath(IntPtr builder, IntPtr path);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Enable_Page_Checksum(IntPtr builder);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Disable_Page_Checksum(IntPtr builder);
 
         private readonly ParquetHandle _handle;
     }

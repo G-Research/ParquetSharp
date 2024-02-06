@@ -199,4 +199,14 @@ extern "C"
 	{
 		TRYCATCH(builder->disable_write_page_index(*path);)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Enable_Page_Checksum(WriterProperties::Builder* builder)
+	{
+		TRYCATCH(builder->enable_page_checksum();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Disable_Page_Checksum(WriterProperties::Builder* builder)
+	{
+		TRYCATCH(builder->disable_page_checksum();)
+	}
 }
