@@ -164,7 +164,7 @@ private sealed class ReadConverterFactory : LogicalReadConverterFactory
 {
     public override Delegate? GetDirectReader<TLogical, TPhysical>()
     {
-        // Optional: the following is an optimisation and not stricly needed (but helps with speed).
+        // Optional: the following is an optimisation and not strictly needed (but helps with speed).
         // Since VolumeInDollars is bitwise identical to float, we can read the values in-place.
         if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalRead.GetDirectReader<VolumeInDollars, float>();
         return base.GetDirectReader<TLogical, TPhysical>();

@@ -97,6 +97,7 @@ For more detailed information on how to use ParquetSharp, see the following docu
 * [Reading and writing Arrow data](docs/Arrow.md) &mdash; how to read and write data using the [Apache Arrow format](https://arrow.apache.org/)
 * [Row-oriented API](docs/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
 * [Custom types](docs/TypeFactories.md) &mdash; how to override the mapping between .NET and Parquet types
+* [Writing TimeSpan data](docs/TimeSpan.md) &mdash; interoperability with other libraries when writing TimeSpan data
 * [Use from PowerShell](docs/PowerShell.md)
 
 ## Rationale
