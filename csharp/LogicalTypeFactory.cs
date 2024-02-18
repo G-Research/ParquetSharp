@@ -254,6 +254,12 @@ namespace ParquetSharp
                 {typeof(TimeSpan?), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Optional, PhysicalType.Int64)},
                 {typeof(TimeSpanNanos), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), Repetition.Required, PhysicalType.Int64)},
                 {typeof(TimeSpanNanos?), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), Repetition.Optional, PhysicalType.Int64)},
+#if NET6_0_OR_GREATER
+                {typeof(TimeOnly), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Required, PhysicalType.Int64)},
+                {typeof(TimeOnly?), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Optional, PhysicalType.Int64)},
+                {typeof(DateOnly), (LogicalType.Date(), Repetition.Required, PhysicalType.Int32)},
+                {typeof(DateOnly?), (LogicalType.Date(), Repetition.Optional, PhysicalType.Int32)},
+#endif
                 {typeof(string), (LogicalType.String(), Repetition.Optional, PhysicalType.ByteArray)},
                 {typeof(byte[]), (LogicalType.None(), Repetition.Optional, PhysicalType.ByteArray)}
             };

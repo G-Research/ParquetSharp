@@ -199,6 +199,40 @@ namespace ParquetSharp
                 return LogicalWrite.GetNullableNativeConverter<TimeSpanNanos, long>();
             }
 
+#if NET6_0_OR_GREATER
+            if (typeof(TLogical) == typeof(DateOnly))
+            {
+                return (LogicalWrite<DateOnly, int>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDateOnly(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(DateOnly?))
+            {
+                return (LogicalWrite<DateOnly?, int>.Converter) LogicalWrite.ConvertDateOnly;
+            }
+
+            if (typeof(TLogical) == typeof(TimeOnly))
+            {
+                switch (((TimeLogicalType) logicalType).TimeUnit)
+                {
+                    case TimeUnit.Millis:
+                        return (LogicalWrite<TimeOnly, int>.Converter) ((s, _, d, _) => LogicalWrite.ConvertTimeOnlyMillis(s, d));
+                    case TimeUnit.Micros:
+                        return (LogicalWrite<TimeOnly, long>.Converter) ((s, _, d, _) => LogicalWrite.ConvertTimeOnlyMicros(s, d));
+                }
+            }
+
+            if (typeof(TLogical) == typeof(TimeOnly?))
+            {
+                switch (((TimeLogicalType) logicalType).TimeUnit)
+                {
+                    case TimeUnit.Millis:
+                        return (LogicalWrite<TimeOnly?, int>.Converter) LogicalWrite.ConvertTimeOnlyMillis;
+                    case TimeUnit.Micros:
+                        return (LogicalWrite<TimeOnly?, long>.Converter) LogicalWrite.ConvertTimeOnlyMicros;
+                }
+            }
+#endif
+
             if (typeof(TLogical) == typeof(string))
             {
                 if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
@@ -567,6 +601,83 @@ namespace ParquetSharp
             }
         }
 
+#if NET6_0_OR_GREATER
+        public static void ConvertDateOnly(ReadOnlySpan<DateOnly> source, Span<int> destination)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                destination[i] = FromDateOnly(source[i]);
+            }
+        }
+
+        public static void ConvertDateOnly(ReadOnlySpan<DateOnly?> source, Span<short> defLevels, Span<int> destination, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i < source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = FromDateOnly(value.Value);
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        public static void ConvertTimeOnlyMicros(ReadOnlySpan<TimeOnly> source, Span<long> destination)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                destination[i] = FromTimeOnlyMicros(source[i]);
+            }
+        }
+
+        public static void ConvertTimeOnlyMicros(ReadOnlySpan<TimeOnly?> source, Span<short> defLevels, Span<long> destination, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i < source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = FromTimeOnlyMicros(value.Value);
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+
+        public static void ConvertTimeOnlyMillis(ReadOnlySpan<TimeOnly> source, Span<int> destination)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                destination[i] = FromTimeOnlyMillis(source[i]);
+            }
+        }
+
+        public static void ConvertTimeOnlyMillis(ReadOnlySpan<TimeOnly?> source, Span<short> defLevels, Span<int> destination, short nullLevel)
+        {
+            for (int i = 0, dst = 0; i < source.Length; ++i)
+            {
+                var value = source[i];
+                if (value == null)
+                {
+                    defLevels[i] = nullLevel;
+                }
+                else
+                {
+                    destination[dst++] = FromTimeOnlyMillis(value.Value);
+                    defLevels[i] = (short) (nullLevel + 1);
+                }
+            }
+        }
+#endif
+
         public static void ConvertString(ReadOnlySpan<string> source, Span<short> defLevels, Span<ByteArray> destination, short nullLevel, ByteBuffer byteBuffer)
         {
             for (int i = 0, dst = 0; i < source.Length; ++i)
@@ -743,6 +854,28 @@ namespace ParquetSharp
             lhs = rhs;
             rhs = tmp;
         }
+
+#if NET6_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int FromDateOnly(DateOnly source)
+        {
+            return source.DayNumber - BaseDateOnlyNumber;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long FromTimeOnlyMicros(TimeOnly source)
+        {
+            return source.Ticks / (TimeSpan.TicksPerMillisecond / 1000);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int FromTimeOnlyMillis(TimeOnly source)
+        {
+            return (int) (source.Ticks / TimeSpan.TicksPerMillisecond);
+        }
+
+        internal static readonly int BaseDateOnlyNumber = new DateOnly(1970, 1, 1).DayNumber;
+#endif
 
         public const long DateTimeOffset = 621355968000000000; // new DateTime(1970, 01, 01).Ticks
     }
