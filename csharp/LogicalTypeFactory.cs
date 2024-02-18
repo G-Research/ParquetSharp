@@ -16,6 +16,22 @@ namespace ParquetSharp
             _primitiveMapping = primitiveMapping;
         }
 
+#if NET6_0_OR_GREATER
+        /// <summary>
+        /// Whether the Parquet Date logical type should be mapped to the .NET DateOnly type by default.
+        /// If false (the default), then the ParquetSharp.Date type is used.
+        /// </summary>
+        public bool DateAsDateOnly { get; set; } = false;
+
+        /// <summary>
+        /// Whether the Parquet Time logical type should be mapped to the .NET TimeOnly type by default,
+        /// for millisecond and microsecond precision.
+        /// If false (the default), then the TimeSpan type is used.
+        /// For nanosecond precision, ParquetSharp.TimeSpanNanos is always used.
+        /// </summary>
+        public bool TimeAsTimeOnly { get; set; } = false;
+#endif
+
         /// <summary>
         /// Get the mapping from the C# types to the Parquet logical and physical types.
         /// </summary>
@@ -71,15 +87,17 @@ namespace ParquetSharp
             var nullable = repetition == Repetition.Optional;
 
             // Check for an exact match in the default primitive mapping.
-            var match = _primitiveMapping
-                .FirstOrDefault(e =>
+            // Note that there may be multiple matches (eg. TimeSpan or TimeOnly for Time logical type)
+            var matches = _primitiveMapping
+                .Where(e =>
                     e.Value.physicalType == physicalType &&
                     e.Value.repetition == repetition &&
-                    (e.Value.logicalType?.Equals(logicalType) ?? false));
+                    (e.Value.logicalType?.Equals(logicalType) ?? false))
+                .ToArray();
 
-            if (match.Key != null)
+            if (matches.Length == 1)
             {
-                return (DefaultPhysicalTypeMapping[physicalType], match.Key);
+                return (DefaultPhysicalTypeMapping[physicalType], matches[0].Key);
             }
 
             if (logicalType is NoneLogicalType or NullLogicalType)
@@ -140,8 +158,31 @@ namespace ParquetSharp
                 }
             }
 
+            if (logicalType is DateLogicalType)
+            {
+#if NET6_0_OR_GREATER
+                if (DateAsDateOnly)
+                {
+                    return (typeof(int), nullable ? typeof(DateOnly?) : typeof(DateOnly));
+                }
+#endif
+                return (typeof(int), nullable ? typeof(Date?) : typeof(Date));
+            }
+
             if (logicalType is TimeLogicalType timeLogicalType)
             {
+#if NET6_0_OR_GREATER
+                if (TimeAsTimeOnly)
+                {
+                    switch (timeLogicalType.TimeUnit)
+                    {
+                        case TimeUnit.Millis:
+                            return (typeof(int), nullable ? typeof(TimeOnly?) : typeof(TimeOnly));
+                        case TimeUnit.Micros:
+                            return (typeof(long), nullable ? typeof(TimeOnly?) : typeof(TimeOnly));
+                    }
+                }
+#endif
                 switch (timeLogicalType.TimeUnit)
                 {
                     case TimeUnit.Millis:

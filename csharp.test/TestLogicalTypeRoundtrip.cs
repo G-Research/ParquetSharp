@@ -120,7 +120,7 @@ namespace ParquetSharp.Test
 
 #if NET6_0_OR_GREATER
         [Test]
-        public static void TestRoundTripDateOnly()
+        public static void TestRoundTripDateOnly([Values] bool useReaderOverride)
         {
             var schemaColumns = new Column[]
             {
@@ -157,15 +157,26 @@ namespace ParquetSharp.Test
             using (var inStream = new BufferReader(buffer))
             {
                 using var fileReader = new ParquetFileReader(inStream);
+                if (!useReaderOverride)
+                {
+                    fileReader.LogicalTypeFactory = new LogicalTypeFactory
+                    {
+                        DateAsDateOnly = true,
+                    };
+                }
                 using var rowGroupReader = fileReader.RowGroup(0);
                 {
                     using var columnReader = rowGroupReader.Column(0);
-                    using var logicalReader = columnReader.LogicalReaderOverride<DateOnly>();
+                    using var logicalReader = useReaderOverride
+                        ? columnReader.LogicalReaderOverride<DateOnly>()
+                        : columnReader.LogicalReader<DateOnly>();
                     readDateValues = logicalReader.ReadAll(numRows);
                 }
                 {
                     using var columnReader = rowGroupReader.Column(1);
-                    using var logicalReader = columnReader.LogicalReaderOverride<DateOnly?>();
+                    using var logicalReader = useReaderOverride
+                        ? columnReader.LogicalReaderOverride<DateOnly?>()
+                        : columnReader.LogicalReader<DateOnly?>();
                     readNullableDateValues = logicalReader.ReadAll(numRows);
                 }
             }
@@ -174,10 +185,11 @@ namespace ParquetSharp.Test
             Assert.AreEqual(nullableDateValues, readNullableDateValues);
         }
 
-        [TestCase(null)]
-        [TestCase(TimeUnit.Micros)]
-        [TestCase(TimeUnit.Millis)]
-        public static void TestRoundTripTimeOnly(TimeUnit? timeUnit)
+        [TestCase(null, true)]
+        [TestCase(TimeUnit.Micros, true)]
+        [TestCase(TimeUnit.Millis, true)]
+        [TestCase(TimeUnit.Millis, false)]
+        public static void TestRoundTripTimeOnly(TimeUnit? timeUnit, bool useReaderOverride)
         {
             LogicalType? logicalTypeOverride = null;
             if (timeUnit.HasValue)
@@ -219,21 +231,103 @@ namespace ParquetSharp.Test
             using (var inStream = new BufferReader(buffer))
             {
                 using var fileReader = new ParquetFileReader(inStream);
+                if (!useReaderOverride)
+                {
+                    fileReader.LogicalTypeFactory = new LogicalTypeFactory
+                    {
+                        TimeAsTimeOnly = true,
+                    };
+                }
                 using var rowGroupReader = fileReader.RowGroup(0);
                 {
                     using var columnReader = rowGroupReader.Column(0);
-                    using var logicalReader = columnReader.LogicalReaderOverride<TimeOnly>();
+                    using var logicalReader = useReaderOverride
+                        ? columnReader.LogicalReaderOverride<TimeOnly>()
+                        : columnReader.LogicalReader<TimeOnly>();
                     readTimeValues = logicalReader.ReadAll(numRows);
                 }
                 {
                     using var columnReader = rowGroupReader.Column(1);
-                    using var logicalReader = columnReader.LogicalReaderOverride<TimeOnly?>();
+                    using var logicalReader = useReaderOverride
+                        ? columnReader.LogicalReaderOverride<TimeOnly?>()
+                        : columnReader.LogicalReader<TimeOnly?>();
                     readNullableTimeValues = logicalReader.ReadAll(numRows);
                 }
             }
 
             Assert.AreEqual(timeValues, readTimeValues);
             Assert.AreEqual(nullableTimeValues, readNullableTimeValues);
+        }
+
+        [Test]
+        [NonParallelizable]
+        public static void TestSetTimeOnlyAndDateOnlyOnDefaultTypeFactory()
+        {
+            var defaultDateAsDateOnly = LogicalTypeFactory.Default.DateAsDateOnly;
+            var defaultTimeAsTimeOnly = LogicalTypeFactory.Default.TimeAsTimeOnly;
+
+            try
+            {
+                LogicalTypeFactory.Default.DateAsDateOnly = true;
+                LogicalTypeFactory.Default.TimeAsTimeOnly = true;
+
+                // Create schema directly rather than using the column abstraction,
+                // to test that this uses the correct types from the type factory when writing.
+                using var dateNode = new PrimitiveNode("date", Repetition.Required, LogicalType.Date(), PhysicalType.Int32);
+                using var timeNode = new PrimitiveNode("time", Repetition.Required, LogicalType.Time(true, TimeUnit.Millis), PhysicalType.Int32);
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {dateNode, timeNode});
+
+                const int numRows = 100;
+                var timeValues = Enumerable.Range(0, numRows)
+                    .Select(i => new TimeOnly(0, 0, 0).Add(TimeSpan.FromSeconds(i)))
+                    .ToArray();
+                var dateValues = Enumerable.Range(0, numRows)
+                    .Select(i => new DateOnly(2024, 1, 1).AddDays(i))
+                    .ToArray();
+
+                using var buffer = new ResizableBuffer();
+                using (var outStream = new BufferOutputStream(buffer))
+                {
+
+                    using var builder = new WriterPropertiesBuilder();
+                    using var writerProperties = builder.Build();
+                    using var fileWriter = new ParquetFileWriter(outStream, schemaNode, writerProperties);
+                    using var rowGroupWriter = fileWriter.AppendRowGroup();
+                    {
+                        using var dateWriter = rowGroupWriter.NextColumn().LogicalWriter<DateOnly>();
+                        dateWriter.WriteBatch(dateValues);
+                        using var timeWriter = rowGroupWriter.NextColumn().LogicalWriter<TimeOnly>();
+                        timeWriter.WriteBatch(timeValues);
+                    }
+                    fileWriter.Close();
+                }
+
+                DateOnly[] readDateValues;
+                TimeOnly[] readTimeValues;
+                using (var inStream = new BufferReader(buffer))
+                {
+                    using var fileReader = new ParquetFileReader(inStream);
+                    using var rowGroupReader = fileReader.RowGroup(0);
+                    {
+                        using var columnReader = rowGroupReader.Column(0);
+                        using var logicalReader = columnReader.LogicalReader<DateOnly>();
+                        readDateValues = logicalReader.ReadAll(numRows);
+                    }
+                    {
+                        using var columnReader = rowGroupReader.Column(1);
+                        using var logicalReader = columnReader.LogicalReader<TimeOnly>();
+                        readTimeValues = logicalReader.ReadAll(numRows);
+                    }
+                }
+
+                Assert.AreEqual(dateValues, readDateValues);
+                Assert.AreEqual(timeValues, readTimeValues);
+            }
+            finally
+            {
+                LogicalTypeFactory.Default.DateAsDateOnly = defaultDateAsDateOnly;
+                LogicalTypeFactory.Default.TimeAsTimeOnly = defaultTimeAsTimeOnly;
+            }
         }
 #endif
 
