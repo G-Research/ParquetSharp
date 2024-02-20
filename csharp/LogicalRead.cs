@@ -286,6 +286,43 @@ namespace ParquetSharp
                 return LogicalRead.GetNullableNativeConverter<TimeSpanNanos, long>();
             }
 
+#if NET6_0_OR_GREATER
+            if (typeof(TLogical) == typeof(DateOnly))
+            {
+                return (LogicalRead<DateOnly, int>.Converter) ((s, _, d, _) => LogicalRead.ConvertDateOnly(s, d));
+            }
+
+            if (typeof(TLogical) == typeof(DateOnly?))
+            {
+                return (LogicalRead<DateOnly?, int>.Converter) LogicalRead.ConvertDateOnly;
+            }
+
+            if (typeof(TLogical) == typeof(TimeOnly))
+            {
+                switch (((TimeLogicalType) logicalType).TimeUnit)
+                {
+                    case TimeUnit.Millis:
+                        return (LogicalRead<TimeOnly, int>.Converter) ((s, _, d, _) => LogicalRead.ConvertTimeOnlyMillis(s, d));
+                    case TimeUnit.Micros:
+                        return (LogicalRead<TimeOnly, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertTimeOnlyMicros(s, d));
+                }
+            }
+
+            if (typeof(TLogical) == typeof(TimeOnly?))
+            {
+                var timeLogicalType = (TimeLogicalType) logicalType;
+                var timeUnit = timeLogicalType.TimeUnit;
+
+                switch (timeUnit)
+                {
+                    case TimeUnit.Millis:
+                        return (LogicalRead<TimeOnly?, int>.Converter) LogicalRead.ConvertTimeOnlyMillis;
+                    case TimeUnit.Micros:
+                        return (LogicalRead<TimeOnly?, long>.Converter) LogicalRead.ConvertTimeOnlyMicros;
+                }
+            }
+#endif
+
             if (typeof(TLogical) == typeof(string))
             {
                 var byteArrayCache = new ByteArrayReaderCache<TPhysical, TLogical>(columnChunkMetaData);
@@ -572,6 +609,56 @@ namespace ParquetSharp
             }
         }
 
+#if NET6_0_OR_GREATER
+        public static void ConvertDateOnly(ReadOnlySpan<int> source, Span<DateOnly> destination)
+        {
+            for (int i = 0; i < destination.Length; ++i)
+            {
+                destination[i] = ToDateOnly(source[i]);
+            }
+        }
+
+        public static void ConvertDateOnly(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<DateOnly?> destination, short definedLevel)
+        {
+            for (int i = 0, src = 0; i < destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] != definedLevel ? default(DateOnly?) : ToDateOnly(source[src++]);
+            }
+        }
+
+        public static void ConvertTimeOnlyMicros(ReadOnlySpan<long> source, Span<TimeOnly> destination)
+        {
+            for (int i = 0; i < destination.Length; ++i)
+            {
+                destination[i] = ToTimeOnlyMicros(source[i]);
+            }
+        }
+
+        public static void ConvertTimeOnlyMicros(ReadOnlySpan<long> source, ReadOnlySpan<short> defLevels, Span<TimeOnly?> destination, short definedLevel)
+        {
+            for (int i = 0, src = 0; i < destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] != definedLevel ? default(TimeOnly?) : ToTimeOnlyMicros(source[src++]);
+            }
+        }
+
+        public static void ConvertTimeOnlyMillis(ReadOnlySpan<int> source, Span<TimeOnly> destination)
+        {
+            for (int i = 0; i < destination.Length; ++i)
+            {
+                destination[i] = ToTimeOnlyMillis(source[i]);
+            }
+        }
+
+        public static void ConvertTimeOnlyMillis(ReadOnlySpan<int> source, ReadOnlySpan<short> defLevels, Span<TimeOnly?> destination, short definedLevel)
+        {
+            for (int i = 0, src = 0; i < destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] != definedLevel ? default(TimeOnly?) : ToTimeOnlyMillis(source[src++]);
+            }
+        }
+#endif
+
         public static void ConvertString(ReadOnlySpan<ByteArray> source, ReadOnlySpan<short> defLevels, Span<string?> destination, short definedLevel, ByteArrayReaderCache<ByteArray, string> byteArrayCache)
         {
             for (int i = 0, src = 0; i < destination.Length; ++i)
@@ -736,6 +823,28 @@ namespace ParquetSharp
 
             return array;
         }
+
+#if NET6_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static DateOnly ToDateOnly(int source)
+        {
+            return DateOnly.FromDayNumber(BaseDateOnlyNumber + source);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TimeOnly ToTimeOnlyMicros(long source)
+        {
+            return TimeOnly.FromTimeSpan(TimeSpan.FromTicks(source * (TimeSpan.TicksPerMillisecond / 1000)));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TimeOnly ToTimeOnlyMillis(int source)
+        {
+            return TimeOnly.FromTimeSpan(TimeSpan.FromTicks(source * TimeSpan.TicksPerMillisecond));
+        }
+
+        private static readonly int BaseDateOnlyNumber = LogicalWrite.BaseDateOnlyNumber;
+#endif
 
         public const long DateTimeOffset = LogicalWrite.DateTimeOffset;
     }

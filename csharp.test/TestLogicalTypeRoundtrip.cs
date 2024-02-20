@@ -118,6 +118,219 @@ namespace ParquetSharp.Test
             }
         }
 
+#if NET6_0_OR_GREATER
+        [Test]
+        public static void TestRoundTripDateOnly([Values] bool useReaderOverride)
+        {
+            var schemaColumns = new Column[]
+            {
+                new Column<DateOnly>("date"),
+                new Column<DateOnly?>("nullable_date"),
+            };
+
+            const int numRows = 100;
+            var dateValues = Enumerable.Range(0, numRows)
+                .Select(i => new DateOnly(2024, 1, 1).AddDays(i))
+                .ToArray();
+            var nullableDateValues = Enumerable.Range(0, numRows)
+                .Select(i => i % 5 == 1 ? (DateOnly?) null : new DateOnly(2024, 1, 1).AddDays(i))
+                .ToArray();
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var fileWriter = new ParquetFileWriter(outStream, schemaColumns);
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                {
+                    using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<DateOnly>();
+                    columnWriter.WriteBatch(dateValues);
+                }
+                {
+                    using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<DateOnly?>();
+                    columnWriter.WriteBatch(nullableDateValues);
+                }
+                fileWriter.Close();
+            }
+
+            DateOnly[] readDateValues;
+            DateOnly?[] readNullableDateValues;
+            using (var inStream = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(inStream);
+                if (!useReaderOverride)
+                {
+                    fileReader.LogicalTypeFactory = new LogicalTypeFactory
+                    {
+                        DateAsDateOnly = true,
+                    };
+                }
+                using var rowGroupReader = fileReader.RowGroup(0);
+                {
+                    using var columnReader = rowGroupReader.Column(0);
+                    using var logicalReader = useReaderOverride
+                        ? columnReader.LogicalReaderOverride<DateOnly>()
+                        : columnReader.LogicalReader<DateOnly>();
+                    readDateValues = logicalReader.ReadAll(numRows);
+                }
+                {
+                    using var columnReader = rowGroupReader.Column(1);
+                    using var logicalReader = useReaderOverride
+                        ? columnReader.LogicalReaderOverride<DateOnly?>()
+                        : columnReader.LogicalReader<DateOnly?>();
+                    readNullableDateValues = logicalReader.ReadAll(numRows);
+                }
+            }
+
+            Assert.AreEqual(dateValues, readDateValues);
+            Assert.AreEqual(nullableDateValues, readNullableDateValues);
+        }
+
+        [TestCase(null, true)]
+        [TestCase(TimeUnit.Micros, true)]
+        [TestCase(TimeUnit.Millis, true)]
+        [TestCase(TimeUnit.Millis, false)]
+        public static void TestRoundTripTimeOnly(TimeUnit? timeUnit, bool useReaderOverride)
+        {
+            LogicalType? logicalTypeOverride = null;
+            if (timeUnit.HasValue)
+            {
+                logicalTypeOverride = LogicalType.Time(isAdjustedToUtc: true, timeUnit.Value);
+            }
+            var schemaColumns = new Column[]
+            {
+                new Column<TimeOnly>("time", logicalTypeOverride: logicalTypeOverride),
+                new Column<TimeOnly?>("nullable_time", logicalTypeOverride: logicalTypeOverride),
+            };
+
+            const int numRows = 100;
+            var timeValues = Enumerable.Range(0, numRows)
+                .Select(i => new TimeOnly(0, 0, 0).Add(TimeSpan.FromSeconds(i)))
+                .ToArray();
+            var nullableTimeValues = Enumerable.Range(0, numRows)
+                .Select(i => i % 5 == 1 ? (TimeOnly?) null : new TimeOnly(0, 0, 0).Add(TimeSpan.FromSeconds(i)))
+                .ToArray();
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var fileWriter = new ParquetFileWriter(outStream, schemaColumns);
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                {
+                    using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<TimeOnly>();
+                    columnWriter.WriteBatch(timeValues);
+                }
+                {
+                    using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<TimeOnly?>();
+                    columnWriter.WriteBatch(nullableTimeValues);
+                }
+                fileWriter.Close();
+            }
+
+            TimeOnly[] readTimeValues;
+            TimeOnly?[] readNullableTimeValues;
+            using (var inStream = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(inStream);
+                if (!useReaderOverride)
+                {
+                    fileReader.LogicalTypeFactory = new LogicalTypeFactory
+                    {
+                        TimeAsTimeOnly = true,
+                    };
+                }
+                using var rowGroupReader = fileReader.RowGroup(0);
+                {
+                    using var columnReader = rowGroupReader.Column(0);
+                    using var logicalReader = useReaderOverride
+                        ? columnReader.LogicalReaderOverride<TimeOnly>()
+                        : columnReader.LogicalReader<TimeOnly>();
+                    readTimeValues = logicalReader.ReadAll(numRows);
+                }
+                {
+                    using var columnReader = rowGroupReader.Column(1);
+                    using var logicalReader = useReaderOverride
+                        ? columnReader.LogicalReaderOverride<TimeOnly?>()
+                        : columnReader.LogicalReader<TimeOnly?>();
+                    readNullableTimeValues = logicalReader.ReadAll(numRows);
+                }
+            }
+
+            Assert.AreEqual(timeValues, readTimeValues);
+            Assert.AreEqual(nullableTimeValues, readNullableTimeValues);
+        }
+
+        [Test]
+        [NonParallelizable]
+        public static void TestSetTimeOnlyAndDateOnlyOnDefaultTypeFactory()
+        {
+            var defaultDateAsDateOnly = LogicalTypeFactory.Default.DateAsDateOnly;
+            var defaultTimeAsTimeOnly = LogicalTypeFactory.Default.TimeAsTimeOnly;
+
+            try
+            {
+                LogicalTypeFactory.Default.DateAsDateOnly = true;
+                LogicalTypeFactory.Default.TimeAsTimeOnly = true;
+
+                // Create schema directly rather than using the column abstraction,
+                // to test that this uses the correct types from the type factory when writing.
+                using var dateNode = new PrimitiveNode("date", Repetition.Required, LogicalType.Date(), PhysicalType.Int32);
+                using var timeNode = new PrimitiveNode("time", Repetition.Required, LogicalType.Time(true, TimeUnit.Millis), PhysicalType.Int32);
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {dateNode, timeNode});
+
+                const int numRows = 100;
+                var timeValues = Enumerable.Range(0, numRows)
+                    .Select(i => new TimeOnly(0, 0, 0).Add(TimeSpan.FromSeconds(i)))
+                    .ToArray();
+                var dateValues = Enumerable.Range(0, numRows)
+                    .Select(i => new DateOnly(2024, 1, 1).AddDays(i))
+                    .ToArray();
+
+                using var buffer = new ResizableBuffer();
+                using (var outStream = new BufferOutputStream(buffer))
+                {
+
+                    using var builder = new WriterPropertiesBuilder();
+                    using var writerProperties = builder.Build();
+                    using var fileWriter = new ParquetFileWriter(outStream, schemaNode, writerProperties);
+                    using var rowGroupWriter = fileWriter.AppendRowGroup();
+                    {
+                        using var dateWriter = rowGroupWriter.NextColumn().LogicalWriter<DateOnly>();
+                        dateWriter.WriteBatch(dateValues);
+                        using var timeWriter = rowGroupWriter.NextColumn().LogicalWriter<TimeOnly>();
+                        timeWriter.WriteBatch(timeValues);
+                    }
+                    fileWriter.Close();
+                }
+
+                DateOnly[] readDateValues;
+                TimeOnly[] readTimeValues;
+                using (var inStream = new BufferReader(buffer))
+                {
+                    using var fileReader = new ParquetFileReader(inStream);
+                    using var rowGroupReader = fileReader.RowGroup(0);
+                    {
+                        using var columnReader = rowGroupReader.Column(0);
+                        using var logicalReader = columnReader.LogicalReader<DateOnly>();
+                        readDateValues = logicalReader.ReadAll(numRows);
+                    }
+                    {
+                        using var columnReader = rowGroupReader.Column(1);
+                        using var logicalReader = columnReader.LogicalReader<TimeOnly>();
+                        readTimeValues = logicalReader.ReadAll(numRows);
+                    }
+                }
+
+                Assert.AreEqual(dateValues, readDateValues);
+                Assert.AreEqual(timeValues, readTimeValues);
+            }
+            finally
+            {
+                LogicalTypeFactory.Default.DateAsDateOnly = defaultDateAsDateOnly;
+                LogicalTypeFactory.Default.TimeAsTimeOnly = defaultTimeAsTimeOnly;
+            }
+        }
+#endif
+
         [TestCase(DateTimeKind.Utc, TimeUnit.Micros)]
         [TestCase(DateTimeKind.Utc, TimeUnit.Millis)]
         [TestCase(DateTimeKind.Unspecified, TimeUnit.Micros)]
