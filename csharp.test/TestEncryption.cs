@@ -109,7 +109,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestEncryptJustOneColumn()
         {
-            // Case where the footer is unencrypted and all columns are encrypted all with different keys.
+            // Case where the footer is unencrypted and only a single column is encrypted
             using var buffer = new ResizableBuffer();
 
             using (var output = new BufferOutputStream(buffer))
@@ -151,6 +151,29 @@ namespace ParquetSharp.Test
                     Assert.AreEqual(Ids, idReader.ReadAll(numRows));
                 }
             }
+        }
+
+        [Test]
+        public static void TestVerifyAadPrefix([Values] bool useVerifier)
+        {
+            FileDecryptionProperties? GetDecryptionProperties() =>
+                useVerifier ? CreateDecryptWithAadPrefixVerifierProperties() : CreateDecryptWithAadPrefixProperties();
+
+            AssertEncryptionRoundtrip(CreateEncryptWithAadPrefixProperties, GetDecryptionProperties);
+        }
+
+        [Test]
+        public static void TestVerifyInvalidAadPrefix([Values] bool useVerifier)
+        {
+            FileDecryptionProperties? GetDecryptionProperties() =>
+                useVerifier ? CreateDecryptWithAadPrefixVerifierProperties() : CreateDecryptWithAadPrefixProperties();
+
+            var exception = Assert.Throws<ParquetException>(() => AssertEncryptionRoundtrip(
+                CreateEncryptWithDifferentAadPrefixProperties, GetDecryptionProperties));
+            var expectedMessage = useVerifier
+                ? "Got unexpected AAD prefix: unexpected-prefix"
+                : "AAD Prefix in file and in properties is not the same";
+            Assert.That(exception?.Message, Contains.Substring(expectedMessage));
         }
 
         // Encrypt Properties
@@ -224,6 +247,26 @@ namespace ParquetSharp.Test
                 .Build();
         }
 
+        private static FileEncryptionProperties CreateEncryptWithAadPrefixProperties()
+        {
+            using var builder = new FileEncryptionPropertiesBuilder(Key0);
+
+            return builder
+                .FooterKeyMetadata("Key0")
+                .AadPrefix("expected-prefix")
+                .Build();
+        }
+
+        private static FileEncryptionProperties CreateEncryptWithDifferentAadPrefixProperties()
+        {
+            using var builder = new FileEncryptionPropertiesBuilder(Key0);
+
+            return builder
+                .FooterKeyMetadata("Key0")
+                .AadPrefix("unexpected-prefix")
+                .Build();
+        }
+
         // Decrypt Properties
 
         private static FileDecryptionProperties CreateDecryptAllSameKeyProperties()
@@ -241,6 +284,26 @@ namespace ParquetSharp.Test
 
             return builder
                 .KeyRetriever(new TestRetriever())
+                .Build();
+        }
+
+        private static FileDecryptionProperties CreateDecryptWithAadPrefixProperties()
+        {
+            using var builder = new FileDecryptionPropertiesBuilder();
+
+            return builder
+                .KeyRetriever(new TestRetriever())
+                .AadPrefix("expected-prefix")
+                .Build();
+        }
+
+        private static FileDecryptionProperties CreateDecryptWithAadPrefixVerifierProperties()
+        {
+            using var builder = new FileDecryptionPropertiesBuilder();
+
+            return builder
+                .KeyRetriever(new TestRetriever())
+                .AadPrefixVerifier(new TestAadVerifier())
                 .Build();
         }
 
@@ -330,6 +393,17 @@ namespace ParquetSharp.Test
                     case "Key1": return Key1;
                     case "Key2": return Key2;
                     default: throw new KeyNotFoundException($"'{keyMetadata}' metadata does not match any encryption key");
+                }
+            }
+        }
+
+        private sealed class TestAadVerifier : AadPrefixVerifier
+        {
+            public override void Verify(string aadPrefix)
+            {
+                if (aadPrefix != "expected-prefix")
+                {
+                    throw new Exception($"Got unexpected AAD prefix: {aadPrefix}");
                 }
             }
         }
