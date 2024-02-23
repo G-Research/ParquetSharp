@@ -69,6 +69,7 @@ add_library(ParquetSharpNative SHARED
 	arrow/FileWriter.cpp
 	encryption/DecryptionConfiguration.cpp
 	encryption/EncryptionConfiguration.cpp
+	encryption/KmsConnectionConfig.cpp
 )
 
 generate_export_header(ParquetSharpNative 
