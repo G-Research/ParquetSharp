@@ -26,6 +26,11 @@ extern "C"
 		TRYCATCH(*data = (*buffer)->data();)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* Buffer_MutableData(const std::shared_ptr<arrow::Buffer>* buffer, uint8_t** data)
+	{
+		TRYCATCH(*data = (*buffer)->mutable_data();)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* Buffer_Size(const std::shared_ptr<arrow::Buffer>* buffer, int64_t* size)
 	{
 		TRYCATCH(*size = (*buffer)->size();)

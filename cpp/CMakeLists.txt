@@ -70,6 +70,7 @@ add_library(ParquetSharpNative SHARED
 	encryption/DecryptionConfiguration.cpp
 	encryption/EncryptionConfiguration.cpp
 	encryption/KmsConnectionConfig.cpp
+	encryption/ManagedKmsClient.h
 )
 
 generate_export_header(ParquetSharpNative 

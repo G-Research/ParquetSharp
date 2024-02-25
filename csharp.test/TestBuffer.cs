@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using ParquetSharp.IO;
 using NUnit.Framework;
 
@@ -83,6 +84,19 @@ namespace ParquetSharp.Test
 
             var allData = columnReader.ReadAll((int) rowGroup.MetaData.NumRows);
             Assert.AreEqual(expected, allData);
+        }
+
+        [Test]
+        public static void TestResizeBuffer()
+        {
+            using var buffer = new ResizableBuffer(initialSize: 128);
+            const int newLength = 256;
+            buffer.Resize(newLength);
+            var values = Enumerable.Range(0, newLength).Select(i => (byte) i).ToArray();
+            Marshal.Copy(values, 0, buffer.MutableData, newLength);
+            var readValues = new byte[newLength];
+            Marshal.Copy(buffer.Data, readValues, 0, newLength);
+            Assert.That(readValues, Is.EqualTo(values));
         }
     }
 }

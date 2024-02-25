@@ -25,6 +25,7 @@ namespace ParquetSharp.IO
 
         public long Capacity => ExceptionInfo.Return<long>(Handle, Buffer_Capacity);
         public IntPtr Data => ExceptionInfo.Return<IntPtr>(Handle, Buffer_Data);
+        public IntPtr MutableData => ExceptionInfo.Return<IntPtr>(Handle, Buffer_MutableData);
         public long Size => ExceptionInfo.Return<long>(Handle, Buffer_Size);
 
         public byte[] ToArray()
@@ -51,6 +52,9 @@ namespace ParquetSharp.IO
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Buffer_Data(IntPtr buffer, out IntPtr data);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr Buffer_MutableData(IntPtr buffer, out IntPtr data);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Buffer_Size(IntPtr buffer, out long size);
