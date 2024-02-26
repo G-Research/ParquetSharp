@@ -29,6 +29,44 @@ namespace ParquetSharp.Encryption
                 UnwrapKey));
         }
 
+        /// <summary>
+        /// Get the encryption properties for a Parquet file.
+        /// If external key material is used then the path to the Parquet file must be provided.
+        /// </summary>
+        /// <param name="connectionConfig">The KMS connection configuration to use</param>
+        /// <param name="encryptionConfig">The encryption configuration to use</param>
+        /// <param name="filePath">The path to the Parquet file being written</param>
+        /// <returns>Encryption properties for the file</returns>
+        public FileEncryptionProperties GetFileEncryptionProperties(
+            KmsConnectionConfig connectionConfig,
+            EncryptionConfiguration encryptionConfig,
+            string? filePath = null)
+        {
+            var fileEncryptionPropertiesHandle = ExceptionInfo.Return<IntPtr, IntPtr, IntPtr, string?, IntPtr>(
+                _handle.IntPtr, connectionConfig.Handle.IntPtr, encryptionConfig.Handle.IntPtr, filePath, CryptoFactory_GetFileEncryptionProperties);
+            return new FileEncryptionProperties(fileEncryptionPropertiesHandle);
+        }
+
+
+        /// <summary>
+        /// Get decryption properties for a Parquet file.
+        /// If external key material is used then the path to the parquet file must be provided.
+        /// </summary>
+        /// <param name="connectionConfig">The KMS connection configuration to use</param>
+        /// <param name="decryptionConfig">The decryption configuration to use</param>
+        /// <param name="filePath">The path to the Parquet file being read</param>
+        /// <returns>Decryption properties for the file</returns>
+        public FileDecryptionProperties GetFileDecryptionProperties(
+            KmsConnectionConfig connectionConfig,
+            DecryptionConfiguration decryptionConfig,
+            string? filePath = null)
+        {
+            var fileDecryptionPropertiesHandle = ExceptionInfo.Return<IntPtr, IntPtr, IntPtr, string?, IntPtr>(
+                _handle.IntPtr, connectionConfig.Handle.IntPtr, decryptionConfig.Handle.IntPtr, filePath, CryptoFactory_GetFileDecryptionProperties);
+            // TODO: decryption properties internally use the cache associated with this crypto factory
+            return new FileDecryptionProperties(fileDecryptionPropertiesHandle);
+        }
+
         public void Dispose()
         {
             _handle.Dispose();
@@ -152,6 +190,16 @@ namespace ParquetSharp.Encryption
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr CryptoFactory_RegisterKmsClientFactory(
             IntPtr cryptoFactory, IntPtr clientFactory, FreeGcHandleFunc freeGcHandle, CreateClientFunc createClient, WrapKeyFunc wrapKey, UnwrapKeyFunc unwrapKey);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr CryptoFactory_GetFileEncryptionProperties(
+            IntPtr cryptoFactory, IntPtr kmsConnectionConfig, IntPtr encryptionConfig,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string? filePath, out IntPtr fileEncryptionProperties);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr CryptoFactory_GetFileDecryptionProperties(
+            IntPtr cryptoFactory, IntPtr kmsConnectionConfig, IntPtr decryptionConfig,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string? filePath, out IntPtr fileDecryptionProperties);
 
         private readonly ParquetHandle _handle;
     }

@@ -18,7 +18,7 @@ namespace ParquetSharp.Encryption
         public EncryptionConfiguration(string footerKey)
         {
             var handle = ExceptionInfo.Return<string, IntPtr>(footerKey, EncryptionConfiguration_Create);
-            _handle = new ParquetHandle(handle, EncryptionConfiguration_Free);
+            Handle = new ParquetHandle(handle, EncryptionConfiguration_Free);
         }
 
         /// <summary>
@@ -26,8 +26,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public string FooterKey
         {
-            get => ExceptionInfo.ReturnString(_handle, EncryptionConfiguration_GetFooterKey);
-            set => ExceptionInfo.Check(EncryptionConfiguration_SetFooterKey(_handle.IntPtr, value));
+            get => ExceptionInfo.ReturnString(Handle, EncryptionConfiguration_GetFooterKey);
+            set => ExceptionInfo.Check(EncryptionConfiguration_SetFooterKey(Handle.IntPtr, value));
         }
 
         /// <summary>
@@ -35,8 +35,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public IReadOnlyDictionary<string, IReadOnlyList<string>> ColumnKeys
         {
-            get => ParseColumnKeys(ExceptionInfo.ReturnString(_handle, EncryptionConfiguration_GetColumnKeys));
-            set => ExceptionInfo.Check(EncryptionConfiguration_SetColumnKeys(_handle.IntPtr, EncodeColumnKeys(value)));
+            get => ParseColumnKeys(ExceptionInfo.ReturnString(Handle, EncryptionConfiguration_GetColumnKeys));
+            set => ExceptionInfo.Check(EncryptionConfiguration_SetColumnKeys(Handle.IntPtr, EncodeColumnKeys(value)));
         }
 
         /// <summary>
@@ -44,8 +44,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public bool UniformEncryption
         {
-            get => ExceptionInfo.Return<bool>(_handle, EncryptionConfiguration_GetUniformEncryption);
-            set => ExceptionInfo.Check(EncryptionConfiguration_SetUniformEncryption(_handle.IntPtr, value));
+            get => ExceptionInfo.Return<bool>(Handle, EncryptionConfiguration_GetUniformEncryption);
+            set => ExceptionInfo.Check(EncryptionConfiguration_SetUniformEncryption(Handle.IntPtr, value));
         }
 
         /// <summary>
@@ -53,8 +53,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public ParquetCipher EncryptionAlgorithm
         {
-            get => ExceptionInfo.Return<ParquetCipher>(_handle, EncryptionConfiguration_GetEncryptionAlgorithm);
-            set => ExceptionInfo.Check(EncryptionConfiguration_SetEncryptionAlgorithm(_handle.IntPtr, value));
+            get => ExceptionInfo.Return<ParquetCipher>(Handle, EncryptionConfiguration_GetEncryptionAlgorithm);
+            set => ExceptionInfo.Check(EncryptionConfiguration_SetEncryptionAlgorithm(Handle.IntPtr, value));
         }
 
         /// <summary>
@@ -62,8 +62,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public bool PlaintextFooter
         {
-            get => ExceptionInfo.Return<bool>(_handle, EncryptionConfiguration_GetPlaintextFooter);
-            set => ExceptionInfo.Check(EncryptionConfiguration_SetPlaintextFooter(_handle.IntPtr, value));
+            get => ExceptionInfo.Return<bool>(Handle, EncryptionConfiguration_GetPlaintextFooter);
+            set => ExceptionInfo.Check(EncryptionConfiguration_SetPlaintextFooter(Handle.IntPtr, value));
         }
 
         /// <summary>
@@ -74,8 +74,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public bool DoubleWrapping
         {
-            get => ExceptionInfo.Return<bool>(_handle, EncryptionConfiguration_GetDoubleWrapping);
-            set => ExceptionInfo.Check(EncryptionConfiguration_SetDoubleWrapping(_handle.IntPtr, value));
+            get => ExceptionInfo.Return<bool>(Handle, EncryptionConfiguration_GetDoubleWrapping);
+            set => ExceptionInfo.Check(EncryptionConfiguration_SetDoubleWrapping(Handle.IntPtr, value));
         }
 
         /// <summary>
@@ -83,8 +83,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public double CacheLifetimeSeconds
         {
-            get => ExceptionInfo.Return<double>(_handle, EncryptionConfiguration_GetCacheLifetimeSeconds);
-            set => ExceptionInfo.Check(EncryptionConfiguration_SetCacheLifetimeSeconds(_handle.IntPtr, value));
+            get => ExceptionInfo.Return<double>(Handle, EncryptionConfiguration_GetCacheLifetimeSeconds);
+            set => ExceptionInfo.Check(EncryptionConfiguration_SetCacheLifetimeSeconds(Handle.IntPtr, value));
         }
 
         /// <summary>
@@ -95,8 +95,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public bool InternalKeyMaterial
         {
-            get => ExceptionInfo.Return<bool>(_handle, EncryptionConfiguration_GetInternalKeyMaterial);
-            set => ExceptionInfo.Check(EncryptionConfiguration_SetInternalKeyMaterial(_handle.IntPtr, value));
+            get => ExceptionInfo.Return<bool>(Handle, EncryptionConfiguration_GetInternalKeyMaterial);
+            set => ExceptionInfo.Check(EncryptionConfiguration_SetInternalKeyMaterial(Handle.IntPtr, value));
         }
 
         /// <summary>
@@ -106,8 +106,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public int DataKeyLengthBits
         {
-            get => ExceptionInfo.Return<int>(_handle, EncryptionConfiguration_GetDataKeyLengthBits);
-            set => ExceptionInfo.Check(EncryptionConfiguration_SetDataKeyLengthBits(_handle.IntPtr, value));
+            get => ExceptionInfo.Return<int>(Handle, EncryptionConfiguration_GetDataKeyLengthBits);
+            set => ExceptionInfo.Check(EncryptionConfiguration_SetDataKeyLengthBits(Handle.IntPtr, value));
         }
 
         private static string EncodeColumnKeys(IReadOnlyDictionary<string, IReadOnlyList<string>> columnKeys)
@@ -159,7 +159,7 @@ namespace ParquetSharp.Encryption
 
         public void Dispose()
         {
-            _handle.Dispose();
+            Handle.Dispose();
         }
 
         [DllImport(ParquetDll.Name)]
@@ -222,6 +222,6 @@ namespace ParquetSharp.Encryption
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr EncryptionConfiguration_SetDataKeyLengthBits(IntPtr encryptionConfiguration, int lifetime);
 
-        private readonly ParquetHandle _handle;
+        internal readonly ParquetHandle Handle;
     }
 }

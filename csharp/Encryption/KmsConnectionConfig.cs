@@ -12,13 +12,13 @@ namespace ParquetSharp.Encryption
         public KmsConnectionConfig()
         {
             var handle = ExceptionInfo.Return<IntPtr>(KmsConnectionConfig_Create);
-            _handle = new ParquetHandle(handle, KmsConnectionConfig_Free);
+            Handle = new ParquetHandle(handle, KmsConnectionConfig_Free);
         }
 
         internal KmsConnectionConfig(IntPtr handle)
         {
             // TODO; disallow freeing and modification?
-            _handle = new ParquetHandle(handle, KmsConnectionConfig_Free);
+            Handle = new ParquetHandle(handle, KmsConnectionConfig_Free);
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace ParquetSharp.Encryption
         /// <param name="newToken">The new token to use</param>
         public void RefreshKeyAccessToken(string newToken)
         {
-            ExceptionInfo.Check(KmsConnectionConfig_SetKeyAccessToken(_handle.IntPtr, newToken));
+            ExceptionInfo.Check(KmsConnectionConfig_SetKeyAccessToken(Handle.IntPtr, newToken));
         }
 
         /// <summary>
@@ -35,8 +35,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public string KmsInstanceId
         {
-            get => ExceptionInfo.ReturnString(_handle, KmsConnectionConfig_GetKmsInstanceId);
-            set => ExceptionInfo.Check(KmsConnectionConfig_SetKmsInstanceId(_handle.IntPtr, value));
+            get => ExceptionInfo.ReturnString(Handle, KmsConnectionConfig_GetKmsInstanceId);
+            set => ExceptionInfo.Check(KmsConnectionConfig_SetKmsInstanceId(Handle.IntPtr, value));
         }
 
         /// <summary>
@@ -44,8 +44,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public string KmsInstanceUrl
         {
-            get => ExceptionInfo.ReturnString(_handle, KmsConnectionConfig_GetKmsInstanceUrl);
-            set => ExceptionInfo.Check(KmsConnectionConfig_SetKmsInstanceUrl(_handle.IntPtr, value));
+            get => ExceptionInfo.ReturnString(Handle, KmsConnectionConfig_GetKmsInstanceUrl);
+            set => ExceptionInfo.Check(KmsConnectionConfig_SetKmsInstanceUrl(Handle.IntPtr, value));
         }
 
         /// <summary>
@@ -53,8 +53,8 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public string KeyAccessToken
         {
-            get => ExceptionInfo.ReturnString(_handle, KmsConnectionConfig_GetKeyAccessToken);
-            set => ExceptionInfo.Check(KmsConnectionConfig_SetKeyAccessToken(_handle.IntPtr, value));
+            get => ExceptionInfo.ReturnString(Handle, KmsConnectionConfig_GetKeyAccessToken);
+            set => ExceptionInfo.Check(KmsConnectionConfig_SetKeyAccessToken(Handle.IntPtr, value));
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace ParquetSharp.Encryption
         {
             get
             {
-                var kvmHandle = ExceptionInfo.Return<IntPtr>(_handle, KmsConnectionConfig_GetCustomKmsConf);
+                var kvmHandle = ExceptionInfo.Return<IntPtr>(Handle, KmsConnectionConfig_GetCustomKmsConf);
                 if (kvmHandle == IntPtr.Zero)
                 {
                     return new Dictionary<string, string>();
@@ -77,13 +77,13 @@ namespace ParquetSharp.Encryption
             {
                 using var keyValueMetadata = new KeyValueMetadata();
                 keyValueMetadata.SetData(value);
-                ExceptionInfo.Check(KmsConnectionConfig_SetCustomKmsConf(_handle.IntPtr, keyValueMetadata.Handle.IntPtr));
+                ExceptionInfo.Check(KmsConnectionConfig_SetCustomKmsConf(Handle.IntPtr, keyValueMetadata.Handle.IntPtr));
             }
         }
 
         public void Dispose()
         {
-            _handle.Dispose();
+            Handle.Dispose();
         }
 
         [DllImport(ParquetDll.Name)]
@@ -116,6 +116,6 @@ namespace ParquetSharp.Encryption
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr KmsConnectionConfig_SetCustomKmsConf(IntPtr config, IntPtr conf);
 
-        private readonly ParquetHandle _handle;
+        internal readonly ParquetHandle Handle;
     }
 }

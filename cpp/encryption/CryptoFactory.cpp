@@ -1,3 +1,4 @@
+#include <parquet/encryption/encryption.h>
 #include <parquet/encryption/crypto_factory.h>
 
 #include "cpp/ParquetSharpExport.h"
@@ -29,6 +30,34 @@ extern "C"
     TRYCATCH(
       crypto_factory->RegisterKmsClientFactory(
           std::make_shared<ManagedKmsClientFactory>(client_factory_handle, free_gc_handle, create_client, wrap, unwrap));
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* CryptoFactory_GetFileEncryptionProperties(
+      CryptoFactory* crypto_factory,
+      const KmsConnectionConfig* kms_connection_config,
+      const EncryptionConfiguration* encryption_configuration,
+      const char* file_path,
+      std::shared_ptr<parquet::FileEncryptionProperties>** file_encryption_properties)
+  {
+    TRYCATCH(
+        (*file_encryption_properties) = new std::shared_ptr<parquet::FileEncryptionProperties>(
+            crypto_factory->GetFileEncryptionProperties(
+                *kms_connection_config, *encryption_configuration, file_path == nullptr ? "" : file_path));
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* CryptoFactory_GetFileDecryptionProperties(
+      CryptoFactory* crypto_factory,
+      const KmsConnectionConfig* kms_connection_config,
+      const DecryptionConfiguration* decryption_configuration,
+      const char* file_path,
+      std::shared_ptr<parquet::FileDecryptionProperties>** file_decryption_properties)
+  {
+    TRYCATCH(
+        (*file_decryption_properties) = new std::shared_ptr<parquet::FileDecryptionProperties>(
+            crypto_factory->GetFileDecryptionProperties(
+                *kms_connection_config, *decryption_configuration, file_path == nullptr ? "" : file_path));
     )
   }
 }

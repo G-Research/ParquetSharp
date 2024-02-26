@@ -14,7 +14,7 @@ namespace ParquetSharp.Encryption
         public DecryptionConfiguration()
         {
             var handle = ExceptionInfo.Return<IntPtr>(DecryptionConfiguration_Create);
-            _handle = new ParquetHandle(handle, DecryptionConfiguration_Free);
+            Handle = new ParquetHandle(handle, DecryptionConfiguration_Free);
         }
 
         /// <summary>
@@ -22,13 +22,13 @@ namespace ParquetSharp.Encryption
         /// </summary>
         public double CacheLifetimeSeconds
         {
-            get => ExceptionInfo.Return<double>(_handle, DecryptionConfiguration_GetCacheLifetimeSeconds);
-            set => ExceptionInfo.Check(DecryptionConfiguration_SetCacheLifetimeSeconds(_handle.IntPtr, value));
+            get => ExceptionInfo.Return<double>(Handle, DecryptionConfiguration_GetCacheLifetimeSeconds);
+            set => ExceptionInfo.Check(DecryptionConfiguration_SetCacheLifetimeSeconds(Handle.IntPtr, value));
         }
 
         public void Dispose()
         {
-            _handle.Dispose();
+            Handle.Dispose();
         }
 
         [DllImport(ParquetDll.Name)]
@@ -43,6 +43,6 @@ namespace ParquetSharp.Encryption
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr DecryptionConfiguration_SetCacheLifetimeSeconds(IntPtr decryptionConfiguration, double lifetime);
 
-        private readonly ParquetHandle _handle;
+        internal readonly ParquetHandle Handle;
     }
 }
