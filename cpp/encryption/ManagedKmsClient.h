@@ -11,8 +11,14 @@ class ManagedKmsClient final : public parquet::encryption::KmsClient
 public:
 
   typedef void (*FreeGcHandleFunc) (void* handle);
-  typedef void (*WrapFunc) (void* handle, const char* key_bytes, int32_t key_length, const char* master_key_identifier, std::shared_ptr<::arrow::ResizableBuffer>* wrapped_key_buffer, const char** exception);
-  typedef void (*UnwrapFunc) (void* handle, const char* wrapped_key, int32_t wrapped_key_length, const char* master_key_identifier, std::shared_ptr<::arrow::ResizableBuffer>* unwrapped_key_buffer, const char** exception);
+
+  typedef void (*WrapFunc) (
+      void* handle, const char* key_bytes, int32_t key_length, const char* master_key_identifier,
+      std::shared_ptr<::arrow::ResizableBuffer>* wrapped_key_buffer, const char** exception);
+
+  typedef void (*UnwrapFunc) (
+      void* handle, const char* wrapped_key, int32_t wrapped_key_length, const char* master_key_identifier,
+      std::shared_ptr<::arrow::ResizableBuffer>* unwrapped_key_buffer, const char** exception);
 
   ManagedKmsClient(const ManagedKmsClient&) = delete;
   ManagedKmsClient(ManagedKmsClient&&) = delete;

@@ -15,6 +15,12 @@ namespace ParquetSharp.Encryption
             _handle = new ParquetHandle(handle, KmsConnectionConfig_Free);
         }
 
+        internal KmsConnectionConfig(IntPtr handle)
+        {
+            // TODO; disallow freeing and modification?
+            _handle = new ParquetHandle(handle, KmsConnectionConfig_Free);
+        }
+
         /// <summary>
         /// Update the access token
         /// </summary>
