@@ -139,8 +139,8 @@ namespace ParquetSharp.Encryption
                 var unwrapped = kmsClient.UnwrapKey(wrappedKey, masterKeyIdentifier);
 
                 // Copy unwrapped bytes into the buffer provided.
-                // We don't dispose the buffer, it is owned by the C++ side
-                var unwrappedKeyBuffer = ResizableBuffer.FromHandle(unwrappedKeyBufferPtr);
+                // We don't free the buffer when disposing, it is owned by the C++ side
+                using var unwrappedKeyBuffer = ResizableBuffer.FromNonOwnedPtr(unwrappedKeyBufferPtr);
                 unwrappedKeyBuffer.Resize(unwrapped.Length);
                 Marshal.Copy(unwrapped, 0, unwrappedKeyBuffer.MutableData, unwrapped.Length);
             }

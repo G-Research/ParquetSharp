@@ -18,6 +18,11 @@ namespace ParquetSharp.IO
             Handle = new ParquetHandle(handle, Buffer_Free);
         }
 
+        internal Buffer(ParquetHandle handle)
+        {
+            Handle = handle;
+        }
+
         public void Dispose()
         {
             Handle.Dispose();

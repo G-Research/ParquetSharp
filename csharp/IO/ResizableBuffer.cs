@@ -9,16 +9,16 @@ namespace ParquetSharp.IO
     public sealed class ResizableBuffer : Buffer
     {
         public ResizableBuffer(long initialSize = 128L)
-            : this(ExceptionInfo.Return<long, IntPtr>(initialSize, ResizableBuffer_Create))
+            : base(ExceptionInfo.Return<long, IntPtr>(initialSize, ResizableBuffer_Create))
         {
         }
 
-        internal static ResizableBuffer FromHandle(IntPtr handle)
+        internal static ResizableBuffer FromNonOwnedPtr(IntPtr handle)
         {
-            return new ResizableBuffer(handle);
+            return new ResizableBuffer(new ParquetHandle(handle, _ => { }));
         }
 
-        private ResizableBuffer(IntPtr handle) : base(handle)
+        private ResizableBuffer(ParquetHandle handle) : base(handle)
         {
         }
 
