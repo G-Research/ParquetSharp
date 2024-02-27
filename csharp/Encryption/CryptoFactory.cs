@@ -9,7 +9,7 @@ namespace ParquetSharp.Encryption
     /// </summary>
     public sealed class CryptoFactory : IDisposable
     {
-        public delegate IKmsClient KmsClientFactory(KmsConnectionConfig config);
+        public delegate IKmsClient KmsClientFactory(ReadonlyKmsConnectionConfig config);
 
         /// <summary>
         /// Create a new CryptoFactory
@@ -96,7 +96,7 @@ namespace ParquetSharp.Encryption
             try
             {
                 var clientFactory = (KmsClientFactory) GCHandle.FromIntPtr(clientFactoryGcHandle).Target!;
-                var connectionConfig = new KmsConnectionConfig(connectionConfigHandle);
+                var connectionConfig = KmsConnectionConfig.FromConstPointer(connectionConfigHandle);
                 var client = clientFactory(connectionConfig);
                 var clientHandle = GCHandle.Alloc(client, GCHandleType.Normal);
                 clientHandlePtr = GCHandle.ToIntPtr(clientHandle);

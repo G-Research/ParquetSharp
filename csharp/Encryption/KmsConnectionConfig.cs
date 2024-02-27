@@ -15,10 +15,17 @@ namespace ParquetSharp.Encryption
             Handle = new ParquetHandle(handle, KmsConnectionConfig_Free);
         }
 
-        internal KmsConnectionConfig(IntPtr handle)
+        private KmsConnectionConfig(ParquetHandle handle)
         {
-            // TODO; disallow freeing and modification?
-            Handle = new ParquetHandle(handle, KmsConnectionConfig_Free);
+            Handle = handle;
+        }
+
+        internal static ReadonlyKmsConnectionConfig FromConstPointer(IntPtr ptr)
+        {
+            using var handle = new ParquetHandle(ptr, _ => { });
+            using var config = new KmsConnectionConfig(handle);
+            return new ReadonlyKmsConnectionConfig(
+                config.KmsInstanceId, config.KmsInstanceUrl, config.KeyAccessToken, config.CustomKmsConf);
         }
 
         /// <summary>
