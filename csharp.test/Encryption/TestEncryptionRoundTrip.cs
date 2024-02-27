@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using NUnit.Framework;
 using ParquetSharp.Encryption;
@@ -179,6 +180,81 @@ namespace ParquetSharp.Test.Encryption
             Assert.That(testClient.UnwrappedKeys.Count, Is.EqualTo(3));
         }
 
+        [Test]
+        public static void TestExternalKeyMaterial()
+        {
+            using var tmpDir = new TempWorkingDirectory();
+            var testClient = new TestKmsClient();
+            using var connectionConfig = new KmsConnectionConfig();
+            using var encryptionConfig = new EncryptionConfiguration("Key0");
+            using var decryptionConfig = new DecryptionConfiguration();
+            encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
+            {
+                {"Key1", new[] {"Id", "Value"}},
+            };
+            encryptionConfig.InternalKeyMaterial = false;
+
+            TestEncryptionRoundtripWithFileSystem(
+                tmpDir.DirectoryPath, connectionConfig, encryptionConfig, decryptionConfig, testClient);
+
+            var expectedMaterialPath = tmpDir.DirectoryPath + "/_KEY_MATERIAL_FOR_data.parquet.json";
+            Assert.That(File.Exists(expectedMaterialPath));
+        }
+
+        [Test]
+        public static void TestWriteExternalKeyMaterialWithoutFilePath()
+        {
+            var testClient = new TestKmsClient();
+            using var connectionConfig = new KmsConnectionConfig();
+            using var encryptionConfig = new EncryptionConfiguration("Key0");
+            using var decryptionConfig = new DecryptionConfiguration();
+            encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
+            {
+                {"Key1", new[] {"Id", "Value"}},
+            };
+            encryptionConfig.InternalKeyMaterial = false;
+
+            using var cryptoFactory = new CryptoFactory(_ => testClient);
+
+            var exception = Assert.Throws<ParquetException>(
+                () => cryptoFactory.GetFileEncryptionProperties(connectionConfig, encryptionConfig));
+            Assert.That(exception!.Message, Does.Contain("Parquet file path must be specified"));
+        }
+
+        [Test]
+        public static void TestReadExternalKeyMaterialWithoutFilePath()
+        {
+            var testClient = new TestKmsClient();
+            using var connectionConfig = new KmsConnectionConfig();
+            using var encryptionConfig = new EncryptionConfiguration("Key0");
+            using var decryptionConfig = new DecryptionConfiguration();
+            encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
+            {
+                {"Key1", new[] {"Id", "Value"}},
+            };
+            encryptionConfig.InternalKeyMaterial = false;
+
+            using var tmpDir = new TempWorkingDirectory();
+            var filePath = tmpDir.DirectoryPath + "/data.parquet";
+
+            using var cryptoFactory = new CryptoFactory(_ => testClient);
+
+            {
+                using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
+                    connectionConfig, encryptionConfig, filePath: filePath);
+                using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
+                using var fileWriter = new ParquetFileWriter(filePath, Columns, writerProperties);
+                WriteParquetFile(fileWriter);
+            }
+
+            {
+                using var fileDecryptionProperties = cryptoFactory.GetFileDecryptionProperties(connectionConfig, decryptionConfig);
+                using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
+                var exception = Assert.Throws<ParquetException>(() => new ParquetFileReader(filePath, readerProperties));
+                Assert.That(exception!.Message, Does.Contain("Parquet file path must be specified"));
+            }
+        }
+
         private static void TestEncryptionRoundtrip(
             KmsConnectionConfig connectionConfig,
             EncryptionConfiguration encryptionConfiguration,
@@ -194,7 +270,9 @@ namespace ParquetSharp.Test.Encryption
                 using var cryptoFactory = new CryptoFactory(kmsClientFactory);
                 using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
                     connectionConfig, encryptionConfiguration);
-                WriteParquetFile(output, fileEncryptionProperties);
+                using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
+                using var fileWriter = new ParquetFileWriter(output, Columns, writerProperties);
+                WriteParquetFile(fileWriter);
             }
 
             using (var input = new BufferReader(buffer))
@@ -202,14 +280,44 @@ namespace ParquetSharp.Test.Encryption
                 using var cryptoFactory = new CryptoFactory(kmsClientFactory);
                 using var fileDecryptionProperties = cryptoFactory.GetFileDecryptionProperties(
                     connectionConfig, decryptionConfiguration);
-                ReadParquetFile(fileDecryptionProperties, input, onGroupMetadata);
+                using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
+                using var fileReader = new ParquetFileReader(input, readerProperties);
+                ReadParquetFile(fileReader, onGroupMetadata);
             }
         }
 
-        private static void WriteParquetFile(BufferOutputStream output, FileEncryptionProperties? fileEncryptionProperties)
+        private static void TestEncryptionRoundtripWithFileSystem(
+            string workingDirectory,
+            KmsConnectionConfig connectionConfig,
+            EncryptionConfiguration encryptionConfiguration,
+            DecryptionConfiguration decryptionConfiguration,
+            IKmsClient client,
+            Action<RowGroupMetaData>? onGroupMetadata = null)
         {
-            using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
-            using var fileWriter = new ParquetFileWriter(output, Columns, writerProperties);
+            var filePath = workingDirectory + "/data.parquet";
+            CryptoFactory.KmsClientFactory kmsClientFactory = _ => client;
+
+            {
+                using var cryptoFactory = new CryptoFactory(kmsClientFactory);
+                using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
+                    connectionConfig, encryptionConfiguration, filePath: filePath);
+                using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
+                using var fileWriter = new ParquetFileWriter(filePath, Columns, writerProperties);
+                WriteParquetFile(fileWriter);
+            }
+
+            {
+                using var cryptoFactory = new CryptoFactory(kmsClientFactory);
+                using var fileDecryptionProperties = cryptoFactory.GetFileDecryptionProperties(
+                    connectionConfig, decryptionConfiguration, filePath: filePath);
+                using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
+                using var fileReader = new ParquetFileReader(filePath, readerProperties);
+                ReadParquetFile(fileReader, onGroupMetadata);
+            }
+        }
+
+        private static void WriteParquetFile(ParquetFileWriter fileWriter)
+        {
             using var groupWriter = fileWriter.AppendRowGroup();
 
             using (var idWriter = groupWriter.NextColumn().LogicalWriter<int>())
@@ -224,10 +332,8 @@ namespace ParquetSharp.Test.Encryption
         }
 
         private static void ReadParquetFile(
-            FileDecryptionProperties? fileDecryptionProperties, BufferReader input, Action<RowGroupMetaData>? onGroupMetadata)
+            ParquetFileReader fileReader, Action<RowGroupMetaData>? onGroupMetadata)
         {
-            using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
-            using var fileReader = new ParquetFileReader(input, readerProperties);
             using var groupReader = fileReader.RowGroup(0);
 
             var metaData = groupReader.MetaData;

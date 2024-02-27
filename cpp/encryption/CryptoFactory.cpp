@@ -1,5 +1,6 @@
 #include <parquet/encryption/encryption.h>
 #include <parquet/encryption/crypto_factory.h>
+#include <arrow/filesystem/localfs.h>
 
 #include "cpp/ParquetSharpExport.h"
 #include "../ExceptionInfo.h"
@@ -41,9 +42,12 @@ extern "C"
       std::shared_ptr<parquet::FileEncryptionProperties>** file_encryption_properties)
   {
     TRYCATCH(
+        std::string file_path_str = file_path == nullptr ? "" : file_path;
+        std::shared_ptr<::arrow::fs::FileSystem> file_system = file_path_str.empty() ?
+            nullptr : std::make_shared<::arrow::fs::LocalFileSystem>();
         (*file_encryption_properties) = new std::shared_ptr<parquet::FileEncryptionProperties>(
             crypto_factory->GetFileEncryptionProperties(
-                *kms_connection_config, *encryption_configuration, file_path == nullptr ? "" : file_path));
+                *kms_connection_config, *encryption_configuration, file_path_str, file_system));
     )
   }
 
@@ -55,9 +59,12 @@ extern "C"
       std::shared_ptr<parquet::FileDecryptionProperties>** file_decryption_properties)
   {
     TRYCATCH(
+        std::string file_path_str = file_path == nullptr ? "" : file_path;
+        std::shared_ptr<::arrow::fs::FileSystem> file_system = file_path_str.empty() ?
+            nullptr : std::make_shared<::arrow::fs::LocalFileSystem>();
         (*file_decryption_properties) = new std::shared_ptr<parquet::FileDecryptionProperties>(
             crypto_factory->GetFileDecryptionProperties(
-                *kms_connection_config, *decryption_configuration, file_path == nullptr ? "" : file_path));
+                *kms_connection_config, *decryption_configuration, file_path_str, file_system));
     )
   }
 }
