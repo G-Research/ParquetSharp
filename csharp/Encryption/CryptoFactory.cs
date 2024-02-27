@@ -108,7 +108,7 @@ namespace ParquetSharp.Encryption
         }
 
         private static unsafe void WrapKey(
-            IntPtr handle, byte* keyBytes, int keyBytesLength, string masterKeyIdentifier, IntPtr wrappedKeyBufferPtr, out string? exception)
+            IntPtr handle, byte* keyBytes, int keyBytesLength, string masterKeyIdentifier, out string wrappedKey, out string? exception)
         {
             exception = null;
 
@@ -118,32 +118,25 @@ namespace ParquetSharp.Encryption
                 var keyBytesArray = new byte[keyBytesLength];
                 Marshal.Copy(new IntPtr(keyBytes), keyBytesArray, 0, keyBytesLength);
 
-                var wrapped = kmsClient.WrapKey(keyBytesArray, masterKeyIdentifier);
-
-                // Copy wrapped bytes into the buffer provided.
-                // We don't dispose the buffer, it is owned by the C++ side
-                var wrappedKeyBuffer = ResizableBuffer.FromHandle(wrappedKeyBufferPtr);
-                wrappedKeyBuffer.Resize(wrapped.Length);
-                Marshal.Copy(wrapped, 0, wrappedKeyBuffer.MutableData, wrapped.Length);
+                wrappedKey = kmsClient.WrapKey(keyBytesArray, masterKeyIdentifier);
             }
             catch (Exception ex)
             {
                 exception = ex.ToString();
+                wrappedKey = "";
             }
         }
 
-        private static unsafe void UnwrapKey(
-            IntPtr handle, byte* wrappedKey, int wrappedKeyLength, string masterKeyIdentifier, IntPtr unwrappedKeyBufferPtr, out string? exception)
+        private static void UnwrapKey(
+            IntPtr handle, string wrappedKey, string masterKeyIdentifier, IntPtr unwrappedKeyBufferPtr, out string? exception)
         {
             exception = null;
 
             try
             {
                 var kmsClient = GetKmsClientFromHandle(handle);
-                var wrappedKeyArray = new byte[wrappedKeyLength];
-                Marshal.Copy(new IntPtr(wrappedKey), wrappedKeyArray, 0, wrappedKeyLength);
 
-                var unwrapped = kmsClient.UnwrapKey(wrappedKeyArray, masterKeyIdentifier);
+                var unwrapped = kmsClient.UnwrapKey(wrappedKey, masterKeyIdentifier);
 
                 // Copy unwrapped bytes into the buffer provided.
                 // We don't dispose the buffer, it is owned by the C++ side
@@ -170,13 +163,12 @@ namespace ParquetSharp.Encryption
             byte* keyBytes,
             int keyBytesLength,
             [MarshalAs(UnmanagedType.LPUTF8Str)] string masterKeyIdentifier,
-            IntPtr wrappedKeyBuffer,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] out string wrappedKey,
             [MarshalAs(UnmanagedType.LPStr)] out string? exception);
 
-        private unsafe delegate void UnwrapKeyFunc(
+        private delegate void UnwrapKeyFunc(
             IntPtr handle,
-            byte* wrappedKey,
-            int wrappedKeyLength,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string wrappedKey,
             [MarshalAs(UnmanagedType.LPUTF8Str)] string masterKeyIdentifier,
             IntPtr unwrappedKeyBuffer,
             [MarshalAs(UnmanagedType.LPStr)] out string? exception);

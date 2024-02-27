@@ -8,11 +8,11 @@
         /// <summary>
         /// Wrap a key - encrypt it with the master key
         /// </summary>
-        public byte[] WrapKey(byte[] keyBytes, string masterKeyIdentifier);
+        public string WrapKey(byte[] keyBytes, string masterKeyIdentifier);
 
         /// <summary>
         /// Unwrap a key - decrypt it with the master key
         /// </summary>
-        public byte[] UnwrapKey(byte[] wrappedKey, string masterKeyIdentifier);
+        public byte[] UnwrapKey(string wrappedKey, string masterKeyIdentifier);
     }
 }

@@ -14,10 +14,10 @@ public:
 
   typedef void (*WrapFunc) (
       void* handle, const char* key_bytes, int32_t key_length, const char* master_key_identifier,
-      std::shared_ptr<::arrow::ResizableBuffer>* wrapped_key_buffer, const char** exception);
+      const char** wrapped_key, const char** exception);
 
   typedef void (*UnwrapFunc) (
-      void* handle, const char* wrapped_key, int32_t wrapped_key_length, const char* master_key_identifier,
+      void* handle, const char* wrapped_key, const char* master_key_identifier,
       std::shared_ptr<::arrow::ResizableBuffer>* unwrapped_key_buffer, const char** exception);
 
   ManagedKmsClient(const ManagedKmsClient&) = delete;
@@ -45,19 +45,22 @@ public:
   std::string WrapKey(const std::string& key_bytes, const std::string& master_key_identifier) override
   {
     const char* exception = nullptr;
+    const char* wrapped_key = nullptr;
 
-    std::shared_ptr<arrow::ResizableBuffer> wrapped_key_buffer;
-    PARQUET_ASSIGN_OR_THROW(wrapped_key_buffer, arrow::AllocateResizableBuffer(0));
     wrap_(
         handle_, key_bytes.data(), static_cast<int32_t>(key_bytes.length()), master_key_identifier.c_str(),
-        &wrapped_key_buffer, &exception);
+        &wrapped_key, &exception);
 
     if (exception != nullptr)
     {
       throw std::runtime_error(exception);
     }
+    if (wrapped_key == nullptr)
+    {
+      throw std::runtime_error("WrapKey callback did not set exception or wrapped_key");
+    }
 
-    return std::string(wrapped_key_buffer->data_as<char>(), wrapped_key_buffer->size());
+    return std::string(wrapped_key);
   }
 
   std::string UnwrapKey(const std::string& wrapped_key, const std::string& master_key_identifier) override
@@ -67,7 +70,7 @@ public:
     std::shared_ptr<arrow::ResizableBuffer> unwrapped_key_buffer;
     PARQUET_ASSIGN_OR_THROW(unwrapped_key_buffer, arrow::AllocateResizableBuffer(0));
     unwrap_(
-        handle_, wrapped_key.data(), static_cast<int32_t>(wrapped_key.length()), master_key_identifier.c_str(),
+        handle_, wrapped_key.c_str(), master_key_identifier.c_str(),
         &unwrapped_key_buffer, &exception);
 
     if (exception != nullptr)
