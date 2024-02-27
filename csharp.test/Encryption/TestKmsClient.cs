@@ -13,6 +13,7 @@ namespace ParquetSharp.Test.Encryption
     {
         public string WrapKey(byte[] keyBytes, string masterKeyIdentifier)
         {
+            WrappedKeys.Add(keyBytes);
             var masterKey = MasterKeys[masterKeyIdentifier];
             using var aes = Aes.Create();
             aes.Key = masterKey;
@@ -23,6 +24,7 @@ namespace ParquetSharp.Test.Encryption
 
         public byte[] UnwrapKey(string wrappedKey, string masterKeyIdentifier)
         {
+            UnwrappedKeys.Add(wrappedKey);
             var masterKey = MasterKeys[masterKeyIdentifier];
             var split = wrappedKey.Split(":");
             var iv = System.Convert.FromBase64String(split[0]);
@@ -33,6 +35,10 @@ namespace ParquetSharp.Test.Encryption
             using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
             return DecryptBytes(decryptor, encryptedKey);
         }
+
+        public readonly List<byte[]> WrappedKeys = new();
+
+        public readonly List<string> UnwrappedKeys = new();
 
         private static byte[] EncryptBytes(ICryptoTransform encryptor, byte[] plainText)
         {
