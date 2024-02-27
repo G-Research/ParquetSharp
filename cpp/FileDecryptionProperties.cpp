@@ -15,7 +15,7 @@ extern "C"
     {
         TRYCATCH(*clone = new std::shared_ptr((*properties)->DeepClone());)
     }
-	
+
     PARQUETSHARP_EXPORT void FileDecryptionProperties_Free(const std::shared_ptr<const FileDecryptionProperties>* properties)
     {
         delete properties;
@@ -41,12 +41,14 @@ extern "C"
         FreeCString(aad_prefix);
     }
 
-	PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Key_Retriever(const std::shared_ptr<const FileDecryptionProperties>* properties, void** key_retriever)
+    PARQUETSHARP_EXPORT ExceptionInfo* FileDecryptionProperties_Key_Retriever(const std::shared_ptr<const FileDecryptionProperties>* properties, void** key_retriever)
     {
         TRYCATCH
         (
-            const auto r = (*properties)->key_retriever();
-            *key_retriever = r ? dynamic_cast<ManagedDecryptionKeyRetriever&>(*r).Handle : nullptr;
+            // This only returns a KeyRetriever handle when a ManagedDecryptionKeyRetriever is used.
+            // If the key retriever is set using the Key Management Tools API (CryptoFactory) then this will return null.
+            const auto retriever = std::dynamic_pointer_cast<ManagedDecryptionKeyRetriever>((*properties)->key_retriever());
+            *key_retriever = retriever ? retriever->Handle : nullptr;
         )
     }
 

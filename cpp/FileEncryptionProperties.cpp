@@ -13,7 +13,7 @@ extern "C"
     {
         TRYCATCH(*clone = new std::shared_ptr((*properties)->DeepClone());)
     }
-	
+
     PARQUETSHARP_EXPORT void FileEncryptionProperties_Free(const std::shared_ptr<const FileEncryptionProperties>* properties)
     {
         delete properties;
@@ -54,12 +54,19 @@ extern "C"
         FreeCString(file_aad);
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionProperties_Column_Encryption_Properties(const std::shared_ptr<FileEncryptionProperties>* properties, const char* column_path, std::shared_ptr<ColumnEncryptionProperties>* column_encryption_properties)
+    PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionProperties_Column_Encryption_Properties(const std::shared_ptr<FileEncryptionProperties>* properties, const char* column_path, std::shared_ptr<const ColumnEncryptionProperties>** column_encryption_properties)
     {
-        TRYCATCH(*column_encryption_properties = (*properties)->column_encryption_properties(column_path);)
+        TRYCATCH(
+            std::shared_ptr<const ColumnEncryptionProperties> column_properties = (*properties)->column_encryption_properties(column_path);
+            if (column_properties != nullptr) {
+              *column_encryption_properties = new std::shared_ptr<const ColumnEncryptionProperties>(column_properties);
+            } else {
+              *column_encryption_properties = nullptr;
+            }
+        )
     }
 
-	// TODO: do we really need this?
+    // TODO: do we really need this?
     //PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionProperties_Encrypted_Columns(const std::shared_ptr<const FileEncryptionProperties>* properties, bool* is_encrypted_with_footer_key)
     //{
     //    TRYCATCH(*encrypted_columns = (*properties)->encrypted_columns();)

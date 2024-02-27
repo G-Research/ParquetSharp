@@ -24,7 +24,13 @@ namespace ParquetSharp
         public string FooterKeyMetadata => ExceptionInfo.ReturnString(Handle, FileEncryptionProperties_Footer_Key_Metadata, FileEncryptionProperties_Footer_Key_Metadata_Free);
         public string FileAad => ExceptionInfo.ReturnString(Handle, FileEncryptionProperties_File_Aad, FileEncryptionProperties_File_Aad_Free);
 
-        public ColumnEncryptionProperties ColumnEncryptionProperties(string columnPath) => new ColumnEncryptionProperties(ExceptionInfo.Return<string, IntPtr>(Handle, columnPath, FileEncryptionProperties_Column_Encryption_Properties));
+        public ColumnEncryptionProperties? ColumnEncryptionProperties(string columnPath)
+        {
+            var columnHandle = ExceptionInfo.Return<string, IntPtr>(
+                Handle, columnPath, FileEncryptionProperties_Column_Encryption_Properties);
+            return columnHandle == IntPtr.Zero ? null : new ColumnEncryptionProperties(columnHandle);
+        }
+
         public FileEncryptionProperties DeepClone() => new FileEncryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, FileEncryptionProperties_Deep_Clone));
 
         [DllImport(ParquetDll.Name)]

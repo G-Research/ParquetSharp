@@ -5,6 +5,9 @@ using ParquetSharp.IO;
 
 namespace ParquetSharp.Test
 {
+    /// <summary>
+    /// These test the low level encryption API, where AES keys are provided directly
+    /// </summary>
     [TestFixture]
     internal static class TestEncryption
     {
