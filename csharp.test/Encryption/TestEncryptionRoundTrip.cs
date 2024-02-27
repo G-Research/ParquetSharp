@@ -181,6 +181,232 @@ namespace ParquetSharp.Test.Encryption
         }
 
         [Test]
+        public static void TestUnencryptedMetadata()
+        {
+            var testClient = new TestKmsClient();
+            using var connectionConfig = new KmsConnectionConfig();
+            using var encryptionConfig = new EncryptionConfiguration("Key0");
+            using var decryptionConfig = new DecryptionConfiguration();
+            encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
+            {
+                {"Key1", new[] {"Id", "Value"}},
+            };
+            encryptionConfig.PlaintextFooter = true;
+            var kvMetadata = new Dictionary<string, string>
+            {
+                {"abc", "123"},
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var cryptoFactory = new CryptoFactory(_ => testClient);
+                using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
+                    connectionConfig, encryptionConfig);
+                using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
+                using var fileWriter = new ParquetFileWriter(output, Columns, writerProperties, kvMetadata);
+                WriteParquetFile(fileWriter);
+            }
+
+            using (var input = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(input);
+
+                // Can read file schema and metadata
+                using var metadata = fileReader.FileMetaData;
+                Assert.That(metadata.NumColumns, Is.EqualTo(2));
+                Assert.That(metadata.NumRows, Is.EqualTo(7));
+                var col0 = metadata.Schema.Column(0);
+                var col1 = metadata.Schema.Column(1);
+                Assert.That(col0.Name, Is.EqualTo("Id"));
+                Assert.That(col0.PhysicalType, Is.EqualTo(PhysicalType.Int32));
+                Assert.That(col1.Name, Is.EqualTo("Value"));
+                Assert.That(col1.PhysicalType, Is.EqualTo(PhysicalType.Float));
+
+                Assert.That(metadata.KeyValueMetadata, Is.EqualTo(kvMetadata));
+
+                var exception = Assert.Throws<ParquetException>(() => ReadParquetFile(fileReader, null));
+                Assert.That(exception!.Message, Does.Contain("Cannot decrypt ColumnMetadata"));
+            }
+        }
+
+        [Test]
+        public static void TestUnencryptedMetadataWithSingleColumnEncryption()
+        {
+            var testClient = new TestKmsClient();
+            using var connectionConfig = new KmsConnectionConfig();
+            using var encryptionConfig = new EncryptionConfiguration("Key0");
+            using var decryptionConfig = new DecryptionConfiguration();
+            encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
+            {
+                {"Key1", new[] {"Value"}},
+            };
+            encryptionConfig.PlaintextFooter = true;
+            var kvMetadata = new Dictionary<string, string>
+            {
+                {"abc", "123"},
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var cryptoFactory = new CryptoFactory(_ => testClient);
+                using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
+                    connectionConfig, encryptionConfig);
+                using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
+                using var fileWriter = new ParquetFileWriter(output, Columns, writerProperties, kvMetadata);
+                WriteParquetFile(fileWriter);
+            }
+
+            using (var input = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(input);
+                using var groupReader = fileReader.RowGroup(0);
+
+                // Can read first column
+                using (var idReader = groupReader.Column(0).LogicalReader<int>())
+                {
+                    Assert.AreEqual(Ids, idReader.ReadAll((int) groupReader.MetaData.NumRows));
+                }
+
+                // Can't read second column
+                var exception = Assert.Throws<ParquetException>(() => groupReader.Column(1));
+                Assert.That(exception!.Message, Does.Contain("Cannot decrypt ColumnMetadata"));
+            }
+        }
+
+        [Test]
+        public static void TestEncryptWithMissingKeys()
+        {
+            var client = new TestKmsClient(new Dictionary<string, byte[]>
+            {
+                {"Key99", new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}},
+            });
+            using var connectionConfig = new KmsConnectionConfig();
+            using var encryptionConfig = new EncryptionConfiguration("Key0");
+            using var decryptionConfig = new DecryptionConfiguration();
+            encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
+            {
+                {"Key1", new[] {"Id", "Value"}},
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            using var output = new BufferOutputStream(buffer);
+            using var cryptoFactory = new CryptoFactory(_ => client);
+            var exception = Assert.Throws<ParquetException>(() => cryptoFactory.GetFileEncryptionProperties(
+                connectionConfig, encryptionConfig));
+            Assert.That(exception!.Message, Does.Contain("KeyNotFoundException"));
+            Assert.That(exception!.Message, Does.Contain("'Key0'"));
+        }
+
+        [Test]
+        public static void TestDecryptWithMissingKeys()
+        {
+            var encryptionClient = new TestKmsClient();
+            var decryptionClient = new TestKmsClient(new Dictionary<string, byte[]>
+            {
+                {"Key99", new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}},
+            });
+            using var connectionConfig = new KmsConnectionConfig();
+            using var encryptionConfig = new EncryptionConfiguration("Key0");
+            using var decryptionConfig = new DecryptionConfiguration();
+            encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
+            {
+                {"Key1", new[] {"Id", "Value"}},
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var cryptoFactory = new CryptoFactory(_ => encryptionClient);
+                using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
+                    connectionConfig, encryptionConfig);
+                using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
+                using var fileWriter = new ParquetFileWriter(output, Columns, writerProperties);
+                WriteParquetFile(fileWriter);
+            }
+
+            using (var input = new BufferReader(buffer))
+            {
+                using var cryptoFactory = new CryptoFactory(_ => decryptionClient);
+                using var fileDecryptionProperties = cryptoFactory.GetFileDecryptionProperties(
+                    connectionConfig, decryptionConfig);
+                using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
+                var exception = Assert.Throws<ParquetException>(() => new ParquetFileReader(input, readerProperties));
+                Assert.That(exception!.Message, Does.Contain("KeyNotFoundException"));
+                Assert.That(exception.Message, Does.Contain("'Key0'"));
+            }
+        }
+
+        [Test]
+        public static void TestDecryptWithIncorrectKeys()
+        {
+            var encryptionClient = new TestKmsClient();
+            var decryptionClient = new TestKmsClient(new Dictionary<string, byte[]>
+            {
+                {"Key0", TestKmsClient.DefaultMasterKeys["Key1"]},
+                {"Key1", TestKmsClient.DefaultMasterKeys["Key2"]},
+                {"Key2", TestKmsClient.DefaultMasterKeys["Key0"]},
+            });
+            using var connectionConfig = new KmsConnectionConfig();
+            using var encryptionConfig = new EncryptionConfiguration("Key0");
+            using var decryptionConfig = new DecryptionConfiguration();
+            encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
+            {
+                {"Key1", new[] {"Id", "Value"}},
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var cryptoFactory = new CryptoFactory(_ => encryptionClient);
+                using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
+                    connectionConfig, encryptionConfig);
+                using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
+                using var fileWriter = new ParquetFileWriter(output, Columns, writerProperties);
+                WriteParquetFile(fileWriter);
+            }
+
+            using (var input = new BufferReader(buffer))
+            {
+                using var cryptoFactory = new CryptoFactory(_ => decryptionClient);
+                using var fileDecryptionProperties = cryptoFactory.GetFileDecryptionProperties(
+                    connectionConfig, decryptionConfig);
+                using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
+                var exception = Assert.Throws<ParquetException>(() => new ParquetFileReader(input, readerProperties));
+                // Exception is thrown in TestKmsClient when trying to decrypt the key-encryption key
+                Assert.That(exception!.Message, Does.Contain("CryptographicException"));
+            }
+        }
+
+        [Test]
+        public static void TestInvalidColumnSpecified()
+        {
+            var testClient = new TestKmsClient();
+            using var connectionConfig = new KmsConnectionConfig();
+            using var encryptionConfig = new EncryptionConfiguration("Key0");
+            using var decryptionConfig = new DecryptionConfiguration();
+            encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
+            {
+                {"Key1", new[] {"Id", "Value", "InvalidColumn"}},
+            };
+
+            using var buffer = new ResizableBuffer();
+            using var output = new BufferOutputStream(buffer);
+            using var cryptoFactory = new CryptoFactory(_ => testClient);
+            using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
+                connectionConfig, encryptionConfig);
+            using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
+            var exception = Assert.Throws<ParquetException>(() => new ParquetFileWriter(output, Columns, writerProperties));
+            Assert.That(exception!.Message, Does.Contain("InvalidColumn"));
+        }
+
+        [Test]
         public static void TestExternalKeyMaterial()
         {
             using var tmpDir = new TempWorkingDirectory();
