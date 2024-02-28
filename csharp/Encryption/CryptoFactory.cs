@@ -23,10 +23,10 @@ namespace ParquetSharp.Encryption
             ExceptionInfo.Check(CryptoFactory_RegisterKmsClientFactory(
                 _handle.IntPtr,
                 CreateClientFactoryGcHandle(kmsClientFactory),
-                FreeGcHandle,
-                CreateKmsClient,
-                WrapKey,
-                UnwrapKey));
+                FreeGcHandleCallback,
+                CreateClientCallback,
+                WrapKeyCallback,
+                UnwrapKeyCallback));
         }
 
         /// <summary>
@@ -198,6 +198,11 @@ namespace ParquetSharp.Encryption
             [MarshalAs(UnmanagedType.LPUTF8Str)] string masterKeyIdentifier,
             IntPtr unwrappedKeyBuffer,
             [MarshalAs(UnmanagedType.LPStr)] out string? exception);
+
+        private static readonly FreeGcHandleFunc FreeGcHandleCallback = FreeGcHandle;
+        private static readonly CreateClientFunc CreateClientCallback = CreateKmsClient;
+        private static readonly unsafe WrapKeyFunc WrapKeyCallback = WrapKey;
+        private static readonly UnwrapKeyFunc UnwrapKeyCallback = UnwrapKey;
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr CryptoFactory_Create(out IntPtr cryptoFactory);
