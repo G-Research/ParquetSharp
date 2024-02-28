@@ -22,7 +22,7 @@ namespace ParquetSharp.Encryption
 
         internal static ReadonlyKmsConnectionConfig FromConstPointer(IntPtr ptr)
         {
-            using var handle = new ParquetHandle(ptr, _ => { });
+            var handle = new ParquetHandle(ptr, _ => { });
             using var config = new KmsConnectionConfig(handle);
             return new ReadonlyKmsConnectionConfig(
                 config.KmsInstanceId, config.KmsInstanceUrl, config.KeyAccessToken, config.CustomKmsConf);

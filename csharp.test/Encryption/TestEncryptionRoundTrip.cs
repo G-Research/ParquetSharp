@@ -19,8 +19,8 @@ namespace ParquetSharp.Test.Encryption
             var testClient = new TestKmsClient();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.UniformEncryption = true;
+            using var decryptionConfig = new DecryptionConfiguration();
 
             TestEncryptionRoundtrip(
                 connectionConfig, encryptionConfig, decryptionConfig, testClient, rowGroupMetaData =>
@@ -44,11 +44,11 @@ namespace ParquetSharp.Test.Encryption
             var testClient = new TestKmsClient();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Value"}},
             };
+            using var decryptionConfig = new DecryptionConfiguration();
 
             TestEncryptionRoundtrip(
                 connectionConfig, encryptionConfig, decryptionConfig, testClient, rowGroupMetaData =>
@@ -76,11 +76,11 @@ namespace ParquetSharp.Test.Encryption
             var testClient = new TestKmsClient();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id", "Value"}},
             };
+            using var decryptionConfig = new DecryptionConfiguration();
 
             TestEncryptionRoundtrip(
                 connectionConfig, encryptionConfig, decryptionConfig, testClient, rowGroupMetaData =>
@@ -112,12 +112,12 @@ namespace ParquetSharp.Test.Encryption
             var testClient = new TestKmsClient();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id"}},
                 {"Key2", new[] {"Value"}},
             };
+            using var decryptionConfig = new DecryptionConfiguration();
 
             TestEncryptionRoundtrip(
                 connectionConfig, encryptionConfig, decryptionConfig, testClient, rowGroupMetaData =>
@@ -148,12 +148,12 @@ namespace ParquetSharp.Test.Encryption
             var testClient = new TestKmsClient();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id", "Value"}},
             };
             encryptionConfig.DoubleWrapping = false;
+            using var decryptionConfig = new DecryptionConfiguration();
 
             TestEncryptionRoundtrip(
                 connectionConfig, encryptionConfig, decryptionConfig, testClient, rowGroupMetaData =>
@@ -186,12 +186,13 @@ namespace ParquetSharp.Test.Encryption
             var testClient = new TestKmsClient();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id", "Value"}},
             };
             encryptionConfig.PlaintextFooter = true;
+            using var decryptionConfig = new DecryptionConfiguration();
+
             var kvMetadata = new Dictionary<string, string>
             {
                 {"abc", "123"},
@@ -226,7 +227,7 @@ namespace ParquetSharp.Test.Encryption
 
                 Assert.That(metadata.KeyValueMetadata, Is.EqualTo(kvMetadata));
 
-                var exception = Assert.Throws<ParquetException>(() => ReadParquetFile(fileReader, null));
+                var exception = Assert.Throws<ParquetException>(() => ReadParquetFile(fileReader));
                 Assert.That(exception!.Message, Does.Contain("Cannot decrypt ColumnMetadata"));
             }
         }
@@ -237,16 +238,12 @@ namespace ParquetSharp.Test.Encryption
             var testClient = new TestKmsClient();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Value"}},
             };
             encryptionConfig.PlaintextFooter = true;
-            var kvMetadata = new Dictionary<string, string>
-            {
-                {"abc", "123"},
-            };
+            using var decryptionConfig = new DecryptionConfiguration();
 
             using var buffer = new ResizableBuffer();
 
@@ -256,7 +253,7 @@ namespace ParquetSharp.Test.Encryption
                 using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
                     connectionConfig, encryptionConfig);
                 using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
-                using var fileWriter = new ParquetFileWriter(output, Columns, writerProperties, kvMetadata);
+                using var fileWriter = new ParquetFileWriter(output, Columns, writerProperties);
                 WriteParquetFile(fileWriter);
             }
 
@@ -286,11 +283,11 @@ namespace ParquetSharp.Test.Encryption
             });
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id", "Value"}},
             };
+            using var decryptionConfig = new DecryptionConfiguration();
 
             using var buffer = new ResizableBuffer();
 
@@ -312,11 +309,11 @@ namespace ParquetSharp.Test.Encryption
             });
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id", "Value"}},
             };
+            using var decryptionConfig = new DecryptionConfiguration();
 
             using var buffer = new ResizableBuffer();
 
@@ -354,11 +351,11 @@ namespace ParquetSharp.Test.Encryption
             });
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id", "Value"}},
             };
+            using var decryptionConfig = new DecryptionConfiguration();
 
             using var buffer = new ResizableBuffer();
 
@@ -390,11 +387,11 @@ namespace ParquetSharp.Test.Encryption
             var testClient = new TestKmsClient();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id", "Value", "InvalidColumn"}},
             };
+            using var decryptionConfig = new DecryptionConfiguration();
 
             using var buffer = new ResizableBuffer();
             using var output = new BufferOutputStream(buffer);
@@ -413,12 +410,12 @@ namespace ParquetSharp.Test.Encryption
             var testClient = new TestKmsClient();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id", "Value"}},
             };
             encryptionConfig.InternalKeyMaterial = false;
+            using var decryptionConfig = new DecryptionConfiguration();
 
             TestEncryptionRoundtripWithFileSystem(
                 tmpDir.DirectoryPath, connectionConfig, encryptionConfig, decryptionConfig, testClient);
@@ -433,12 +430,12 @@ namespace ParquetSharp.Test.Encryption
             var testClient = new TestKmsClient();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id", "Value"}},
             };
             encryptionConfig.InternalKeyMaterial = false;
+            using var decryptionConfig = new DecryptionConfiguration();
 
             using var cryptoFactory = new CryptoFactory(_ => testClient);
 
@@ -453,12 +450,12 @@ namespace ParquetSharp.Test.Encryption
             var testClient = new TestKmsClient();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id", "Value"}},
             };
             encryptionConfig.InternalKeyMaterial = false;
+            using var decryptionConfig = new DecryptionConfiguration();
 
             using var tmpDir = new TempWorkingDirectory();
             var filePath = tmpDir.DirectoryPath + "/data.parquet";
@@ -487,7 +484,6 @@ namespace ParquetSharp.Test.Encryption
             using var tmpDir = new TempWorkingDirectory();
             using var connectionConfig = new KmsConnectionConfig();
             using var encryptionConfig = new EncryptionConfiguration("Key0");
-            using var decryptionConfig = new DecryptionConfiguration();
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
                 {"Key1", new[] {"Id"}},
@@ -495,6 +491,7 @@ namespace ParquetSharp.Test.Encryption
             };
             encryptionConfig.InternalKeyMaterial = false;
             encryptionConfig.DoubleWrapping = doubleWrapping;
+            using var decryptionConfig = new DecryptionConfiguration();
 
             var newKey0 = new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 99};
             var newKey1 = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 99};

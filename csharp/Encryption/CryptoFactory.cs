@@ -137,6 +137,7 @@ namespace ParquetSharp.Encryption
             IntPtr handle, byte* keyBytes, int keyBytesLength, string masterKeyIdentifier, out string wrappedKey, out string? exception)
         {
             exception = null;
+            wrappedKey = "";
 
             try
             {
@@ -149,7 +150,6 @@ namespace ParquetSharp.Encryption
             catch (Exception ex)
             {
                 exception = ex.ToString();
-                wrappedKey = "";
             }
         }
 

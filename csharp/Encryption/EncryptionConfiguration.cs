@@ -141,7 +141,7 @@ namespace ParquetSharp.Encryption
         private static IReadOnlyDictionary<string, IReadOnlyList<string>> ParseColumnKeys(string columnKeys)
         {
             var keyConfigs = columnKeys.Split(';');
-            var map = new Dictionary<string, IReadOnlyList<string>>();
+            var columnKeysMap = new Dictionary<string, IReadOnlyList<string>>();
             foreach (var keyToColumns in keyConfigs)
             {
                 var mapping = keyToColumns.Split(':');
@@ -152,9 +152,9 @@ namespace ParquetSharp.Encryption
 
                 var masterKeyId = mapping[0].Trim();
                 var columns = mapping[1].Split(',').Select(col => col.Trim()).ToArray();
-                map[masterKeyId] = columns;
+                columnKeysMap[masterKeyId] = columns;
             }
-            return map;
+            return columnKeysMap;
         }
 
         public void Dispose()
@@ -217,10 +217,10 @@ namespace ParquetSharp.Encryption
         private static extern IntPtr EncryptionConfiguration_SetInternalKeyMaterial(IntPtr encryptionConfiguration, [MarshalAs(UnmanagedType.I1)] bool internalKeyMaterial);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr EncryptionConfiguration_GetDataKeyLengthBits(IntPtr encryptionConfiguration, out int lifetime);
+        private static extern IntPtr EncryptionConfiguration_GetDataKeyLengthBits(IntPtr encryptionConfiguration, out int keyLength);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr EncryptionConfiguration_SetDataKeyLengthBits(IntPtr encryptionConfiguration, int lifetime);
+        private static extern IntPtr EncryptionConfiguration_SetDataKeyLengthBits(IntPtr encryptionConfiguration, int keyLength);
 
         internal readonly ParquetHandle Handle;
     }
