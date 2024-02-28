@@ -67,6 +67,29 @@ namespace ParquetSharp.Test
         public static void TestEncryptAllSeparateKeys()
         {
             // Case where the footer and all columns are encrypted all with different keys.
+            AssertEncryptionRoundtrip(CreateEncryptAllSeparateKeysProperties, CreateDecryptWithSeparateKeyProperties, rowGroupMetadata =>
+            {
+                using var colMetadata0 = rowGroupMetadata.GetColumnChunkMetaData(0);
+                using var colMetadata1 = rowGroupMetadata.GetColumnChunkMetaData(1);
+                using var crypto0 = colMetadata0.CryptoMetadata;
+                using var crypto1 = colMetadata1.CryptoMetadata;
+
+                using var path0 = crypto0?.ColumnPath;
+                Assert.AreEqual("Id", path0?.ToDotString());
+                Assert.AreEqual(false, crypto0?.EncryptedWithFooterKey);
+                Assert.AreEqual("Key1", crypto0?.KeyMetadata);
+
+                using var path1 = crypto1?.ColumnPath;
+                Assert.AreEqual("Value", path1?.ToDotString());
+                Assert.AreEqual(false, crypto1?.EncryptedWithFooterKey);
+                Assert.AreEqual("Key2", crypto1?.KeyMetadata);
+            });
+        }
+
+        [Test]
+        public static void TestEncryptAllSeparateKeysWithKeyRetriever()
+        {
+            // Case where the footer and all columns are encrypted all with different keys.
             AssertEncryptionRoundtrip(CreateEncryptAllSeparateKeysProperties, CreateDecryptWithKeyRetrieverProperties, rowGroupMetadata =>
             {
                 using var colMetadata0 = rowGroupMetadata.GetColumnChunkMetaData(0);
@@ -278,6 +301,22 @@ namespace ParquetSharp.Test
 
             return builder
                 .FooterKey(Key0)
+                .Build();
+        }
+
+        private static FileDecryptionProperties CreateDecryptWithSeparateKeyProperties()
+        {
+            using var builder = new FileDecryptionPropertiesBuilder();
+
+            using var col0Builder = new ColumnDecryptionPropertiesBuilder("Id");
+            using var col0Properties = col0Builder.Key(Key1).Build();
+
+            using var col1Builder = new ColumnDecryptionPropertiesBuilder("Value");
+            using var col1Properties = col1Builder.Key(Key2).Build();
+
+            return builder
+                .FooterKey(Key0)
+                .ColumnKeys(new[] {col0Properties, col1Properties})
                 .Build();
         }
 
