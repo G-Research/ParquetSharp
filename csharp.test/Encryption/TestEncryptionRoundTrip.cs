@@ -481,6 +481,136 @@ namespace ParquetSharp.Test.Encryption
             }
         }
 
+        [Test]
+        public static void TestKeyRotation([Values] bool doubleWrapping)
+        {
+            using var tmpDir = new TempWorkingDirectory();
+            using var connectionConfig = new KmsConnectionConfig();
+            using var encryptionConfig = new EncryptionConfiguration("Key0");
+            using var decryptionConfig = new DecryptionConfiguration();
+            encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
+            {
+                {"Key1", new[] {"Id"}},
+                {"Key2", new[] {"Value"}},
+            };
+            encryptionConfig.InternalKeyMaterial = false;
+            encryptionConfig.DoubleWrapping = doubleWrapping;
+
+            var newKey0 = new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 99};
+            var newKey1 = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 99};
+            var newKey2 = new byte[] {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 99};
+
+            // Encrypt with a client that only knows version 0 keys
+            var encryptionClient = new TestKmsClient();
+
+            // Rotate with a client that can decrypt version 0 and re-encrypt with version 1
+            var rotationClient = new TestKmsClient(new Dictionary<string, IReadOnlyDictionary<int, byte[]>>
+            {
+                {
+                    "Key0", new Dictionary<int, byte[]>
+                    {
+                        {0, TestKmsClient.DefaultMasterKeys["Key0"]},
+                        {1, newKey0},
+                    }
+                },
+                {
+                    "Key1", new Dictionary<int, byte[]>
+                    {
+                        {0, TestKmsClient.DefaultMasterKeys["Key1"]},
+                        {1, newKey1},
+                    }
+                },
+                {
+                    "Key2", new Dictionary<int, byte[]>
+                    {
+                        {0, TestKmsClient.DefaultMasterKeys["Key2"]},
+                        {1, newKey2},
+                    }
+                },
+            });
+
+            // Use a client that only knows version 1 keys to test decryption
+            var decryptionClient = new TestKmsClient(new Dictionary<string, IReadOnlyDictionary<int, byte[]>>
+            {
+                {
+                    "Key0", new Dictionary<int, byte[]>
+                    {
+                        {1, newKey0},
+                    }
+                },
+                {
+                    "Key1", new Dictionary<int, byte[]>
+                    {
+                        {1, newKey1},
+                    }
+                },
+                {
+                    "Key2", new Dictionary<int, byte[]>
+                    {
+                        {1, newKey2},
+                    }
+                },
+            });
+
+            // And test with a client that pretends to know the latest version but they're actually the old version keys
+            var invalidClient = new TestKmsClient(new Dictionary<string, IReadOnlyDictionary<int, byte[]>>
+            {
+                {
+                    "Key0", new Dictionary<int, byte[]>
+                    {
+                        {1, TestKmsClient.DefaultMasterKeys["Key0"]},
+                    }
+                },
+                {
+                    "Key1", new Dictionary<int, byte[]>
+                    {
+                        {1, TestKmsClient.DefaultMasterKeys["Key1"]},
+                    }
+                },
+                {
+                    "Key2", new Dictionary<int, byte[]>
+                    {
+                        {1, TestKmsClient.DefaultMasterKeys["Key2"]},
+                    }
+                },
+            });
+
+            var filePath = tmpDir.DirectoryPath + "/data.parquet";
+
+            {
+                using var cryptoFactory = new CryptoFactory(_ => encryptionClient);
+                using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
+                    connectionConfig, encryptionConfig, filePath: filePath);
+                using var writerProperties = CreateWriterProperties(fileEncryptionProperties);
+                using var fileWriter = new ParquetFileWriter(filePath, Columns, writerProperties);
+                WriteParquetFile(fileWriter);
+            }
+
+            {
+                using var cryptoFactory = new CryptoFactory(_ => rotationClient);
+                cryptoFactory.RotateMasterKeys(
+                    connectionConfig, filePath, doubleWrapping);
+            }
+
+            {
+                using var cryptoFactory = new CryptoFactory(_ => decryptionClient);
+                using var fileDecryptionProperties = cryptoFactory.GetFileDecryptionProperties(
+                    connectionConfig, decryptionConfig, filePath: filePath);
+                using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
+                using var fileReader = new ParquetFileReader(filePath, readerProperties);
+                ReadParquetFile(fileReader);
+            }
+
+            {
+                using var cryptoFactory = new CryptoFactory(_ => invalidClient);
+                using var fileDecryptionProperties = cryptoFactory.GetFileDecryptionProperties(
+                    connectionConfig, decryptionConfig, filePath: filePath);
+                using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
+                var exception = Assert.Throws<ParquetException>(() => new ParquetFileReader(filePath, readerProperties));
+                Assert.That(exception!.Message, Does.Contain("CryptographicException"));
+            }
+        }
+
         private static void TestEncryptionRoundtrip(
             KmsConnectionConfig connectionConfig,
             EncryptionConfiguration encryptionConfiguration,
@@ -558,7 +688,7 @@ namespace ParquetSharp.Test.Encryption
         }
 
         private static void ReadParquetFile(
-            ParquetFileReader fileReader, Action<RowGroupMetaData>? onGroupMetadata)
+            ParquetFileReader fileReader, Action<RowGroupMetaData>? onGroupMetadata = null)
         {
             using var groupReader = fileReader.RowGroup(0);
 

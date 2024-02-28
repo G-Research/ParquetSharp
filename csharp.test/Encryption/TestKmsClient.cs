@@ -7,7 +7,8 @@ using ParquetSharp.Encryption;
 namespace ParquetSharp.Test.Encryption
 {
     /// <summary>
-    /// Test KMS client with hard-coded master keys
+    /// Test KMS client with hard-coded master keys.
+    /// Supports key-versioning to allow testing key rotation.
     /// </summary>
     internal sealed class TestKmsClient : IKmsClient
     {
@@ -15,7 +16,11 @@ namespace ParquetSharp.Test.Encryption
         {
         }
 
-        public TestKmsClient(IReadOnlyDictionary<string, byte[]> masterKeys)
+        public TestKmsClient(IReadOnlyDictionary<string, byte[]> masterKeys) : this(ToVersionedKeys(masterKeys))
+        {
+        }
+
+        public TestKmsClient(IReadOnlyDictionary<string, IReadOnlyDictionary<int, byte[]>> masterKeys)
         {
             _masterKeys = masterKeys;
         }
@@ -23,21 +28,24 @@ namespace ParquetSharp.Test.Encryption
         public string WrapKey(byte[] keyBytes, string masterKeyIdentifier)
         {
             WrappedKeys.Add(keyBytes);
-            var masterKey = _masterKeys[masterKeyIdentifier];
+            var masterKeys = _masterKeys[masterKeyIdentifier];
+            var keyVersion = masterKeys.Keys.Max();
+            var masterKey = masterKeys[keyVersion];
             using var aes = Aes.Create();
             aes.Key = masterKey;
             using var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
             var encrypted = EncryptBytes(encryptor, keyBytes);
-            return $"{System.Convert.ToBase64String(aes.IV)}:{System.Convert.ToBase64String(encrypted)}";
+            return $"{keyVersion}:{System.Convert.ToBase64String(aes.IV)}:{System.Convert.ToBase64String(encrypted)}";
         }
 
         public byte[] UnwrapKey(string wrappedKey, string masterKeyIdentifier)
         {
             UnwrappedKeys.Add(wrappedKey);
-            var masterKey = _masterKeys[masterKeyIdentifier];
             var split = wrappedKey.Split(":");
-            var iv = System.Convert.FromBase64String(split[0]);
-            var encryptedKey = System.Convert.FromBase64String(split[1]);
+            var keyVersion = int.Parse(split[0]);
+            var iv = System.Convert.FromBase64String(split[1]);
+            var encryptedKey = System.Convert.FromBase64String(split[2]);
+            var masterKey = _masterKeys[masterKeyIdentifier][keyVersion];
             using var aes = Aes.Create();
             aes.Key = masterKey;
             aes.IV = iv;
@@ -87,6 +95,13 @@ namespace ParquetSharp.Test.Encryption
             return buffer.Take(offset).ToArray();
         }
 
-        private readonly IReadOnlyDictionary<string, byte[]> _masterKeys;
+        private static IReadOnlyDictionary<string, IReadOnlyDictionary<int, byte[]>> ToVersionedKeys(IReadOnlyDictionary<string, byte[]> masterKeys)
+        {
+            return masterKeys.ToDictionary(
+                kvp => kvp.Key,
+                kvp => (IReadOnlyDictionary<int, byte[]>) new Dictionary<int, byte[]> {{0, kvp.Value}});
+        }
+
+        private readonly IReadOnlyDictionary<string, IReadOnlyDictionary<int, byte[]>> _masterKeys;
     }
 }

@@ -67,6 +67,29 @@ namespace ParquetSharp.Encryption
             return new FileDecryptionProperties(fileDecryptionPropertiesHandle);
         }
 
+        /// <summary>
+        /// Rotates master encryption keys for a Parquet file that uses external key material.
+        /// In single wrapping mode, data encryption keys are decrypted with the old master keys
+        /// and then re-encrypted with new master keys.
+        /// In double wrapping mode, key encryption keys are decrypted with the old master keys
+        /// and then re-encrypted with new master keys.
+        /// This relies on the KMS supporting versioning, such that the old master key is
+        /// used when unwrapping a key, and the latest version is used when wrapping a key.
+        /// </summary>
+        /// <param name="connectionConfig">The KMS connection configuration to use</param>
+        /// <param name="parquetFilePath">Path to the encrypted Parquet file</param>
+        /// <param name="doubleWrapping">Whether to use double wrapping when rotating</param>
+        /// <param name="cacheLifetimeSeconds">Lifetime of cached objects in seconds</param>
+        public void RotateMasterKeys(
+            KmsConnectionConfig connectionConfig,
+            string parquetFilePath,
+            bool doubleWrapping,
+            double cacheLifetimeSeconds = 600)
+        {
+            ExceptionInfo.Check(CryptoFactory_RotateMasterKeys(
+                _handle.IntPtr, connectionConfig.Handle.IntPtr, parquetFilePath, doubleWrapping, cacheLifetimeSeconds));
+        }
+
         public void Dispose()
         {
             _handle.Dispose();
@@ -192,6 +215,11 @@ namespace ParquetSharp.Encryption
         private static extern IntPtr CryptoFactory_GetFileDecryptionProperties(
             IntPtr cryptoFactory, IntPtr kmsConnectionConfig, IntPtr decryptionConfig,
             [MarshalAs(UnmanagedType.LPUTF8Str)] string? filePath, out IntPtr fileDecryptionProperties);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr CryptoFactory_RotateMasterKeys(
+            IntPtr cryptoFactory, IntPtr kmsConnectionConfig, [MarshalAs(UnmanagedType.LPUTF8Str)] string parquetFilePath,
+            [MarshalAs(UnmanagedType.I1)] bool doubleWrapping, double cacheLifetimeSeconds);
 
         private readonly ParquetHandle _handle;
     }

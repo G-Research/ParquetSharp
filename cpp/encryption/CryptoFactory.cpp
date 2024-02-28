@@ -67,4 +67,19 @@ extern "C"
                 *kms_connection_config, *decryption_configuration, file_path_str, file_system));
     )
   }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* CryptoFactory_RotateMasterKeys(
+      CryptoFactory* crypto_factory,
+      const KmsConnectionConfig* kms_connection_config,
+      const char* file_path,
+      bool double_wrapping,
+      double cache_lifetime_seconds)
+  {
+    TRYCATCH(
+        std::string file_path_str = file_path == nullptr ? "" : file_path;
+        std::shared_ptr<::arrow::fs::FileSystem> file_system = std::make_shared<::arrow::fs::LocalFileSystem>();
+        crypto_factory->RotateMasterKeys(
+            *kms_connection_config, file_path_str, file_system, double_wrapping, cache_lifetime_seconds);
+    )
+  }
 }
