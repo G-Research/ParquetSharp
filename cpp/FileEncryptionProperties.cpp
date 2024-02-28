@@ -65,10 +65,4 @@ extern "C"
             }
         )
     }
-
-    // TODO: do we really need this?
-    //PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionProperties_Encrypted_Columns(const std::shared_ptr<const FileEncryptionProperties>* properties, bool* is_encrypted_with_footer_key)
-    //{
-    //    TRYCATCH(*encrypted_columns = (*properties)->encrypted_columns();)
-    //}
 }
