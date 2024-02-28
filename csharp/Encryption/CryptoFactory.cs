@@ -51,6 +51,10 @@ namespace ParquetSharp.Encryption
         /// <summary>
         /// Get decryption properties for a Parquet file.
         /// If external key material is used then the path to the parquet file must be provided.
+        /// This CryptoFactory instance must remain alive and not disposed until after any files using these
+        /// decryption properties have been read, as internally the FileDecryptionProperties contains references to
+        /// data in the CryptoFactory that cannot be managed by ParquetSharp.
+        /// Failure to do so may result in native memory access violations and crashes that cannot be caught as exceptions.
         /// </summary>
         /// <param name="connectionConfig">The KMS connection configuration to use</param>
         /// <param name="decryptionConfig">The decryption configuration to use</param>
@@ -63,7 +67,6 @@ namespace ParquetSharp.Encryption
         {
             var fileDecryptionPropertiesHandle = ExceptionInfo.Return<IntPtr, IntPtr, IntPtr, string?, IntPtr>(
                 _handle.IntPtr, connectionConfig.Handle.IntPtr, decryptionConfig.Handle.IntPtr, filePath, CryptoFactory_GetFileDecryptionProperties);
-            // TODO: decryption properties internally use the cache associated with this crypto factory
             return new FileDecryptionProperties(fileDecryptionPropertiesHandle);
         }
 
