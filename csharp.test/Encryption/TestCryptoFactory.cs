@@ -131,24 +131,24 @@ namespace ParquetSharp.Test.Encryption
 
             using (cryptoFactory)
             {
-                GC.Collect();
+                GcCollect();
                 Assert.That(clientFactoryRef.IsAlive);
                 Assert.That(clientRefs, Is.Empty);
 
                 using var properties0 = cryptoFactory.GetFileEncryptionProperties(connectionConfig, encryptionConfig);
 
-                GC.Collect();
+                GcCollect();
                 Assert.That(clientRefs.Count, Is.EqualTo(1));
                 Assert.That(clientRefs[0].IsAlive);
 
                 using var properties1 = cryptoFactory.GetFileEncryptionProperties(connectionConfig, encryptionConfig);
 
-                GC.Collect();
+                GcCollect();
                 Assert.That(clientRefs.Count, Is.EqualTo(1));
                 Assert.That(clientRefs[0].IsAlive);
             }
 
-            GC.Collect();
+            GcCollect();
             Assert.That(clientRefs.Count, Is.EqualTo(1));
             Assert.That(clientRefs[0].IsAlive, Is.False);
             Assert.That(clientFactoryRef.IsAlive, Is.False);
@@ -173,7 +173,7 @@ namespace ParquetSharp.Test.Encryption
             const int numClients = 3;
             using (cryptoFactory)
             {
-                GC.Collect();
+                GcCollect();
                 Assert.That(clientRefs, Is.Empty);
 
                 for (var i = 0; i < numClients; ++i)
@@ -182,7 +182,7 @@ namespace ParquetSharp.Test.Encryption
                     Thread.Sleep(TimeSpan.FromSeconds(2));
                 }
 
-                GC.Collect();
+                GcCollect();
                 Assert.That(clientRefs.Count, Is.EqualTo(numClients));
                 for (var i = 0; i < numClients; ++i)
                 {
@@ -197,7 +197,7 @@ namespace ParquetSharp.Test.Encryption
                 }
             }
 
-            GC.Collect();
+            GcCollect();
             Assert.That(clientFactoryRef.IsAlive, Is.False);
             Assert.That(clientRefs.Count, Is.EqualTo(numClients));
             foreach (var clientRef in clientRefs)
@@ -216,6 +216,13 @@ namespace ParquetSharp.Test.Encryption
             };
             var factoryRef = new WeakReference(kmsClientFactory);
             return (new CryptoFactory(kmsClientFactory), factoryRef);
+        }
+
+        private static void GcCollect()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
         }
     }
 }
