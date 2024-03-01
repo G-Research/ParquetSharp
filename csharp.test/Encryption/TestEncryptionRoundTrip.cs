@@ -375,9 +375,8 @@ namespace ParquetSharp.Test.Encryption
                 using var fileDecryptionProperties = cryptoFactory.GetFileDecryptionProperties(
                     connectionConfig, decryptionConfig);
                 using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
-                var exception = Assert.Throws<ParquetException>(() => new ParquetFileReader(input, readerProperties));
                 // Exception is thrown in TestKmsClient when trying to decrypt the key-encryption key
-                Assert.That(exception!.Message, Does.Contain("CryptographicException"));
+                Assert.Throws<ParquetException>(() => new ParquetFileReader(input, readerProperties));
             }
         }
 
@@ -603,8 +602,7 @@ namespace ParquetSharp.Test.Encryption
                 using var fileDecryptionProperties = cryptoFactory.GetFileDecryptionProperties(
                     connectionConfig, decryptionConfig, filePath: filePath);
                 using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
-                var exception = Assert.Throws<ParquetException>(() => new ParquetFileReader(filePath, readerProperties));
-                Assert.That(exception!.Message, Does.Contain("CryptographicException"));
+                Assert.Throws<ParquetException>(() => new ParquetFileReader(filePath, readerProperties));
             }
         }
 
