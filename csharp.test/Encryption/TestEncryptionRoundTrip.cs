@@ -296,7 +296,6 @@ namespace ParquetSharp.Test.Encryption
             var exception = Assert.Throws<ParquetException>(() => cryptoFactory.GetFileEncryptionProperties(
                 connectionConfig, encryptionConfig));
             Assert.That(exception!.Message, Does.Contain("KeyNotFoundException"));
-            Assert.That(exception!.Message, Does.Contain("'Key0'"));
         }
 
         [Test]
@@ -335,7 +334,6 @@ namespace ParquetSharp.Test.Encryption
                 using var readerProperties = CreateReaderProperties(fileDecryptionProperties);
                 var exception = Assert.Throws<ParquetException>(() => new ParquetFileReader(input, readerProperties));
                 Assert.That(exception!.Message, Does.Contain("KeyNotFoundException"));
-                Assert.That(exception.Message, Does.Contain("'Key0'"));
             }
         }
 

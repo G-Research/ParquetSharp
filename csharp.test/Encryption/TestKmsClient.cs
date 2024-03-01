@@ -41,7 +41,7 @@ namespace ParquetSharp.Test.Encryption
         public byte[] UnwrapKey(string wrappedKey, string masterKeyIdentifier)
         {
             UnwrappedKeys.Add(wrappedKey);
-            var split = wrappedKey.Split(":");
+            var split = wrappedKey.Split(':');
             var keyVersion = int.Parse(split[0]);
             var iv = System.Convert.FromBase64String(split[1]);
             var encryptedKey = System.Convert.FromBase64String(split[2]);
@@ -69,7 +69,7 @@ namespace ParquetSharp.Test.Encryption
             using var memoryStream = new MemoryStream();
             using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
             {
-                cryptoStream.Write(plainText);
+                cryptoStream.Write(plainText, 0, plainText.Length);
             }
 
             return memoryStream.ToArray();
