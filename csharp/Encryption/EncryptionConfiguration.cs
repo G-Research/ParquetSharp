@@ -112,30 +112,7 @@ namespace ParquetSharp.Encryption
 
         private static string EncodeColumnKeys(IReadOnlyDictionary<string, IReadOnlyList<string>> columnKeys)
         {
-            var output = new StringBuilder();
-            var first = true;
-            foreach (var kvp in columnKeys)
-            {
-                if (!first)
-                {
-                    output.Append(";");
-                }
-                first = false;
-                var masterKey = kvp.Key;
-                var columns = kvp.Value;
-                output.Append(masterKey);
-                output.Append(":");
-                for (var i = 0; i < columns.Count; ++i)
-                {
-                    if (i != 0)
-                    {
-                        output.Append(",");
-                    }
-                    output.Append(columns[i]);
-                }
-            }
-
-            return output.ToString();
+            return string.Join(";", columnKeys.Select(kvp => $"{kvp.Key}:{string.Join(",", kvp.Value)}"));
         }
 
         private static IReadOnlyDictionary<string, IReadOnlyList<string>> ParseColumnKeys(string columnKeys)
