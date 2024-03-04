@@ -98,6 +98,7 @@ For more detailed information on how to use ParquetSharp, see the following docu
 * [Row-oriented API](docs/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
 * [Custom types](docs/TypeFactories.md) &mdash; how to customize the mapping between .NET and Parquet types,
     including using the `DateOnly` and `TimeOnly` types added in .NET 6.
+* [Encryption](docs/Encryption.md) &mdash; using Parquet Modular Encryption to read and write encrypted data
 * [Writing TimeSpan data](docs/TimeSpan.md) &mdash; interoperability with other libraries when writing TimeSpan data
 * [Use from PowerShell](docs/PowerShell.md)
 

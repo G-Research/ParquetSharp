@@ -13,7 +13,24 @@ namespace ParquetSharp.IO
         {
         }
 
+        internal static ResizableBuffer FromNonOwnedPtr(IntPtr handle)
+        {
+            return new ResizableBuffer(new ParquetHandle(handle, _ => { }));
+        }
+
+        private ResizableBuffer(ParquetHandle handle) : base(handle)
+        {
+        }
+
+        internal void Resize(long newSize)
+        {
+            ExceptionInfo.Check(ResizableBuffer_Resize(Handle.IntPtr, newSize));
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ResizableBuffer_Create(long initialSize, out IntPtr resizableBuffer);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ResizableBuffer_Resize(IntPtr resizableBuffer, long newSize);
     }
 }

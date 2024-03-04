@@ -12,6 +12,7 @@ namespace ParquetSharp
         public delegate IntPtr GetAction<in TArg0, TValue>(TArg0 arg0, out TValue value);
         public delegate IntPtr GetAction<in TArg0, in TArg1, TValue>(TArg0 arg0, TArg1 arg1, out TValue value);
         public delegate IntPtr GetAction<in TArg0, in TArg1, in TArg2, TValue>(TArg0 arg0, TArg1 arg1, TArg2 arg2, out TValue value);
+        public delegate IntPtr GetAction<in TArg0, in TArg1, in TArg2, in TArg3, TValue>(TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, out TValue value);
         public delegate IntPtr GetFunction<TValue>(IntPtr handle, out TValue value);
         public delegate IntPtr GetFunction<in TArg0, TValue>(IntPtr handle, TArg0 arg0, out TValue value);
         public delegate IntPtr GetFunction<in TArg0, in TArg1, TValue>(IntPtr handle, TArg0 arg0, TArg1 arg1, out TValue value);
@@ -59,6 +60,12 @@ namespace ParquetSharp
         public static TValue Return<TArg0, TArg1, TArg2, TValue>(TArg0 arg0, TArg1 arg1, TArg2 arg2, GetAction<TArg0, TArg1, TArg2, TValue> getter)
         {
             Check(getter(arg0, arg1, arg2, out var value));
+            return value;
+        }
+
+        public static TValue Return<TArg0, TArg1, TArg2, TArg3, TValue>(TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, GetAction<TArg0, TArg1, TArg2, TArg3, TValue> getter)
+        {
+            Check(getter(arg0, arg1, arg2, arg3, out var value));
             return value;
         }
 

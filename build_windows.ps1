@@ -34,6 +34,18 @@ if ($Env:GITHUB_ACTIONS -eq "true") {
   $customTripletFile = "$customTripletsDir/$triplet.cmake"
   Copy-Item -Path $sourceTripletFile -Destination $customTripletFile
   Add-Content -Path $customTripletFile -Value "set(VCPKG_BUILD_TYPE release)"
+
+  # Ensure vcpkg uses the same MSVC version to build dependencies as we use to build the ParquetSharp library.
+  # By default, vcpkg uses the most recent version it can find, which might not be the same as what msbuild uses.
+  $vsInstPath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
+  Import-Module "$vsInstPath/Common7/Tools/Microsoft.VisualStudio.DevShell.dll"
+  Enter-VsDevShell -VsInstallPath $vsInstPath -SkipAutomaticLocation
+  $clPath = Get-Command cl.exe | Select -ExpandProperty "Source"
+  $toolsetVersion = $clPath.Split("\")[8]
+  if (-not $toolsetVersion.StartsWith("14.")) { throw "Couldn't get toolset version from path '$clPath'" }
+  Write-Output "Using platform toolset version = $toolsetVersion"
+  Add-Content -Path $customTripletFile -Value "set(VCPKG_PLATFORM_TOOLSET_VERSION $toolsetVersion)"
+
   $options += "-D"
   $options += "VCPKG_OVERLAY_TRIPLETS=$customTripletsDir"
 }

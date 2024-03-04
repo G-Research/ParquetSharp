@@ -5,6 +5,9 @@ using ParquetSharp.IO;
 
 namespace ParquetSharp.Test
 {
+    /// <summary>
+    /// These test the low level encryption API, where AES keys are provided directly
+    /// </summary>
     [TestFixture]
     internal static class TestEncryption
     {
@@ -64,6 +67,29 @@ namespace ParquetSharp.Test
         public static void TestEncryptAllSeparateKeys()
         {
             // Case where the footer and all columns are encrypted all with different keys.
+            AssertEncryptionRoundtrip(CreateEncryptAllSeparateKeysProperties, CreateDecryptWithSeparateKeyProperties, rowGroupMetadata =>
+            {
+                using var colMetadata0 = rowGroupMetadata.GetColumnChunkMetaData(0);
+                using var colMetadata1 = rowGroupMetadata.GetColumnChunkMetaData(1);
+                using var crypto0 = colMetadata0.CryptoMetadata;
+                using var crypto1 = colMetadata1.CryptoMetadata;
+
+                using var path0 = crypto0?.ColumnPath;
+                Assert.AreEqual("Id", path0?.ToDotString());
+                Assert.AreEqual(false, crypto0?.EncryptedWithFooterKey);
+                Assert.AreEqual("Key1", crypto0?.KeyMetadata);
+
+                using var path1 = crypto1?.ColumnPath;
+                Assert.AreEqual("Value", path1?.ToDotString());
+                Assert.AreEqual(false, crypto1?.EncryptedWithFooterKey);
+                Assert.AreEqual("Key2", crypto1?.KeyMetadata);
+            });
+        }
+
+        [Test]
+        public static void TestEncryptAllSeparateKeysWithKeyRetriever()
+        {
+            // Case where the footer and all columns are encrypted all with different keys.
             AssertEncryptionRoundtrip(CreateEncryptAllSeparateKeysProperties, CreateDecryptWithKeyRetrieverProperties, rowGroupMetadata =>
             {
                 using var colMetadata0 = rowGroupMetadata.GetColumnChunkMetaData(0);
@@ -109,7 +135,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestEncryptJustOneColumn()
         {
-            // Case where the footer is unencrypted and all columns are encrypted all with different keys.
+            // Case where the footer is unencrypted and only a single column is encrypted
             using var buffer = new ResizableBuffer();
 
             using (var output = new BufferOutputStream(buffer))
@@ -151,6 +177,29 @@ namespace ParquetSharp.Test
                     Assert.AreEqual(Ids, idReader.ReadAll(numRows));
                 }
             }
+        }
+
+        [Test]
+        public static void TestVerifyAadPrefix([Values] bool useVerifier)
+        {
+            FileDecryptionProperties? GetDecryptionProperties() =>
+                useVerifier ? CreateDecryptWithAadPrefixVerifierProperties() : CreateDecryptWithAadPrefixProperties();
+
+            AssertEncryptionRoundtrip(CreateEncryptWithAadPrefixProperties, GetDecryptionProperties);
+        }
+
+        [Test]
+        public static void TestVerifyInvalidAadPrefix([Values] bool useVerifier)
+        {
+            FileDecryptionProperties? GetDecryptionProperties() =>
+                useVerifier ? CreateDecryptWithAadPrefixVerifierProperties() : CreateDecryptWithAadPrefixProperties();
+
+            var exception = Assert.Throws<ParquetException>(() => AssertEncryptionRoundtrip(
+                CreateEncryptWithDifferentAadPrefixProperties, GetDecryptionProperties));
+            var expectedMessage = useVerifier
+                ? "Got unexpected AAD prefix: unexpected-prefix"
+                : "AAD Prefix in file and in properties is not the same";
+            Assert.That(exception?.Message, Contains.Substring(expectedMessage));
         }
 
         // Encrypt Properties
@@ -224,6 +273,26 @@ namespace ParquetSharp.Test
                 .Build();
         }
 
+        private static FileEncryptionProperties CreateEncryptWithAadPrefixProperties()
+        {
+            using var builder = new FileEncryptionPropertiesBuilder(Key0);
+
+            return builder
+                .FooterKeyMetadata("Key0")
+                .AadPrefix("expected-prefix")
+                .Build();
+        }
+
+        private static FileEncryptionProperties CreateEncryptWithDifferentAadPrefixProperties()
+        {
+            using var builder = new FileEncryptionPropertiesBuilder(Key0);
+
+            return builder
+                .FooterKeyMetadata("Key0")
+                .AadPrefix("unexpected-prefix")
+                .Build();
+        }
+
         // Decrypt Properties
 
         private static FileDecryptionProperties CreateDecryptAllSameKeyProperties()
@@ -235,12 +304,48 @@ namespace ParquetSharp.Test
                 .Build();
         }
 
+        private static FileDecryptionProperties CreateDecryptWithSeparateKeyProperties()
+        {
+            using var builder = new FileDecryptionPropertiesBuilder();
+
+            using var col0Builder = new ColumnDecryptionPropertiesBuilder("Id");
+            using var col0Properties = col0Builder.Key(Key1).Build();
+
+            using var col1Builder = new ColumnDecryptionPropertiesBuilder("Value");
+            using var col1Properties = col1Builder.Key(Key2).Build();
+
+            return builder
+                .FooterKey(Key0)
+                .ColumnKeys(new[] {col0Properties, col1Properties})
+                .Build();
+        }
+
         private static FileDecryptionProperties CreateDecryptWithKeyRetrieverProperties()
         {
             using var builder = new FileDecryptionPropertiesBuilder();
 
             return builder
                 .KeyRetriever(new TestRetriever())
+                .Build();
+        }
+
+        private static FileDecryptionProperties CreateDecryptWithAadPrefixProperties()
+        {
+            using var builder = new FileDecryptionPropertiesBuilder();
+
+            return builder
+                .KeyRetriever(new TestRetriever())
+                .AadPrefix("expected-prefix")
+                .Build();
+        }
+
+        private static FileDecryptionProperties CreateDecryptWithAadPrefixVerifierProperties()
+        {
+            using var builder = new FileDecryptionPropertiesBuilder();
+
+            return builder
+                .KeyRetriever(new TestRetriever())
+                .AadPrefixVerifier(new TestAadVerifier())
                 .Build();
         }
 
@@ -334,17 +439,28 @@ namespace ParquetSharp.Test
             }
         }
 
+        private sealed class TestAadVerifier : AadPrefixVerifier
+        {
+            public override void Verify(string aadPrefix)
+            {
+                if (aadPrefix != "expected-prefix")
+                {
+                    throw new Exception($"Got unexpected AAD prefix: {aadPrefix}");
+                }
+            }
+        }
+
         private static readonly byte[] Key0 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
         private static readonly byte[] Key1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
         private static readonly byte[] Key2 = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17};
 
-        public static readonly Column[] Columns =
+        private static readonly Column[] Columns =
         {
             new Column<int>("Id"),
             new Column<float>("Value")
         };
 
-        public static readonly int[] Ids = {1, 2, 3, 5, 7, 8, 13};
-        public static readonly float[] Values = {3.14f, 1.27f, 42.0f, 10.6f, 9.81f, 2.71f, -1f};
+        private static readonly int[] Ids = {1, 2, 3, 5, 7, 8, 13};
+        private static readonly float[] Values = {3.14f, 1.27f, 42.0f, 10.6f, 9.81f, 2.71f, -1f};
     }
 }
