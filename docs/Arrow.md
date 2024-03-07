@@ -164,8 +164,9 @@ if it contains more rows than the chunk size, which can be specified when writin
 writer.WriteRecordBatch(recordBatch, chunkSize: 1024);
 ```
 
-Calling `WriteRecordBatch` always starts a new row group, but you can also write
-buffered record batches, so that multiple batches may be written to the same row group:
+Calling `WriteRecordBatch` always starts a new row group, but since ParquetSharp 15.0.0,
+you can also write buffered record batches,
+so that multiple batches may be written to the same row group:
 
 ```csharp
 writer.WriteBufferedRecordBatch(recordBatch);
