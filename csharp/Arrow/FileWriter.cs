@@ -15,8 +15,12 @@ namespace ParquetSharp.Arrow
     /// <summary>
     /// Writes Parquet files using Arrow format data
     ///
-    /// This may be used to write whole tables or record batches,
+    /// This may be used to write whole tables or record batches at once,
     /// using the WriteTable or WriteRecordBatch methods.
+    ///
+    /// You can also buffer writes of record batches to allow writing multiple
+    /// record batches within a Parquet row group, using WriteBufferedRecordBatch
+    /// and NewBufferedRowGroup to start a new row group.
     ///
     /// For more control over writing, you can create a new row group with NewRowGroup,
     /// then write all columns for the row group with the WriteColumn method.
@@ -146,8 +150,8 @@ namespace ParquetSharp.Arrow
         /// <summary>
         /// Write an Arrow table to Parquet
         ///
-        /// The table data will be chunked into row groups that respect the maximum
-        /// chunk size specified if required.
+        /// A new row group will be started, and the table data will be chunked into
+        /// row groups that respect the maximum chunk size specified if required.
         /// This method requires that the columns in the table use equal chunking.
         /// </summary>
         /// <param name="table">The table to write</param>
@@ -161,8 +165,8 @@ namespace ParquetSharp.Arrow
         /// <summary>
         /// Write a record batch to Parquet
         ///
-        /// The data will be chunked into row groups that respect the maximum
-        /// chunk size specified if required.
+        /// A new row group will be started, and the record batch data will be chunked
+        /// into row groups that respect the maximum chunk size specified if required.
         /// </summary>
         /// <param name="recordBatch">The record batch to write</param>
         /// <param name="chunkSize">The maximum length of row groups to write</param>
@@ -170,6 +174,31 @@ namespace ParquetSharp.Arrow
         {
             var arrayStream = new RecordBatchStream(recordBatch.Schema, new[] {recordBatch});
             WriteRecordBatchStream(arrayStream, chunkSize);
+        }
+
+        /// <summary>
+        /// Write a record batch to Parquet in buffered mode, allowing
+        /// multiple record batches to be written to the same row group.
+        ///
+        /// New row groups are started if the data reaches the MaxRowGroupLength configured
+        /// in the WriterProperties.
+        /// </summary>
+        /// <param name="recordBatch">The record batch to write</param>
+        public void WriteBufferedRecordBatch(RecordBatch recordBatch)
+        {
+            var arrayStream = new RecordBatchStream(recordBatch.Schema, new[] {recordBatch});
+            WriteBufferedRecordBatches(arrayStream);
+        }
+
+        /// <summary>
+        /// Flush buffered data and start a new row group.
+        /// This can be used to force creation of a new row group when writing data
+        /// with WriteBufferedRecordBatch.
+        /// </summary>
+        public void NewBufferedRowGroup()
+        {
+            ExceptionInfo.Check(FileWriter_NewBufferedRowGroup(_handle.IntPtr));
+            GC.KeepAlive(_handle);
         }
 
         /// <summary>
@@ -265,6 +294,18 @@ namespace ParquetSharp.Arrow
             GC.KeepAlive(_handle);
         }
 
+        /// <summary>
+        /// Write record batches in buffered mode
+        /// </summary>
+        private unsafe void WriteBufferedRecordBatches(IArrowArrayStream arrayStream)
+        {
+            var cArrayStream = new CArrowArrayStream();
+            CArrowArrayStreamExporter.ExportArrayStream(arrayStream, &cArrayStream);
+            ExceptionInfo.Check(FileWriter_WriteRecordBatches(_handle.IntPtr, &cArrayStream));
+            GC.KeepAlive(cArrayStream);
+            GC.KeepAlive(_handle);
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern unsafe IntPtr FileWriter_OpenPath(
             [MarshalAs(UnmanagedType.LPUTF8Str)] string path, CArrowSchema* schema, IntPtr properties, IntPtr arrowProperties, out IntPtr writer);
@@ -280,7 +321,13 @@ namespace ParquetSharp.Arrow
         private static extern unsafe IntPtr FileWriter_WriteTable(IntPtr writer, CArrowArrayStream* stream, long chunkSize);
 
         [DllImport(ParquetDll.Name)]
+        private static extern unsafe IntPtr FileWriter_WriteRecordBatches(IntPtr writer, CArrowArrayStream* stream);
+
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileWriter_NewRowGroup(IntPtr writer, long chunkSize);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr FileWriter_NewBufferedRowGroup(IntPtr writer);
 
         [DllImport(ParquetDll.Name)]
         private static extern unsafe IntPtr FileWriter_WriteColumnChunk(IntPtr writer, CArrowArray* array, CArrowSchema* arrayType);
