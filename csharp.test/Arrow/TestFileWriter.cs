@@ -129,6 +129,80 @@ namespace ParquetSharp.Test.Arrow
         }
 
         [Test]
+        public async Task TestWriteBufferedRecordBatches()
+        {
+            var fields = new[]
+            {
+                new Field("x", new Apache.Arrow.Types.Int32Type(), false),
+                new Field("y", new Apache.Arrow.Types.FloatType(), false),
+            };
+            var schema = new Apache.Arrow.Schema(fields, null);
+
+            RecordBatch GetBatch(int xVal, int numRows)
+            {
+                var arrays = new IArrowArray[]
+                {
+                    new Int32Array.Builder()
+                        .AppendRange(Enumerable.Repeat(xVal, numRows))
+                        .Build(),
+                    new FloatArray.Builder()
+                        .AppendRange(Enumerable.Range(0, numRows).Select(i => i / 100.0f))
+                        .Build(),
+                };
+                return new RecordBatch(schema, arrays, numRows);
+            }
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var propertiesBuilder = new WriterPropertiesBuilder();
+                propertiesBuilder.MaxRowGroupLength(250);
+                using var writerProperties = propertiesBuilder.Build();
+                using var writer = new FileWriter(outStream, schema, writerProperties);
+
+                using var batch0 = GetBatch(0, 100);
+                writer.WriteBufferedRecordBatch(batch0);
+                using var batch1 = GetBatch(0, 100);
+                writer.WriteBufferedRecordBatch(batch1);
+
+                writer.NewBufferedRowGroup();
+
+                using var batch2 = GetBatch(1, 100);
+                writer.WriteBufferedRecordBatch(batch2);
+                using var batch3 = GetBatch(1, 100);
+                writer.WriteBufferedRecordBatch(batch3);
+
+                writer.NewBufferedRowGroup();
+
+                using var batch4 = GetBatch(2, 300);
+                writer.WriteBufferedRecordBatch(batch4);
+
+                writer.Close();
+            }
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+            Assert.That(fileReader.NumRowGroups, Is.EqualTo(4));
+
+            var expectedSizes = new[] {200, 200, 250, 50};
+            var expectedXValues = new[] {0, 1, 2, 2};
+
+            for (var rowGroupIdx = 0; rowGroupIdx < fileReader.NumRowGroups; ++rowGroupIdx)
+            {
+                using var batchReader = fileReader.GetRecordBatchReader(rowGroups: new[] {rowGroupIdx});
+                using var batch = await batchReader.ReadNextRecordBatchAsync();
+                Assert.That(batch, Is.Not.Null);
+                Assert.That(batch.Length, Is.EqualTo(expectedSizes[rowGroupIdx]));
+                var xVals = batch.Column("x") as Int32Array;
+                Assert.That(xVals, Is.Not.Null);
+                for (var i = 0; i < xVals!.Length; ++i)
+                {
+                    Assert.That(xVals.GetValue(i), Is.EqualTo(expectedXValues[rowGroupIdx]));
+                }
+            }
+        }
+
+        [Test]
         public async Task TestWriteRowGroupColumns()
         {
             var fields = new[]

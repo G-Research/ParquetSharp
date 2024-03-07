@@ -164,6 +164,19 @@ if it contains more rows than the chunk size, which can be specified when writin
 writer.WriteRecordBatch(recordBatch, chunkSize: 1024);
 ```
 
+Calling `WriteRecordBatch` always starts a new row group, but since ParquetSharp 15.0.0,
+you can also write buffered record batches,
+so that multiple batches may be written to the same row group:
+
+```csharp
+writer.WriteBufferedRecordBatch(recordBatch);
+```
+
+When using `WriteBufferedRecordBatch`, data will be flushed when the `FileWriter`
+is closed or `NewBufferedRowGroup` is called to start a new row group.
+A new row group will also be started if the row group size reaches the `MaxRowGroupLength`
+value configured in the `WriterProperties`.
+
 ### Writing data one column at a time
 
 Rather than writing record batches, you may also explicitly start Parquet row groups

@@ -97,9 +97,30 @@ extern "C"
     )
   }
 
+  PARQUETSHARP_EXPORT ExceptionInfo* FileWriter_WriteRecordBatches(
+      FileWriter* writer, struct ArrowArrayStream* stream, int64_t chunk_size)
+  {
+    TRYCATCH
+    (
+        std::shared_ptr<arrow::RecordBatchReader> reader;
+        PARQUET_ASSIGN_OR_THROW(reader, arrow::ImportRecordBatchReader(stream));
+        std::vector<std::shared_ptr<arrow::RecordBatch>> batches;
+        PARQUET_ASSIGN_OR_THROW(batches, reader->ToRecordBatches());
+        for (const auto& batch : batches)
+        {
+          PARQUET_THROW_NOT_OK(writer->WriteRecordBatch(*batch));
+        }
+    )
+  }
+
   PARQUETSHARP_EXPORT ExceptionInfo* FileWriter_NewRowGroup(FileWriter* writer, int64_t chunk_size)
   {
     TRYCATCH(PARQUET_THROW_NOT_OK(writer->NewRowGroup(chunk_size));)
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* FileWriter_NewBufferedRowGroup(FileWriter* writer)
+  {
+    TRYCATCH(PARQUET_THROW_NOT_OK(writer->NewBufferedRowGroup());)
   }
 
   PARQUETSHARP_EXPORT ExceptionInfo* FileWriter_WriteColumnChunk(
