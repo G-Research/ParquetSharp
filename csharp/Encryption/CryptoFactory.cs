@@ -35,7 +35,7 @@ namespace ParquetSharp.Encryption
         /// </summary>
         /// <param name="connectionConfig">The KMS connection configuration to use</param>
         /// <param name="encryptionConfig">The encryption configuration to use</param>
-        /// <param name="filePath">The path to the Parquet file being written</param>
+        /// <param name="filePath">The path to the Parquet file being written. Can be null if internal key material is used.</param>
         /// <returns>Encryption properties for the file</returns>
         public FileEncryptionProperties GetFileEncryptionProperties(
             KmsConnectionConfig connectionConfig,
@@ -58,7 +58,7 @@ namespace ParquetSharp.Encryption
         /// </summary>
         /// <param name="connectionConfig">The KMS connection configuration to use</param>
         /// <param name="decryptionConfig">The decryption configuration to use</param>
-        /// <param name="filePath">The path to the Parquet file being read</param>
+        /// <param name="filePath">The path to the Parquet file being read. Can be null if internal key material is used.</param>
         /// <returns>Decryption properties for the file</returns>
         public FileDecryptionProperties GetFileDecryptionProperties(
             KmsConnectionConfig connectionConfig,
