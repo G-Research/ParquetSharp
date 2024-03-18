@@ -69,7 +69,7 @@ namespace ParquetSharp
             return value;
         }
 
-        public static TValue Return<TValue>(ParquetHandle handle, GetFunction<TValue> getter)
+        public static TValue Return<TValue>(INativeHandle handle, GetFunction<TValue> getter)
         {
             var value = Return(handle.IntPtr, getter);
             GC.KeepAlive(handle);
@@ -82,21 +82,21 @@ namespace ParquetSharp
             return value;
         }
 
-        public static TValue Return<TValue>(ParquetHandle handle, ParquetHandle arg0, GetFunction<IntPtr, TValue> getter)
+        public static TValue Return<TValue>(INativeHandle handle, INativeHandle arg0, GetFunction<IntPtr, TValue> getter)
         {
             var value = Return(handle.IntPtr, arg0.IntPtr, getter);
             GC.KeepAlive(handle);
             return value;
         }
 
-        public static TValue Return<TArg0, TValue>(ParquetHandle handle, TArg0 arg0, GetFunction<TArg0, TValue> getter)
+        public static TValue Return<TArg0, TValue>(INativeHandle handle, TArg0 arg0, GetFunction<TArg0, TValue> getter)
         {
             var value = Return(handle.IntPtr, arg0, getter);
             GC.KeepAlive(handle);
             return value;
         }
 
-        public static TValue Return<TArg0, TArg1, TValue>(ParquetHandle handle, TArg0 arg0, TArg1 arg1, GetFunction<TArg0, TArg1, TValue> getter)
+        public static TValue Return<TArg0, TArg1, TValue>(INativeHandle handle, TArg0 arg0, TArg1 arg1, GetFunction<TArg0, TArg1, TValue> getter)
         {
             var value = Return(handle.IntPtr, arg0, arg1, getter);
             GC.KeepAlive(handle);
@@ -121,7 +121,7 @@ namespace ParquetSharp
             return ConvertPtrToString(handle, deleter, value);
         }
 
-        public static string ReturnString(ParquetHandle handle, GetFunction<IntPtr> getter, Action<IntPtr>? deleter = null)
+        public static string ReturnString(INativeHandle handle, GetFunction<IntPtr> getter, Action<IntPtr>? deleter = null)
         {
             Check(getter(handle.IntPtr, out var value));
             return ConvertPtrToString(handle, deleter, value);
@@ -134,7 +134,7 @@ namespace ParquetSharp
             return str;
         }
 
-        private static string ConvertPtrToString(ParquetHandle handle, Action<IntPtr>? deleter, IntPtr value)
+        private static string ConvertPtrToString(INativeHandle handle, Action<IntPtr>? deleter, IntPtr value)
         {
             var str = StringUtil.PtrToStringUtf8(value);
             deleter?.Invoke(value);

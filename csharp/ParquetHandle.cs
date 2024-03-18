@@ -5,7 +5,7 @@ namespace ParquetSharp
     /// <summary>
     /// Associate a native handle with its corresponding resource release method.
     /// </summary>
-    internal sealed class ParquetHandle : IDisposable
+    internal sealed class ParquetHandle : INativeHandle
     {
         public ParquetHandle(IntPtr handle, Action<IntPtr> free)
         {
@@ -47,6 +47,8 @@ namespace ParquetSharp
                 return _handle;
             }
         }
+
+        public bool Disposed => _handle == IntPtr.Zero;
 
         private IntPtr _handle;
         private readonly Action<IntPtr> _free;

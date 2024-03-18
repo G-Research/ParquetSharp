@@ -4,6 +4,7 @@
 #include <arrow/c/bridge.h>
 #include <arrow/record_batch.h>
 #include <parquet/arrow/reader.h>
+#include <parquet/file_reader.h>
 
 #include "cpp/ParquetSharpExport.h"
 #include "../ExceptionInfo.h"
@@ -102,6 +103,13 @@ extern "C"
       }
       PARQUET_THROW_NOT_OK(arrow::ExportRecordBatchReader(batch_reader, stream_out));
     )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* FileReader_ParquetReader(
+      FileReader* reader,
+      parquet::ParquetFileReader** parquet_reader)
+  {
+    TRYCATCH(*parquet_reader = reader->parquet_reader();)
   }
 
   PARQUETSHARP_EXPORT void FileReader_Free(FileReader* reader)

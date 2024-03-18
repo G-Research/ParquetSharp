@@ -195,6 +195,49 @@ namespace ParquetSharp.Test.Arrow
             Assert.That(rowsRead, Is.EqualTo(RowsPerRowGroup * NumRowGroups));
         }
 
+        [Test]
+        public void TestAccessUnderlyingReader()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+            using var parquetReader = fileReader.ParquetReader;
+
+            // Verify we can access column statistics
+            for (var rowGroupIdx = 0; rowGroupIdx < NumRowGroups; ++rowGroupIdx)
+            {
+                using var rowGroup = parquetReader.RowGroup(rowGroupIdx);
+                using var colMetadata = rowGroup.MetaData.GetColumnChunkMetaData(1);
+                using var stats = colMetadata.Statistics as Statistics<int>;
+                Assert.That(stats, Is.Not.Null);
+                Assert.That(stats!.HasMinMax);
+                Assert.That(stats.Min, Is.EqualTo(rowGroupIdx * RowsPerRowGroup));
+                Assert.That(stats.Max, Is.EqualTo((rowGroupIdx + 1) * RowsPerRowGroup - 1));
+            }
+        }
+
+        [Test]
+        public void TestAccessUnderlyingReaderAfterDisposed()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            ParquetFileReader parquetReader;
+            using (var fileReader = new FileReader(inStream))
+            {
+                parquetReader = fileReader.ParquetReader;
+            }
+
+            using (parquetReader)
+            {
+                var exception = Assert.Throws<NullReferenceException>(() => { _ = parquetReader.FileMetaData; });
+                Assert.That(exception!.Message, Does.Contain("owning parent has been disposed"));
+            }
+        }
+
         private static void WriteTestFile(ResizableBuffer buffer)
         {
             var columns = new Column[]

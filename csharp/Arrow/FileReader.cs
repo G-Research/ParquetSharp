@@ -138,6 +138,18 @@ namespace ParquetSharp.Arrow
             return CArrowArrayStreamImporter.ImportArrayStream(&cStream);
         }
 
+        /// <summary>
+        /// Get the underlying ParquetFileReader used by this Arrow FileReader
+        /// </summary>
+        public ParquetFileReader ParquetReader
+        {
+            get
+            {
+                var readerPtr = ExceptionInfo.Return<IntPtr>(_handle, FileReader_ParquetReader);
+                return new ParquetFileReader(new ChildParquetHandle(readerPtr, _handle));
+            }
+        }
+
         public void Dispose()
         {
             _handle.Dispose();
@@ -164,6 +176,9 @@ namespace ParquetSharp.Arrow
         [DllImport(ParquetDll.Name)]
         private static extern unsafe IntPtr FileReader_GetRecordBatchReader(
             IntPtr reader, int* rowGroups, int rowGroupsCount, int* columns, int columnsCount, CArrowArrayStream* stream);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr FileReader_ParquetReader(IntPtr reader, out IntPtr parquetReader);
 
         [DllImport(ParquetDll.Name)]
         private static extern void FileReader_Free(IntPtr reader);
