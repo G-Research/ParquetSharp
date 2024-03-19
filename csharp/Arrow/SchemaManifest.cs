@@ -34,6 +34,16 @@ namespace ParquetSharp.Arrow
         }
 
         /// <summary>
+        /// Get a single schema field
+        /// </summary>
+        /// <param name="fieldIndex">The index of the field in the Arrow schema</param>
+        public SchemaField SchemaField(int fieldIndex)
+        {
+            var fieldPtr = ExceptionInfo.Return<int, IntPtr>(_handle, fieldIndex, SchemaManifest_SchemaField);
+            return new SchemaField(new ChildParquetHandle(fieldPtr, _handle));
+        }
+
+        /// <summary>
         /// Get the schema field for a Parquet column
         /// </summary>
         /// <param name="columnIndex">The Parquet column index to get the field for</param>

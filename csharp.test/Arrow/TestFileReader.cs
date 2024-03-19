@@ -279,6 +279,26 @@ namespace ParquetSharp.Test.Arrow
         }
 
         [Test]
+        public void TestSchemaManifestGetSingleField()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteNestedTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+
+            var manifest = fileReader.SchemaManifest;
+            var field = manifest.SchemaField(1);
+            Assert.That(field, Is.Not.Null);
+            var arrowField = field.Field;
+            Assert.That(arrowField.Name, Is.EqualTo("x"));
+            Assert.That(arrowField.DataType.TypeId, Is.EqualTo(ArrowTypeId.Int32));
+
+            var exception = Assert.Throws<ParquetException>(() => manifest.SchemaField(2));
+            Assert.That(exception!.Message, Does.Contain("out of range"));
+        }
+
+        [Test]
         public void TestSchemaManifestGetColumnField()
         {
             using var buffer = new ResizableBuffer();
