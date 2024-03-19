@@ -9,7 +9,7 @@ namespace ParquetSharp
     /// </summary>
     internal sealed class ChildParquetHandle : INativeHandle
     {
-        public ChildParquetHandle(IntPtr handle, ParquetHandle parentHandle)
+        public ChildParquetHandle(IntPtr handle, INativeHandle parentHandle)
         {
             _handle = handle;
             _parentHandle = parentHandle;
@@ -32,7 +32,9 @@ namespace ParquetSharp
         {
         }
 
+        public bool Disposed => _parentHandle.Disposed;
+
         private readonly IntPtr _handle;
-        private readonly ParquetHandle _parentHandle;
+        private readonly INativeHandle _parentHandle;
     }
 }

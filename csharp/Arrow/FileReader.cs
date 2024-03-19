@@ -150,6 +150,18 @@ namespace ParquetSharp.Arrow
             }
         }
 
+        /// <summary>
+        /// Get the schema manifest, which describes the relationship between the Arrow schema and Parquet schema
+        /// </summary>
+        public SchemaManifest SchemaManifest
+        {
+            get
+            {
+                var manifestPtr = ExceptionInfo.Return<IntPtr>(_handle, FileReader_Manifest);
+                return new SchemaManifest(new ChildParquetHandle(manifestPtr, _handle));
+            }
+        }
+
         public void Dispose()
         {
             _handle.Dispose();
@@ -179,6 +191,9 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileReader_ParquetReader(IntPtr reader, out IntPtr parquetReader);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr FileReader_Manifest(IntPtr reader, out IntPtr manifest);
 
         [DllImport(ParquetDll.Name)]
         private static extern void FileReader_Free(IntPtr reader);

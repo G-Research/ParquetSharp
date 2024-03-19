@@ -112,6 +112,13 @@ extern "C"
     TRYCATCH(*parquet_reader = reader->parquet_reader();)
   }
 
+  PARQUETSHARP_EXPORT ExceptionInfo* FileReader_Manifest(
+      FileReader* reader,
+      const SchemaManifest** manifest)
+  {
+    TRYCATCH(*manifest = &(reader->manifest());)
+  }
+
   PARQUETSHARP_EXPORT void FileReader_Free(FileReader* reader)
   {
     delete reader;
