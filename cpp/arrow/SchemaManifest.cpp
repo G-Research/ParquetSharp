@@ -1,4 +1,5 @@
 #include <parquet/arrow/schema.h>
+#include <parquet/exception.h>
 
 #include "cpp/ParquetSharpExport.h"
 #include "../ExceptionInfo.h"
@@ -21,5 +22,17 @@ extern "C"
       }
       *field = &(manifest->schema_fields[index]);
     )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* SchemaManifest_GetColumnField(const SchemaManifest* manifest, int32_t column_index, const SchemaField** field)
+  {
+    TRYCATCH(
+      PARQUET_THROW_NOT_OK(manifest->GetColumnField(column_index, field));
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* SchemaManifest_GetParent(const SchemaManifest* manifest, const SchemaField* field, const SchemaField** parent)
+  {
+    TRYCATCH(*parent = manifest->GetParent(field);)
   }
 }

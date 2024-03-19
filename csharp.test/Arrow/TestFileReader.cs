@@ -279,6 +279,48 @@ namespace ParquetSharp.Test.Arrow
         }
 
         [Test]
+        public void TestSchemaManifestGetColumnField()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteNestedTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+
+            var manifest = fileReader.SchemaManifest;
+            var field = manifest.GetColumnField(2);
+            Assert.That(field, Is.Not.Null);
+            var arrowField = field.Field;
+            Assert.That(arrowField.Name, Is.EqualTo("x"));
+            Assert.That(arrowField.DataType.TypeId, Is.EqualTo(ArrowTypeId.Int32));
+
+            var exception = Assert.Throws<ParquetException>(() => manifest.GetColumnField(3));
+            Assert.That(exception!.Message, Does.Contain("Column index 3"));
+        }
+
+        [Test]
+        public void TestSchemaManifestGetFieldParent()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteNestedTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+
+            var manifest = fileReader.SchemaManifest;
+            var field = manifest.GetColumnField(1);
+            var parent = manifest.GetParent(field);
+
+            Assert.That(parent, Is.Not.Null);
+            var arrowField = parent!.Field;
+            Assert.That(arrowField.Name, Is.EqualTo("test_struct"));
+            Assert.That(arrowField.DataType.TypeId, Is.EqualTo(ArrowTypeId.Struct));
+
+            var grandparent = manifest.GetParent(parent);
+            Assert.That(grandparent, Is.Null);
+        }
+
+        [Test]
         public void TestAccessSchemaManifestFieldAfterDisposed()
         {
             using var buffer = new ResizableBuffer();

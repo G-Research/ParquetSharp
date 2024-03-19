@@ -13,7 +13,7 @@ namespace ParquetSharp.Arrow
     {
         internal SchemaField(INativeHandle handle)
         {
-            _handle = handle;
+            Handle = handle;
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace ParquetSharp.Arrow
             get
             {
                 var cSchema = new CArrowSchema();
-                ExceptionInfo.Check(SchemaField_Field(_handle.IntPtr, &cSchema));
+                ExceptionInfo.Check(SchemaField_Field(Handle.IntPtr, &cSchema));
                 return CArrowSchemaImporter.ImportField(&cSchema);
             }
         }
@@ -33,7 +33,7 @@ namespace ParquetSharp.Arrow
         /// The Parquet column index associated with this field, or -1 if the field
         /// does not correspond to a leaf-level column.
         /// </summary>
-        public int ColumnIndex => ExceptionInfo.Return<int>(_handle, SchemaField_ColumnIndex);
+        public int ColumnIndex => ExceptionInfo.Return<int>(Handle, SchemaField_ColumnIndex);
 
         /// <summary>
         /// The child schema fields of this field
@@ -42,12 +42,12 @@ namespace ParquetSharp.Arrow
         {
             get
             {
-                var numChildren = ExceptionInfo.Return<int>(_handle, SchemaField_ChildrenLength);
+                var numChildren = ExceptionInfo.Return<int>(Handle, SchemaField_ChildrenLength);
                 var children = new SchemaField[numChildren];
                 for (var childIdx = 0; childIdx < numChildren; ++childIdx)
                 {
-                    var childPtr = ExceptionInfo.Return<int, IntPtr>(_handle, childIdx, SchemaField_Child);
-                    children[childIdx] = new SchemaField(new ChildParquetHandle(childPtr, _handle));
+                    var childPtr = ExceptionInfo.Return<int, IntPtr>(Handle, childIdx, SchemaField_Child);
+                    children[childIdx] = new SchemaField(new ChildParquetHandle(childPtr, Handle));
                 }
                 return children;
             }
@@ -65,6 +65,6 @@ namespace ParquetSharp.Arrow
         [DllImport(ParquetDll.Name)]
         private static extern unsafe IntPtr SchemaField_Field(IntPtr schemaField, CArrowSchema* schema);
 
-        private readonly INativeHandle _handle;
+        internal readonly INativeHandle Handle;
     }
 }

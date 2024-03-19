@@ -33,11 +33,41 @@ namespace ParquetSharp.Arrow
             }
         }
 
+        /// <summary>
+        /// Get the schema field for a Parquet column
+        /// </summary>
+        /// <param name="columnIndex">The Parquet column index to get the field for</param>
+        public SchemaField GetColumnField(int columnIndex)
+        {
+            var fieldPtr = ExceptionInfo.Return<int, IntPtr>(_handle, columnIndex, SchemaManifest_GetColumnField);
+            return new SchemaField(new ChildParquetHandle(fieldPtr, _handle));
+        }
+
+        /// <summary>
+        /// Get the parent field of a schema field. Returns null for top-level fields
+        /// </summary>
+        /// <param name="field">The field to get the parent for</param>
+        public SchemaField? GetParent(SchemaField field)
+        {
+            var fieldPtr = ExceptionInfo.Return<IntPtr, IntPtr>(_handle, field.Handle.IntPtr, SchemaManifest_GetParent);
+            if (fieldPtr == IntPtr.Zero)
+            {
+                return null;
+            }
+            return new SchemaField(new ChildParquetHandle(fieldPtr, _handle));
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr SchemaManifest_SchemaFieldsLength(IntPtr schemaManifest, out int length);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr SchemaManifest_SchemaField(IntPtr schemaManifest, int index, out IntPtr field);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr SchemaManifest_GetColumnField(IntPtr schemaManifest, int column, out IntPtr field);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr SchemaManifest_GetParent(IntPtr schemaManifest, IntPtr field, out IntPtr parent);
 
         private readonly INativeHandle _handle;
     }
