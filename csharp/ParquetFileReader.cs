@@ -76,6 +76,11 @@ namespace ParquetSharp
             GC.KeepAlive(readerProperties);
         }
 
+        internal ParquetFileReader(INativeHandle handle)
+        {
+            _handle = handle;
+        }
+
         public void Dispose()
         {
             _fileMetaData?.Dispose();
@@ -119,7 +124,7 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ParquetFileReader_RowGroup(IntPtr reader, int i, out IntPtr rowGroupReader);
 
-        private readonly ParquetHandle _handle;
+        private readonly INativeHandle _handle;
         private FileMetaData? _fileMetaData;
         private readonly RandomAccessFile? _randomAccessFile; // Keep a handle to the input file to prevent GC
         private readonly bool _ownedFile; // Whether this reader created the RandomAccessFile

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Apache.Arrow;
@@ -195,6 +196,168 @@ namespace ParquetSharp.Test.Arrow
             Assert.That(rowsRead, Is.EqualTo(RowsPerRowGroup * NumRowGroups));
         }
 
+        [Test]
+        public void TestAccessUnderlyingReader()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+            using var parquetReader = fileReader.ParquetReader;
+
+            // Verify we can access column statistics
+            for (var rowGroupIdx = 0; rowGroupIdx < NumRowGroups; ++rowGroupIdx)
+            {
+                using var rowGroup = parquetReader.RowGroup(rowGroupIdx);
+                using var colMetadata = rowGroup.MetaData.GetColumnChunkMetaData(1);
+                using var stats = colMetadata.Statistics as Statistics<int>;
+                Assert.That(stats, Is.Not.Null);
+                Assert.That(stats!.HasMinMax);
+                Assert.That(stats.Min, Is.EqualTo(rowGroupIdx * RowsPerRowGroup));
+                Assert.That(stats.Max, Is.EqualTo((rowGroupIdx + 1) * RowsPerRowGroup - 1));
+            }
+        }
+
+        [Test]
+        public void TestAccessUnderlyingReaderAfterDisposed()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            ParquetFileReader parquetReader;
+            using (var fileReader = new FileReader(inStream))
+            {
+                parquetReader = fileReader.ParquetReader;
+            }
+
+            using (parquetReader)
+            {
+                var exception = Assert.Throws<NullReferenceException>(() => { _ = parquetReader.FileMetaData; });
+                Assert.That(exception!.Message, Does.Contain("owning parent has been disposed"));
+            }
+        }
+
+        [Test]
+        public void TestSchemaManifest()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteNestedTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+
+            var manifest = fileReader.SchemaManifest;
+            var fields = manifest.SchemaFields;
+
+            Assert.That(fields.Count, Is.EqualTo(2));
+
+            var structField = fields[0];
+            var structArrowField = structField.Field;
+
+            Assert.That(structArrowField.Name, Is.EqualTo("test_struct"));
+            Assert.That(structArrowField.DataType.TypeId, Is.EqualTo(ArrowTypeId.Struct));
+
+            Assert.That(structField.ColumnIndex, Is.EqualTo(-1));
+            var structFields = structField.Children;
+            Assert.That(structFields.Count, Is.EqualTo(2));
+            Assert.That(structFields[0].ColumnIndex, Is.EqualTo(0));
+            Assert.That(structFields[1].ColumnIndex, Is.EqualTo(1));
+            var structArrowFieldA = structFields[0].Field;
+            var structArrowFieldB = structFields[1].Field;
+            Assert.That(structArrowFieldA.Name, Is.EqualTo("a"));
+            Assert.That(structArrowFieldA.DataType.TypeId, Is.EqualTo(ArrowTypeId.Int32));
+            Assert.That(structArrowFieldB.Name, Is.EqualTo("b"));
+            Assert.That(structArrowFieldB.DataType.TypeId, Is.EqualTo(ArrowTypeId.Float));
+
+            Assert.That(fields[1].Children.Count, Is.EqualTo(0));
+            Assert.That(fields[1].ColumnIndex, Is.EqualTo(2));
+            var xArrowField = fields[1].Field;
+            Assert.That(xArrowField.Name, Is.EqualTo("x"));
+            Assert.That(xArrowField.DataType.TypeId, Is.EqualTo(ArrowTypeId.Int32));
+        }
+
+        [Test]
+        public void TestSchemaManifestGetSingleField()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteNestedTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+
+            var manifest = fileReader.SchemaManifest;
+            var field = manifest.SchemaField(1);
+            Assert.That(field, Is.Not.Null);
+            var arrowField = field.Field;
+            Assert.That(arrowField.Name, Is.EqualTo("x"));
+            Assert.That(arrowField.DataType.TypeId, Is.EqualTo(ArrowTypeId.Int32));
+
+            var exception = Assert.Throws<ParquetException>(() => manifest.SchemaField(2));
+            Assert.That(exception!.Message, Does.Contain("out of range"));
+        }
+
+        [Test]
+        public void TestSchemaManifestGetColumnField()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteNestedTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+
+            var manifest = fileReader.SchemaManifest;
+            var field = manifest.GetColumnField(2);
+            Assert.That(field, Is.Not.Null);
+            var arrowField = field.Field;
+            Assert.That(arrowField.Name, Is.EqualTo("x"));
+            Assert.That(arrowField.DataType.TypeId, Is.EqualTo(ArrowTypeId.Int32));
+
+            var exception = Assert.Throws<ParquetException>(() => manifest.GetColumnField(3));
+            Assert.That(exception!.Message, Does.Contain("Column index 3"));
+        }
+
+        [Test]
+        public void TestSchemaManifestGetFieldParent()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteNestedTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream);
+
+            var manifest = fileReader.SchemaManifest;
+            var field = manifest.GetColumnField(1);
+            var parent = manifest.GetParent(field);
+
+            Assert.That(parent, Is.Not.Null);
+            var arrowField = parent!.Field;
+            Assert.That(arrowField.Name, Is.EqualTo("test_struct"));
+            Assert.That(arrowField.DataType.TypeId, Is.EqualTo(ArrowTypeId.Struct));
+
+            var grandparent = manifest.GetParent(parent);
+            Assert.That(grandparent, Is.Null);
+        }
+
+        [Test]
+        public void TestAccessSchemaManifestFieldAfterDisposed()
+        {
+            using var buffer = new ResizableBuffer();
+            WriteTestFile(buffer);
+
+            using var inStream = new BufferReader(buffer);
+            SchemaField field;
+            using (var fileReader = new FileReader(inStream))
+            {
+                var manifest = fileReader.SchemaManifest;
+                field = manifest.SchemaFields[0];
+            }
+
+            var exception = Assert.Throws<NullReferenceException>(() => { _ = field.Field; });
+            Assert.That(exception!.Message, Does.Contain("owning parent has been disposed"));
+        }
+
         private static void WriteTestFile(ResizableBuffer buffer)
         {
             var columns = new Column[]
@@ -224,6 +387,44 @@ namespace ParquetSharp.Test.Arrow
             }
 
             fileWriter.Close();
+        }
+
+        private static void WriteNestedTestFile(ResizableBuffer buffer)
+        {
+            var fields = new[]
+            {
+                new Field("test_struct", new StructType(
+                    new[]
+                    {
+                        new Field("a", new Int32Type(), false),
+                        new Field("b", new FloatType(), false),
+                    }), true),
+                new Field("x", new Int32Type(), false),
+            };
+            var schema = new Apache.Arrow.Schema(fields, null);
+
+            using var outStream = new BufferOutputStream(buffer);
+            using var writer = new FileWriter(outStream, schema);
+            for (var rowGroup = 0; rowGroup < NumRowGroups; ++rowGroup)
+            {
+                var start = rowGroup * RowsPerRowGroup;
+                var arrays = new List<IArrowArray>
+                {
+                    new StructArray(fields[0].DataType, RowsPerRowGroup, new IArrowArray[]
+                    {
+                        new Int32Array.Builder().AppendRange(Enumerable.Range(start, RowsPerRowGroup).ToArray()).Build(),
+                        new FloatArray.Builder().AppendRange(Enumerable.Range(start, RowsPerRowGroup).Select(i => i * 0.1f).ToArray())
+                            .Build(),
+                    }, new ArrowBuffer.BitmapBuilder().AppendRange(true, RowsPerRowGroup).Build()),
+                    new Int32Array.Builder().AppendRange(Enumerable.Range(start, RowsPerRowGroup).ToArray()).Build()
+                };
+
+                var batch = new RecordBatch(schema, arrays, RowsPerRowGroup);
+
+                writer.WriteRecordBatch(batch);
+            }
+
+            writer.Close();
         }
 
         private const int NumRowGroups = 4;

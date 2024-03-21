@@ -67,6 +67,8 @@ add_library(ParquetSharpNative SHARED
 	arrow/ArrowWriterPropertiesBuilder.cpp
 	arrow/FileReader.cpp
 	arrow/FileWriter.cpp
+	arrow/SchemaField.cpp
+	arrow/SchemaManifest.cpp
 	encryption/CryptoFactory.cpp
 	encryption/DecryptionConfiguration.cpp
 	encryption/EncryptionConfiguration.cpp
