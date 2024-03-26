@@ -74,7 +74,7 @@ jobs:
         git pull
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: cpp, csharp
 
@@ -86,4 +86,4 @@ jobs:
         dotnet build csharp --configuration=Release
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
