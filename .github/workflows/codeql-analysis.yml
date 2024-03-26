@@ -57,7 +57,7 @@ jobs:
     # Check for cached vcpkg dependencies (use these if we can).
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: cache/vcpkg
         key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}-runner:${{ steps.runner-info.outputs.info }}
