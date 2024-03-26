@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "nuget"
+    directory: "/csharp/"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "nuget"
+    directory: "/csharp.benchmark/"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "nuget"
+    directory: "/csharp.test/"
+    schedule:
+      interval: "daily"
