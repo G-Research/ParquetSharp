@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
+using ParquetSharp.IO;
 
 namespace ParquetSharp.Test
 {
@@ -56,6 +57,43 @@ namespace ParquetSharp.Test
             });
 
             Assert.That(exception?.Message, Does.StartWith("Tried to get a LogicalColumnReader"));
+        }
+
+        /// <summary>
+        /// Test that finalizers work correctly and do not crash when we forget to dispose the ParquetFileReader 
+        /// </summary>
+        [Test]
+        public static void TestResourcesCleanupWithoutDispose()
+        {
+            var expected = Enumerable.Range(0, 1024).ToArray();
+            var filePath = "test.parquet";
+
+            // Write test data.
+            using (var writer = new ParquetFileWriter(filePath, new Column[] {new Column<int>("ids")}))
+            {
+                using var groupWriter = writer.AppendRowGroup();
+                using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
+                columnWriter.WriteBatch(expected);
+                writer.Close();
+            }
+
+            var resourceLeak = new Action(() =>
+            {
+                var fileStream = File.OpenRead(filePath); // no explicit dispose
+                using var managedFile = new ManagedRandomAccessFile(fileStream);
+                var reader = new ParquetFileReader(managedFile); // no explicit dispose
+                using var groupReader = reader.RowGroup(0);
+                using var columnReader = groupReader.Column(0).LogicalReader<int>();
+                columnReader.ReadAll(expected.Length);
+            });
+
+            // We use an action delegate, to make sure that lifespan of objects is not extended beyond the `{}` scope
+            resourceLeak.Invoke();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            Assert.DoesNotThrow(() => File.Delete(filePath));
         }
 
         [Test]

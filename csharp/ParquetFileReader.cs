@@ -49,7 +49,17 @@ namespace ParquetSharp
             using var defaultProperties = readerProperties == null ? ReaderProperties.GetDefaultReaderProperties() : null;
             var properties = readerProperties ?? defaultProperties!;
 
-            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle, properties.Handle.IntPtr, ParquetFileReader_Open), ParquetFileReader_Free);
+            void Free(IntPtr ptr)
+            {
+                ParquetFileReader_Free(ptr);
+                // Capture and keep a handle to the managed file instance so that if we free the last reference to the
+                // C++ random access file and trigger a file close, we can ensure the file hasn't been garbage collected.
+                // Note that this doesn't protect against the case where the C# side handle is disposed or finalized before
+                // the C++ side has finished with it.
+                GC.KeepAlive(randomAccessFile);
+            }
+
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle, properties.Handle.IntPtr, ParquetFileReader_Open), Free);
             _randomAccessFile = randomAccessFile;
 
             GC.KeepAlive(readerProperties);
@@ -69,7 +79,17 @@ namespace ParquetSharp
             var properties = readerProperties ?? defaultProperties!;
             var randomAccessFile = new ManagedRandomAccessFile(stream, leaveOpen);
 
-            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle!, properties.Handle.IntPtr, ParquetFileReader_Open), ParquetFileReader_Free);
+            void Free(IntPtr ptr)
+            {
+                ParquetFileReader_Free(ptr);
+                // Capture and keep a handle to the managed file instance so that if we free the last reference to the
+                // C++ random access file and trigger a file close, we can ensure the file hasn't been garbage collected.
+                // Note that this doesn't protect against the case where the C# side handle is disposed or finalized before
+                // the C++ side has finished with it.
+                GC.KeepAlive(randomAccessFile);
+            }
+
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle!, properties.Handle.IntPtr, ParquetFileReader_Open), Free);
             _randomAccessFile = randomAccessFile;
             _ownedFile = true;
 
