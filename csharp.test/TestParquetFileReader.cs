@@ -69,7 +69,7 @@ namespace ParquetSharp.Test
             var filePath = "test.parquet";
 
             // Write test data.
-            using (var writer = new ParquetFileWriter(filePath, new Column[] { new Column<int>("ids") }))
+            using (var writer = new ParquetFileWriter(filePath, new Column[] {new Column<int>("ids")}))
             {
                 using var groupWriter = writer.AppendRowGroup();
                 using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
