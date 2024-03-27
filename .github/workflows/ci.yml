@@ -27,7 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup .NET SDK v7.0.x
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 7.0.x
       - name: Code formating check
@@ -61,7 +61,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     # Compute vcpkg triplet and root
     - name: Compute vcpkg triplet and root
@@ -98,7 +98,7 @@ jobs:
     # Check for cached vcpkg dependencies (use these if we can).
     - name: Get cached vcpkg dependencies
       id: get-cached-vcpkg
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: cache/vcpkg
         # https://vcpkg.readthedocs.io/en/stable/users/binarycaching/
@@ -148,12 +148,12 @@ jobs:
 
     # .NET Core Setup (and also MSBuild for Windows).
     - name: Setup .NET SDK v7.0.x
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 7.0.x
     - name: Setup MSBuild
       if: runner.os == 'Windows'
-      uses: microsoft/setup-msbuild@v1
+      uses: microsoft/setup-msbuild@v2
 
     # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Unix)
@@ -172,7 +172,7 @@ jobs:
         VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
     - name: Upload vcpkg arrow logs
       if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-vcpkg-arrow-logs
         path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
@@ -188,7 +188,7 @@ jobs:
         dotnet build csharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
         dotnet build fsharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
     - name: Upload native ParquetSharp library
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-native-library
         path: bin
@@ -205,9 +205,9 @@ jobs:
     needs: build-native
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: artifacts
     - name: Copy native ParquetSharp libraries
@@ -215,13 +215,13 @@ jobs:
         mkdir bin
         cp -rv artifacts/*-native-library/* bin/
     - name: Setup .NET SDK v7.0.x
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 7.0.x
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release
     - name: Upload NuGet artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: nuget-package
         path: nuget
@@ -244,28 +244,28 @@ jobs:
     needs: build-nuget
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Get version
       id: get-version
       run: echo "version=$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)" >> $env:GITHUB_OUTPUT
       shell: pwsh
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: nuget-package
         path: nuget
     - name: Setup .NET Core SDK v3.1.x
       if: matrix.dotnet == 'netcoreapp3.1'
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 3.1.x
     - name: Setup .NET SDK v6.0.x
       if: matrix.dotnet == 'net6.0'
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 6.0.x
     - name: Setup .NET SDK v7.0.x
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 7.0.x
     - name: Add local NuGet feed
@@ -305,7 +305,7 @@ jobs:
     needs: all-required-checks-done
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Check version
       id: check-version
       shell: pwsh
@@ -318,18 +318,18 @@ jobs:
         }
         echo "version=$version" >> $env:GITHUB_OUTPUT
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: nuget-package
         path: nuget
     - name: Setup .NET SDK v7.0.x
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 7.0.x
     # if version contains "-" treat it as pre-release
     # example: 1.0.0-beta1
     - name: Create release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         name: ParquetSharp ${{ steps.check-version.outputs.version }}
         draft: true
