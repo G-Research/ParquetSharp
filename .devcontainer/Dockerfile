@@ -48,7 +48,7 @@ USER vscode
 
 # Copy our vcpkg manifest and ports
 COPY --chown=vscode:vscode vcpkg.json /tmp/build/
-COPY --chown=vscode:vscode ports /tmp/build/
+COPY --chown=vscode:vscode ports /tmp/build/ports
 
 # Install vcpkg
 RUN sudo mkdir -p $VCPKG_ROOT \
