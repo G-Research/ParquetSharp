@@ -1,3 +1,4 @@
 **
 !vcpkg.json
+!ports
 !*/*.csproj
