@@ -12,7 +12,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>1591;</NoWarn>
-    <Version>15.0.2</Version>
+    <Version>15.0.2.1</Version>
     <Company>G-Research</Company>
     <Authors>G-Research</Authors>
     <Product>ParquetSharp</Product>
