@@ -20,8 +20,62 @@ namespace ParquetSharp
         Json = 12,
         Bson = 13,
         Uuid = 14,
+        None = 15,
+        Float16 = 16,
+    }
+
+    /// <summary>
+    /// Type enum with values that match the C++ Parquet library.
+    /// These are not guaranteed to be stable between releases, but we need to keep
+    /// the LogicalTypeEnum values above stable to ensure ABI compatibility.
+    /// </summary>
+    internal enum CppLogicalTypeEnum
+    {
+        Undefined = 0,
+        String = 1,
+        Map = 2,
+        List = 3,
+        Enum = 4,
+        Decimal = 5,
+        Date = 6,
+        Time = 7,
+        Timestamp = 8,
+        Interval = 9,
+        Int = 10,
+        Nil = 11,
+        Json = 12,
+        Bson = 13,
+        Uuid = 14,
         Float16 = 15,
-        None = 16
+        None = 16,
+    }
+
+    internal static class CppLogicalTypeEnumExtensions
+    {
+        public static LogicalTypeEnum ToPublicEnum(this CppLogicalTypeEnum enumValue)
+        {
+            return enumValue switch
+            {
+                CppLogicalTypeEnum.Undefined => LogicalTypeEnum.Undefined,
+                CppLogicalTypeEnum.String => LogicalTypeEnum.String,
+                CppLogicalTypeEnum.Map => LogicalTypeEnum.Map,
+                CppLogicalTypeEnum.List => LogicalTypeEnum.List,
+                CppLogicalTypeEnum.Enum => LogicalTypeEnum.Enum,
+                CppLogicalTypeEnum.Decimal => LogicalTypeEnum.Decimal,
+                CppLogicalTypeEnum.Date => LogicalTypeEnum.Date,
+                CppLogicalTypeEnum.Time => LogicalTypeEnum.Time,
+                CppLogicalTypeEnum.Timestamp => LogicalTypeEnum.Timestamp,
+                CppLogicalTypeEnum.Interval => LogicalTypeEnum.Interval,
+                CppLogicalTypeEnum.Int => LogicalTypeEnum.Int,
+                CppLogicalTypeEnum.Nil => LogicalTypeEnum.Nil,
+                CppLogicalTypeEnum.Json => LogicalTypeEnum.Json,
+                CppLogicalTypeEnum.Bson => LogicalTypeEnum.Bson,
+                CppLogicalTypeEnum.Uuid => LogicalTypeEnum.Uuid,
+                CppLogicalTypeEnum.Float16 => LogicalTypeEnum.Float16,
+                CppLogicalTypeEnum.None => LogicalTypeEnum.None,
+                _ => throw new ArgumentOutOfRangeException(nameof(enumValue), enumValue, null)
+            };
+        }
     }
 
     public abstract class LogicalType : IDisposable, IEquatable<LogicalType>
@@ -36,7 +90,7 @@ namespace ParquetSharp
             Handle.Dispose();
         }
 
-        public LogicalTypeEnum Type => ExceptionInfo.Return<LogicalTypeEnum>(Handle, LogicalType_Type);
+        public LogicalTypeEnum Type => ExceptionInfo.Return<CppLogicalTypeEnum>(Handle, LogicalType_Type).ToPublicEnum();
 
         public bool Equals(LogicalType? other)
         {
@@ -86,7 +140,7 @@ namespace ParquetSharp
                 throw new ArgumentNullException(nameof(handle));
             }
 
-            var type = ExceptionInfo.Return<LogicalTypeEnum>(handle, LogicalType_Type);
+            var type = ExceptionInfo.Return<CppLogicalTypeEnum>(handle, LogicalType_Type).ToPublicEnum();
 
             return type switch
             {
@@ -114,7 +168,7 @@ namespace ParquetSharp
         private static extern void LogicalType_Free(IntPtr logicalType);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr LogicalType_Type(IntPtr logicalType, out LogicalTypeEnum type);
+        private static extern IntPtr LogicalType_Type(IntPtr logicalType, out CppLogicalTypeEnum type);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr LogicalType_Equals(IntPtr left, IntPtr right, [MarshalAs(UnmanagedType.I1)] out bool equals);
