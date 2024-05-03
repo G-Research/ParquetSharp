@@ -11,6 +11,7 @@ on:
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  PUBLISH_RELEASE: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && !github.event.repository.fork }}
 
 permissions:
   contents: read
@@ -203,6 +204,8 @@ jobs:
     name: Build NuGet package
     runs-on: ubuntu-latest
     needs: build-native
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -218,8 +221,23 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 7.0.x
+    - name: Get version
+      id: get-version
+      shell: pwsh
+      run: |
+        $version_prefix=$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/VersionPrefix/text()').node.Value)
+        if ( "${env:PUBLISH_RELEASE}" -eq "true") {
+          $version_suffix=""
+          $version="${version_prefix}"
+        } else {
+          $version_suffix="$(git rev-parse --short HEAD)"
+          $version="${version_prefix}-${version_suffix}"
+        }
+        echo "version=${version}"
+        echo "version=${version}" >> $env:GITHUB_OUTPUT
+        echo "version_suffix=${version_suffix}" >> $env:GITHUB_OUTPUT
     - name: Build NuGet package
-      run: dotnet build csharp --configuration=Release
+      run: dotnet build csharp --configuration=Release --version-suffix="${{ steps.get-version.outputs.version_suffix }}"
     - name: Upload NuGet artifact
       uses: actions/upload-artifact@v4
       with:
@@ -245,10 +263,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Get version
-      id: get-version
-      run: echo "version=$((Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value)" >> $env:GITHUB_OUTPUT
-      shell: pwsh
     - name: Download NuGet artifact
       uses: actions/download-artifact@v4
       with:
@@ -275,9 +289,9 @@ jobs:
     - name: Change test project references to use local NuGet package
       run: |
         dotnet remove csharp.test reference csharp/ParquetSharp.csproj
-        dotnet add csharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
+        dotnet add csharp.test package ParquetSharp -v ${{ needs.build-nuget.outputs.version }}
         dotnet remove fsharp.test reference csharp/ParquetSharp.csproj
-        dotnet add fsharp.test package ParquetSharp -v ${{ steps.get-version.outputs.version }}
+        dotnet add fsharp.test package ParquetSharp -v ${{ needs.build-nuget.outputs.version }}
     - name: Build & Run C# unit tests
       run: dotnet test csharp.test --configuration=Release --framework ${{ matrix.dotnet }}
     - name: Build & Run F# unit tests
@@ -297,12 +311,13 @@ jobs:
 
   # Create a GitHub release and publish the NuGet packages to nuget.org when a tag is pushed.
   publish-release:
+    # This should match env.PUBLISH_RELEASE (which we can't access in an if condition)
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && !github.event.repository.fork
     name: Publish release
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    needs: all-required-checks-done
+    needs: [build-nuget,all-required-checks-done]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -310,13 +325,12 @@ jobs:
       id: check-version
       shell: pwsh
       run: |
-        $version = (Select-Xml -Path ./csharp/ParquetSharp.csproj -XPath '/Project/PropertyGroup/Version/text()').node.Value
+        $version = "${{ needs.build-nuget.outputs.version }}"
         $tag = "${{ github.ref }}".SubString(10)
         if (-not ($tag -eq $version)) {
           echo "::error ::There is a mismatch between the project version ($version) and the tag ($tag)"
           exit 1
         }
-        echo "version=$version" >> $env:GITHUB_OUTPUT
     - name: Download NuGet artifact
       uses: actions/download-artifact@v4
       with:
@@ -331,12 +345,12 @@ jobs:
     - name: Create release
       uses: softprops/action-gh-release@v2
       with:
-        name: ParquetSharp ${{ steps.check-version.outputs.version }}
+        name: ParquetSharp ${{ needs.build-nuget.outputs.version }}
         draft: true
-        prerelease: ${{ contains(steps.check-version.outputs.version, '-') }}
+        prerelease: ${{ contains(needs.build-nuget.outputs.version, '-') }}
         files: |
-          nuget/ParquetSharp.${{ steps.check-version.outputs.version }}.nupkg
+          nuget/ParquetSharp.${{ needs.build-nuget.outputs.version }}.nupkg
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Publish to NuGet
-      run: dotnet nuget push nuget/ParquetSharp.${{ steps.check-version.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push nuget/ParquetSharp.${{ needs.build-nuget.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
