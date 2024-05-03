@@ -297,6 +297,51 @@ jobs:
     - name: Build & Run F# unit tests
       run: dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
 
+  test-binary-compatibility:
+    name: Test binary compatibility against the last stable release
+    runs-on: ubuntu-20.04
+    needs: build-nuget
+    env:
+      # These versions need to be manually updated after a release
+      # and when updating the Arrow C++ library version used.
+      BASELINE_VERSION: 15.0.2.1
+      BASELINE_ARROW_VERSION: 15.0.2
+      EXPECTED_ARROW_VERSION: 15.0.2
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ env.BASELINE_VERSION }}
+    - name: Setup .NET SDK v7.0.x
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 7.0.x
+    - name: Download NuGet artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: nuget-package
+        path: nuget
+    - name: Run tests built against previous release
+      shell: bash
+      run: |
+        # Replace references to the old version with the new expected version
+        # for tests that check the version in metadata
+        sed -i "s/${BASELINE_ARROW_VERSION}/${EXPECTED_ARROW_VERSION}/" csharp.test/*.cs
+        # Reference the released NuGet rather than rebuild everything
+        dotnet remove csharp.test reference csharp/ParquetSharp.csproj
+        dotnet add csharp.test package ParquetSharp -v $BASELINE_VERSION
+        dotnet build csharp.test --configuration=Release
+        # Replace ParquetSharp dll and native library with the new version
+        BIN_DIR=csharp.test/bin/Release/net7.0
+        rm -r $BIN_DIR/runtimes
+        rm $BIN_DIR/ParquetSharp.dll
+        mkdir nuget_contents
+        unzip nuget/ParquetSharp.${{ needs.build-nuget.outputs.version }}.nupkg -d nuget_contents
+        cp -R nuget_contents/runtimes $BIN_DIR/runtimes
+        cp nuget_contents/lib/net6.0/ParquetSharp.dll $BIN_DIR
+        # Run tests against the new version without rebuilding
+        dotnet test csharp.test --configuration=Release --no-build --framework=net7.0
+
   # Virtual job that can be configured as a required check before a PR can be merged.
   # As GitHub considers a check as successful if it is skipped, we need to check its status in
   # another workflow (check-required.yml) and create a check there.
@@ -305,6 +350,7 @@ jobs:
     needs:
       - check-format
       - test-nuget
+      - test-binary-compatibility
     runs-on: ubuntu-latest
     steps:
       - run: echo "All required checks done"
