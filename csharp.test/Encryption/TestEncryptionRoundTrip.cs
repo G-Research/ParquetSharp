@@ -177,7 +177,9 @@ namespace ParquetSharp.Test.Encryption
             // 1 for footer and 1 for each column, even though they use the same master key,
             // as each data key needs to be encrypted separately by the master key rather than use a KEK.
             Assert.That(testClient.WrappedKeys.Count, Is.EqualTo(3));
-            Assert.That(testClient.UnwrappedKeys.Count, Is.EqualTo(3));
+            // Column keys were previously cached and so would only be unwrapped once per column,
+            // but as of Arrow 16 this is no longer true and the unwrap count may be more.
+            Assert.That(testClient.UnwrappedKeys.Count, Is.GreaterThanOrEqualTo(3));
         }
 
         [Test]
