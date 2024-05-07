@@ -122,8 +122,7 @@ namespace ParquetSharp
                     }
 
                     if (node.Repetition == Repetition.Optional &&
-                        elementType.BaseType != typeof(object) &&
-                        elementType.BaseType != typeof(Array) &&
+                        elementType.IsValueType &&
                         !TypeUtils.IsNullable(elementType, out _))
                     {
                         // Node is optional and the element type is not already a nullable type
