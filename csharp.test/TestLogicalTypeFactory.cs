@@ -225,6 +225,44 @@ namespace ParquetSharp.Test
             Assert.AreEqual(readValues.Select(v => v.Value).ToArray(), values.Select(v => v.Value).ToArray());
         }
 
+        [Test]
+        public static void TestRoundTripDerivedValueType()
+        {
+            // Test using a custom type that is a reference type but doesn't inherit directly from System.Object
+            var values = Enumerable.Range(0, 100)
+                .Select(i => i % 10 == 5 ? null : new VolumeInDollarsDerivedType(i))
+                .ToArray();
+            var columns = new Column[]
+            {
+                new Column<VolumeInDollarsDerivedType?>("Values")
+            };
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var fileWriter = new ParquetFileWriter(outStream, columns, new WriteTypeFactory())
+                {
+                    LogicalWriteConverterFactory = new WriteConverterFactory()
+                };
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<VolumeInDollarsDerivedType?>();
+                columnWriter.WriteBatch(values);
+                fileWriter.Close();
+            }
+
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input)
+            {
+                LogicalReadConverterFactory = new ReadConverterFactory()
+            };
+            using var groupReader = fileReader.RowGroup(0);
+            using var columnReader = groupReader.Column(0).LogicalReaderOverride<VolumeInDollarsDerivedType?>();
+
+            var readValues = columnReader.ReadAll(checked((int) groupReader.MetaData.NumRows));
+
+            Assert.AreEqual(readValues, values);
+        }
+
         private static GroupNode GetNestedSchema()
         {
             using var noneType = LogicalType.None();
@@ -470,6 +508,30 @@ namespace ParquetSharp.Test
             }
         }
 
+        private class BaseValue
+        {
+        }
+
+        private class VolumeInDollarsDerivedType : BaseValue, IEquatable<VolumeInDollarsDerivedType>
+        {
+            public VolumeInDollarsDerivedType(float value)
+            {
+                Value = value;
+            }
+
+            public readonly float Value;
+
+            public bool Equals(VolumeInDollarsDerivedType? other)
+            {
+                return other != null && Value.Equals(other.Value);
+            }
+
+            public override string ToString()
+            {
+                return $"VolumeInDollars({Value})";
+            }
+        }
+
         /// <summary>
         /// A logical type factory that supports our user custom type (for the read tests only). Ignore overrides (used by unit tests that cannot provide a columnLogicalTypeOverride).
         /// </summary>
@@ -500,8 +562,29 @@ namespace ParquetSharp.Test
             public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ColumnChunkMetaData columnChunkMetaData)
             {
                 // VolumeInDollars is bitwise identical to float, so we can reuse the native converter.
-                if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalRead.GetNativeConverter<VolumeInDollars, float>();
+                if (typeof(TLogical) == typeof(VolumeInDollars))
+                {
+                    return LogicalRead.GetNativeConverter<VolumeInDollars, float>();
+                }
+
+                if (typeof(TLogical) == typeof(VolumeInDollarsDerivedType))
+                {
+                    return (LogicalRead<VolumeInDollarsDerivedType?, float>.Converter) ConvertVolumeInDollarsDerived;
+                }
+
                 return base.GetConverter<TLogical, TPhysical>(columnDescriptor, columnChunkMetaData);
+            }
+
+            private static void ConvertVolumeInDollarsDerived(
+                ReadOnlySpan<float> source,
+                ReadOnlySpan<short> defLevels,
+                Span<VolumeInDollarsDerivedType?> destination,
+                short definedLevel)
+            {
+                for (int i = 0, src = 0; i < destination.Length; ++i)
+                {
+                    destination[i] = defLevels.IsEmpty || defLevels[i] == definedLevel ? new VolumeInDollarsDerivedType(source[src++]) : null;
+                }
             }
         }
 
@@ -512,7 +595,16 @@ namespace ParquetSharp.Test
         {
             public override bool TryGetParquetTypes(Type logicalSystemType, out (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType) entry)
             {
-                if (logicalSystemType == typeof(VolumeInDollars)) return base.TryGetParquetTypes(typeof(float), out entry);
+                if (logicalSystemType == typeof(VolumeInDollars))
+                {
+                    return base.TryGetParquetTypes(typeof(float), out entry);
+                }
+
+                if (logicalSystemType == typeof(VolumeInDollarsDerivedType))
+                {
+                    return base.TryGetParquetTypes(typeof(float?), out entry);
+                }
+
                 return base.TryGetParquetTypes(logicalSystemType, out entry);
             }
         }
@@ -544,8 +636,38 @@ namespace ParquetSharp.Test
         {
             public override Delegate GetConverter<TLogical, TPhysical>(ColumnDescriptor columnDescriptor, ByteBuffer? byteBuffer)
             {
-                if (typeof(TLogical) == typeof(VolumeInDollars)) return LogicalWrite.GetNativeConverter<VolumeInDollars, float>();
+                if (typeof(TLogical) == typeof(VolumeInDollars))
+                {
+                    return LogicalWrite.GetNativeConverter<VolumeInDollars, float>();
+                }
+
+                if (typeof(TLogical) == typeof(VolumeInDollarsDerivedType) && columnDescriptor.MaxDefinitionLevel > 0)
+                {
+                    return (LogicalWrite<VolumeInDollarsDerivedType?, float>.Converter) ConvertVolumeInDollarsDerived;
+                }
+
                 return base.GetConverter<TLogical, TPhysical>(columnDescriptor, byteBuffer);
+            }
+
+            private static void ConvertVolumeInDollarsDerived(
+                ReadOnlySpan<VolumeInDollarsDerivedType?> source,
+                Span<short> defLevels,
+                Span<float> destination,
+                short nullLevel)
+            {
+                for (int i = 0, dst = 0; i < source.Length; ++i)
+                {
+                    var value = source[i];
+                    if (value == null)
+                    {
+                        defLevels[i] = nullLevel;
+                    }
+                    else
+                    {
+                        destination[dst++] = value.Value;
+                        defLevels[i] = (short) (nullLevel + 1);
+                    }
+                }
             }
         }
 
