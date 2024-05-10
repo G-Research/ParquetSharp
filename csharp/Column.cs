@@ -10,6 +10,8 @@ namespace ParquetSharp
     /// </summary>
     public class Column
     {
+#pragma warning disable RS0027
+
         public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride = null)
             : this(logicalSystemType, name, logicalTypeOverride, GetTypeLength(logicalSystemType))
         {
@@ -48,6 +50,8 @@ namespace ParquetSharp
             Length = length;
         }
 
+#pragma warning restore RS0027
+
         public readonly Type LogicalSystemType;
         public readonly string Name;
         public readonly LogicalType? LogicalTypeOverride;
@@ -68,6 +72,8 @@ namespace ParquetSharp
         {
             return CreateSchemaNode(typeFactory, LogicalSystemType, Name, LogicalTypeOverride, Length);
         }
+
+#pragma warning disable RS0026
 
         /// <summary>
         /// Create a schema node containing all the given columns.
@@ -98,6 +104,8 @@ namespace ParquetSharp
                 }
             }
         }
+
+#pragma warning restore RS0026
 
         private static unsafe int GetTypeLength(Type logicalSystemType)
         {

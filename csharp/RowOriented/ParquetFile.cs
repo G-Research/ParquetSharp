@@ -6,6 +6,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using ParquetSharp.IO;
 
+#pragma warning disable RS0026
+
 namespace ParquetSharp.RowOriented
 {
     /// <summary>
@@ -16,6 +18,8 @@ namespace ParquetSharp.RowOriented
     {
         public static Action<Expression>? OnReadExpressionCreated;
         public static Action<Expression>? OnWriteExpressionCreated;
+
+#pragma warning disable RS0026
 
         /// <summary>
         /// Create a row-oriented reader from a file.
@@ -318,6 +322,8 @@ namespace ParquetSharp.RowOriented
             var (columnsToUse, writeDelegate) = GetOrCreateWriteDelegate<TTuple>(columns);
             return new ParquetRowWriter<TTuple>(outputStream, columnsToUse, writerProperties, keyValueMetadata, writeDelegate, logicalTypeFactory, logicalWriteConverterFactory);
         }
+
+#pragma warning restore RS0026
 
         private static ParquetRowReader<TTuple>.ReadAction GetOrCreateReadDelegate<TTuple>(MappedField[] fields)
         {

@@ -29,6 +29,8 @@ namespace ParquetSharp.Arrow
     /// </summary>
     public class FileWriter : IDisposable
     {
+#pragma warning disable RS0026
+
         /// <summary>
         /// Create a new Arrow FileWriter that writes to the specified path
         /// </summary>
@@ -133,6 +135,8 @@ namespace ParquetSharp.Arrow
             GC.KeepAlive(properties);
             GC.KeepAlive(arrowProperties);
         }
+
+#pragma warning restore RS0026
 
         /// <summary>
         /// The Arrow schema of the file being written
