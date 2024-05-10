@@ -20,8 +20,8 @@ namespace ParquetSharp
         Json = 12,
         Bson = 13,
         Uuid = 14,
-        Float16 = 15,
-        None = 16,
+        None = 15,
+        Float16 = 16,
     }
 
     /// <summary>
