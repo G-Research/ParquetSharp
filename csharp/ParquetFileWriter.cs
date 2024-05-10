@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using ParquetSharp.IO;
 using ParquetSharp.Schema;
 
+#pragma warning disable RS0026
+
 namespace ParquetSharp
 {
     public sealed class ParquetFileWriter : IDisposable
@@ -563,3 +565,5 @@ namespace ParquetSharp
         private readonly bool _ownedStream; // Whether this writer created the OutputStream
     }
 }
+
+#pragma warning restore RS0026

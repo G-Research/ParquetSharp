@@ -78,6 +78,8 @@ namespace ParquetSharp
         /// <returns>the number of physical rows skipped</returns>
         public abstract long Skip(long numRowsToSkip);
 
+#pragma warning disable RS0026
+
         public LogicalColumnReader LogicalReader(int bufferLength = 4 * 1024)
         {
             // By default we don't use nested types when reading nested data for simplicity and backwards compatibility,
@@ -99,6 +101,8 @@ namespace ParquetSharp
         {
             return LogicalColumnReader.Create<TElement>(this, bufferLength, elementTypeOverride: null);
         }
+
+#pragma warning restore RS0026
 
         public LogicalColumnReader<TElement> LogicalReaderOverride<TElement>(int bufferLength = 4 * 1024)
         {
