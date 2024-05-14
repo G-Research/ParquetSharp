@@ -12,6 +12,8 @@ namespace ParquetSharp.Arrow
     /// </summary>
     public class FileReader : IDisposable
     {
+#pragma warning disable RS0026
+
         /// <summary>
         /// Create a new Arrow FileReader for a file at the specified path
         /// </summary>
@@ -97,6 +99,8 @@ namespace ParquetSharp.Arrow
             GC.KeepAlive(properties);
             GC.KeepAlive(arrowProperties);
         }
+
+#pragma warning disable RS0026
 
         /// <summary>
         /// The Arrow schema of the file being read

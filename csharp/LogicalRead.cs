@@ -545,6 +545,8 @@ namespace ParquetSharp
         }
 #endif
 
+#pragma warning disable RS0026
+
         public static void ConvertDateTimeMicros(ReadOnlySpan<long> source, Span<DateTime> destination, DateTimeKind kind = DateTimeKind.Unspecified)
         {
             for (int i = 0; i < destination.Length; ++i)
@@ -576,6 +578,8 @@ namespace ParquetSharp
                 destination[i] = defLevels[i] != definedLevel ? default(DateTime?) : new DateTime(ToDateTimeMillisTicks(source[src++]), kind);
             }
         }
+
+#pragma warning restore RS0026
 
         public static void ConvertTimeSpanMicros(ReadOnlySpan<long> source, Span<TimeSpan> destination)
         {

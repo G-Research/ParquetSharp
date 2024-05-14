@@ -7,6 +7,9 @@ namespace ParquetSharp
 {
     public sealed class ParquetFileReader : IDisposable
     {
+#pragma warning disable RS0026
+#pragma warning disable RS0027
+
         public ParquetFileReader(string path)
             : this(path, null)
         {
@@ -95,6 +98,9 @@ namespace ParquetSharp
 
             GC.KeepAlive(readerProperties);
         }
+
+#pragma warning restore RS0026
+#pragma warning restore RS0027
 
         internal ParquetFileReader(INativeHandle handle)
         {
