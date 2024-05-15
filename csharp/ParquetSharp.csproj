@@ -26,10 +26,8 @@
   </PropertyGroup>
 
   <ItemGroup Label="Additional nuget files">
-    <None Include="ParquetSharp.targets">
-      <Pack>True</Pack>
-      <PackagePath>build;buildTransitive</PackagePath>
-    </None>
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="ParquetSharp.targets" Pack="true" PackagePath="build;buildTransitive" />
   </ItemGroup>
 
   <PropertyGroup>
