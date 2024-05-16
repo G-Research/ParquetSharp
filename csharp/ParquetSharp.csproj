@@ -21,7 +21,7 @@
     <PackageProjectUrl>https://github.com/G-Research/ParquetSharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/G-Research/ParquetSharp.git</RepositoryUrl>
     <PackageTags>apache parquet gresearch g-research .net c#</PackageTags>
-    <PackageLicenseExpression>apache-2.0</PackageLicenseExpression>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageOutputPath>..\nuget</PackageOutputPath>
   </PropertyGroup>
 
