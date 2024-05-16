@@ -19,20 +19,15 @@
     <Description>ParquetSharp is a .NET library for reading and writing Parquet files. It's implemented in C# as a PInvoke wrapper around apache-parquet-cpp to provide high performance and compatibility.</Description>
     <Copyright>Copyright G-Research 2021</Copyright>
     <PackageProjectUrl>https://github.com/G-Research/ParquetSharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/G-Research/ParquetSharp.git</RepositoryUrl>
     <PackageTags>apache parquet gresearch g-research .net c#</PackageTags>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageOutputPath>..\nuget</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup Label="Additional nuget files">
-    <None Include="..\LICENSE.txt">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-    <None Include="ParquetSharp.targets">
-      <Pack>True</Pack>
-      <PackagePath>build;buildTransitive</PackagePath>
-    </None>
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="ParquetSharp.targets" Pack="true" PackagePath="build;buildTransitive" />
   </ItemGroup>
 
   <PropertyGroup>
