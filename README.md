@@ -268,6 +268,10 @@ For any other build issues, please [open a new discussion](https://github.com/G-
 
 We welcome new contributors! We will happily receive PRs for bug fixes or small changes. If you're contemplating something larger please get in touch first by opening a GitHub Issue describing the problem and how you propose to solve it.
 
+## Security
+
+Please see our [security policy](https://github.com/G-Research/ParquetSharp/blob/master/SECURITY.md) for details on reporting security vulnerabilities.
+
 ## License
 
 Copyright 2018-2023 G-Research
