@@ -196,7 +196,7 @@ devcontainer exec dotnet test csharp.test
 
 Building ParquetSharp natively requires the following dependencies:
 - A modern C++ compiler toolchain
-- .NET SDK 7.0
+- .NET SDK 8.0
 - Apache Arrow (15.0.2)
 
 For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://vcpkg.io).
