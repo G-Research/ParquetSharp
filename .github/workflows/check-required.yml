@@ -24,12 +24,12 @@ jobs:
         with:
           script: |
             // list jobs for worklow run attempt
-            const { data: { jobs } } = await github.rest.actions.listJobsForWorkflowRunAttempt({
+            const { data: { jobs } } = await github.paginate(github.rest.actions.listJobsForWorkflowRunAttempt({
               owner: context.payload.repository.owner.login,
               repo: context.payload.repository.name,
               run_id: context.payload.workflow_run.id,
               attempt_number: context.payload.workflow_run.run_attempt,
-            });
+            }));
             // check if required job was successful
             var success = false;
             core.info(`Checking jobs for workflow run ${context.payload.workflow_run.html_url}`);
