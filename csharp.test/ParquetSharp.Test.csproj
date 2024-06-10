@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <!-- Avoid building for older frameworks when testing locally. -->
     <!-- This is to speed up the build process and avoid errors when the required runtimes are not installed. -->
-    <TargetFrameworks Condition="'$(CI)' == 'true'">$(TargetFrameworks);netcoreapp3.1;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(CI)' == 'true'">$(TargetFrameworks);netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(CI)' == 'true' AND '$(OS)'=='Windows_NT'">$(TargetFrameworks);net472</TargetFrameworks>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>

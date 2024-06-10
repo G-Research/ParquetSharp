@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/dotnet:0-7.0-bullseye-slim AS dotnet
+FROM mcr.microsoft.com/devcontainers/dotnet:1-8.0-bookworm-slim AS dotnet
 
 #====================================================================
 
@@ -19,13 +19,12 @@ RUN for project in /tmp/build/csharp*; do \
 FROM dotnet AS cpp
 
 # Install the C++ dev tools
-RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list \
- && apt-get update \
+RUN apt-get update \
  && export DEBIAN_FRONTEND=noninteractive \
  && apt-get -y install --no-install-recommends \
     bison \
     build-essential \
-    cmake/bullseye-backports \
+    cmake \
     cppcheck \
     flex \
     gdb \
