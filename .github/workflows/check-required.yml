@@ -24,7 +24,7 @@ jobs:
         with:
           script: |
             // list jobs for worklow run attempt
-            const { data: { jobs } } = await github.rest.actions.listJobsForWorkflowRunAttempt({
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRunAttempt, {
               owner: context.payload.repository.owner.login,
               repo: context.payload.repository.name,
               run_id: context.payload.workflow_run.id,
