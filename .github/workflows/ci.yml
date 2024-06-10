@@ -84,38 +84,11 @@ jobs:
         echo "root=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_OUTPUT
       shell: bash
 
-    # Get cmake version, which is used by vcpkg binary caching
+    # Get cmake version, which is used by the CentOS 7 container.
     - name: Get cmake version
       id: cmake-info
       run: echo "version=$(cmake --version | head -n1 | awk '{print $3}')" >> $GITHUB_OUTPUT
       shell: bash
-
-    - name: Runner-info
-      id: runner-info
-      run: |
-        echo "info=$ImageOS-$ImageVersion" >> $GITHUB_OUTPUT
-      shell: bash
-
-    # Check for cached vcpkg dependencies (use these if we can).
-    - name: Get cached vcpkg dependencies
-      id: get-cached-vcpkg
-      uses: actions/cache@v4
-      with:
-        path: cache/vcpkg
-        # https://vcpkg.readthedocs.io/en/stable/users/binarycaching/
-        # Binary caching relies on hashing everything that contributes to a particular package build. This includes:
-        # - The triplet file and name
-        # - The C and C++ compilers executable
-        # - The version of CMake used
-        # - Every file in the port directory
-        # - & more... (subject to change without notice)
-        #
-        # We use Vcpkg and C/C++ compilers which are preinstalled on the runner, so we include the runner's image identity as part of the hash key.
-        key: vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}-runner:${{ steps.runner-info.outputs.info }}
-        restore-keys: |
-          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}-vcpkg_json:${{ hashFiles('vcpkg*.json') }}
-          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}-cmake:${{ steps.cmake-info.outputs.version }}
-          vcpkg-${{ steps.vcpkg-info.outputs.triplet }}
 
     # Ensure vcpkg builtin registry is up-to-date
     - name: Update vcpkg builtin registry
@@ -156,33 +129,31 @@ jobs:
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v2
 
+    # Expose GitHub Runtime environment variables for vcpkg caching.
+    - name: Expose GitHub Runtime
+      uses: crazy-max/ghaction-github-runtime@v3
+
     # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Unix)
       if: runner.os == 'Linux' || runner.os == 'macOS'
       run: |
         if [ "${{ runner.os }}" == "Linux" ] && [ "${{ matrix.arch }}" == "x64" ]; then
-          exec="docker exec -w $PWD -e GITHUB_ACTIONS -e VCPKG_BINARY_SOURCES -e VCPKG_INSTALLATION_ROOT centos scl enable devtoolset-7 rh-git227 --"
+          exec="docker exec -w $PWD -e GITHUB_ACTIONS -e ACTIONS_CACHE_URL -e ACTIONS_RUNTIME_TOKEN -e VCPKG_BINARY_SOURCES -e VCPKG_INSTALLATION_ROOT centos scl enable devtoolset-7 rh-git227 --"
         fi
         $exec ./build_unix.sh ${{ matrix.arch }}
       env:
-        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
+        VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
       run: ./build_windows.ps1
       env:
-        VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/cache/vcpkg,readwrite
+        VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
     - name: Upload vcpkg arrow logs
-      if: steps.get-cached-vcpkg.outputs.cache-hit != 'true' && (success() || failure())
+      if: success() || failure()
       uses: actions/upload-artifact@v4
       with:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-vcpkg-arrow-logs
         path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
-    - name: Dump vcpkg arrow abi info (Unix)
-      if: runner.os == 'Linux' || runner.os == 'macOS'
-      run: cat ./build/${{ steps.vcpkg-info.outputs.triplet }}-release/vcpkg_installed/${{ steps.vcpkg-info.outputs.triplet }}/share/arrow/vcpkg_abi_info.txt
-    - name: Dump vcpkg arrow abi info (Windows)
-      if: runner.os == 'Windows'
-      run: Get-Content ./build/${{ steps.vcpkg-info.outputs.triplet }}/vcpkg_installed/${{ steps.vcpkg-info.outputs.triplet }}/share/arrow/vcpkg_abi_info.txt
     - name: Build .NET benchmarks & unit tests
       run: |
         dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
