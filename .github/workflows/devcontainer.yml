@@ -9,7 +9,6 @@ on:
       - "vcpkg.json"
       - "*/*.csproj"
       - ".github/workflows/devcontainer.yml"
-      - "ports/**"
   pull_request:
     branches: [master]
     paths:
@@ -18,7 +17,6 @@ on:
       - "vcpkg.json"
       - "*/*.csproj"
       - ".github/workflows/devcontainer.yml"
-      - "ports/**"
   # Run once a week
   schedule:
     - cron: "34 2 * * 2"
