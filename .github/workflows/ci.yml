@@ -208,7 +208,7 @@ jobs:
         echo "version=${version}" >> $env:GITHUB_OUTPUT
         echo "version_suffix=${version_suffix}" >> $env:GITHUB_OUTPUT
     - name: Build NuGet package
-      run: dotnet build csharp --configuration=Release --version-suffix="${{ steps.get-version.outputs.version_suffix }}"
+      run: dotnet build csharp --configuration=Release --version-suffix "${{ steps.get-version.outputs.version_suffix }}"
     - name: Upload NuGet artifact
       uses: actions/upload-artifact@v4
       with:
