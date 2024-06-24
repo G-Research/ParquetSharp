@@ -52,7 +52,7 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-11, windows-2022]
+        os: [ubuntu-20.04, macos-12, windows-2022]
         arch: [x64, arm64]
         exclude:
         - os: windows-2022
