@@ -219,12 +219,14 @@ jobs:
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-12, macos-13, macos-14, windows-2022, ubuntu-20.04-arm64]
+        os: [ubuntu-20.04, ubuntu-22.04-arm64, macos-12, macos-13, macos-14, windows-2022]
         dotnet: [netcoreapp3.1, net6.0, net7.0, net8.0]
         include:
         - os: windows-2022
           dotnet: net472
         exclude:
+        - os: ubuntu-22.04-arm64
+          dotnet: netcoreapp3.1
         - os: macos-14
           dotnet: netcoreapp3.1
       fail-fast: false
