@@ -59,7 +59,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build image${{ fromJson(steps.image.outputs.push) && ' and push it by digest' || ''}}
         id: build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           file: .devcontainer/Dockerfile
           labels: ${{ steps.meta.outputs.labels }}
