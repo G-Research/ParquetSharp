@@ -97,6 +97,10 @@ namespace
 		static_assert(::arrow::TimeUnit::type::MILLI == 1);
 		static_assert(::arrow::TimeUnit::type::MICRO == 2);
 		static_assert(::arrow::TimeUnit::type::NANO == 3);
-	}
 
+		// Arrow StatusCode values that should be kept up to date with ArrowStatusCode.cs
+		static_assert((int) ::arrow::StatusCode::OutOfMemory == 1);
+		static_assert((int) ::arrow::StatusCode::IOError == 5);
+		static_assert((int) ::arrow::StatusCode::UnknownError == 9);
+	}
 }
