@@ -168,16 +168,16 @@ namespace ParquetSharp.IO
             if (error is OutOfMemoryException)
             {
                 exception = _exceptionMessage = null;
-                return 1;
+                return (byte) ArrowStatusCode.OutOfMemory;
             }
             if (error is IOException)
             {
                 exception = _exceptionMessage = error.ToString();
-                return 5;
+                return (byte) ArrowStatusCode.IOError;
             }
 
             exception = _exceptionMessage = error.ToString();
-            return 9;
+            return (byte) ArrowStatusCode.UnknownError;
         }
 
         [DllImport(ParquetDll.Name)]
