@@ -831,6 +831,13 @@ static ParquetSharp.Arrow.ArrowReaderProperties.GetDefault() -> ParquetSharp.Arr
 static ParquetSharp.Arrow.ArrowWriterProperties.GetDefault() -> ParquetSharp.Arrow.ArrowWriterProperties!
 static ParquetSharp.Column.CreateSchemaNode(ParquetSharp.Column![]! columns, ParquetSharp.LogicalTypeFactory! logicalTypeFactory, string! nodeName = "schema") -> ParquetSharp.Schema.GroupNode!
 static ParquetSharp.Column.CreateSchemaNode(ParquetSharp.Column![]! columns, string! nodeName = "schema") -> ParquetSharp.Schema.GroupNode!
+static ParquetSharp.DateTimeNanos.FromDotnetTicks(long dotnetTicks) -> ParquetSharp.DateTimeNanos
+static ParquetSharp.DateTimeNanos.operator !=(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
+static ParquetSharp.DateTimeNanos.operator <(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
+static ParquetSharp.DateTimeNanos.operator <=(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
+static ParquetSharp.DateTimeNanos.operator ==(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
+static ParquetSharp.DateTimeNanos.operator >(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
+static ParquetSharp.DateTimeNanos.operator >=(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
 static ParquetSharp.DefaultWriterProperties.Compression.get -> ParquetSharp.Compression?
 static ParquetSharp.DefaultWriterProperties.Compression.set -> void
 static ParquetSharp.DefaultWriterProperties.CompressionLevel.get -> int?

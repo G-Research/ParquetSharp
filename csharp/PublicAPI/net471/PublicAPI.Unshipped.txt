@@ -1,8 +1,1 @@
 #nullable enable
-static ParquetSharp.DateTimeNanos.FromDotnetTicks(long dotnetTicks) -> ParquetSharp.DateTimeNanos
-static ParquetSharp.DateTimeNanos.operator !=(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
-static ParquetSharp.DateTimeNanos.operator <(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
-static ParquetSharp.DateTimeNanos.operator <=(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
-static ParquetSharp.DateTimeNanos.operator ==(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
-static ParquetSharp.DateTimeNanos.operator >(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
-static ParquetSharp.DateTimeNanos.operator >=(ParquetSharp.DateTimeNanos left, ParquetSharp.DateTimeNanos right) -> bool
