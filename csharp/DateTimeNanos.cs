@@ -139,17 +139,15 @@ namespace ParquetSharp
 
         private const long DateTimeOffsetTicks = 621355968000000000; // new DateTime(1970, 01, 01).Ticks
         private const string DefaultFormat = "yyyy-MM-dd HH:mm:ss.fffffffff";
-
-        private static readonly long NanosPerTick = 1_000_000L / TimeSpan.TicksPerMillisecond;
-
+ 
         private static long DotnetTicksToNanosSinceEpoch(long dotnetTicks)
         {
-            return (dotnetTicks - DateTimeOffsetTicks) * NanosPerTick;
+            return (dotnetTicks - DateTimeOffsetTicks) * 1_000_000L / TimeSpan.TicksPerMillisecond;
         }
 
         private static long NanosSinceEpochToDotnetTicks(long nanosSinceEpoch)
         {
-            return DateTimeOffsetTicks + nanosSinceEpoch / NanosPerTick;
+            return DateTimeOffsetTicks + nanosSinceEpoch * TimeSpan.TicksPerMillisecond / 1_000_000L;
         }
     }
 }
