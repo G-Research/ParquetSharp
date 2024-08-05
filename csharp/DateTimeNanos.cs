@@ -10,11 +10,6 @@ namespace ParquetSharp
     [StructLayout(LayoutKind.Sequential)]
     public readonly struct DateTimeNanos : IEquatable<DateTimeNanos>, IComparable, IComparable<DateTimeNanos>
     {
-        private const long DateTimeOffsetTicks = 621355968000000000; // new DateTime(1970, 01, 01).Ticks
-        private const string DefaultFormat = "yyyy-MM-dd HH:mm:ss.fffffffff";
-
-        private static readonly long NanosPerTick = 1_000_000L / TimeSpan.TicksPerMillisecond;
-
         /// <summary>
         /// Minimum DateTime representable: 1677-09-21 00:12:43.
         /// </summary>
@@ -38,7 +33,7 @@ namespace ParquetSharp
         /// <summary>
         /// Make a new <see cref="DateTimeNanos"/> object from a specified dotnet ticks value
         /// </summary>
-        public static DateTimeNanos FromDotnetTicks(long dotnetTicks) 
+        public static DateTimeNanos FromDotnetTicks(long dotnetTicks)
         {
             return new DateTimeNanos(DotnetTicksToNanosSinceEpoch(dotnetTicks));
         }
@@ -83,32 +78,32 @@ namespace ParquetSharp
             return Ticks.CompareTo(other.Ticks);
         }
 
-        public static bool operator ==(DateTimeNanos left, DateTimeNanos right) 
+        public static bool operator ==(DateTimeNanos left, DateTimeNanos right)
         {
             return left.Ticks == right.Ticks;
         }
 
-        public static bool operator !=(DateTimeNanos left, DateTimeNanos right) 
+        public static bool operator !=(DateTimeNanos left, DateTimeNanos right)
         {
             return left.Ticks != right.Ticks;
         }
 
-        public static bool operator <(DateTimeNanos left, DateTimeNanos right) 
+        public static bool operator <(DateTimeNanos left, DateTimeNanos right)
         {
             return left.Ticks < right.Ticks;
         }
 
-        public static bool operator <=(DateTimeNanos left, DateTimeNanos right) 
+        public static bool operator <=(DateTimeNanos left, DateTimeNanos right)
         {
             return left.Ticks <= right.Ticks;
         }
 
-        public static bool operator >=(DateTimeNanos left, DateTimeNanos right) 
+        public static bool operator >=(DateTimeNanos left, DateTimeNanos right)
         {
             return left.Ticks >= right.Ticks;
         }
 
-        public static bool operator >(DateTimeNanos left, DateTimeNanos right) 
+        public static bool operator >(DateTimeNanos left, DateTimeNanos right)
         {
             return left.Ticks > right.Ticks;
         }
@@ -142,7 +137,12 @@ namespace ParquetSharp
             return DateTime.ToString(adjustedFormat, formatProvider);
         }
 
-        private static long DotnetTicksToNanosSinceEpoch(long dotnetTicks) 
+        private const long DateTimeOffsetTicks = 621355968000000000; // new DateTime(1970, 01, 01).Ticks
+        private const string DefaultFormat = "yyyy-MM-dd HH:mm:ss.fffffffff";
+
+        private static readonly long NanosPerTick = 1_000_000L / TimeSpan.TicksPerMillisecond;
+
+        private static long DotnetTicksToNanosSinceEpoch(long dotnetTicks)
         {
             return (dotnetTicks - DateTimeOffsetTicks) * NanosPerTick;
         }
