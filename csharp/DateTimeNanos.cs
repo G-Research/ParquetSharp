@@ -10,16 +10,6 @@ namespace ParquetSharp
     [StructLayout(LayoutKind.Sequential)]
     public readonly struct DateTimeNanos : IEquatable<DateTimeNanos>, IComparable, IComparable<DateTimeNanos>
     {
-        /// <summary>
-        /// Minimum DateTime representable: 1677-09-21 00:12:43.
-        /// </summary>
-        public static readonly DateTime MinDateTimeValue = new DateTimeNanos(long.MinValue).DateTime;
-
-        /// <summary>
-        /// Maximum DateTime representable: 2262-04-11 23:47:16.
-        /// </summary>
-        public static readonly DateTime MaxDateTimeValue = new DateTimeNanos(long.MaxValue).DateTime;
-
         public DateTimeNanos(long ticks)
         {
             Ticks = ticks;
@@ -27,15 +17,7 @@ namespace ParquetSharp
 
         public DateTimeNanos(DateTime dateTime)
         {
-            Ticks = DotnetTicksToNanosSinceEpoch(dateTime.Ticks);
-        }
-
-        /// <summary>
-        /// Make a new <see cref="DateTimeNanos"/> object from a specified dotnet ticks value
-        /// </summary>
-        public static DateTimeNanos FromDotnetTicks(long dotnetTicks)
-        {
-            return new DateTimeNanos(DotnetTicksToNanosSinceEpoch(dotnetTicks));
+            Ticks = (dateTime.Ticks - DateTimeOffset) * (1_000_000L / TimeSpan.TicksPerMillisecond);
         }
 
         /// <summary>
@@ -46,7 +28,7 @@ namespace ParquetSharp
         /// <summary>
         /// Convert to System.DateTime with reduced precision.
         /// </summary>
-        public DateTime DateTime => new(NanosSinceEpochToDotnetTicks(Ticks));
+        public DateTime DateTime => new DateTime(DateTimeOffset + Ticks / (1_000_000L / TimeSpan.TicksPerMillisecond));
 
         public bool Equals(DateTimeNanos other)
         {
@@ -78,36 +60,6 @@ namespace ParquetSharp
             return Ticks.CompareTo(other.Ticks);
         }
 
-        public static bool operator ==(DateTimeNanos left, DateTimeNanos right)
-        {
-            return left.Ticks == right.Ticks;
-        }
-
-        public static bool operator !=(DateTimeNanos left, DateTimeNanos right)
-        {
-            return left.Ticks != right.Ticks;
-        }
-
-        public static bool operator <(DateTimeNanos left, DateTimeNanos right)
-        {
-            return left.Ticks < right.Ticks;
-        }
-
-        public static bool operator <=(DateTimeNanos left, DateTimeNanos right)
-        {
-            return left.Ticks <= right.Ticks;
-        }
-
-        public static bool operator >=(DateTimeNanos left, DateTimeNanos right)
-        {
-            return left.Ticks >= right.Ticks;
-        }
-
-        public static bool operator >(DateTimeNanos left, DateTimeNanos right)
-        {
-            return left.Ticks > right.Ticks;
-        }
-
         /// <summary>
         /// Converts this DateTimeNanos object to a string using a default formatting string with nanosecond precision
         /// and the current culture's formatting conventions.
@@ -137,18 +89,18 @@ namespace ParquetSharp
             return DateTime.ToString(adjustedFormat, formatProvider);
         }
 
-        private const long DateTimeOffsetTicks = 621355968000000000; // new DateTime(1970, 01, 01).Ticks
+        /// <summary>
+        /// Minimum DateTime representable: 1677-09-21 00:12:43.
+        /// </summary>
+        public static readonly DateTime MinDateTimeValue = new DateTimeNanos(long.MinValue).DateTime;
+
+        /// <summary>
+        /// Maximum DateTime representable: 2262-04-11 23:47:16.
+        /// </summary>
+        public static readonly DateTime MaxDateTimeValue = new DateTimeNanos(long.MaxValue).DateTime;
+
+        private const long DateTimeOffset = 621355968000000000; // new DateTime(1970, 01, 01).Ticks
+
         private const string DefaultFormat = "yyyy-MM-dd HH:mm:ss.fffffffff";
-        private const long NanosPerTick = 1_000_000L / TimeSpan.TicksPerMillisecond;
-
-        private static long DotnetTicksToNanosSinceEpoch(long dotnetTicks)
-        {
-            return (dotnetTicks - DateTimeOffsetTicks) * NanosPerTick;
-        }
-
-        private static long NanosSinceEpochToDotnetTicks(long nanosSinceEpoch)
-        {
-            return DateTimeOffsetTicks + nanosSinceEpoch / NanosPerTick;
-        }
     }
 }
