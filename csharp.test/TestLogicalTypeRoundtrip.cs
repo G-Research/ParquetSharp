@@ -1226,6 +1226,165 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestRequiredIntInOptionalGroup()
+        {
+            var values = Enumerable.Range(0, 100)
+                .Select(i => i % 10 == 3 ? (Nested<int>?) null : new Nested<int>(i))
+                .ToArray();
+            using var noneType = LogicalType.None();
+            using var elementNode = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Int32);
+            using var groupNode = new GroupNode("group", Repetition.Optional, new[] {elementNode});
+            using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {groupNode});
+
+            using var buffer = new ResizableBuffer();
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var properties = WriterProperties.GetDefaultWriterProperties();
+                using var fileWriter = new ParquetFileWriter(output, schemaNode, properties);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<Nested<int>?>();
+
+                colWriter.WriteBatch(values);
+
+                fileWriter.Close();
+            }
+
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            using var rowGroupReader = fileReader.RowGroup(0);
+
+            // Read nested
+            using (var colReader = rowGroupReader.Column(0).LogicalReader<Nested<int>?>())
+            {
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    if (values[i].HasValue)
+                    {
+                        Assert.That(actual[i].HasValue);
+                        Assert.That(actual[i]!.Value, Is.EqualTo(values[i]!.Value));
+                    }
+                    else
+                    {
+                        Assert.That(actual[i].HasValue, Is.False);
+                    }
+                }
+            }
+
+            // Read without nesting struct
+            using (var colReader = rowGroupReader.Column(0).LogicalReader<int?>())
+            {
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    if (values[i].HasValue)
+                    {
+                        Assert.That(actual[i] != null);
+                        Assert.That(actual[i], Is.EqualTo(values[i]!.Value.Value));
+                    }
+                    else
+                    {
+                        Assert.That(actual[i], Is.Null);
+                    }
+                }
+            }
+
+            fileReader.Close();
+        }
+
+        [Test]
+        public static void TestStringInOptionalGroup([Values] bool requiredString)
+        {
+            Nested<string?>?[] values;
+            if (requiredString)
+            {
+                values = Enumerable.Range(0, 100)
+                    .Select(i => i % 10 == 3
+                        ? (Nested<string?>?) null
+                        : new Nested<string?>(i.ToString()))
+                    .ToArray();
+            }
+            else
+            {
+                values = Enumerable.Range(0, 100)
+                    .Select(i => i % 10 == 3
+                        ? (Nested<string?>?) null
+                        : i % 10 == 5
+                            ? new Nested<string?>(null)
+                            : new Nested<string?>(i.ToString()))
+                    .ToArray();
+            }
+            using var stringType = LogicalType.String();
+            using var elementNode = new PrimitiveNode(
+                "element", requiredString ? Repetition.Required : Repetition.Optional, stringType, PhysicalType.ByteArray);
+            using var groupNode = new GroupNode("group", Repetition.Optional, new[] {elementNode});
+            using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {groupNode});
+
+            using var buffer = new ResizableBuffer();
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var properties = WriterProperties.GetDefaultWriterProperties();
+                using var fileWriter = new ParquetFileWriter(output, schemaNode, properties);
+                using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
+                using var colWriter = rowGroupWriter.Column(0).LogicalWriter<Nested<string?>?>();
+
+                colWriter.WriteBatch(values);
+
+                fileWriter.Close();
+            }
+
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            using var rowGroupReader = fileReader.RowGroup(0);
+
+            // Read nested
+            using (var colReader = rowGroupReader.Column(0).LogicalReader<Nested<string?>?>())
+            {
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    if (values[i].HasValue)
+                    {
+                        Assert.That(actual[i].HasValue);
+                        Assert.That(actual[i]!.Value, Is.EqualTo(values[i]!.Value));
+                    }
+                    else
+                    {
+                        Assert.That(actual[i].HasValue, Is.False);
+                    }
+                }
+            }
+
+            // Read without nesting struct
+            using (var colReader = rowGroupReader.Column(0).LogicalReader<string?>())
+            {
+                var actual = colReader.ReadAll((int) rowGroupReader.MetaData.NumRows);
+                Assert.IsNotEmpty(actual);
+                Assert.AreEqual(values.Length, actual.Length);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    if (values[i].HasValue && values[i]!.Value.Value != null)
+                    {
+                        Assert.That(actual[i] != null);
+                        Assert.That(actual[i], Is.EqualTo(values[i]!.Value.Value));
+                    }
+                    else
+                    {
+                        Assert.That(actual[i], Is.Null);
+                    }
+                }
+            }
+
+            fileReader.Close();
+        }
+
+        [Test]
         public static void TestRequiredString()
         {
             var values = Enumerable.Range(0, 100).Select(i => $"row {i}").ToArray();
