@@ -56,7 +56,9 @@ namespace ParquetSharp.LogicalBatchReader
 
             // Otherwise we have a more complex structure and use a buffered reader
             var leafDefinitionLevel = (short) schemaNodes.Count(n => n.Repetition != Repetition.Required);
-            var nullableLeafValues = schemaNodes.Last().Repetition == Repetition.Optional;
+            // Reference typed leaf values are always treated as nullable as the converters are created based on the
+            // .NET type and don't consider the schema nullability.
+            var nullableLeafValues = schemaNodes.Last().Repetition == Repetition.Optional || !typeof(TLogical).IsValueType;
             _bufferedReader = new BufferedReader<TLogical, TPhysical>(
                 _physicalReader, _converter, _buffers.Values, _buffers.DefLevels, _buffers.RepLevels, leafDefinitionLevel, nullableLeafValues);
             return GetCompoundReader<TElement>(schemaNodes, 0, 0);
