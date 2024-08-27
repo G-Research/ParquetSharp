@@ -101,12 +101,13 @@ namespace ParquetSharp
                 var multiplier = DecimalConverter.GetScaleMultiplier(columnDescriptor.TypeScale, columnDescriptor.TypePrecision);
                 if (typeof(TPhysical) == typeof(FixedLenByteArray))
                 {
-                    if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
-                    if (TypeUtils.UseDecimal128(columnDescriptor))
+                    if (byteBuffer == null)
                     {
-                        return (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal128(s, d, multiplier, byteBuffer));
+                        throw new ArgumentNullException(nameof(byteBuffer));
                     }
-                    return (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal(s, d, multiplier, byteBuffer, columnDescriptor.TypeLength));
+                    return TypeUtils.UseDecimal128(columnDescriptor)
+                        ? (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal128(s, d, multiplier, byteBuffer))
+                        : (LogicalWrite<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal(s, d, multiplier, byteBuffer, columnDescriptor.TypeLength));
                 }
                 if (typeof(TPhysical) == typeof(int))
                 {
@@ -116,6 +117,7 @@ namespace ParquetSharp
                 {
                     return (LogicalWrite<decimal, long>.Converter) ((s, _, d, _) => LogicalWrite.ConvertDecimal(s, d, multiplier));
                 }
+
                 throw new NotSupportedException("Writing decimal data is only supported with fixed-length byte array, int32, and int64 physical types");
             }
 
@@ -125,15 +127,13 @@ namespace ParquetSharp
                 var multiplier = DecimalConverter.GetScaleMultiplier(columnDescriptor.TypeScale, columnDescriptor.TypePrecision);
                 if (typeof(TPhysical) == typeof(FixedLenByteArray))
                 {
-                    if (byteBuffer == null) throw new ArgumentNullException(nameof(byteBuffer));
-                    if (TypeUtils.UseDecimal128(columnDescriptor))
+                    if (byteBuffer == null)
                     {
-                        return (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) =>
-                            LogicalWrite.ConvertDecimal128(s, dl, d, multiplier, nl, byteBuffer));
+                        throw new ArgumentNullException(nameof(byteBuffer));
                     }
-
-                    return (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) =>
-                        LogicalWrite.ConvertDecimal(s, dl, d, multiplier, nl, byteBuffer, columnDescriptor.TypeLength));
+                    return TypeUtils.UseDecimal128(columnDescriptor)
+                        ? (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertDecimal128(s, dl, d, multiplier, nl, byteBuffer))
+                        : (LogicalWrite<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertDecimal(s, dl, d, multiplier, nl, byteBuffer, columnDescriptor.TypeLength));
                 }
                 if (typeof(TPhysical) == typeof(int))
                 {
@@ -143,6 +143,7 @@ namespace ParquetSharp
                 {
                     return (LogicalWrite<decimal?, long>.Converter) ((s, dl, d, nl) => LogicalWrite.ConvertDecimal(s, dl, d, multiplier, nl));
                 }
+
                 throw new NotSupportedException("Writing decimal data is only supported with fixed-length byte array, int32, and int64 physical types");
             }
 

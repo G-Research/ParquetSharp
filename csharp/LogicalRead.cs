@@ -134,13 +134,11 @@ namespace ParquetSharp
                 {
                     return (LogicalRead<decimal, long>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal64(s, d, multiplier));
                 }
-                if (typeof(TPhysical) == typeof(FixedLenByteArray) && TypeUtils.UseDecimal128(columnDescriptor))
-                {
-                    return (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal128(s, d, multiplier));
-                }
                 if (typeof(TPhysical) == typeof(FixedLenByteArray))
                 {
-                    return (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal(s, d, multiplier, columnDescriptor.TypeLength));
+                    return TypeUtils.UseDecimal128(columnDescriptor)
+                        ? (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal128(s, d, multiplier))
+                        : (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal(s, d, multiplier, columnDescriptor.TypeLength));
                 }
             }
 
@@ -155,13 +153,11 @@ namespace ParquetSharp
                 {
                     return (LogicalRead<decimal?, long>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal64(s, dl, d, multiplier, del));
                 }
-                if (typeof(TPhysical) == typeof(FixedLenByteArray) && TypeUtils.UseDecimal128(columnDescriptor))
-                {
-                    return (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal128(s, dl, d, multiplier, del));
-                }
                 if (typeof(TPhysical) == typeof(FixedLenByteArray))
                 {
-                    return (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal(s, dl, d, multiplier, columnDescriptor.TypeLength, del));
+                    return TypeUtils.UseDecimal128(columnDescriptor)
+                        ? (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal128(s, dl, d, multiplier, del))
+                        : (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal(s, dl, d, multiplier, columnDescriptor.TypeLength, del));
                 }
             }
 

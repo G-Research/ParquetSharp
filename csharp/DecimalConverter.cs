@@ -21,7 +21,7 @@ namespace ParquetSharp
             var tmp = stackalloc byte[byteArray.Length];
             for (var byteIdx = 0; byteIdx < byteArray.Length; ++byteIdx)
             {
-                tmp[byteArray.Length  - byteIdx - 1] = *((byte*) byteArray.Pointer + byteIdx);
+                tmp[byteArray.Length - byteIdx - 1] = *((byte*) byteArray.Pointer + byteIdx);
             }
 
             var negative = false;
@@ -31,15 +31,21 @@ namespace ParquetSharp
                 TwosComplement(tmp, byteArray.Length);
             }
 
-            var unscaled = new decimal(0);
-            for (var byteIdx = 0; byteIdx < byteArray.Length; ++byteIdx)
+            var unscaled = new decimal(tmp[0]);
+            var numUsableBytes = Math.Min(byteArray.Length, 12);
+            decimal byteMultiplier = 1;
+            for (var byteIdx = 1; byteIdx < numUsableBytes; ++byteIdx)
             {
-                var increment = new decimal(tmp[byteIdx]);
-                for (var shift = 0; shift < byteIdx; ++shift)
+                byteMultiplier *= 256;
+                unscaled += byteMultiplier * tmp[byteIdx];
+            }
+
+            for (var byteIdx = numUsableBytes; byteIdx < byteArray.Length; ++byteIdx)
+            {
+                if (tmp[byteIdx] > 0)
                 {
-                    increment *= 256;
+                    throw new OverflowException("Decimal value is not representable as a .NET Decimal");
                 }
-                unscaled += increment;
             }
 
             if (negative)
