@@ -860,7 +860,7 @@ namespace ParquetSharp
             // The value is encoded using big-endian, so that 00112233-4455-6677-8899-aabbccddeeff is encoded
             // as the bytes 00 11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff.
             //
-            // But Guid endianess is platform dependent (and ToByteArray() uses a little endian representation).
+            // But Guid endianness is platform dependent (and ToByteArray() uses a little endian representation).
             if (BitConverter.IsLittleEndian)
             {
                 // ReSharper disable once PossibleNullReferenceException
