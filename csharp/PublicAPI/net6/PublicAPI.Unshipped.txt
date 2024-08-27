@@ -1,1 +1,9 @@
 #nullable enable
+static ParquetSharp.LogicalRead.ConvertDecimal(System.ReadOnlySpan<ParquetSharp.FixedLenByteArray> source, System.ReadOnlySpan<short> defLevels, System.Span<decimal?> destination, decimal multiplier, int typeLength, short definedLevel) -> void
+static ParquetSharp.LogicalRead.ConvertDecimal(System.ReadOnlySpan<ParquetSharp.FixedLenByteArray> source, System.Span<decimal> destination, decimal multiplier, int typeLength) -> void
+static ParquetSharp.LogicalWrite.ConvertDecimal(System.ReadOnlySpan<decimal> source, System.Span<int> destination, decimal multiplier) -> void
+static ParquetSharp.LogicalWrite.ConvertDecimal(System.ReadOnlySpan<decimal> source, System.Span<long> destination, decimal multiplier) -> void
+static ParquetSharp.LogicalWrite.ConvertDecimal(System.ReadOnlySpan<decimal> source, System.Span<ParquetSharp.FixedLenByteArray> destination, decimal multiplier, ParquetSharp.ByteBuffer! byteBuffer, int typeLength) -> void
+static ParquetSharp.LogicalWrite.ConvertDecimal(System.ReadOnlySpan<decimal?> source, System.Span<short> defLevels, System.Span<int> destination, decimal multiplier, short nullLevel) -> void
+static ParquetSharp.LogicalWrite.ConvertDecimal(System.ReadOnlySpan<decimal?> source, System.Span<short> defLevels, System.Span<long> destination, decimal multiplier, short nullLevel) -> void
+static ParquetSharp.LogicalWrite.ConvertDecimal(System.ReadOnlySpan<decimal?> source, System.Span<short> defLevels, System.Span<ParquetSharp.FixedLenByteArray> destination, decimal multiplier, short nullLevel, ParquetSharp.ByteBuffer! byteBuffer, int typeLength) -> void
