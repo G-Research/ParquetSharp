@@ -146,7 +146,7 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(decimal?))
             {
-                var multiplier = DecimalConverter.GetScaleMultiplier(columnDescriptor.TypeScale, columnDescriptor.TypeScale);
+                var multiplier = DecimalConverter.GetScaleMultiplier(columnDescriptor.TypeScale, columnDescriptor.TypePrecision);
                 if (typeof(TPhysical) == typeof(int))
                 {
                     return (LogicalRead<decimal?, int>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal32(s, dl, d, multiplier, del));

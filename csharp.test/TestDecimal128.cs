@@ -25,7 +25,7 @@ namespace ParquetSharp.Test
 
             list.Add(decimal.MaxValue);
 
-            var multiplier = Decimal128.GetScaleMultiplier(scale);
+            var multiplier = DecimalConverter.GetScaleMultiplier(scale, precision: 29);
             var decimals = list.Select(v => v / multiplier).ToArray();
 
             foreach (var value in decimals)
@@ -34,15 +34,6 @@ namespace ParquetSharp.Test
 
                 Assert.That(-value, Is.EqualTo(new Decimal128(-value, multiplier).ToDecimal(multiplier)));
             }
-        }
-
-        [Test]
-        public static void TestScaleMultiplier()
-        {
-            Assert.AreEqual(1M, Decimal128.GetScaleMultiplier(0));
-            Assert.AreEqual(10M, Decimal128.GetScaleMultiplier(1));
-            Assert.AreEqual(100M, Decimal128.GetScaleMultiplier(2));
-            Assert.AreEqual(1e+028M, Decimal128.GetScaleMultiplier(28));
         }
 
         [Test]

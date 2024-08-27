@@ -30,7 +30,7 @@ namespace ParquetSharp.Test
             }
 
             var read = new decimal[numRows];
-            multiplier = Decimal128.GetScaleMultiplier(scale);
+            multiplier = DecimalConverter.GetScaleMultiplier(scale, precision);
             for (var i = 0; i < numRows; ++i)
             {
                 read[i] = (*(Decimal128*) converted[i].Pointer).ToDecimal(multiplier);
@@ -52,7 +52,7 @@ namespace ParquetSharp.Test
             using var byteBuffer = new ByteBuffer(8 * typeLength * numRows);
             var converted = new ByteArray[numRows];
 
-            var multiplier = Decimal128.GetScaleMultiplier(scale);
+            var multiplier = DecimalConverter.GetScaleMultiplier(scale, precision);
             for (var i = 0; i < numRows; ++i)
             {
                 converted[i] = byteBuffer.Allocate(typeLength);
@@ -251,6 +251,15 @@ namespace ParquetSharp.Test
             var readValues = columnReader.ReadAll((int) groupReader.MetaData.NumRows);
 
             Assert.That(readValues, Is.EqualTo(decimalValues.ToArray()));
+        }
+
+        [Test]
+        public static void TestScaleMultiplier()
+        {
+            Assert.AreEqual(1M, DecimalConverter.GetScaleMultiplier(0, 29));
+            Assert.AreEqual(10M, DecimalConverter.GetScaleMultiplier(1, 29));
+            Assert.AreEqual(100M, DecimalConverter.GetScaleMultiplier(2, 29));
+            Assert.AreEqual(1e+028M, DecimalConverter.GetScaleMultiplier(28, 29));
         }
     }
 }

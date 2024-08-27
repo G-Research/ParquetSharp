@@ -101,16 +101,6 @@ namespace ParquetSharp
             return unscaled / multiplier;
         }
 
-        public static decimal GetScaleMultiplier(int scale)
-        {
-            if (scale < 0 || scale > 28)
-            {
-                throw new ArgumentOutOfRangeException(nameof(scale), "scale must be a value in [0, 28]");
-            }
-
-            return (decimal) Math.Pow(10, scale);
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void TwosComplement(uint* ptr)
         {

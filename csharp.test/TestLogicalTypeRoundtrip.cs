@@ -2076,7 +2076,7 @@ namespace ParquetSharp.Test
                     Min = -10m,
                     Max = ((NumRows - 1m) * (NumRows - 1m) * (NumRows - 1m)) / 1000 - 10,
                     Converter = (v, descr) => LogicalRead.ToDecimal(
-                        (FixedLenByteArray) v, Decimal128.GetScaleMultiplier(descr.TypeScale))
+                        (FixedLenByteArray) v, DecimalConverter.GetScaleMultiplier(descr.TypeScale, descr.TypePrecision))
                 },
                 new ExpectedColumn
                 {
@@ -2091,7 +2091,7 @@ namespace ParquetSharp.Test
                     Min = -9.999m,
                     Max = ((NumRows - 1m) * (NumRows - 1m) * (NumRows - 1m)) / 1000 - 10,
                     Converter = (v, descr) => LogicalRead.ToDecimal(
-                        (FixedLenByteArray) v, Decimal128.GetScaleMultiplier(descr.TypeScale))
+                        (FixedLenByteArray) v, DecimalConverter.GetScaleMultiplier(descr.TypeScale, descr.TypePrecision))
                 },
                 new ExpectedColumn
                 {
