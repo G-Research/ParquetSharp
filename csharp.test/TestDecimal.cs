@@ -436,17 +436,23 @@ namespace ParquetSharp.Test
 
         private static decimal RandomDecimal(Random random, int scale, int parquetPrecision = 29)
         {
-            var intRange = 1 + (long) int.MaxValue - (long) int.MinValue;
-            var low = (int) (int.MinValue + random.NextInt64(0, intRange));
-            var mid = (int) (int.MinValue + random.NextInt64(0, intRange));
-            var high = (int) (int.MinValue + random.NextInt64(0, intRange));
-            var negative = random.NextSingle() < 0.5;
+            var low = RandomInt(random);
+            var mid = RandomInt(random);
+            var high = RandomInt(random);
+            var negative = random.Next(0, 2) == 0;
             var value = new decimal(low, mid, high, negative, (byte) scale);
             if (parquetPrecision < 29)
             {
                 value = decimal.Round(value * new decimal(Math.Pow(10, parquetPrecision - 29)), scale);
             }
             return value;
+        }
+
+        private static int RandomInt(Random random)
+        {
+            var buffer = new byte[sizeof(int)];
+            random.NextBytes(buffer);
+            return BitConverter.ToInt32(buffer, 0);
         }
     }
 }
