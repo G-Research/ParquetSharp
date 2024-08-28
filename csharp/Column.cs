@@ -13,7 +13,7 @@ namespace ParquetSharp
 #pragma warning disable RS0027
 
         public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride = null)
-            : this(logicalSystemType, name, logicalTypeOverride, GetTypeLength(logicalSystemType))
+            : this(logicalSystemType, name, logicalTypeOverride, GetTypeLength(logicalSystemType, logicalTypeOverride))
         {
             LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -107,11 +107,36 @@ namespace ParquetSharp
 
 #pragma warning restore RS0026
 
-        private static unsafe int GetTypeLength(Type logicalSystemType)
+        private static unsafe int GetTypeLength(Type logicalSystemType, LogicalType? logicalTypeOverride)
         {
             if (logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?))
             {
-                return sizeof(Decimal128);
+                if (!(logicalTypeOverride is DecimalLogicalType decimalType))
+                {
+                    throw new ArgumentException("decimal type requires a DecimalLogicalType override");
+                }
+
+                // Older versions of ParquetSharp only supported writing with a precision of 29,
+                // corresponding to the maximum precision supported by C# decimal values.
+                // Decimals were written as 16 byte arrays and reading only supported 16 byte arrays.
+                // So for backwards compatibility, if the precision is 29 we still write 16 byte values.
+                if (decimalType.Precision == 29)
+                {
+                    return sizeof(Decimal128);
+                }
+
+                // For other precisions, work out the size of array required
+                var typeLength = 1;
+                while (true)
+                {
+                    var maxPrecision = DecimalConverter.MaxPrecision(typeLength);
+                    if (maxPrecision >= decimalType.Precision)
+                    {
+                        return typeLength;
+                    }
+
+                    ++typeLength;
+                }
             }
 
             if (logicalSystemType == typeof(Guid) || logicalSystemType == typeof(Guid?))

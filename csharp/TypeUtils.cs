@@ -37,5 +37,16 @@ namespace ParquetSharp
             inner = null!;
             return false;
         }
+
+        /// <summary>
+        /// Whether to use the <see cref="Decimal128"/> type for conversion between decimal values
+        /// and fixed length byte array data.
+        /// </summary>
+        public static unsafe bool UseDecimal128(ColumnDescriptor columnDescriptor)
+        {
+            // Even if the type length matches Decimal128, we want to use DecimalConverter for higher
+            // precision than decimal supports so that we check for overflow and don't silently read invalid data.
+            return columnDescriptor.TypeLength == sizeof(Decimal128) && columnDescriptor.TypePrecision <= 29;
+        }
     }
 }

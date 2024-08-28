@@ -145,13 +145,12 @@ namespace ParquetSharp
                     }
                     case PhysicalType.FixedLenByteArray:
                     {
-                        if (descriptor.TypeLength != sizeof(Decimal128))
+                        var maxPrecision = DecimalConverter.MaxPrecision(descriptor.TypeLength);
+                        if (descriptor.TypePrecision > maxPrecision)
                         {
-                            throw new NotSupportedException($"only {sizeof(Decimal128)} bytes of decimal length is supported with fixed-length byte array data");
-                        }
-                        if (descriptor.TypePrecision > 29)
-                        {
-                            throw new NotSupportedException("only max 29 digits of decimal precision is supported with fixed-length byte array data");
+                            throw new NotSupportedException(
+                                $"A maximum of {maxPrecision} digits of decimal precision is supported with fixed length byte arrays " +
+                                $"of length {descriptor.TypeLength} (specified precision is {descriptor.TypePrecision})");
                         }
                         return (typeof(FixedLenByteArray), nullable ? typeof(decimal?) : typeof(decimal));
                     }

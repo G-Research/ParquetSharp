@@ -125,7 +125,7 @@ namespace ParquetSharp
 
             if (typeof(TLogical) == typeof(decimal))
             {
-                var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
+                var multiplier = DecimalConverter.GetScaleMultiplier(columnDescriptor.TypeScale, columnDescriptor.TypePrecision);
                 if (typeof(TPhysical) == typeof(int))
                 {
                     return (LogicalRead<decimal, int>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal32(s, d, multiplier));
@@ -136,13 +136,15 @@ namespace ParquetSharp
                 }
                 if (typeof(TPhysical) == typeof(FixedLenByteArray))
                 {
-                    return (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal128(s, d, multiplier));
+                    return TypeUtils.UseDecimal128(columnDescriptor)
+                        ? (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal128(s, d, multiplier))
+                        : (LogicalRead<decimal, FixedLenByteArray>.Converter) ((s, _, d, _) => LogicalRead.ConvertDecimal(s, d, multiplier, columnDescriptor.TypeLength));
                 }
             }
 
             if (typeof(TLogical) == typeof(decimal?))
             {
-                var multiplier = Decimal128.GetScaleMultiplier(columnDescriptor.TypeScale);
+                var multiplier = DecimalConverter.GetScaleMultiplier(columnDescriptor.TypeScale, columnDescriptor.TypePrecision);
                 if (typeof(TPhysical) == typeof(int))
                 {
                     return (LogicalRead<decimal?, int>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal32(s, dl, d, multiplier, del));
@@ -153,7 +155,9 @@ namespace ParquetSharp
                 }
                 if (typeof(TPhysical) == typeof(FixedLenByteArray))
                 {
-                    return (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal128(s, dl, d, multiplier, del));
+                    return TypeUtils.UseDecimal128(columnDescriptor)
+                        ? (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal128(s, dl, d, multiplier, del))
+                        : (LogicalRead<decimal?, FixedLenByteArray>.Converter) ((s, dl, d, del) => LogicalRead.ConvertDecimal(s, dl, d, multiplier, columnDescriptor.TypeLength, del));
                 }
             }
 
@@ -508,6 +512,22 @@ namespace ParquetSharp
             for (int i = 0, src = 0; i < destination.Length; ++i)
             {
                 destination[i] = defLevels[i] != definedLevel ? default(decimal?) : ToDecimal(source[src++], multiplier);
+            }
+        }
+
+        public static void ConvertDecimal(ReadOnlySpan<FixedLenByteArray> source, Span<decimal> destination, decimal multiplier, int typeLength)
+        {
+            for (int i = 0; i < destination.Length; ++i)
+            {
+                destination[i] = DecimalConverter.ReadDecimal(new ByteArray(source[i].Pointer, typeLength), multiplier);
+            }
+        }
+
+        public static void ConvertDecimal(ReadOnlySpan<FixedLenByteArray> source, ReadOnlySpan<short> defLevels, Span<decimal?> destination, decimal multiplier, int typeLength, short definedLevel)
+        {
+            for (int i = 0, src = 0; i < destination.Length; ++i)
+            {
+                destination[i] = defLevels[i] != definedLevel ? default(decimal?) : DecimalConverter.ReadDecimal(new ByteArray(source[src++].Pointer, typeLength), multiplier);
             }
         }
 
