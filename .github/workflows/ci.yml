@@ -70,6 +70,7 @@ jobs:
       run: |
         printenv | sort
         cmake --version
+        make --help
 
     # Compute vcpkg triplet and root
     - name: Compute vcpkg triplet and root
