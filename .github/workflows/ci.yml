@@ -150,6 +150,7 @@ jobs:
         $exec ./build_unix.sh ${{ matrix.arch }}
       env:
         VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
+        CMAKE_MAKE_PROGRAM : make
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
       run: ./build_windows.ps1
