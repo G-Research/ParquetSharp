@@ -148,15 +148,11 @@ jobs:
           exec="docker exec -w $PWD -e GITHUB_ACTIONS -e ACTIONS_CACHE_URL -e ACTIONS_RUNTIME_TOKEN -e VCPKG_BINARY_SOURCES -e VCPKG_INSTALLATION_ROOT centos scl enable devtoolset-7 rh-git227 httpd24 --"
         fi
         $exec ./build_unix.sh ${{ matrix.arch }}
-      env:
-        VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
-        CMAKE_MAKE_PROGRAM: make
+
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
       run: ./build_windows.ps1
       env:
-        VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
-    - name: Upload vcpkg arrow logs
       if: success() || failure()
       uses: actions/upload-artifact@v4
       with:
