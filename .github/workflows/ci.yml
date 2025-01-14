@@ -66,8 +66,10 @@ jobs:
 
     # Method 3: Using printenv
     - name: Display All Environment Variables
-      run: printenv | sort
       shell: bash
+      run: |
+      printenv | sort
+      cmake --version
 
     # Compute vcpkg triplet and root
     - name: Compute vcpkg triplet and root
