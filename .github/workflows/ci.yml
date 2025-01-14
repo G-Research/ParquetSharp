@@ -64,6 +64,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    # Method 3: Using printenv
+    - name: Display All Environment Variables
+      run: printenv | sort
+      shell: bash
+
     # Compute vcpkg triplet and root
     - name: Compute vcpkg triplet and root
       id: vcpkg-info
