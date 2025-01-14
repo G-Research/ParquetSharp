@@ -12,7 +12,6 @@ jobs:
     environment: nudge
     steps:
       - name: Send notification
-        uses: pavlovic-ivan/octo-nudge@v3
+        uses: pavlovic-ivan/octo-nudge@v2
         with:
           webhooks: ${{ secrets.NUDGE_WEBHOOKS }}
-          conclusions: failure,cancelled

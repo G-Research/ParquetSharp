@@ -96,7 +96,8 @@ jobs:
       run: |
         git reset --hard
         git pull
-        git checkout 66248ff4dbafdff577df74e4d9a8e948389fab09
+        # Workaround for breaking changes ("Migrate tool metadata from XML to JSON format")
+        git checkout 358f3893843c9d0d1b2e594183481fb68e3aa963~1
         git status
 
     # Setup a CentOS 7 container to build on Linux x64 for backwards compatibility.
