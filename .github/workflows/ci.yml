@@ -152,7 +152,7 @@ jobs:
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
       run: ./build_windows.ps1
-      env:
+    - name: Upload vcpkg arrow logs
       if: success() || failure()
       uses: actions/upload-artifact@v4
       with:
