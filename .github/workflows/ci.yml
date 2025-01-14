@@ -96,7 +96,7 @@ jobs:
       run: |
         git reset --hard
         git pull
-        git checkout d320630b28aeb59b24424eb2a7ef3905314107a1
+        git checkout e590c2b30c08caf1dd8d612ec602a003f9784b7d
         git status
 
     # Setup a CentOS 7 container to build on Linux x64 for backwards compatibility.
