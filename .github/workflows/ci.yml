@@ -64,14 +64,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    # Method 3: Using printenv
-    - name: Display All Environment Variables
-      shell: bash
-      run: |
-        printenv | sort
-        cmake --version
-        make --help
-
     # Compute vcpkg triplet and root
     - name: Compute vcpkg triplet and root
       id: vcpkg-info
@@ -98,6 +90,14 @@ jobs:
       run: echo "version=$(cmake --version | head -n1 | awk '{print $3}')" >> $GITHUB_OUTPUT
       shell: bash
 
+    # Ensure vcpkg builtin registry is up-to-date
+    - name: Update vcpkg builtin registry
+      working-directory: ${{ steps.vcpkg-info.outputs.root }}
+      run: |
+        git reset --hard
+        git pull
+        git checkout d320630b28aeb59b24424eb2a7ef3905314107a1
+        git status
 
     # Setup a CentOS 7 container to build on Linux x64 for backwards compatibility.
     - name: Start CentOS container and install toolchain
@@ -142,10 +142,13 @@ jobs:
           exec="docker exec -w $PWD -e GITHUB_ACTIONS -e ACTIONS_CACHE_URL -e ACTIONS_RUNTIME_TOKEN -e VCPKG_BINARY_SOURCES -e VCPKG_INSTALLATION_ROOT centos scl enable devtoolset-7 rh-git227 httpd24 --"
         fi
         $exec ./build_unix.sh ${{ matrix.arch }}
-
+      env:
+        VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
       run: ./build_windows.ps1
+      env:
+        VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
     - name: Upload vcpkg arrow logs
       if: success() || failure()
       uses: actions/upload-artifact@v4
