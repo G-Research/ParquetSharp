@@ -68,8 +68,8 @@ jobs:
     - name: Display All Environment Variables
       shell: bash
       run: |
-      printenv | sort
-      cmake --version
+        printenv | sort
+        cmake --version
 
     # Compute vcpkg triplet and root
     - name: Compute vcpkg triplet and root
