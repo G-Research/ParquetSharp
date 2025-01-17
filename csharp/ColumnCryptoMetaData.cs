@@ -38,9 +38,9 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Gets the path of the column in the schema.
+        /// Gets the path in the schema that specifies the column.
         /// </summary>
-        /// <value>A <see cref="ColumnPath"/> representing the column's path in the schema.</value>
+        /// <value>A <see cref="ColumnPath"/> that specifies the column's path in the schema.</value>
         /// <exception cref="ParquetException">Thrown if column path cannot be retrieved.</exception>
         public ColumnPath ColumnPath => new ColumnPath(ExceptionInfo.Return<IntPtr>(_handle, ColumnCryptoMetaData_Path_In_Schema));
 
