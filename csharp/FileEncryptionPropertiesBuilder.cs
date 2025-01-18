@@ -35,7 +35,7 @@ namespace ParquetSharp
         /// <summary>
         /// Sets the footer to be in plaintext, i.e., not encrypted.
         /// </summary>
-        /// <returns>This builder instance for method chaining.</returns>
+        /// <returns>This builder instance.</returns>
         public FileEncryptionPropertiesBuilder SetPlaintextFooter()
         {
             ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Set_Plaintext_Footer(_handle.IntPtr));
@@ -47,7 +47,7 @@ namespace ParquetSharp
         /// Sets the encryption algorithm.
         /// </summary>
         /// <param name="parquetCipher">A <see cref="ParquetCipher"/> value representing the encryption algorithm.</param>
-        /// <returns>This builder instance for method chaining.</returns>
+        /// <returns>This builder instance.</returns>
         public FileEncryptionPropertiesBuilder Algorithm(ParquetCipher parquetCipher)
         {
             ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Algorithm(_handle.IntPtr, parquetCipher));
@@ -59,7 +59,7 @@ namespace ParquetSharp
         /// Sets the key ID associated to the footer key.
         /// </summary>
         /// <param name="footerKeyId">A unique identifier for the footer key.</param>
-        /// <returns>This builder instance for method chaining.</returns>
+        /// <returns>This builder instance.</returns>
         /// <remarks>
         /// Key IDs help identify and manage encryption keys, helpful when multiple keys are in use.
         /// This value is typically stored in key management systems.
@@ -75,7 +75,7 @@ namespace ParquetSharp
         /// Sets the metadata for the footer key.
         /// </summary>
         /// <param name="footerKeyMetadata">A string containing metadata for the footer key.</param>
-        /// <returns>This builder instance for method chaining.</returns>
+        /// <returns>This builder instance.</returns>
         public FileEncryptionPropertiesBuilder FooterKeyMetadata(string footerKeyMetadata)
         {
             ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Footer_Key_Metadata(_handle.IntPtr, footerKeyMetadata));
@@ -113,7 +113,7 @@ namespace ParquetSharp
         /// Sets which columns in the Parquet file to encrypt.
         /// </summary>
         /// <param name="columnEncryptionProperties">An array of <see cref="ColumnEncryptionProperties"/> objects representing the columns to be encrypted.</param>
-        /// <returns>This builder instance for method chaining.</returns>
+        /// <returns>This builder instance.</returns>
         public FileEncryptionPropertiesBuilder EncryptedColumns(ColumnEncryptionProperties[] columnEncryptionProperties)
         {
             var handles = columnEncryptionProperties.Select(p => p.Handle.IntPtr).ToArray();
@@ -124,9 +124,9 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Build the FileEncryptionProperties object.
+        /// Build the <see cref="FileEncryptionProperties"/> object.
         /// </summary>
-        /// <returns>The FileEncryptionProperties object.</returns>
+        /// <returns>A new <see cref="FileEncryptionProperties"/> object with the configured encryption properties.</returns>
         public FileEncryptionProperties Build() => new FileEncryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, FileEncryptionPropertiesBuilder_Build));
 
         [DllImport(ParquetDll.Name)]

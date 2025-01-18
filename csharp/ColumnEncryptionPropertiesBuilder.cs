@@ -5,15 +5,24 @@ using ParquetSharp.Schema;
 namespace ParquetSharp
 {
     /// <summary>
-    /// Builder pattern for ColumnEncryptionProperties.
+    /// Builder pattern for creating and configuring <see cref="ColumnEncryptionProperties"/> objects.
+    /// This class provides a fluent API for setting the encryption properties for each column in a Parquet file.
     /// </summary>
     public sealed class ColumnEncryptionPropertiesBuilder : IDisposable
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ColumnEncryptionPropertiesBuilder"/> class for a column specified by name.
+        /// </summary>
+        /// <param name="columnName">The name of the column to encrypt.</param>
         public ColumnEncryptionPropertiesBuilder(string columnName)
             : this(Make(columnName))
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ColumnEncryptionPropertiesBuilder"/> class for a column specified by path.
+        /// </summary>
+        /// <param name="columnPath">The <see cref="ColumnPath"/> object representing the column to encrypt.</param>
         public ColumnEncryptionPropertiesBuilder(ColumnPath columnPath)
             : this(Make(columnPath))
         {
@@ -29,6 +38,11 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
+        /// <summary>
+        /// Sets the encryption key for the column.
+        /// </summary>
+        /// <param name="key">A byte array containing the AES encryption key.</param>
+        /// <returns>This builder instance.</returns>
         public ColumnEncryptionPropertiesBuilder Key(byte[] key)
         {
             var aesKey = new AesKey(key);
@@ -37,6 +51,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Sets the metadata associated with the encryption key for the column.
+        /// </summary>
+        /// <param name="keyMetadata">A string containing the metadata associated with the encryption key.</param>
+        /// <returns>This builder instance.</returns>
         public ColumnEncryptionPropertiesBuilder KeyMetadata(string keyMetadata)
         {
             ExceptionInfo.Check(ColumnEncryptionPropertiesBuilder_Key_Metadata(_handle.IntPtr, keyMetadata));
@@ -44,6 +63,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Sets the key ID associated with the column's encryption key.
+        /// </summary>
+        /// <param name="keyId">A unique identifier for the encryption key.</param>
+        /// <returns>This builder instance.</returns>
         public ColumnEncryptionPropertiesBuilder KeyId(string keyId)
         {
             ExceptionInfo.Check(ColumnEncryptionPropertiesBuilder_Key_Id(_handle.IntPtr, keyId));
@@ -51,6 +75,10 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Builds the <see cref="ColumnEncryptionProperties"/> object.
+        /// </summary>
+        /// <returns>A new <see cref="ColumnEncryptionProperties"/> object with the configured encryption properties.</returns>
         public ColumnEncryptionProperties Build() => new ColumnEncryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, ColumnEncryptionPropertiesBuilder_Build));
 
         private static IntPtr Make(string columnName)
