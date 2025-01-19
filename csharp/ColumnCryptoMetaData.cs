@@ -6,7 +6,7 @@ namespace ParquetSharp
 {
     /// <summary>
     /// Represents metadata related to the encryption and decryption of a Parquet column.
-    /// This class provides access to encryption-specific properties for a column and manages the associated native resources.
+    /// Provides access to encryption-specific properties for a column and manages the associated native resources.
     /// </summary>
     /// <remarks>
     /// Because this class is a wrapper around C++ objects, it implements <see cref="IDisposable"/> to release resources predictably.

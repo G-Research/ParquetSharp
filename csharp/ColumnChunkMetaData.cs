@@ -7,19 +7,12 @@ namespace ParquetSharp
     /// Represents the metadata for a column chunk.
     /// </summary>
     /// <remarks>
-    /// This class provides access to the metadata for a column chunk and manages the associated native resources.
+    /// Provides access to the metadata for a column chunk and manages the associated native resources.
     /// Because this class is a wrapper around C++ objects, it implements <see cref="IDisposable"/> to release resources predictably.
     /// Make sure to call <see cref="Dispose"/> or use a `using` statement for proper cleanup.
     /// </remarks>
     public sealed class ColumnChunkMetaData : IDisposable
     {
-        /// <summary>
-        /// Initialize a new instance of the <see cref="ColumnChunkMetaData"/> class with the specified native handle.
-        /// </summary>
-        /// <param name="handle">A pointer to the native Parquet column chunk metadata object.</param>
-        /// <remarks>
-        /// This constructor is intended for internal use. The <paramref name="handle"/> should be a valid pointer to avoid runtime errors.
-        /// </remarks>
         internal ColumnChunkMetaData(IntPtr handle)
         {
             _handle = new ParquetHandle(handle, ColumnChunkMetaData_Free);
@@ -53,7 +46,6 @@ namespace ParquetSharp
         /// Get the encodings used for the column chunk.
         /// </summary>
         /// <value>An array of <see cref="Encoding"/> values representing the encodings used for the column chunk.</value>
-        /// <exception cref="ParquetException">Thrown if the encodings cannot be retrieved.</exception>
         public unsafe Encoding[] Encodings
         {
             get

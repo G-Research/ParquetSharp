@@ -27,7 +27,7 @@ namespace ParquetSharp
         public bool EncryptedFooter => ExceptionInfo.Return<bool>(Handle, FileEncryptionProperties_Encrypted_Footer);
 
         //public EncryptionAlgorithm Algorithm => TODO
-        
+
         /// <summary>
         /// Get the footer key used to encrypt the footer.
         /// </summary>

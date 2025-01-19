@@ -6,7 +6,7 @@ namespace ParquetSharp
 {
     /// <summary>
     /// Builder pattern for creating and configuring a <see cref="FileEncryptionProperties"/> object.
-    /// This class provides a fluent API for setting the encryption properties (footer key, encryption algorithm, etc.) for a Parquet file.
+    /// Provides a fluent API for setting the encryption properties (footer key, encryption algorithm, etc.) for a Parquet file.
     /// </summary>
     public sealed class FileEncryptionPropertiesBuilder : IDisposable
     {
