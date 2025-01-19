@@ -5,10 +5,14 @@ using System.Runtime.InteropServices;
 namespace ParquetSharp
 {
     /// <summary>
-    /// Builder pattern for FileDecryptionProperties.
+    /// Builder pattern for creating and configuring a <see cref="FileDecryptionProperties"/> object.
+    /// This class provides a fluent API for setting the decryption properties (footer key, encryption algorithm, etc.) for a Parquet file.
     /// </summary>
     public sealed class FileDecryptionPropertiesBuilder : IDisposable
     {
+        /// <summary>
+        /// Create a new <see cref="FileDecryptionPropertiesBuilder"/>.
+        /// </summary>
         public FileDecryptionPropertiesBuilder()
         {
             ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Create(out var handle));
@@ -20,6 +24,11 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
+        /// <summary>
+        /// Set the footer key used to decrypt the file.
+        /// </summary>
+        /// <param name="footerKey">An array of bytes used to decrypt the footer.</param>
+        /// <returns>This builder instance.</returns>
         public FileDecryptionPropertiesBuilder FooterKey(byte[] footerKey)
         {
             var footerAesKey = new AesKey(footerKey);
@@ -28,6 +37,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the keys used to decrypt the columns.
+        /// </summary>
+        /// <param name="columnDecryptionProperties">An array of <see cref="ColumnDecryptionProperties"/> objects.</param>
+        /// <returns>This builder instance.</returns>
         public FileDecryptionPropertiesBuilder ColumnKeys(ColumnDecryptionProperties[] columnDecryptionProperties)
         {
             var handles = columnDecryptionProperties.Select(p => p.Handle.IntPtr).ToArray();
@@ -37,6 +51,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the prefix verifier used to verify the additional authenticated data (AAD) prefix.
+        /// </summary>
+        /// <param name="aadPrefixVerifier">An <see cref="ParquetSharp.AadPrefixVerifier"/> object that provides a callback to verify the AAD prefix.</param>
+        /// <returns>This builder instance.</returns>
         public FileDecryptionPropertiesBuilder AadPrefixVerifier(AadPrefixVerifier aadPrefixVerifier)
         {
             var gcHandle = aadPrefixVerifier?.CreateGcHandle() ?? IntPtr.Zero;
@@ -62,6 +81,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the key retriever used to retrieve the decryption key.
+        /// </summary>
+        /// <param name="keyRetriever">A <see cref="DecryptionKeyRetriever"/> object that provides a callback to retrieve the decryption key.</param>
+        /// <returns>This builder instance.</returns>
         public FileDecryptionPropertiesBuilder KeyRetriever(DecryptionKeyRetriever keyRetriever)
         {
             var gcHandle = keyRetriever?.CreateGcHandle() ?? IntPtr.Zero;
@@ -87,6 +111,10 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Disable footer signature verification.
+        /// </summary>
+        /// <returns>This builder instance.</returns>
         public FileDecryptionPropertiesBuilder DisableFooterSignatureVerification()
         {
             ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Disable_Footer_Signature_Verification(_handle.IntPtr));
@@ -94,6 +122,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the additional authenticated data (AAD) prefix.
+        /// </summary>
+        /// <param name="aadPrefix">A string representing the AAD prefix.</param>
+        /// <returns>This builder instance.</returns>
         public FileDecryptionPropertiesBuilder AadPrefix(string aadPrefix)
         {
             ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Aad_Prefix(_handle.IntPtr, aadPrefix));
@@ -101,6 +134,10 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Allow plaintext (unencrypted) files.
+        /// </summary>
+        /// <returns>This builder instance.</returns>
         public FileDecryptionPropertiesBuilder PlaintextFilesAllowed()
         {
             ExceptionInfo.Check(FileDecryptionPropertiesBuilder_Plaintext_Files_Allowed(_handle.IntPtr));
@@ -108,6 +145,10 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Build the <see cref="FileDecryptionProperties"/> object.
+        /// </summary>
+        /// <returns>A new <see cref="FileDecryptionProperties"/> object with the configured decryption properties.</returns>
         public FileDecryptionProperties Build() => new FileDecryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, FileDecryptionPropertiesBuilder_Build));
 
         [DllImport(ParquetDll.Name)]
