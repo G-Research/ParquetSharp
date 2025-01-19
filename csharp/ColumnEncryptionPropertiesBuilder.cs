@@ -78,7 +78,7 @@ namespace ParquetSharp
         /// <summary>
         /// Builds the <see cref="ColumnEncryptionProperties"/> object.
         /// </summary>
-        /// <returns>A new <see cref="ColumnEncryptionProperties"/> object with the configured encryption properties.</returns>
+        /// <returns>The configured <see cref="ColumnEncryptionProperties"/> object.</returns>
         public ColumnEncryptionProperties Build() => new ColumnEncryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, ColumnEncryptionPropertiesBuilder_Build));
 
         private static IntPtr Make(string columnName)
