@@ -12,37 +12,31 @@ namespace ParquetSharp
     /// </remarks>
     public sealed class RowGroupMetaData
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RowGroupMetaData"/> class.
-        /// </summary>
-        /// <param name="handle">A handle to the native row group metadata.</param>
-        /// <remarks>
-        /// This constructor is intended to be used by the ParquetSharp library.
-        /// </remarks>
         internal RowGroupMetaData(IntPtr handle)
         {
             _handle = handle;
         }
 
         /// <summary>
-        /// Gets the number of columns in the row group.
+        /// Get the number of columns in the row group.
         /// </summary>
         public int NumColumns => ExceptionInfo.Return<int>(_handle, RowGroupMetaData_Num_Columns);
         /// <summary>
-        /// Gets the number of rows in the row group.
+        /// Get the number of rows in the row group.
         /// </summary>
         public long NumRows => ExceptionInfo.Return<long>(_handle, RowGroupMetaData_Num_Rows);
         /// <summary>
-        /// Gets the schema descriptor for the row group.
+        /// Get the schema descriptor for the row group.
         /// </summary>
+        /// <value>A <see cref="SchemaDescriptor"/> object that describes the schema of the row group.</value>
         public SchemaDescriptor Schema => _schema ??= new SchemaDescriptor(ExceptionInfo.Return<IntPtr>(_handle, RowGroupMetaData_Schema));
         /// <summary>
-        /// Gets the total byte size of the row group.
+        /// Get the total byte size of the row group.
         /// </summary>
         public long TotalByteSize => ExceptionInfo.Return<long>(_handle, RowGroupMetaData_Total_Byte_Size);
 
         /// <summary>
-        /// Gets the metadata for the column chunk at the specified index.
+        /// Get the metadata for the column chunk at the specified index.
         /// </summary>
         /// <param name="i">The index of the column chunk.</param>
         /// <returns>The metadata for the column chunk.</returns>

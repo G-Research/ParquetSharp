@@ -39,7 +39,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Sets the encryption key for the column.
+        /// Set the encryption key for the column.
         /// </summary>
         /// <param name="key">A byte array containing the AES encryption key.</param>
         /// <returns>This builder instance.</returns>
@@ -52,7 +52,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Sets the metadata associated with the encryption key for the column.
+        /// Set the metadata associated with the encryption key for the column.
         /// </summary>
         /// <param name="keyMetadata">A string containing the metadata associated with the encryption key.</param>
         /// <returns>This builder instance.</returns>
@@ -64,7 +64,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Sets the key ID associated with the column's encryption key.
+        /// Set the key ID associated with the column's encryption key.
         /// </summary>
         /// <param name="keyId">A unique identifier for the encryption key.</param>
         /// <returns>This builder instance.</returns>

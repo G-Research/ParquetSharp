@@ -6,50 +6,44 @@ namespace ParquetSharp
     /// <summary>
     /// Properties related to encrypting a parquet file.
     /// </summary>
+    /// <remarks>
+    /// This class is used to retrieve encryption properties from a parquet file.
+    /// </remarks>
     public sealed class FileEncryptionProperties : IDisposable
     {
-        /// <summary>
-        /// Create a new file encryption properties object.
-        /// </summary>
-        /// <param name="handle">The native handle to the file encryption properties object.</param>
         internal FileEncryptionProperties(IntPtr handle)
         {
             Handle = new ParquetHandle(handle, FileEncryptionProperties_Free);
         }
 
-        /// <summary>
-        /// Releases resources used by the current instance of the <see cref="FileEncryptionProperties"/> class.
-        /// </summary>
-        /// <remarks>
-        /// This method should be called to release unmanaged resources. Alternatively, use a `using` statement to ensure proper disposal.
-        /// </remarks>
         public void Dispose()
         {
             Handle.Dispose();
         }
 
         /// <summary>
-        /// Gets a boolean indicating whether the footer is encrypted.
+        /// Get a boolean indicating whether the footer is encrypted.
         /// </summary>
         public bool EncryptedFooter => ExceptionInfo.Return<bool>(Handle, FileEncryptionProperties_Encrypted_Footer);
+
         //public EncryptionAlgorithm Algorithm => TODO
         
         /// <summary>
-        /// Gets the footer key used to encrypt the footer.
+        /// Get the footer key used to encrypt the footer.
         /// </summary>
         /// <value>A byte array representing the footer key.</value>
         public byte[] FooterKey => ExceptionInfo.Return<AesKey>(Handle, FileEncryptionProperties_Footer_Key).ToBytes();
         /// <summary>
-        /// Gets the metadata associated with the footer key.
+        /// Get the metadata associated with the footer key.
         /// </summary>
         public string FooterKeyMetadata => ExceptionInfo.ReturnString(Handle, FileEncryptionProperties_Footer_Key_Metadata, FileEncryptionProperties_Footer_Key_Metadata_Free);
         /// <summary>
-        /// Gets the additional authenticated data (AAD) used to encrypt the file.
+        /// Get the additional authenticated data (AAD) used to encrypt the file.
         /// </summary>
         public string FileAad => ExceptionInfo.ReturnString(Handle, FileEncryptionProperties_File_Aad, FileEncryptionProperties_File_Aad_Free);
 
         /// <summary>
-        /// Gets the column encryption properties for a specific column.
+        /// Get the column encryption properties for a specific column.
         /// </summary>
         /// <param name="columnPath">The path that specifies the column.</param>
         /// <returns>The column encryption properties for the specified column, or <see langword="null"/> if the column is not encrypted.</returns>

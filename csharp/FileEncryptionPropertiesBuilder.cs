@@ -21,19 +21,13 @@ namespace ParquetSharp
             _handle = new ParquetHandle(handle, FileEncryptionPropertiesBuilder_Free);
         }
 
-        /// <summary>
-        /// Releases resources used by the current instance of the <see cref="FileEncryptionPropertiesBuilder"/> class.
-        /// </summary>
-        /// <remarks>
-        /// This method should be called to release unmanaged resources. Alternatively, use a `using` statement to ensure proper disposal.
-        /// </remarks>
         public void Dispose()
         {
             _handle.Dispose();
         }
 
         /// <summary>
-        /// Sets the footer to be in plaintext, i.e., not encrypted.
+        /// Set the footer to be in plaintext, i.e., not encrypted.
         /// </summary>
         /// <returns>This builder instance.</returns>
         public FileEncryptionPropertiesBuilder SetPlaintextFooter()
@@ -44,7 +38,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Sets the encryption algorithm.
+        /// Set the encryption algorithm.
         /// </summary>
         /// <param name="parquetCipher">A <see cref="ParquetCipher"/> value representing the encryption algorithm.</param>
         /// <returns>This builder instance.</returns>
@@ -56,7 +50,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Sets the key ID associated to the footer key.
+        /// Set the key ID associated to the footer key.
         /// </summary>
         /// <param name="footerKeyId">A unique identifier for the footer key.</param>
         /// <returns>This builder instance.</returns>
@@ -72,7 +66,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Sets the metadata for the footer key.
+        /// Set the metadata for the footer key.
         /// </summary>
         /// <param name="footerKeyMetadata">A string containing metadata for the footer key.</param>
         /// <returns>This builder instance.</returns>
@@ -110,7 +104,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Sets which columns in the Parquet file to encrypt.
+        /// Set which columns in the Parquet file to encrypt.
         /// </summary>
         /// <param name="columnEncryptionProperties">An array of <see cref="ColumnEncryptionProperties"/> objects representing the columns to be encrypted.</param>
         /// <returns>This builder instance.</returns>
