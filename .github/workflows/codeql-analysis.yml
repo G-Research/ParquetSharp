@@ -28,9 +28,6 @@ jobs:
         cd $VCPKG_INSTALLATION_ROOT
         git reset --hard
         git pull
-        # Workaround for breaking changes ("Migrate tool metadata from XML to JSON format")
-        git checkout 358f3893843c9d0d1b2e594183481fb68e3aa963~1
-        git status
 
     - name: Setup .NET SDK v8.0.x
       uses: actions/setup-dotnet@v4
