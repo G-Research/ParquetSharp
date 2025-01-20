@@ -80,6 +80,7 @@ jobs:
             triplet+="windows-static"
             ;;
         esac
+        echo "VCPKG_INSTALLATION_ROOT=$VCPKG_INSTALLATION_ROOT"
         echo "triplet=$triplet" >> $GITHUB_OUTPUT
         echo "root=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_OUTPUT
       shell: bash
