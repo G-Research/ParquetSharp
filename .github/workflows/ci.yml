@@ -96,9 +96,19 @@ jobs:
       run: |
         git reset --hard
         git pull
-        # Workaround for breaking changes ("Migrate tool metadata from XML to JSON format")
-        git checkout 358f3893843c9d0d1b2e594183481fb68e3aa963~1
-        git status
+
+    # We may need to re-bootstrap vcpkg after updating
+    - name: Bootstrap vcpkg (Unix)
+      if: runner.os != 'Windows'
+      working-directory: ${{ steps.vcpkg-info.outputs.root }}
+      run: |
+        ./bootstrap-vcpkg.sh
+
+    - name: Bootstrap vcpkg (Windows)
+      if: runner.os == 'Windows'
+      working-directory: ${{ steps.vcpkg-info.outputs.root }}
+      run: |
+        ./bootstrap-vcpkg.bat
 
     # Setup a CentOS 7 container to build on Linux x64 for backwards compatibility.
     - name: Start CentOS container and install toolchain
