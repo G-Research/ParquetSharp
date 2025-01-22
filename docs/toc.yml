@@ -2,6 +2,8 @@
   href: Arrow.md
 - name: Encryption
   href: Encryption.md
+- name: Getting Started
+  href: GettingStarted.md
 - name: Nested
   href: Nested.md
 - name: PowerShell

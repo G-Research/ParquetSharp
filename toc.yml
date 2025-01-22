@@ -1,402 +1,58 @@
 ### YamlMime:TableOfContent
 items:
-- uid: ParquetSharp
-  name: ParquetSharp
+- uid: Getting Started
+  name: Getting Started
+  href: docs/GettingStarted.md
+- uid: Docs
+  name: Docs
   type: Namespace
   items:
-  - uid: ParquetSharp.AadPrefixVerifier
-    name: AadPrefixVerifier
-    type: Class
-  - uid: ParquetSharp.ApplicationVersion
-    name: ApplicationVersion
-    type: Class
-  - uid: ParquetSharp.BsonLogicalType
-    name: BsonLogicalType
-    type: Class
-  - uid: ParquetSharp.ByteArray
-    name: ByteArray
-    type: Struct
-  - uid: ParquetSharp.ByteArrayReaderCache`2
-    name: ByteArrayReaderCache<TPhysical, TLogical>
-    type: Class
-  - uid: ParquetSharp.ByteBuffer
-    name: ByteBuffer
-    type: Class
-  - uid: ParquetSharp.Column
-    name: Column
-    type: Class
-  - uid: ParquetSharp.ColumnChunkMetaData
-    name: ColumnChunkMetaData
-    type: Class
-  - uid: ParquetSharp.ColumnCryptoMetaData
-    name: ColumnCryptoMetaData
-    type: Class
-  - uid: ParquetSharp.ColumnDecryptionProperties
-    name: ColumnDecryptionProperties
-    type: Class
-  - uid: ParquetSharp.ColumnDecryptionPropertiesBuilder
-    name: ColumnDecryptionPropertiesBuilder
-    type: Class
-  - uid: ParquetSharp.ColumnDescriptor
-    name: ColumnDescriptor
-    type: Class
-  - uid: ParquetSharp.ColumnEncryptionProperties
-    name: ColumnEncryptionProperties
-    type: Class
-  - uid: ParquetSharp.ColumnEncryptionPropertiesBuilder
-    name: ColumnEncryptionPropertiesBuilder
-    type: Class
-  - uid: ParquetSharp.ColumnOrder
-    name: ColumnOrder
-    type: Enum
-  - uid: ParquetSharp.ColumnReader
-    name: ColumnReader
-    type: Class
-  - uid: ParquetSharp.ColumnReader`1
-    name: ColumnReader<TValue>
-    type: Class
-  - uid: ParquetSharp.ColumnWriter
-    name: ColumnWriter
-    type: Class
-  - uid: ParquetSharp.ColumnWriter`1
-    name: ColumnWriter<TValue>
-    type: Class
-  - uid: ParquetSharp.Column`1
-    name: Column<TLogicalType>
-    type: Class
-  - uid: ParquetSharp.Compression
-    name: Compression
-    type: Enum
-  - uid: ParquetSharp.Date
-    name: Date
-    type: Struct
-  - uid: ParquetSharp.DateLogicalType
-    name: DateLogicalType
-    type: Class
-  - uid: ParquetSharp.DateTimeNanos
-    name: DateTimeNanos
-    type: Struct
-  - uid: ParquetSharp.DecimalLogicalType
-    name: DecimalLogicalType
-    type: Class
-  - uid: ParquetSharp.DecryptionKeyRetriever
-    name: DecryptionKeyRetriever
-    type: Class
-  - uid: ParquetSharp.DefaultWriterProperties
-    name: DefaultWriterProperties
-    type: Class
-  - uid: ParquetSharp.Encoding
-    name: Encoding
-    type: Enum
-  - uid: ParquetSharp.EnumLogicalType
-    name: EnumLogicalType
-    type: Class
-  - uid: ParquetSharp.FileDecryptionProperties
-    name: FileDecryptionProperties
-    type: Class
-  - uid: ParquetSharp.FileDecryptionPropertiesBuilder
-    name: FileDecryptionPropertiesBuilder
-    type: Class
-  - uid: ParquetSharp.FileEncryptionProperties
-    name: FileEncryptionProperties
-    type: Class
-  - uid: ParquetSharp.FileEncryptionPropertiesBuilder
-    name: FileEncryptionPropertiesBuilder
-    type: Class
-  - uid: ParquetSharp.FileMetaData
-    name: FileMetaData
-    type: Class
-  - uid: ParquetSharp.FixedLenByteArray
-    name: FixedLenByteArray
-    type: Struct
-  - uid: ParquetSharp.Float16LogicalType
-    name: Float16LogicalType
-    type: Class
-  - uid: ParquetSharp.IColumnDescriptorVisitor`1
-    name: IColumnDescriptorVisitor<TReturn>
-    type: Interface
-  - uid: ParquetSharp.IColumnReaderVisitor`1
-    name: IColumnReaderVisitor<TReturn>
-    type: Interface
-  - uid: ParquetSharp.IColumnWriterVisitor`1
-    name: IColumnWriterVisitor<TReturn>
-    type: Interface
-  - uid: ParquetSharp.ILogicalColumnReaderVisitor`1
-    name: ILogicalColumnReaderVisitor<TReturn>
-    type: Interface
-  - uid: ParquetSharp.ILogicalColumnWriterVisitor`1
-    name: ILogicalColumnWriterVisitor<TReturn>
-    type: Interface
-  - uid: ParquetSharp.Int96
-    name: Int96
-    type: Struct
-  - uid: ParquetSharp.IntLogicalType
-    name: IntLogicalType
-    type: Class
-  - uid: ParquetSharp.IntervalLogicalType
-    name: IntervalLogicalType
-    type: Class
-  - uid: ParquetSharp.JsonLogicalType
-    name: JsonLogicalType
-    type: Class
-  - uid: ParquetSharp.ListLogicalType
-    name: ListLogicalType
-    type: Class
-  - uid: ParquetSharp.LogicalColumnReader
-    name: LogicalColumnReader
-    type: Class
-  - uid: ParquetSharp.LogicalColumnReader`1
-    name: LogicalColumnReader<TElement>
-    type: Class
-  - uid: ParquetSharp.LogicalColumnStream`1
-    name: LogicalColumnStream<TSource>
-    type: Class
-  - uid: ParquetSharp.LogicalColumnWriter
-    name: LogicalColumnWriter
-    type: Class
-  - uid: ParquetSharp.LogicalColumnWriter`1
-    name: LogicalColumnWriter<TElement>
-    type: Class
-  - uid: ParquetSharp.LogicalRead
-    name: LogicalRead
-    type: Class
-  - uid: ParquetSharp.LogicalReadConverterFactory
-    name: LogicalReadConverterFactory
-    type: Class
-  - uid: ParquetSharp.LogicalRead`2
-    name: LogicalRead<TLogical, TPhysical>
-    type: Class
-  - uid: ParquetSharp.LogicalRead`2.Converter
-    name: LogicalRead<TLogical, TPhysical>.Converter
-    type: Delegate
-  - uid: ParquetSharp.LogicalRead`2.DirectReader
-    name: LogicalRead<TLogical, TPhysical>.DirectReader
-    type: Delegate
-  - uid: ParquetSharp.LogicalType
-    name: LogicalType
-    type: Class
-  - uid: ParquetSharp.LogicalTypeEnum
-    name: LogicalTypeEnum
-    type: Enum
-  - uid: ParquetSharp.LogicalTypeFactory
-    name: LogicalTypeFactory
-    type: Class
-  - uid: ParquetSharp.LogicalWrite
-    name: LogicalWrite
-    type: Class
-  - uid: ParquetSharp.LogicalWriteConverterFactory
-    name: LogicalWriteConverterFactory
-    type: Class
-  - uid: ParquetSharp.LogicalWrite`2
-    name: LogicalWrite<TLogical, TPhysical>
-    type: Class
-  - uid: ParquetSharp.LogicalWrite`2.Converter
-    name: LogicalWrite<TLogical, TPhysical>.Converter
-    type: Delegate
-  - uid: ParquetSharp.MapLogicalType
-    name: MapLogicalType
-    type: Class
-  - uid: ParquetSharp.MemoryPool
-    name: MemoryPool
-    type: Class
-  - uid: ParquetSharp.Nested`1
-    name: Nested<T>
-    type: Struct
-  - uid: ParquetSharp.NoneLogicalType
-    name: NoneLogicalType
-    type: Class
-  - uid: ParquetSharp.NullLogicalType
-    name: NullLogicalType
-    type: Class
-  - uid: ParquetSharp.ParquetCipher
-    name: ParquetCipher
-    type: Enum
-  - uid: ParquetSharp.ParquetException
-    name: ParquetException
-    type: Class
-  - uid: ParquetSharp.ParquetFileReader
-    name: ParquetFileReader
-    type: Class
-  - uid: ParquetSharp.ParquetFileWriter
-    name: ParquetFileWriter
-    type: Class
-  - uid: ParquetSharp.ParquetVersion
-    name: ParquetVersion
-    type: Enum
-  - uid: ParquetSharp.PhysicalType
-    name: PhysicalType
-    type: Enum
-  - uid: ParquetSharp.ReaderProperties
-    name: ReaderProperties
-    type: Class
-  - uid: ParquetSharp.Repetition
-    name: Repetition
-    type: Enum
-  - uid: ParquetSharp.RowGroupMetaData
-    name: RowGroupMetaData
-    type: Class
-  - uid: ParquetSharp.RowGroupReader
-    name: RowGroupReader
-    type: Class
-  - uid: ParquetSharp.RowGroupWriter
-    name: RowGroupWriter
-    type: Class
-  - uid: ParquetSharp.SchemaDescriptor
-    name: SchemaDescriptor
-    type: Class
-  - uid: ParquetSharp.SortOrder
-    name: SortOrder
-    type: Enum
-  - uid: ParquetSharp.Statistics
-    name: Statistics
-    type: Class
-  - uid: ParquetSharp.Statistics`1
-    name: Statistics<TValue>
-    type: Class
-  - uid: ParquetSharp.StringLogicalType
-    name: StringLogicalType
-    type: Class
-  - uid: ParquetSharp.TimeLogicalType
-    name: TimeLogicalType
-    type: Class
-  - uid: ParquetSharp.TimeSpanNanos
-    name: TimeSpanNanos
-    type: Struct
-  - uid: ParquetSharp.TimeUnit
-    name: TimeUnit
-    type: Enum
-  - uid: ParquetSharp.TimestampLogicalType
-    name: TimestampLogicalType
-    type: Class
-  - uid: ParquetSharp.UuidLogicalType
-    name: UuidLogicalType
-    type: Class
-  - uid: ParquetSharp.WriterProperties
-    name: WriterProperties
-    type: Class
-  - uid: ParquetSharp.WriterPropertiesBuilder
-    name: WriterPropertiesBuilder
-    type: Class
-- uid: ParquetSharp.Arrow
-  name: ParquetSharp.Arrow
+  - uid: Arrow
+    name: Arrow
+    href: docs/Arrow.md
+  - uid: Encryption
+    name: Encryption
+    href: docs/Encryption.md
+  - uid: Nested
+    name: Nested
+    href: docs/Nested.md
+  - uid: PowerShell
+    name: PowerShell
+    href: docs/PowerShell.md
+  - uid: Reading
+    name: Reading
+    href: docs/Reading.md
+  - uid: RowOriented
+    name: Row-Oriented API
+    href: docs/RowOriented.md
+  - uid: TimeSpan
+    name: Time Span
+    href: docs/TimeSpan.md
+  - uid: TypeFactories
+    name: Type Factories
+    href: docs/TypeFactories.md
+  - uid: Writing
+    name: Writing
+    href: docs/Writing.md
+- uid:
+  name: API Reference
   type: Namespace
   items:
-  - uid: ParquetSharp.Arrow.ArrowReaderProperties
-    name: ArrowReaderProperties
-    type: Class
-  - uid: ParquetSharp.Arrow.ArrowWriterProperties
-    name: ArrowWriterProperties
-    type: Class
-  - uid: ParquetSharp.Arrow.ArrowWriterProperties.WriterEngineVersion
-    name: ArrowWriterProperties.WriterEngineVersion
-    type: Enum
-  - uid: ParquetSharp.Arrow.ArrowWriterPropertiesBuilder
-    name: ArrowWriterPropertiesBuilder
-    type: Class
-  - uid: ParquetSharp.Arrow.FileReader
-    name: FileReader
-    type: Class
-  - uid: ParquetSharp.Arrow.FileWriter
-    name: FileWriter
-    type: Class
-  - uid: ParquetSharp.Arrow.SchemaField
-    name: SchemaField
-    type: Class
-  - uid: ParquetSharp.Arrow.SchemaManifest
-    name: SchemaManifest
-    type: Class
-- uid: ParquetSharp.Encryption
-  name: ParquetSharp.Encryption
-  type: Namespace
-  items:
-  - uid: ParquetSharp.Encryption.CryptoFactory
-    name: CryptoFactory
-    type: Class
-  - uid: ParquetSharp.Encryption.CryptoFactory.KmsClientFactory
-    name: CryptoFactory.KmsClientFactory
-    type: Delegate
-  - uid: ParquetSharp.Encryption.DecryptionConfiguration
-    name: DecryptionConfiguration
-    type: Class
-  - uid: ParquetSharp.Encryption.EncryptionConfiguration
-    name: EncryptionConfiguration
-    type: Class
-  - uid: ParquetSharp.Encryption.IKmsClient
-    name: IKmsClient
-    type: Interface
-  - uid: ParquetSharp.Encryption.KmsConnectionConfig
-    name: KmsConnectionConfig
-    type: Class
-  - uid: ParquetSharp.Encryption.ReadonlyKmsConnectionConfig
-    name: ReadonlyKmsConnectionConfig
-    type: Class
-- uid: ParquetSharp.IO
-  name: ParquetSharp.IO
-  type: Namespace
-  items:
-  - uid: ParquetSharp.IO.Buffer
-    name: Buffer
-    type: Class
-  - uid: ParquetSharp.IO.BufferOutputStream
-    name: BufferOutputStream
-    type: Class
-  - uid: ParquetSharp.IO.BufferReader
-    name: BufferReader
-    type: Class
-  - uid: ParquetSharp.IO.ManagedOutputStream
-    name: ManagedOutputStream
-    type: Class
-  - uid: ParquetSharp.IO.ManagedRandomAccessFile
-    name: ManagedRandomAccessFile
-    type: Class
-  - uid: ParquetSharp.IO.OutputStream
-    name: OutputStream
-    type: Class
-  - uid: ParquetSharp.IO.RandomAccessFile
-    name: RandomAccessFile
-    type: Class
-  - uid: ParquetSharp.IO.ResizableBuffer
-    name: ResizableBuffer
-    type: Class
-- uid: ParquetSharp.RowOriented
-  name: ParquetSharp.RowOriented
-  type: Namespace
-  items:
-  - uid: ParquetSharp.RowOriented.MapToColumnAttribute
-    name: MapToColumnAttribute
-    type: Class
-  - uid: ParquetSharp.RowOriented.ParquetDecimalScaleAttribute
-    name: ParquetDecimalScaleAttribute
-    type: Class
-  - uid: ParquetSharp.RowOriented.ParquetFile
-    name: ParquetFile
-    type: Class
-  - uid: ParquetSharp.RowOriented.ParquetRowReader`1
-    name: ParquetRowReader<TTuple>
-    type: Class
-  - uid: ParquetSharp.RowOriented.ParquetRowWriter`1
-    name: ParquetRowWriter<TTuple>
-    type: Class
-- uid: ParquetSharp.Schema
-  name: ParquetSharp.Schema
-  type: Namespace
-  items:
-  - uid: ParquetSharp.Schema.ColumnPath
-    name: ColumnPath
-    type: Class
-  - uid: ParquetSharp.Schema.ConvertedType
-    name: ConvertedType
-    type: Enum
-  - uid: ParquetSharp.Schema.GroupNode
-    name: GroupNode
-    type: Class
-  - uid: ParquetSharp.Schema.Node
-    name: Node
-    type: Class
-  - uid: ParquetSharp.Schema.NodeType
-    name: NodeType
-    type: Enum
-  - uid: ParquetSharp.Schema.PrimitiveNode
-    name: PrimitiveNode
-    type: Class
-memberLayout: SamePage
+  - uid: ParquetSharp
+    name: ParquetSharp
+    href: api/ParquetSharp.html
+  - uid: ParquetSharp.Arrow
+    name: ParquetSharp.Arrow
+    href: api/ParquetSharp.Arrow.html
+  - uid: ParquetSharp.Encryption
+    name: ParquetSharp.Encryption
+    href: api/ParquetSharp.Encryption.html
+  - uid: ParquetSharp.IO
+    name: ParquetSharp.IO
+    href: api/ParquetSharp.IO.html
+  - uid: ParquetSharp.RowOriented
+    name: ParquetSharp.RowOriented
+    href: api/ParquetSharp.RowOriented.html
+  - uid: ParquetSharp.Schema
+    name: ParquetSharp.Schema
+    href: api/ParquetSharp.Schema.html
