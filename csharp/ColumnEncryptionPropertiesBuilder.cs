@@ -66,7 +66,7 @@ namespace ParquetSharp
         /// <summary>
         /// Set the key ID associated with the column's encryption key.
         /// </summary>
-        /// <param name="keyId">A unique identifier for the encryption key.</param>
+        /// <param name="keyId">An identifier for the encryption key.</param>
         /// <returns>This builder instance.</returns>
         public ColumnEncryptionPropertiesBuilder KeyId(string keyId)
         {
