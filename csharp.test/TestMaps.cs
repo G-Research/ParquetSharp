@@ -229,7 +229,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(0, pool.BytesAllocated);
         }
 
-        private static GroupNode CreateMapSchema(bool optional, bool useLogicalMapType = false)
+        private static GroupNode CreateMapSchema(bool optional, bool extraLogicalMapType = false)
         {
             using var stringType = LogicalType.String();
             using var mapType = LogicalType.Map();
@@ -237,7 +237,7 @@ namespace ParquetSharp.Test
             using var keyNode = new PrimitiveNode("key", Repetition.Required, stringType, PhysicalType.ByteArray);
             using var valueNode = new PrimitiveNode("value", Repetition.Optional, stringType, PhysicalType.ByteArray);
             using var keyValueNode = new GroupNode(
-                "key_value", Repetition.Repeated, new Node[] {keyNode, valueNode}, useLogicalMapType ? mapType : null);
+                "key_value", Repetition.Repeated, new Node[] {keyNode, valueNode}, extraLogicalMapType ? mapType : null);
             var repetition = optional ? Repetition.Optional : Repetition.Required;
             using var colNode = new GroupNode(
                 "col1", repetition, new Node[] {keyValueNode}, mapType);
