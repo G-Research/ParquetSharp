@@ -50,7 +50,7 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void CanRoundtripLogicalMapType()
+        public static void CanRoundtripNonStandardMapAnnotation()
         {
             var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, Array.Empty<string>()};
             var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, Array.Empty<string>()};
