@@ -31,7 +31,7 @@ namespace ParquetSharp
         /// <value>A <see cref="SchemaDescriptor"/> object that describes the schema of the row group.</value>
         public SchemaDescriptor Schema => _schema ??= new SchemaDescriptor(ExceptionInfo.Return<IntPtr>(_handle, RowGroupMetaData_Schema));
         /// <summary>
-        /// Get the total byte size of the row group.
+        /// Get the total size of the row group in bytes.
         /// </summary>
         public long TotalByteSize => ExceptionInfo.Return<long>(_handle, RowGroupMetaData_Total_Byte_Size);
 
