@@ -8,16 +8,27 @@ namespace ParquetSharp.IO
     /// </summary>
     public sealed class BufferOutputStream : OutputStream
     {
+        /// <summary>
+        /// Create a new buffer output stream.
+        /// </summary>
         public BufferOutputStream()
             : base(ExceptionInfo.Return<IntPtr>(BufferOutputStream_Create))
         {
         }
 
+        /// <summary>
+        /// Create a new buffer output stream from a resizable buffer.
+        /// </summary>
+        /// <param name="resizableBuffer">The resizable buffer to write to.</param>
         public BufferOutputStream(ResizableBuffer resizableBuffer)
             : base(ExceptionInfo.Return<IntPtr>(resizableBuffer.Handle, BufferOutputStream_Create_From_ResizableBuffer))
         {
         }
 
+        /// <summary>
+        /// Finish writing to the buffer and return the buffer.
+        /// </summary>
+        /// <returns>The buffer containing the written data.</returns>
         public Buffer Finish()
         {
             return new Buffer(ExceptionInfo.Return<IntPtr>(Handle!, BufferOutputStream_Finish));

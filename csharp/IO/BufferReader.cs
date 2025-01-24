@@ -8,6 +8,10 @@ namespace ParquetSharp.IO
     /// </summary>
     public sealed class BufferReader : RandomAccessFile
     {
+        /// <summary>
+        /// Create a new buffer reader from a buffer.
+        /// </summary>
+        /// <param name="buffer">A <see cref="Buffer"/> to read from.</param> 
         public BufferReader(Buffer buffer)
             : base(ExceptionInfo.Return<IntPtr>(buffer.Handle, BufferReader_Create))
         {

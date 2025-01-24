@@ -8,7 +8,7 @@ using ParquetSharp.IO;
 namespace ParquetSharp.Arrow
 {
     /// <summary>
-    /// Reads Parquet files using the Arrow format
+    /// Reads Parquet files using the Arrow format.
     /// </summary>
     public class FileReader : IDisposable
     {
