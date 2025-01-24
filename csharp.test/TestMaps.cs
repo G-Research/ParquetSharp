@@ -37,7 +37,8 @@ namespace ParquetSharp.Test
             var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, null, Array.Empty<string>()};
             var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, null, Array.Empty<string>()};
 
-            DoRoundtripTest(true, keys!, values!);
+            using var schemaNode = CreateMapSchema(true);
+            DoRoundtripTest(keys!, values!, schemaNode);
         }
 
         [Test]
@@ -46,7 +47,18 @@ namespace ParquetSharp.Test
             var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, Array.Empty<string>()};
             var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, Array.Empty<string>()};
 
-            DoRoundtripTest(false, keys, values);
+            using var schemaNode = CreateMapSchema(false);
+            DoRoundtripTest(keys, values, schemaNode);
+        }
+
+        [Test]
+        public static void CanRoundtripNonStandardMapAnnotation()
+        {
+            var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, Array.Empty<string>()};
+            var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, Array.Empty<string>()};
+
+            using var schemaNode = CreateMapSchema(false, true);
+            DoRoundtripTest(keys, values, schemaNode);
         }
 
         /// <summary>
@@ -179,7 +191,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(0, pool.BytesAllocated);
         }
 
-        private static void DoRoundtripTest(bool optional, string[][] keys, string[][] values)
+        private static void DoRoundtripTest(string[][] keys, string[][] values, GroupNode schemaNode)
         {
             var pool = MemoryPool.GetDefaultMemoryPool();
             Assert.AreEqual(0, pool.BytesAllocated);
@@ -190,7 +202,6 @@ namespace ParquetSharp.Test
                 {
                     using var propertiesBuilder = new WriterPropertiesBuilder();
                     using var writerProperties = propertiesBuilder.Build();
-                    using var schemaNode = CreateMapSchema(optional);
                     using var fileWriter = new ParquetFileWriter(outStream, schemaNode, writerProperties);
                     using var rowGroupWriter = fileWriter.AppendRowGroup();
 
@@ -220,7 +231,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(0, pool.BytesAllocated);
         }
 
-        private static GroupNode CreateMapSchema(bool optional)
+        private static GroupNode CreateMapSchema(bool optional, bool extraLogicalMapType = false)
         {
             using var stringType = LogicalType.String();
             using var mapType = LogicalType.Map();
@@ -228,7 +239,7 @@ namespace ParquetSharp.Test
             using var keyNode = new PrimitiveNode("key", Repetition.Required, stringType, PhysicalType.ByteArray);
             using var valueNode = new PrimitiveNode("value", Repetition.Optional, stringType, PhysicalType.ByteArray);
             using var keyValueNode = new GroupNode(
-                "key_value", Repetition.Repeated, new Node[] {keyNode, valueNode});
+                "key_value", Repetition.Repeated, new Node[] {keyNode, valueNode}, extraLogicalMapType ? mapType : null);
             var repetition = optional ? Repetition.Optional : Repetition.Required;
             using var colNode = new GroupNode(
                 "col1", repetition, new Node[] {keyValueNode}, mapType);
