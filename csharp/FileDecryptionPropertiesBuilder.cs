@@ -82,7 +82,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Set the key retriever used to retrieve the decryption key.
+        /// Set the key retriever used to retrieve the decryption keys.
         /// </summary>
         /// <param name="keyRetriever">A <see cref="DecryptionKeyRetriever"/> object that provides a callback to retrieve the decryption key.</param>
         /// <returns>This builder instance.</returns>
