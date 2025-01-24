@@ -55,7 +55,7 @@ namespace ParquetSharp.Test
             var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, Array.Empty<string>()};
             var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, Array.Empty<string>()};
 
-            DoRoundtripTest(false, keys, values, CreateMapSchema(false));
+            DoRoundtripTest(false, keys, values, CreateMapSchema(false, true));
         }
 
         /// <summary>
