@@ -37,7 +37,8 @@ namespace ParquetSharp.Test
             var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, null, Array.Empty<string>()};
             var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, null, Array.Empty<string>()};
 
-            DoRoundtripTest(true, keys!, values!);
+            using var schemaNode = CreateMapSchema(true);
+            DoRoundtripTest(keys!, values!, schemaNode);
         }
 
         [Test]
@@ -46,7 +47,8 @@ namespace ParquetSharp.Test
             var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, Array.Empty<string>()};
             var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, Array.Empty<string>()};
 
-            DoRoundtripTest(false, keys, values);
+            using var schemaNode = CreateMapSchema(false);
+            DoRoundtripTest(keys, values, schemaNode);
         }
 
         [Test]
@@ -55,7 +57,8 @@ namespace ParquetSharp.Test
             var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, Array.Empty<string>()};
             var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, Array.Empty<string>()};
 
-            DoRoundtripTest(false, keys, values, CreateMapSchema(false, true));
+            using var schemaNode = CreateMapSchema(false, true);
+            DoRoundtripTest(keys, values, schemaNode);
         }
 
         /// <summary>
@@ -188,7 +191,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(0, pool.BytesAllocated);
         }
 
-        private static void DoRoundtripTest(bool optional, string[][] keys, string[][] values, GroupNode? schemaNode = null)
+        private static void DoRoundtripTest(string[][] keys, string[][] values, GroupNode schemaNode)
         {
             var pool = MemoryPool.GetDefaultMemoryPool();
             Assert.AreEqual(0, pool.BytesAllocated);
@@ -199,7 +202,6 @@ namespace ParquetSharp.Test
                 {
                     using var propertiesBuilder = new WriterPropertiesBuilder();
                     using var writerProperties = propertiesBuilder.Build();
-                    schemaNode ??= CreateMapSchema(optional);
                     using var fileWriter = new ParquetFileWriter(outStream, schemaNode, writerProperties);
                     using var rowGroupWriter = fileWriter.AppendRowGroup();
 
