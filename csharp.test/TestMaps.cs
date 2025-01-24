@@ -49,6 +49,15 @@ namespace ParquetSharp.Test
             DoRoundtripTest(false, keys, values);
         }
 
+        [Test]
+        public static void CanRoundtripLogicalMapType()
+        {
+            var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, Array.Empty<string>()};
+            var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, Array.Empty<string>()};   
+
+            DoRoundtripTest(false, keys, values, CreateMapSchema(false));
+        }
+
         /// <summary>
         /// This checks that values written to nested-nested required key field of 
         /// a nested-nested optional map can be read back.
@@ -179,7 +188,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(0, pool.BytesAllocated);
         }
 
-        private static void DoRoundtripTest(bool optional, string[][] keys, string[][] values)
+        private static void DoRoundtripTest(bool optional, string[][] keys, string[][] values, GroupNode? schemaNode = null)
         {
             var pool = MemoryPool.GetDefaultMemoryPool();
             Assert.AreEqual(0, pool.BytesAllocated);
@@ -190,7 +199,7 @@ namespace ParquetSharp.Test
                 {
                     using var propertiesBuilder = new WriterPropertiesBuilder();
                     using var writerProperties = propertiesBuilder.Build();
-                    using var schemaNode = CreateMapSchema(optional);
+                    schemaNode ??= CreateMapSchema(optional);
                     using var fileWriter = new ParquetFileWriter(outStream, schemaNode, writerProperties);
                     using var rowGroupWriter = fileWriter.AppendRowGroup();
 
@@ -220,7 +229,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(0, pool.BytesAllocated);
         }
 
-        private static GroupNode CreateMapSchema(bool optional)
+        private static GroupNode CreateMapSchema(bool optional, bool useLogicalMapType = false)
         {
             using var stringType = LogicalType.String();
             using var mapType = LogicalType.Map();
@@ -228,7 +237,7 @@ namespace ParquetSharp.Test
             using var keyNode = new PrimitiveNode("key", Repetition.Required, stringType, PhysicalType.ByteArray);
             using var valueNode = new PrimitiveNode("value", Repetition.Optional, stringType, PhysicalType.ByteArray);
             using var keyValueNode = new GroupNode(
-                "key_value", Repetition.Repeated, new Node[] {keyNode, valueNode});
+                "key_value", Repetition.Repeated, new Node[] {keyNode, valueNode}, useLogicalMapType ? mapType : null);
             var repetition = optional ? Repetition.Optional : Repetition.Required;
             using var colNode = new GroupNode(
                 "col1", repetition, new Node[] {keyValueNode}, mapType);
