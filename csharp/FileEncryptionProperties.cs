@@ -6,9 +6,6 @@ namespace ParquetSharp
     /// <summary>
     /// Properties related to encrypting a parquet file.
     /// </summary>
-    /// <remarks>
-    /// This class is used to retrieve encryption properties from a parquet file.
-    /// </remarks>
     public sealed class FileEncryptionProperties : IDisposable
     {
         internal FileEncryptionProperties(IntPtr handle)
