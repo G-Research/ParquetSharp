@@ -8,7 +8,7 @@ namespace ParquetSharp
     /// </summary>
     /// <remarks>
     /// A row group is a logical horizontal partition of a Parquet file that contains a set of column chunks.
-    /// It provides information about the columns and rows in the row group.
+    /// This class provides information about the columns and rows in the row group.
     /// </remarks>
     public sealed class RowGroupMetaData
     {
