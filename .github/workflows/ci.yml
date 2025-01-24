@@ -97,6 +97,19 @@ jobs:
         git reset --hard
         git pull
 
+    # We may need to re-bootstrap vcpkg after updating
+    - name: Bootstrap vcpkg (Unix)
+      if: runner.os != 'Windows'
+      working-directory: ${{ steps.vcpkg-info.outputs.root }}
+      run: |
+        ./bootstrap-vcpkg.sh
+
+    - name: Bootstrap vcpkg (Windows)
+      if: runner.os == 'Windows'
+      working-directory: ${{ steps.vcpkg-info.outputs.root }}
+      run: |
+        ./bootstrap-vcpkg.bat
+
     # Setup a CentOS 7 container to build on Linux x64 for backwards compatibility.
     - name: Start CentOS container and install toolchain
       if: runner.os == 'Linux' && matrix.arch == 'x64'
