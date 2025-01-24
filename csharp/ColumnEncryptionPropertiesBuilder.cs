@@ -6,7 +6,7 @@ namespace ParquetSharp
 {
     /// <summary>
     /// Builder pattern for creating and configuring <see cref="ColumnEncryptionProperties"/> objects.
-    /// Provides a fluent API for setting the encryption properties for each column in a Parquet file.
+    /// Provides a fluent API for setting the encryption properties for a column in a Parquet file.
     /// </summary>
     public sealed class ColumnEncryptionPropertiesBuilder : IDisposable
     {
@@ -66,7 +66,7 @@ namespace ParquetSharp
         /// <summary>
         /// Set the key ID associated with the column's encryption key.
         /// </summary>
-        /// <param name="keyId">A unique identifier for the encryption key.</param>
+        /// <param name="keyId">An identifier for the encryption key.</param>
         /// <returns>This builder instance.</returns>
         public ColumnEncryptionPropertiesBuilder KeyId(string keyId)
         {
