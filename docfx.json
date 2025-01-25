@@ -37,10 +37,12 @@
       "modern"
     ],
     "globalMetadata": {
+      "_appFaviconPath": "images/logo/svg/ParquetSharp_IconLogo_RGB-Black.svg",
+      "_appLogoPath": "images/logo/svg/ParquetSharp_IconLogo_RGB-Black_small.svg",
       "_appName": "ParquetSharp",
       "_appTitle": "ParquetSharp",
-      "_enableSearch": true,
-      "pdf": true
+      "_enableNewTab": true,
+      "_enableSearch": true
     }
   }
 }
