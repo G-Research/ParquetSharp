@@ -1,8 +1,5 @@
 ### YamlMime:TableOfContent
 items:
-- uid: Getting Started
-  name: Getting Started
-  href: docs/GettingStarted.md
 - uid: Docs
   name: Docs
   type: Namespace
