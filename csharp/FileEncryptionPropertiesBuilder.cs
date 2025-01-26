@@ -5,10 +5,15 @@ using System.Runtime.InteropServices;
 namespace ParquetSharp
 {
     /// <summary>
-    /// Builder pattern for FileEncryptionProperties.
+    /// Builder pattern for creating and configuring a <see cref="FileEncryptionProperties"/> object.
+    /// Provides a fluent API for setting the encryption properties (footer key, encryption algorithm, etc.) for a Parquet file.
     /// </summary>
     public sealed class FileEncryptionPropertiesBuilder : IDisposable
     {
+        /// <summary>
+        /// Create a new <see cref="FileEncryptionPropertiesBuilder"/> with a footer key.
+        /// </summary>
+        /// <param name="footerKey">An array of bytes used to encrypt the footer.</param>
         public FileEncryptionPropertiesBuilder(byte[] footerKey)
         {
             var footerAesKey = new AesKey(footerKey);
@@ -21,6 +26,10 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
+        /// <summary>
+        /// Set the footer to be in plaintext, i.e., not encrypted.
+        /// </summary>
+        /// <returns>This builder instance.</returns>
         public FileEncryptionPropertiesBuilder SetPlaintextFooter()
         {
             ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Set_Plaintext_Footer(_handle.IntPtr));
@@ -28,6 +37,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the encryption algorithm.
+        /// </summary>
+        /// <param name="parquetCipher">A <see cref="ParquetCipher"/> value representing the encryption algorithm.</param>
+        /// <returns>This builder instance.</returns>
         public FileEncryptionPropertiesBuilder Algorithm(ParquetCipher parquetCipher)
         {
             ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Algorithm(_handle.IntPtr, parquetCipher));
@@ -35,6 +49,15 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the key ID associated to the footer key.
+        /// </summary>
+        /// <param name="footerKeyId">A unique identifier for the footer key.</param>
+        /// <returns>This builder instance.</returns>
+        /// <remarks>
+        /// Key IDs help identify and manage encryption keys, helpful when multiple keys are in use.
+        /// This value is typically stored in key management systems.
+        /// </remarks>
         public FileEncryptionPropertiesBuilder FooterKeyId(string footerKeyId)
         {
             ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Footer_Key_Id(_handle.IntPtr, footerKeyId));
@@ -42,6 +65,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the metadata for the footer key.
+        /// </summary>
+        /// <param name="footerKeyMetadata">A string containing metadata for the footer key.</param>
+        /// <returns>This builder instance.</returns>
         public FileEncryptionPropertiesBuilder FooterKeyMetadata(string footerKeyMetadata)
         {
             ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Footer_Key_Metadata(_handle.IntPtr, footerKeyMetadata));
@@ -49,6 +77,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the additional authenticated data (AAD) prefix.
+        /// </summary>
+        /// <param name="aadPrefix">A string representing the AAD prefix.</param>
+        /// <returns>This builder instance.</returns>
         public FileEncryptionPropertiesBuilder AadPrefix(string aadPrefix)
         {
             ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Aad_Prefix(_handle.IntPtr, aadPrefix));
@@ -56,6 +89,13 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Disable AAD prefix storage in the file.
+        /// </summary>
+        /// <returns>This builder instance.</returns>
+        /// <remarks>
+        /// Disabling AAD prefix storage will prevent the AAD prefix from being stored in the file.
+        /// </remarks>
         public FileEncryptionPropertiesBuilder DisableAadPrefixStorage()
         {
             ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Disable_Aad_Prefix_Storage(_handle.IntPtr));
@@ -63,6 +103,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set which columns in the Parquet file to encrypt.
+        /// </summary>
+        /// <param name="columnEncryptionProperties">An array of <see cref="ColumnEncryptionProperties"/> objects representing the columns to be encrypted.</param>
+        /// <returns>This builder instance.</returns>
         public FileEncryptionPropertiesBuilder EncryptedColumns(ColumnEncryptionProperties[] columnEncryptionProperties)
         {
             var handles = columnEncryptionProperties.Select(p => p.Handle.IntPtr).ToArray();
@@ -72,6 +117,10 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Build the <see cref="FileEncryptionProperties"/> object.
+        /// </summary>
+        /// <returns>The configured <see cref="FileEncryptionProperties"/> object.</returns>
         public FileEncryptionProperties Build() => new FileEncryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, FileEncryptionPropertiesBuilder_Build));
 
         [DllImport(ParquetDll.Name)]

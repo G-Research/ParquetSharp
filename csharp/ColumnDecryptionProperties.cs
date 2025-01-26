@@ -18,7 +18,13 @@ namespace ParquetSharp
             Handle.Dispose();
         }
 
+        /// <summary>
+        /// Get the path of the column to decrypt.
+        /// </summary>
         public string ColumnPath => ExceptionInfo.ReturnString(Handle, ColumnDecryptionProperties_Column_Path, ColumnDecryptionProperties_Column_Path_Free);
+        /// <summary>
+        /// Get the key used to decrypt the column.
+        /// </summary>
         public byte[] Key => ExceptionInfo.Return<AesKey>(Handle, ColumnDecryptionProperties_Key).ToBytes();
 
         public ColumnDecryptionProperties DeepClone() => new ColumnDecryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, ColumnDecryptionProperties_Deep_Clone));
