@@ -5,13 +5,13 @@ These are wrapped by ParquetSharp using the [Arrow C data interface](https://arr
 to allow high performance reading and writing of Arrow data with zero copying of array data between C++ and .NET.
 
 The Arrow API is contained in the `ParquetSharp.Arrow` namespace,
-and included in the `ParquetSharp` NuGet package.
+and included in the [ParquetSharp NuGet package](https://www.nuget.org/packages/ParquetSharp/).
 
 ## Reading Arrow data
 
 Reading Parquet data in Arrow format uses a `ParquetSharp.Arrow.FileReader`.
 This can be constructed using a file path, a .NET `System.IO.Stream`,
-or a subclass of `ParquetShap.IO.RandomAccessFile`.
+or a subclass of `ParquetSharp.IO.RandomAccessFile`.
 In this example, we'll open a file using a path:
 
 ```csharp
@@ -32,8 +32,8 @@ foreach (var field in schema.FieldsList)
 
 ### Reading data
 
-To read data from the file, we use the `GetRecordBatchReader` method,
-which returns an `Apache.Arrow.IArrowArrayStream`.
+To read data from the file, we use the `ParquetSharp.Arrow.FileReader.GetRecordBatchReader` method,
+which returns an `Apache.Arrow.IPC.IArrowArrayStream`.
 By default, this will read data for all row groups in the file and all columns,
 but you can also specify which columns to read using their index in the schema,
 and specify which row groups to read:
