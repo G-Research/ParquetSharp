@@ -1,7 +1,7 @@
 ---
 _layout: landing
 ---
-![Main logo](images/ParquetSharp_SignatureLogo_RGB-Black.svg)
+![Main logo](images/logo/svg/ParquetSharp_SignatureLogo_RGB-Black.svg)
 
 ## Introduction
 
