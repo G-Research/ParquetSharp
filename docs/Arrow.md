@@ -32,8 +32,8 @@ foreach (var field in schema.FieldsList)
 
 ### Reading data
 
-To read data from the file, we use the `ParquetSharp.Arrow.FileReader.GetRecordBatchReader` method,
-which returns an `Apache.Arrow.IPC.IArrowArrayStream`.
+To read data from the file, we use the `GetRecordBatchReader` method,
+which returns an [`Apache.Arrow.Ipc.IArrowArrayStream`](https://github.com/apache/arrow/blob/main/csharp/src/Apache.Arrow/Ipc/IArrowArrayStream.cs).
 By default, this will read data for all row groups in the file and all columns,
 but you can also specify which columns to read using their index in the schema,
 and specify which row groups to read:
