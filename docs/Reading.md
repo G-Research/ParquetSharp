@@ -1,8 +1,8 @@
 # Reading Parquet files
 
-The low-level ParquetSharp API provides the `ParquetFileReader` class for reading Parquet files.
-This is usually constructed from a file path, but may also be constructed from a `ManagedRandomAccessFile`,
-which wraps a .NET `System.IO.Stream` that supports seeking.
+The low-level ParquetSharp API provides the `ParquetSharp.ParquetFileReader` class for reading Parquet files.
+This is usually constructed from a file path, but may also be constructed from a
+`ParquetSharp.IO.ManagedRandomAccessFile`, which wraps a .NET `System.IO.Stream` that supports seeking.
 
 ```csharp
 using var fileReader = new ParquetFileReader("data.parquet");
@@ -15,7 +15,7 @@ using var fileReader = new ParquetFileReader(input);
 
 ### Obtaining file metadata
 
-The `FileMetaData` property of a `ParquetFileReader` exposes information about the Parquet file and its schema:
+The `ParquetSharp.FileMetaData` property of a `ParquetFileReader` exposes information about the Parquet file and its schema:
 
 ```csharp
 int numColumns = fileReader.FileMetaData.NumColumns;
@@ -34,7 +34,7 @@ for (int columnIndex = 0; columnIndex < schema.NumColumns; ++columnIndex) {
 
 Parquet files store data in separate row groups, which all share the same schema,
 so if you wish to read all data in a file, you generally want to loop over all of the row groups
-and create a `RowGroupReader` for each one:
+and create a `ParquetSharp.RowGroupReader` for each one:
 
 ```csharp
 for (int rowGroup = 0; rowGroup < fileReader.FileMetaData.NumRowGroups; ++rowGroup) {
@@ -45,10 +45,10 @@ for (int rowGroup = 0; rowGroup < fileReader.FileMetaData.NumRowGroups; ++rowGro
 
 ### Reading columns directly
 
-The `Column` method of `RowGroupReader` takes an integer column index and returns a `ColumnReader` object,
+The `Column` method of `RowGroupReader` takes an integer column index and returns a `ParquetSharp.ColumnReader` object,
 which can read primitive values from the column, as well as raw definition level and repetition level data.
 Usually you will not want to use a `ColumnReader` directly, but instead call its `LogicalReader` method to
-create a `LogicalColumnReader` that can read logical values.
+create a `ParquetSharp.LogicalColumnReader` that can read logical values.
 There are two variations of this `LogicalReader` method; the plain `LogicalReader` method returns an abstract
 `LogicalColumnReader`, whereas the generic `LogicalReader<TElement>` method returns a typed `LogicalColumnReader<TElement>`,
 which reads values of the specified element type.

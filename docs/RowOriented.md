@@ -70,7 +70,8 @@ using (var rowReader = ParquetFile.CreateRowReader<MyRow>("example.parquet"))
 
 ## Reading and writing custom types
 
-The row-oriented API supports reading and writing custom types by providing a `LogicalTypeFactory` and a `LogicalReadConverterFactory` or `LogicalWriteConverterFactory`.
+The row-oriented API supports reading and writing custom types by providing a `ParquetSharp.LogicalTypeFactory`
+and a `ParquetSharp.LogicalReadConverterFactory` or `ParquetSharp.LogicalWriteConverterFactory`.
 
 ### Writing custom types
 

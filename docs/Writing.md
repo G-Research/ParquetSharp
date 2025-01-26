@@ -1,6 +1,6 @@
 # Writing Parquet files
 
-The low-level ParquetSharp API provides the `ParquetFileWriter` class for writing Parquet files.
+The low-level ParquetSharp API provides the `ParquetSharp.ParquetFileWriter` class for writing Parquet files.
 
 ## Defining the schema
 
@@ -8,7 +8,7 @@ When writing a Parquet file, you must define the schema up-front, which specifie
 in the file along with their names and types.
 
 ParquetSharp provides a convenient higher level API for defining the schema as an array
-of `Column` objects.
+of `ParquetSharp.Column` objects.
 A `Column` can be constructed using only a name and a type parameter that is used to
 determine the logical Parquet type to write:
 
@@ -24,12 +24,12 @@ using var file = new ParquetFileWriter("float_timeseries.parquet", columns);
 ```
 
 The schema can also be defined using a graph of `ParquetSharp.Schema.Node` instances,
-starting from a root `GroupNode`. For concrete examples, see [How to write a file with nested columns](Nested.md).
+starting from a root `ParquetSharp.Schema.GroupNode`. For concrete examples, see [How to write a file with nested columns](Nested.md).
 
 ### Overriding logical types
 
 For more control over how values are represented in the Parquet file,
-you can pass a `LogicalType` instance as the `logicalTypeOverride` parameter of the `Column` constructor.
+you can pass a `ParquetSharp.LogicalType` instance as the `logicalTypeOverride` parameter of the `Column` constructor.
 
 For example, you may wish to write times or timestamps with millisecond resolution rather than the default microsecond resolution:
 
@@ -50,7 +50,7 @@ var decimalColumn = new Column<decimal>("Values", LogicalType.Decimal(precision:
 ### Metadata
 
 As well as defining the file schema, you may optionally provide key-value metadata that is stored in the file when creating
-a `ParquetFileWriter`:
+a `ParquetSharp.ParquetFileWriter`:
 
 ```csharp
 var metadata = new Dictionary<string, string>
@@ -61,13 +61,14 @@ using var file = new ParquetFileWriter("float_timeseries.parquet", columns, keyV
 ```
 
 `ParquetFileWriter` constructor overrides are provided that allow specifying the type of compression to use, or for more
-fine-grained control over how files are written, you can provide a `WriterProperties` instance, which can
-be constructed with a `WriterPropertiesBuilder`.
+fine-grained control over how files are written, you can provide a `ParquetSharp.WriterProperties` instance, which can
+be constructed with a `ParquetSharp.WriterPropertiesBuilder`.
 This allows defining the compression and encoding on a per-column basis for example, or configuring file encryption.
 
 ## Writing to a stream
 
-As well as writing to a file path, ParquetSharp supports writing to a .NET `System.IO.Stream` using a `ManagedOutputStream`:
+As well as writing to a file path, ParquetSharp supports writing to a .NET `System.IO.Stream` using a
+`ParquetSharp.IO.ManagedOutputStream`:
 
 ```csharp
 using (var stream = new FileStream("float_timeseries.parquet", FileMode.Create))
@@ -103,15 +104,15 @@ using (var valueWriter = rowGroup.NextColumn().LogicalWriter<float>())
 }
 ```
 
-Once all data for a row group has been written and the `RowGroupWriter` disposed,
+Once all data for a row group has been written and the `ParquetSharp.RowGroupWriter` disposed,
 you may append another row group to the file and repeat the row group writing process.
 
-The `NextColumn` method of `RowGroupWriter` returns a `ColumnWriter`, which writes physical values to the file,
+The `NextColumn` method of `RowGroupWriter` returns a `ParquetSharp.ColumnWriter`, which writes physical values to the file,
 and can write definition level and repetition level data to support nullable and array values.
 
 ### Using LogicalColumnWriter
 
-Rather than working with a `ColumnWriter` directly, it's usually more convenient to create a `LogicalColumnWriter`
+Rather than working with a `ColumnWriter` directly, it's usually more convenient to create a `ParquetSharp.LogicalColumnWriter`
 with the `ColumnWriter.LogicalWriter<TElement>` method.
 This allows writing an array or `ReadOnlySpan` of `TElement` to the column data,
 where `TElement` is the .NET type corresponding to the column's logical element type.
