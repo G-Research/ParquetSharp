@@ -68,8 +68,8 @@ the reader properties, discussed below.
 
 ### Reader properties
 
-The `FileReader` constructor accepts an instance of `ParquetSharp.ReaderProperties`
-to control standard Parquet reading behaviour,
+The `ParquetSharp.Arrow.FileReader` constructor accepts an instance of
+`ParquetSharp.ReaderProperties` to control standard Parquet reading behaviour,
 and additionally accepts an instance of `ParquetSharp.Arrow.ArrowReaderProperties`
 to customise Arrow specific behaviour:
 
@@ -134,8 +134,8 @@ RecordBatch GetBatch(int batchNumber) =>
     }, numIds);
 ```
 
-Now we create a `FileWriter`, specifying the path to write to and
-the file schema:
+Now we create a `ParquetSharp.Arrow.FileWriter`, specifying the path to write to and the
+file schema:
 
 ```csharp
 using var writer = new FileWriter("data.parquet", schema);
@@ -207,8 +207,8 @@ writer.Close();
 
 ### Writer properties
 
-The `FileWriter` constructor accepts an instance of `ParquetSharp.WriterProperties`
-to control standard Parquet writing behaviour,
+The `ParquetSharp.Arrow.FileWriter` constructor accepts an instance of
+`ParquetSharp.WriterProperties` to control standard Parquet writing behaviour,
 and additionally accepts an instance of `ParquetSharp.Arrow.ArrowWriterProperties`
 to customise Arrow specific behaviour:
 
