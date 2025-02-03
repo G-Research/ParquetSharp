@@ -1,0 +1,55 @@
+### YamlMime:TableOfContent
+items:
+- uid: Docs
+  name: Docs
+  type: Namespace
+  items:
+  - uid: Arrow
+    name: Arrow
+    href: docs/Arrow.md
+  - uid: Encryption
+    name: Encryption
+    href: docs/Encryption.md
+  - uid: Nested
+    name: Nested
+    href: docs/Nested.md
+  - uid: PowerShell
+    name: PowerShell
+    href: docs/PowerShell.md
+  - uid: Reading
+    name: Reading
+    href: docs/Reading.md
+  - uid: RowOriented
+    name: Row-Oriented API
+    href: docs/RowOriented.md
+  - uid: TimeSpan
+    name: Time Span
+    href: docs/TimeSpan.md
+  - uid: TypeFactories
+    name: Type Factories
+    href: docs/TypeFactories.md
+  - uid: Writing
+    name: Writing
+    href: docs/Writing.md
+- uid:
+  name: API Reference
+  type: Namespace
+  items:
+  - uid: ParquetSharp
+    name: ParquetSharp
+    href: api/ParquetSharp.html
+  - uid: ParquetSharp.Arrow
+    name: ParquetSharp.Arrow
+    href: api/ParquetSharp.Arrow.html
+  - uid: ParquetSharp.Encryption
+    name: ParquetSharp.Encryption
+    href: api/ParquetSharp.Encryption.html
+  - uid: ParquetSharp.IO
+    name: ParquetSharp.IO
+    href: api/ParquetSharp.IO.html
+  - uid: ParquetSharp.RowOriented
+    name: ParquetSharp.RowOriented
+    href: api/ParquetSharp.RowOriented.html
+  - uid: ParquetSharp.Schema
+    name: ParquetSharp.Schema
+    href: api/ParquetSharp.Schema.html

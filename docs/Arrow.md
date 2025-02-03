@@ -5,13 +5,13 @@ These are wrapped by ParquetSharp using the [Arrow C data interface](https://arr
 to allow high performance reading and writing of Arrow data with zero copying of array data between C++ and .NET.
 
 The Arrow API is contained in the `ParquetSharp.Arrow` namespace,
-and included in the `ParquetSharp` NuGet package.
+and included in the [ParquetSharp NuGet package](https://www.nuget.org/packages/ParquetSharp/).
 
 ## Reading Arrow data
 
 Reading Parquet data in Arrow format uses a `ParquetSharp.Arrow.FileReader`.
 This can be constructed using a file path, a .NET `System.IO.Stream`,
-or a subclass of `ParquetShap.IO.RandomAccessFile`.
+or a subclass of `ParquetSharp.IO.RandomAccessFile`.
 In this example, we'll open a file using a path:
 
 ```csharp
@@ -33,7 +33,7 @@ foreach (var field in schema.FieldsList)
 ### Reading data
 
 To read data from the file, we use the `GetRecordBatchReader` method,
-which returns an `Apache.Arrow.IArrowArrayStream`.
+which returns an [`Apache.Arrow.Ipc.IArrowArrayStream`](https://github.com/apache/arrow/blob/main/csharp/src/Apache.Arrow/Ipc/IArrowArrayStream.cs).
 By default, this will read data for all row groups in the file and all columns,
 but you can also specify which columns to read using their index in the schema,
 and specify which row groups to read:
@@ -68,8 +68,8 @@ the reader properties, discussed below.
 
 ### Reader properties
 
-The `FileReader` constructor accepts an instance of `ParquetSharp.ReaderProperties`
-to control standard Parquet reading behaviour,
+The `ParquetSharp.Arrow.FileReader` constructor accepts an instance of
+`ParquetSharp.ReaderProperties` to control standard Parquet reading behaviour,
 and additionally accepts an instance of `ParquetSharp.Arrow.ArrowReaderProperties`
 to customise Arrow specific behaviour:
 
@@ -134,8 +134,8 @@ RecordBatch GetBatch(int batchNumber) =>
     }, numIds);
 ```
 
-Now we create a `FileWriter`, specifying the path to write to and
-the file schema:
+Now we create a `ParquetSharp.Arrow.FileWriter`, specifying the path to write to and the
+file schema:
 
 ```csharp
 using var writer = new FileWriter("data.parquet", schema);
@@ -207,8 +207,8 @@ writer.Close();
 
 ### Writer properties
 
-The `FileWriter` constructor accepts an instance of `ParquetSharp.WriterProperties`
-to control standard Parquet writing behaviour,
+The `ParquetSharp.Arrow.FileWriter` constructor accepts an instance of
+`ParquetSharp.WriterProperties` to control standard Parquet writing behaviour,
 and additionally accepts an instance of `ParquetSharp.Arrow.ArrowWriterProperties`
 to customise Arrow specific behaviour:
 
