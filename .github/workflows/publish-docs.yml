@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - jescalada-docfx-setup
 
 permissions:
   actions: read
