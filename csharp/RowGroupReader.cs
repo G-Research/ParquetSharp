@@ -3,6 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace ParquetSharp
 {
+    /// <summary>
+    /// Reads row groups in a Parquet file.
+    /// </summary>
     public sealed class RowGroupReader : IDisposable
     {
         internal RowGroupReader(IntPtr handle, ParquetFileReader parquetFileReader)
@@ -16,8 +19,16 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
+        /// <summary>
+        /// Get the metadata for this row group.
+        /// </summary>
         public RowGroupMetaData MetaData => _metaData ??= new RowGroupMetaData(ExceptionInfo.Return<IntPtr>(_handle, RowGroupReader_Metadata));
 
+        /// <summary>
+        /// Get the column reader for the specified column index.
+        /// </summary>
+        /// <param name="i">The column index</param>
+        /// <returns>A column reader for the specified column index</returns>
         public ColumnReader Column(int i) => ColumnReader.Create(
             ExceptionInfo.Return<int, IntPtr>(_handle, i, RowGroupReader_Column),
             this,
