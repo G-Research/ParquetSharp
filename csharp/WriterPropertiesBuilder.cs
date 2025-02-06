@@ -6,10 +6,13 @@ using ParquetSharp.Schema;
 namespace ParquetSharp
 {
     /// <summary>
-    /// Builder pattern for WriterProperties.
+    /// Builder pattern for creating and configuring a <see cref="WriterProperties"/> object. 
     /// </summary>
     public sealed class WriterPropertiesBuilder : IDisposable
     {
+        /// <summary>
+        /// Create a new WriterPropertiesBuilder.
+        /// </summary>
         public WriterPropertiesBuilder()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Create(out var handle));
@@ -22,13 +25,19 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
+        /// <summary>
+        /// Build the <see cref="WriterProperties"/> from the current state of the builder.
+        /// </summary>
+        /// <returns>The configured <see cref="WriterProperties"/> object.</returns>
         public WriterProperties Build()
         {
             return new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, WriterPropertiesBuilder_Build));
         }
 
-        // Dictionary enable/disable
-
+        /// <summary>
+        /// Disable dictionary encoding for all columns.
+        /// </summary>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder DisableDictionary()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Dictionary(_handle.IntPtr));
@@ -36,6 +45,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Disable dictionary encoding for a specific column.
+        /// </summary>
+        /// <param name="path">The path of the column to disable dictionary encoding for.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder DisableDictionary(string path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Dictionary_By_Path(_handle.IntPtr, path));
@@ -43,6 +57,10 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Disable dictionary encoding for a specific column.
+        /// </summary>
+        /// <param name="path">The <see cref="ColumnPath"/> of the column to disable dictionary encoding for.</param>
         public WriterPropertiesBuilder DisableDictionary(ColumnPath path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Dictionary_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
@@ -51,12 +69,21 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Enable dictionary encoding by default.
+        /// </summary>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder EnableDictionary()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Dictionary(_handle.IntPtr));
             return this;
         }
 
+        /// <summary>
+        /// Enable dictionary encoding for a specific column.
+        /// </summary>
+        /// <param name="path">The path of the column to enable dictionary encoding for.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder EnableDictionary(string path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Dictionary_By_Path(_handle.IntPtr, path));
@@ -64,6 +91,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Enable dictionary encoding for a specific column.
+        /// </summary>
+        /// <param name="path">The <see cref="ColumnPath"/> of the column to enable dictionary encoding for.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder EnableDictionary(ColumnPath path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Dictionary_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
@@ -72,8 +104,10 @@ namespace ParquetSharp
             return this;
         }
 
-        // Statistics enable/disable
-
+        /// <summary>
+        /// Disable statistics by default.
+        /// </summary>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder DisableStatistics()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Statistics(_handle.IntPtr));
@@ -81,6 +115,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Disable statistics for a specific column.
+        /// </summary>
+        /// <param name="path">The path of the column to disable statistics for.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder DisableStatistics(string path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Statistics_By_Path(_handle.IntPtr, path));
@@ -88,6 +127,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Disable statistics for a specific column.
+        /// </summary>
+        /// <param name="path">The <see cref="ColumnPath"/> of the column to disable statistics for.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder DisableStatistics(ColumnPath path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Statistics_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
@@ -96,6 +140,10 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Enable statistics by default.
+        /// </summary>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder EnableStatistics()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Statistics(_handle.IntPtr));
@@ -103,6 +151,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Enable statistics for a specific column.
+        /// </summary>
+        /// <param name="path">The path of the column to enable statistics for.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder EnableStatistics(string path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Statistics_By_Path(_handle.IntPtr, path));
@@ -110,6 +163,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Enable statistics for a specific column.
+        /// </summary>
+        /// <param name="path">The <see cref="ColumnPath"/> of the column to enable statistics for.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder EnableStatistics(ColumnPath path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Statistics_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
@@ -118,8 +176,11 @@ namespace ParquetSharp
             return this;
         }
 
-        // Other properties
-
+        /// <summary>
+        /// Set the compression codec to use for all columns.
+        /// </summary>
+        /// <param name="codec">The <see cref="ParquetSharp.Compression"/> codec to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder Compression(Compression codec)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Compression(_handle.IntPtr, codec));
@@ -127,6 +188,12 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the compression codec to use for a specific column.
+        /// </summary>
+        /// <param name="path">The path of the column to set the compression codec for.</param>
+        /// <param name="codec">The <see cref="ParquetSharp.Compression"/> codec to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder Compression(string path, Compression codec)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Compression_By_Path(_handle.IntPtr, path, codec));
@@ -134,6 +201,12 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the compression codec to use for a specific column.
+        /// </summary>
+        /// <param name="path">The <see cref="ColumnPath"/> of the column to set the compression codec for.</param>
+        /// <param name="codec">The <see cref="ParquetSharp.Compression"/> codec to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder Compression(ColumnPath path, Compression codec)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Compression_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr, codec));
@@ -142,6 +215,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the compression level to use for all columns.
+        /// </summary>
+        /// <param name="compressionLevel">The compression level to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder CompressionLevel(int compressionLevel)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Compression_Level(_handle.IntPtr, compressionLevel));
@@ -149,6 +227,12 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the compression level to use for a specific column.
+        /// </summary>
+        /// <param name="path">The path of the column to set the compression level for.</param>
+        /// <param name="compressionLevel">The compression level to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder CompressionLevel(string path, int compressionLevel)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Compression_Level_By_Path(_handle.IntPtr, path, compressionLevel));
@@ -156,6 +240,12 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the compression level to use for a specific column.
+        /// </summary>
+        /// <param name="path">The <see cref="ColumnPath"/> of the column to set the compression level for.</param>
+        /// <param name="compressionLevel">The compression level to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder CompressionLevel(ColumnPath path, int compressionLevel)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Compression_Level_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr, compressionLevel));
@@ -164,6 +254,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set an identifier for the entity that created the file.
+        /// </summary>
+        /// <param name="createdBy">The name of the entity that created the file.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder CreatedBy(string createdBy)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Created_By(_handle.IntPtr, createdBy));
@@ -171,6 +266,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the maximum size of a data page in bytes.
+        /// </summary>
+        /// <param name="pageSize">The maximum data page size to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder DataPagesize(long pageSize)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Data_Pagesize(_handle.IntPtr, pageSize));
@@ -178,6 +278,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the maximum size of a dictionary page in bytes.
+        /// </summary>
+        /// <param name="dictionaryPagesizeLimit">The maximum dictionary page size to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder DictionaryPagesizeLimit(long dictionaryPagesizeLimit)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Dictionary_Pagesize_Limit(_handle.IntPtr, dictionaryPagesizeLimit));
@@ -185,6 +290,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the encoding type to use for all columns.
+        /// </summary>
+        /// <param name="encoding">The <see cref="ParquetSharp.Encoding"/> to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder Encoding(Encoding encoding)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Encoding(_handle.IntPtr, encoding));
@@ -192,6 +302,12 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the encoding type to use for a specific column.
+        /// </summary>
+        /// <param name="path">The path of the column to set the encoding for.</param>
+        /// <param name="encoding">The <see cref="ParquetSharp.Encoding"/> to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder Encoding(string path, Encoding encoding)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Encoding_By_Path(_handle.IntPtr, path, encoding));
@@ -199,6 +315,12 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the encoding type to use for a specific column.
+        /// </summary>
+        /// <param name="path">The <see cref="ColumnPath"/> of the column to set the encoding for.</param>
+        /// <param name="encoding">The <see cref="ParquetSharp.Encoding"/> to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder Encoding(ColumnPath path, Encoding encoding)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Encoding_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr, encoding));
@@ -207,6 +329,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the encryption properties to use for the file.
+        /// </summary>
+        /// <param name="fileEncryptionProperties">The <see cref="FileEncryptionProperties"/> to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder Encryption(FileEncryptionProperties? fileEncryptionProperties)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Encryption(_handle.IntPtr, fileEncryptionProperties?.Handle.IntPtr ?? IntPtr.Zero));
@@ -215,12 +342,22 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the maximum size of a row group in bytes.
+        /// </summary>
+        /// <param name="maxRowGroupLength">The maximum row group size to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder MaxRowGroupLength(long maxRowGroupLength)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Max_Row_Group_Length(_handle.IntPtr, maxRowGroupLength));
             return this;
         }
 
+        /// <summary>
+        /// Set the Parquet version to use for the file.
+        /// </summary>
+        /// <param name="version">The <see cref="ParquetVersion"/> to use.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder Version(ParquetVersion version)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Version(_handle.IntPtr, version));
@@ -228,6 +365,11 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the number of rows to write in a single batch.
+        /// </summary>
+        /// <param name="writeBatchSize">The number of rows to write in a single batch.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder WriteBatchSize(long writeBatchSize)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Write_Batch_Size(_handle.IntPtr, writeBatchSize));
@@ -251,8 +393,10 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Enable writing the page index for a specific column
+        /// Enable writing the page index for a specific column.
         /// </summary>
+        /// <param name="path">The <see cref="ColumnPath"/> of the column to enable the page index for.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder EnableWritePageIndex(ColumnPath path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Write_Page_Index_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
@@ -262,8 +406,10 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Enable writing the page index for a specific column
+        /// Enable writing the page index for a specific column.
         /// </summary>
+        /// <param name="path">The path of the column to enable the page index for.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder EnableWritePageIndex(string path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Write_Page_Index_By_Path(_handle.IntPtr, path));
@@ -272,8 +418,9 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Disable writing the page index by default
+        /// Disable writing the page index by default.
         /// </summary>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder DisableWritePageIndex()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Write_Page_Index(_handle.IntPtr));
@@ -282,8 +429,10 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Disable writing the page index for a specific column
+        /// Disable writing the page index for a specific column.
         /// </summary>
+        /// <param name="path">The <see cref="ColumnPath"/> of the column to disable the page index for.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder DisableWritePageIndex(ColumnPath path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Write_Page_Index_By_ColumnPath(_handle.IntPtr, path.Handle.IntPtr));
@@ -293,8 +442,10 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Disable writing the page index for a specific column
+        /// Disable writing the page index for a specific column.
         /// </summary>
+        /// <param name="path">The path of the column to disable the page index for.</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder DisableWritePageIndex(string path)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Write_Page_Index_By_Path(_handle.IntPtr, path));
@@ -303,8 +454,9 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Enable writing CRC checksums for data pages
+        /// Enable writing CRC checksums for data pages.
         /// </summary>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder EnablePageChecksum()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Page_Checksum(_handle.IntPtr));
@@ -313,8 +465,9 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Disable writing CRC checksums for data pages
+        /// Disable writing CRC checksums for data pages.
         /// </summary>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder DisablePageChecksum()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Page_Checksum(_handle.IntPtr));
