@@ -87,6 +87,7 @@ namespace ParquetSharp
         /// Get the element <see cref="Type"/> of the data being written.
         /// </summary>
         public abstract Type ElementType { get; }
+
         /// <summary>
         /// Apply a visitor to the column writer.
         /// </summary>

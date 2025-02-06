@@ -12,7 +12,7 @@ namespace ParquetSharp
     {
 #pragma warning disable RS0026
 #pragma warning disable RS0027
-        
+
         /// <summary>
         /// Create a new ParquetFileReader for reading from a file at the specified path
         /// </summary>
@@ -150,12 +150,12 @@ namespace ParquetSharp
         /// The <see cref="ParquetSharp.LogicalTypeFactory"/> for handling custom types.
         /// </summary>
         public LogicalTypeFactory LogicalTypeFactory { get; set; } = LogicalTypeFactory.Default; // TODO make this init only at some point when C# 9 is more widespread
-        
+
         /// <summary>
         /// The <see cref="ParquetSharp.LogicalReadConverterFactory"/> for reading custom types.
         /// </summary>
         public LogicalReadConverterFactory LogicalReadConverterFactory { get; set; } = LogicalReadConverterFactory.Default; // TODO make this init only at some point when C# 9 is more widespread
-        
+
         /// <summary>
         /// Metadata associated with the Parquet file.
         /// </summary>
