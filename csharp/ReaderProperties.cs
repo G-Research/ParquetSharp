@@ -3,8 +3,15 @@ using System.Runtime.InteropServices;
 
 namespace ParquetSharp
 {
+    /// <summary>
+    /// Configures options for reading Parquet files.
+    /// </summary>
     public sealed class ReaderProperties : IDisposable
     {
+        /// <summary>
+        /// Create a new <see cref="ReaderProperties"/> with default values.
+        /// </summary>
+        /// <returns>A new <see cref="ReaderProperties"/> object with default values.</returns>
         public static ReaderProperties GetDefaultReaderProperties()
         {
             return new ReaderProperties(ExceptionInfo.Return<IntPtr>(ReaderProperties_Get_Default_Reader_Properties));
@@ -20,8 +27,14 @@ namespace ParquetSharp
             Handle.Dispose();
         }
 
+        /// <summary>
+        /// Whether the buffered stream is enabled for reading.
+        /// </summary>
         public bool IsBufferedStreamEnabled => ExceptionInfo.Return<bool>(Handle, ReaderProperties_Is_Buffered_Stream_Enabled);
 
+        /// <summary>
+        /// The size of the buffer (in bytes) used for reading.
+        /// </summary>
         public long BufferSize
         {
             get => ExceptionInfo.Return<long>(Handle, ReaderProperties_Get_Buffer_Size);
@@ -32,6 +45,9 @@ namespace ParquetSharp
             }
         }
 
+        /// <summary>
+        /// The <see cref="ParquetSharp.FileDecryptionProperties"/> used for reading encrypted files.
+        /// </summary>
         public FileDecryptionProperties? FileDecryptionProperties
         {
             get
@@ -47,12 +63,18 @@ namespace ParquetSharp
             }
         }
 
+        /// <summary>
+        /// Enable buffered stream for reading.
+        /// </summary>
         public void EnableBufferedStream()
         {
             ExceptionInfo.Check(ReaderProperties_Enable_Buffered_Stream(Handle.IntPtr));
             GC.KeepAlive(Handle);
         }
 
+        /// <summary>
+        /// Disable buffered stream for reading.
+        /// </summary>
         public void DisableBufferedStream()
         {
             ExceptionInfo.Check(ReaderProperties_Disable_Buffered_Stream(Handle.IntPtr));
@@ -64,12 +86,18 @@ namespace ParquetSharp
         /// </summary>
         public bool PageChecksumVerification => ExceptionInfo.Return<bool>(Handle, ReaderProperties_Page_Checksum_Verification);
 
+        /// <summary>
+        /// Enable page checksum verification during reading to check for data corruption
+        /// </summary>
         public void EnablePageChecksumVerification()
         {
             ExceptionInfo.Check(ReaderProperties_Enable_Page_Checksum_Verification(Handle.IntPtr));
             GC.KeepAlive(Handle);
         }
 
+        /// <summary>
+        /// Disable page checksum verification during reading to check for data corruption
+        /// </summary>
         public void DisablePageChecksumVerification()
         {
             ExceptionInfo.Check(ReaderProperties_Disable_Page_Checksum_Verification(Handle.IntPtr));
