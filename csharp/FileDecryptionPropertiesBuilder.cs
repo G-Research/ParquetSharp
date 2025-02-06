@@ -148,7 +148,7 @@ namespace ParquetSharp
         /// <summary>
         /// Build the <see cref="FileDecryptionProperties"/> object.
         /// </summary>
-        /// <returns>A new <see cref="FileDecryptionProperties"/> object with the configured decryption properties.</returns>
+        /// <returns>The configured <see cref="FileDecryptionProperties"/> object.</returns>
         public FileDecryptionProperties Build() => new FileDecryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, FileDecryptionPropertiesBuilder_Build));
 
         [DllImport(ParquetDll.Name)]

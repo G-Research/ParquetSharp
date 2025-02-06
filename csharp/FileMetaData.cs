@@ -5,6 +5,9 @@ using AppVer = ParquetSharp.ApplicationVersion.CStruct;
 
 namespace ParquetSharp
 {
+    /// <summary>
+    /// Metadata for a Parquet file. Includes information about the schema, row groups, versions, etc.
+    /// </summary>
     public sealed class FileMetaData : IEquatable<FileMetaData>, IDisposable
     {
         internal FileMetaData(IntPtr handle)
@@ -17,8 +20,15 @@ namespace ParquetSharp
             _handle.Dispose();
         }
 
+        /// <summary>
+        /// Get the name of the entity that created the file.
+        /// </summary>
         public string CreatedBy => ExceptionInfo.ReturnString(_handle, FileMetaData_Created_By);
 
+        /// <summary>
+        /// Get the key-value metadata.
+        /// </summary>
+        /// <returns>An <see cref="IReadOnlyDictionary{TKey,TValue}"/> containing the key-value metadata.</returns>
         public IReadOnlyDictionary<string, string> KeyValueMetadata
         {
             get
@@ -34,13 +44,38 @@ namespace ParquetSharp
             }
         }
 
+        /// <summary>
+        /// Get the number of columns in the file.
+        /// </summary>
         public int NumColumns => ExceptionInfo.Return<int>(_handle, FileMetaData_Num_Columns);
+        /// <summary>
+        /// Get the number of rows in the file.
+        /// </summary>
         public long NumRows => ExceptionInfo.Return<long>(_handle, FileMetaData_Num_Rows);
+        /// <summary>
+        /// Get the number of row groups in the file.
+        /// </summary>
         public int NumRowGroups => ExceptionInfo.Return<int>(_handle, FileMetaData_Num_Row_Groups);
+        /// <summary>
+        /// Get the number of schema elements in the file.
+        /// </summary>
         public int NumSchemaElements => ExceptionInfo.Return<int>(_handle, FileMetaData_Num_Schema_Elements);
+        /// <summary>
+        /// Get the schema descriptor for the file.
+        /// </summary>
+        /// <returns>A <see cref="SchemaDescriptor"/> object that describes the schema of the file.</returns>
         public SchemaDescriptor Schema => _schema ??= new SchemaDescriptor(ExceptionInfo.Return<IntPtr>(_handle, FileMetaData_Schema));
+        /// <summary>
+        /// Get the total size of the file in bytes.
+        /// </summary>
         public int Size => ExceptionInfo.Return<int>(_handle, FileMetaData_Size);
+        /// <summary>
+        /// Get the version of the file.
+        /// </summary>
         public ParquetVersion Version => ExceptionInfo.Return<ParquetVersion>(_handle, FileMetaData_Version);
+        /// <summary>
+        /// Get the version of the writer that created the file.
+        /// </summary>
         public ApplicationVersion WriterVersion => new ApplicationVersion(ExceptionInfo.Return<AppVer>(_handle, FileMetaData_Writer_Version));
 
         public bool Equals(FileMetaData? other)

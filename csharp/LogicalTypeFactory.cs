@@ -4,13 +4,23 @@ using System.Linq;
 
 namespace ParquetSharp
 {
+    /// <summary>
+    /// Defines the mapping between .NET types and Parquet logical types, allowing for custom type handling.
+    /// </summary>
     public class LogicalTypeFactory
     {
+        /// <summary>
+        /// Create a new LogicalTypeFactory with the default primitive mapping.
+        /// </summary>
         public LogicalTypeFactory()
             : this(DefaultPrimitiveMapping)
         {
         }
 
+        /// <summary>
+        /// Create a new LogicalTypeFactory with a custom primitive mapping.
+        /// </summary>
+        /// <param name="primitiveMapping">The mapping from .NET types to Parquet logical and physical types</param>
         public LogicalTypeFactory(IReadOnlyDictionary<Type, (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType)> primitiveMapping)
         {
             _primitiveMapping = primitiveMapping;
@@ -317,6 +327,9 @@ namespace ParquetSharp
                 {PhysicalType.FixedLenByteArray, typeof(FixedLenByteArray)},
             };
 
+        /// <summary>
+        /// The default LogicalTypeFactory instance.
+        /// </summary>
         public static readonly LogicalTypeFactory Default = new();
 
         private readonly IReadOnlyDictionary<Type, (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType)> _primitiveMapping;

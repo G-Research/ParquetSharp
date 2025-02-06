@@ -65,6 +65,12 @@ namespace ParquetSharp
             }
         }
 
+        /// <summary>
+        /// Apply a visitor to this logical column writer.
+        /// </summary>
+        /// <typeparam name="TReturn">The return type of the visitor.</typeparam>
+        /// <param name="visitor">The visitor instance.</param>
+        /// <returns>The result of the visitor.</returns>
         public abstract TReturn Apply<TReturn>(ILogicalColumnWriterVisitor<TReturn> visitor);
 
         private sealed class Creator : IColumnDescriptorVisitor<LogicalColumnWriter>
@@ -85,6 +91,7 @@ namespace ParquetSharp
         }
     }
 
+    /// <inheritdoc />
     public sealed class LogicalColumnWriter<TElement> : LogicalColumnWriter
     {
         private LogicalColumnWriter(ColumnWriter columnWriter, int bufferLength, ByteBuffer? byteBuffer, ILogicalBatchWriter<TElement> batchWriter)
@@ -130,21 +137,36 @@ namespace ParquetSharp
             base.Dispose();
         }
 
+        /// <inheritdoc />
         public override TReturn Apply<TReturn>(ILogicalColumnWriterVisitor<TReturn> visitor)
         {
             return visitor.OnLogicalColumnWriter(this);
         }
 
+        /// <summary>
+        /// Write an array of values to the column.
+        /// </summary>
+        /// <param name="values">An array of values to write.</param>
         public void WriteBatch(TElement[] values)
         {
             WriteBatch(values.AsSpan());
         }
 
+        /// <summary>
+        /// Write a range of values to the column.
+        /// </summary>
+        /// <param name="values">An array of values to write.</param>
+        /// <param name="start">The index of the first value to write.</param>
+        /// <param name="length">The number of values to write.</param>
         public void WriteBatch(TElement[] values, int start, int length)
         {
             WriteBatch(values.AsSpan(start, length));
         }
 
+        /// <summary>
+        /// Write a span of values to the column.
+        /// </summary>
+        /// <param name="values">A <see cref="ReadOnlySpan{TElement}"/> of values to write.</param>
         public void WriteBatch(ReadOnlySpan<TElement> values)
         {
             _batchWriter.WriteBatch(values);
