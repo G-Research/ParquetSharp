@@ -17,6 +17,9 @@ namespace ParquetSharp.Arrow
             V2 = 1, // Full support for all nesting combinations
         }
 
+        /// <summary>
+        /// Create a new <see cref="ArrowWriterProperties"/> with default values.
+        /// </summary>
         public static ArrowWriterProperties GetDefault()
         {
             return new ArrowWriterProperties(ExceptionInfo.Return<IntPtr>(ArrowWriterProperties_GetDefault));
