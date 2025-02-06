@@ -12,6 +12,13 @@ namespace ParquetSharp
     {
 #pragma warning disable RS0027
 
+        /// <summary>
+        /// Create a column with the given properties.
+        /// </summary>
+        /// <param name="logicalSystemType">The <see cref="Type"/> of the column.</param>
+        /// <param name="name">The name of the column.</param>
+        /// <param name="logicalTypeOverride">Optional override for the logical type of the column.</param>
+        /// <exception cref="ArgumentNullException">Thrown if any of the arguments are null.</exception>
         public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride = null)
             : this(logicalSystemType, name, logicalTypeOverride, GetTypeLength(logicalSystemType, logicalTypeOverride))
         {
@@ -19,6 +26,15 @@ namespace ParquetSharp
             Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
+        /// <summary>
+        /// Create a column with the given properties.
+        /// </summary>
+        /// <param name="logicalSystemType">The <see cref="Type"/> of the column.</param>
+        /// <param name="name">The name of the column.</param>
+        /// <param name="logicalTypeOverride">Optional override for the logical type of the column.</param>
+        /// <param name="length">The length of the column for decimal, Guid or Half types.</param>
+        /// <exception cref="ArgumentNullException">Thrown if any of the arguments are null.</exception>
+        /// <exception cref="ArgumentException">Thrown if the length is set with an incompatible type.</exception>
         public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride, int length)
         {
             var isDecimal = logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?);

@@ -53,28 +53,75 @@ namespace ParquetSharp
             return ExceptionInfo.Return<long>(Handle, ColumnWriter_Close);
         }
 
+        /// <summary>
+        /// Get the index of the column within the row group.
+        /// </summary>
         public int ColumnIndex { get; }
+        /// <summary>
+        /// Get the <see cref="ParquetSharp.LogicalTypeFactory"/> for the Parquet file writer.
+        /// </summary>
         public LogicalTypeFactory LogicalTypeFactory => RowGroupWriter.ParquetFileWriter.LogicalTypeFactory;
+        /// <summary>
+        /// Get the <see cref="ParquetSharp.LogicalWriteConverterFactory"/> for the Parquet file writer.
+        /// </summary>
         public LogicalWriteConverterFactory LogicalWriteConverterFactory => RowGroupWriter.ParquetFileWriter.LogicalWriteConverterFactory;
 
+        /// <summary>
+        /// Get the <see cref="ParquetSharp.ColumnDescriptor"/> for the Parquet file writer.
+        /// </summary>
         public ColumnDescriptor ColumnDescriptor => new(ExceptionInfo.Return<IntPtr>(Handle, ColumnWriter_Descr));
+        /// <summary>
+        /// Get the number of rows written to the column so far.
+        /// </summary>
         public long RowWritten => ExceptionInfo.Return<long>(Handle, ColumnWriter_Rows_Written);
+        /// <summary>
+        /// Get the physical type of the column.
+        /// </summary>
         public PhysicalType Type => ExceptionInfo.Return<PhysicalType>(Handle, ColumnWriter_Type);
+        /// <summary>
+        /// Get the <see cref="ParquetSharp.WriterProperties"/> for the column.
+        /// </summary>
         public WriterProperties WriterProperties => new(ExceptionInfo.Return<IntPtr>(Handle, ColumnWriter_Properties));
 
+        /// <summary>
+        /// Get the element <see cref="Type"/> of the data being written.
+        /// </summary>
         public abstract Type ElementType { get; }
+        /// <summary>
+        /// Apply a visitor to the column writer.
+        /// </summary>
+        /// <typeparam name="TReturn">The return type of the visitor.</typeparam>
+        /// <param name="visitor">The visitor instance.</param>
+        /// <returns>The result of the visitor operation.</returns>
         public abstract TReturn Apply<TReturn>(IColumnWriterVisitor<TReturn> visitor);
 
+        /// <summary>
+        /// Create a <see cref="LogicalColumnWriter"/>.
+        /// </summary>
+        /// <param name="bufferLength">The buffer length in bytes. Default is 4KB.</param>
+        /// <returns>A <see cref="LogicalColumnWriter"/> instance.</returns>
         public LogicalColumnWriter LogicalWriter(int bufferLength = 4 * 1024)
         {
             return LogicalColumnWriter.Create(this, bufferLength, elementTypeOverride: null);
         }
 
+        /// <summary>
+        /// Create a strongly-typed <see cref="LogicalColumnWriter"/> without an explicit element type override.
+        /// </summary>
+        /// <typeparam name="TElement">The type of the data to write.</typeparam>
+        /// <param name="bufferLength">The buffer length in bytes. Default is 4KB.</param>
+        /// <returns>A <see cref="LogicalColumnWriter"/> instance.</returns>
         public LogicalColumnWriter<TElement> LogicalWriter<TElement>(int bufferLength = 4 * 1024)
         {
             return LogicalColumnWriter.Create<TElement>(this, bufferLength, elementTypeOverride: null);
         }
 
+        /// <summary>
+        /// Create a strongly-typed <see cref="LogicalColumnWriter"/> with an explicit element type override.
+        /// </summary>
+        /// <typeparam name="TElement">The type of the data to write.</typeparam>
+        /// <param name="bufferLength">The buffer length in bytes. Default is 4KB.</param>
+        /// <returns>A <see cref="LogicalColumnWriter"/> instance.</returns>
         public LogicalColumnWriter<TElement> LogicalWriterOverride<TElement>(int bufferLength = 4 * 1024)
         {
             return LogicalColumnWriter.Create<TElement>(this, bufferLength, typeof(TElement));
@@ -181,7 +228,10 @@ namespace ParquetSharp
         internal readonly RowGroupWriter RowGroupWriter;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Strongly-typed writer of physical Parquet values to a single column.
+    /// </summary>
+    /// <typeparam name="TValue">The data type of the column.</typeparam>
     public sealed class ColumnWriter<TValue> : ColumnWriter where TValue : unmanaged
     {
         internal ColumnWriter(IntPtr handle, RowGroupWriter rowGroupWriter, int columnIndex)
@@ -189,18 +239,37 @@ namespace ParquetSharp
         {
         }
 
+        /// <inheritdoc />
         public override Type ElementType => typeof(TValue);
 
+        /// <inheritdoc />
         public override TReturn Apply<TReturn>(IColumnWriterVisitor<TReturn> visitor)
         {
             return visitor.OnColumnWriter(this);
         }
 
+        /// <summary>
+        /// Write a batch of values to the column.
+        /// </summary>
+        /// <param name="values">The values to write.</param>
         public void WriteBatch(ReadOnlySpan<TValue> values)
         {
             WriteBatch(values.Length, null, null, values);
         }
 
+        /// <summary>
+        /// Write a batch of values to the column with optional definition and repetition levels.
+        /// </summary>
+        /// <param name="numValues">The number of values to write.</param>
+        /// <param name="defLevels">The definition levels for the values.</param>
+        /// <param name="repLevels">The repetition levels for the values.</param>
+        /// <param name="values">The values to write.</param>
+        /// <remarks>
+        /// The lengths of <paramref name="defLevels"/> and <paramref name="repLevels"/> must be at least <paramref name="numValues"/>.
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="values"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="numValues"/> is larger
+        /// than the length of <paramref name="defLevels"/> or <paramref name="repLevels"/>.</exception>
         public unsafe void WriteBatch(int numValues, ReadOnlySpan<short> defLevels, ReadOnlySpan<short> repLevels, ReadOnlySpan<TValue> values)
         {
             if (values == null) throw new ArgumentNullException(nameof(values));
