@@ -70,7 +70,7 @@ namespace ParquetSharp
         /// </summary>
         public int Size => ExceptionInfo.Return<int>(_handle, FileMetaData_Size);
         /// <summary>
-        /// Get the version of the file.
+        /// Get the Parquet format version of the file.
         /// </summary>
         public ParquetVersion Version => ExceptionInfo.Return<ParquetVersion>(_handle, FileMetaData_Version);
         /// <summary>
