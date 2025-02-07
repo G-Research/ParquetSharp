@@ -36,6 +36,9 @@ namespace ParquetSharp
         /// <summary>
         /// Get the column writer for the i-th column.
         /// </summary>
+        /// <remarks>
+        /// This method may only be used with a buffered row group writer, created with <see cref="ParquetFileWriter.AppendBufferedRowGroup"/>.
+        /// </remarks>
         /// <param name="i">The index of the column.</param>
         /// <returns>A <see cref="ColumnWriter"/> for the i-th column.</returns>
         public ColumnWriter Column(int i)
