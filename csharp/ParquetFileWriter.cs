@@ -405,6 +405,8 @@ namespace ParquetSharp
 
         /// <summary>
         /// Creates and returns a new <see cref="RowGroupWriter"/> for writing a buffered row group.
+        /// Using a buffered writer allows writing to columns in any order, and writes to different columns
+        /// may be interleaved, but requires more memory.
         /// </summary>
         /// <returns>A new <see cref="RowGroupWriter"/> instance.</returns>
         public RowGroupWriter AppendBufferedRowGroup()
