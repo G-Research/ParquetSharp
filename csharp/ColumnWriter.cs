@@ -67,7 +67,7 @@ namespace ParquetSharp
         public LogicalWriteConverterFactory LogicalWriteConverterFactory => RowGroupWriter.ParquetFileWriter.LogicalWriteConverterFactory;
 
         /// <summary>
-        /// Get the <see cref="ParquetSharp.ColumnDescriptor"/> for the Parquet file writer.
+        /// Get the <see cref="ParquetSharp.ColumnDescriptor"/> for the column.
         /// </summary>
         public ColumnDescriptor ColumnDescriptor => new(ExceptionInfo.Return<IntPtr>(Handle, ColumnWriter_Descr));
         /// <summary>
