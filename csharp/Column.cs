@@ -33,7 +33,7 @@ namespace ParquetSharp
         /// <param name="name">The name of the column.</param>
         /// <param name="logicalTypeOverride">Optional override for the logical type of the column.</param>
         /// <param name="length">The length of the column for decimal, Guid or Half types.</param>
-        /// <exception cref="ArgumentNullException">Thrown if any of the arguments are null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if any of the required arguments are null.</exception>
         /// <exception cref="ArgumentException">Thrown if the length is set with an incompatible type.</exception>
         public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride, int length)
         {
