@@ -61,7 +61,7 @@ namespace ParquetSharp
         /// </summary>
         public ParquetVersion Version => ExceptionInfo.Return<ParquetVersion>(Handle, WriterProperties_Version);
         /// <summary>
-        /// The size of the write batch in bytes.
+        /// The number of records to batch together when writing.
         /// </summary>
         public long WriteBatchSize => ExceptionInfo.Return<long>(Handle, WriterProperties_Write_Batch_Size);
 
