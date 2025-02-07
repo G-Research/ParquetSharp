@@ -46,6 +46,9 @@ namespace ParquetSharp
         /// <summary>
         /// Get the column writer for the next column.
         /// </summary>
+        /// <remarks>
+        /// This method is not valid when using a buffered row group writer.
+        /// </remarks>
         /// <returns>A <see cref="ColumnWriter"/> for the next column.</returns>
         public ColumnWriter NextColumn()
         {
