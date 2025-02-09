@@ -5,16 +5,27 @@ using ParquetSharp.IO;
 
 namespace ParquetSharp
 {
+    /// <summary>
+    /// Opens and reads Parquet files.
+    /// </summary>
     public sealed class ParquetFileReader : IDisposable
     {
 #pragma warning disable RS0026
 #pragma warning disable RS0027
 
+        /// <summary>
+        /// Create a new ParquetFileReader for reading from a file at the specified path
+        /// </summary>
+        /// <param name="path">Path to the Parquet file</param>
         public ParquetFileReader(string path)
             : this(path, null)
         {
         }
 
+        /// <summary>
+        /// Create a new ParquetFileReader for reading from a specified <see cref="RandomAccessFile"/>
+        /// </summary>
+        /// <param name="randomAccessFile">The file to read</param>
         public ParquetFileReader(RandomAccessFile randomAccessFile)
             : this(randomAccessFile, null)
         {
@@ -30,6 +41,12 @@ namespace ParquetSharp
         {
         }
 
+        /// <summary>
+        /// Create a new ParquetFileReader for reading from a file at the specified path
+        /// </summary>
+        /// <param name="path">Path to the Parquet file</param>
+        /// <param name="readerProperties">A <see cref="ReaderProperties"/> object that configures the reader</param>
+        /// <exception cref="ArgumentNullException">Thrown if the path is null</exception>
         public ParquetFileReader(string path, ReaderProperties? readerProperties)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
@@ -44,6 +61,12 @@ namespace ParquetSharp
             GC.KeepAlive(readerProperties);
         }
 
+        /// <summary>
+        /// Create a new ParquetFileReader for reading from a specified <see cref="RandomAccessFile"/>
+        /// </summary>
+        /// <param name="randomAccessFile">The file to read</param>
+        /// <param name="readerProperties">The <see cref="ReaderProperties"/> to use</param>  
+        /// <exception cref="ArgumentNullException">Thrown if the file or its handle are null</exception>
         public ParquetFileReader(RandomAccessFile randomAccessFile, ReaderProperties? readerProperties)
         {
             if (randomAccessFile == null) throw new ArgumentNullException(nameof(randomAccessFile));
@@ -123,10 +146,26 @@ namespace ParquetSharp
             GC.KeepAlive(_handle);
         }
 
+        /// <summary>
+        /// The <see cref="ParquetSharp.LogicalTypeFactory"/> for handling custom types.
+        /// </summary>
         public LogicalTypeFactory LogicalTypeFactory { get; set; } = LogicalTypeFactory.Default; // TODO make this init only at some point when C# 9 is more widespread
+
+        /// <summary>
+        /// The <see cref="ParquetSharp.LogicalReadConverterFactory"/> for reading custom types.
+        /// </summary>
         public LogicalReadConverterFactory LogicalReadConverterFactory { get; set; } = LogicalReadConverterFactory.Default; // TODO make this init only at some point when C# 9 is more widespread
+
+        /// <summary>
+        /// Metadata associated with the Parquet file.
+        /// </summary>
         public FileMetaData FileMetaData => _fileMetaData ??= new FileMetaData(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileReader_MetaData));
 
+        /// <summary>
+        /// Get a <see cref="RowGroupReader"/> for the specified row group index.
+        /// </summary>
+        /// <param name="i">The row group index</param>
+        /// <returns>A <see cref="RowGroupReader"/> for the specified row group index</returns>
         public RowGroupReader RowGroup(int i)
         {
             return new(ExceptionInfo.Return<int, IntPtr>(_handle, i, ParquetFileReader_RowGroup), this);

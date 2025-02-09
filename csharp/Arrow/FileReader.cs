@@ -122,9 +122,10 @@ namespace ParquetSharp.Arrow
 
         /// <summary>
         /// Get a record batch reader for the file data
+        /// </summary>
         /// <param name="rowGroups">The indices of row groups to read data from</param>
         /// <param name="columns">The indices of columns to read, based on the schema</param>
-        /// </summary>
+        /// <returns>An Arrow array stream reader</returns>
         public unsafe IArrowArrayStream GetRecordBatchReader(
             int[]? rowGroups = null,
             int[]? columns = null)

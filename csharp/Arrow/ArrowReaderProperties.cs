@@ -4,10 +4,14 @@ using System.Runtime.InteropServices;
 namespace ParquetSharp.Arrow
 {
     /// <summary>
-    /// Configures Arrow specific options for reading Parquet files
+    /// Configures Arrow specific options for reading Parquet files.
     /// </summary>
     public sealed class ArrowReaderProperties : IDisposable
     {
+        /// <summary>
+        /// Create a new <see cref="ArrowReaderProperties"/> with default values.
+        /// </summary>
+        /// <returns></returns>
         public static ArrowReaderProperties GetDefault()
         {
             return new ArrowReaderProperties(ExceptionInfo.Return<IntPtr>(ArrowReaderProperties_GetDefault));

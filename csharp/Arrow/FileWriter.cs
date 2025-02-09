@@ -185,7 +185,7 @@ namespace ParquetSharp.Arrow
         /// multiple record batches to be written to the same row group.
         ///
         /// New row groups are started if the data reaches the MaxRowGroupLength configured
-        /// in the WriterProperties.
+        /// in the <see cref="WriterProperties"/>.
         /// </summary>
         /// <param name="recordBatch">The record batch to write</param>
         public void WriteBufferedRecordBatch(RecordBatch recordBatch)

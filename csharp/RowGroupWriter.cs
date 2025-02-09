@@ -3,6 +3,10 @@ using System.Runtime.InteropServices;
 
 namespace ParquetSharp
 {
+    /// <summary>
+    /// Writes a row group to a Parquet file. Allows access to individual <see cref="ColumnWriter"/>
+    /// instances for each column in the row group.
+    /// </summary>
     public sealed class RowGroupWriter : IDisposable
     {
         internal RowGroupWriter(IntPtr handle, ParquetFileWriter parquetFileWriter)
@@ -29,11 +33,26 @@ namespace ParquetSharp
         public long TotalCompressedBytes => ExceptionInfo.Return<long>(_handle, RowGroupWriter_Total_Compressed_Bytes);
         public bool Buffered => ExceptionInfo.Return<bool>(_handle, RowGroupWriter_Buffered);
 
+        /// <summary>
+        /// Get the column writer for the i-th column.
+        /// </summary>
+        /// <remarks>
+        /// This method may only be used with a buffered row group writer, created with <see cref="ParquetFileWriter.AppendBufferedRowGroup"/>.
+        /// </remarks>
+        /// <param name="i">The index of the column.</param>
+        /// <returns>A <see cref="ColumnWriter"/> for the i-th column.</returns>
         public ColumnWriter Column(int i)
         {
             return ColumnWriter.Create(ExceptionInfo.Return<int, IntPtr>(_handle, i, RowGroupWriter_Column), this, i);
         }
 
+        /// <summary>
+        /// Get the column writer for the next column.
+        /// </summary>
+        /// <remarks>
+        /// This method is not valid when using a buffered row group writer.
+        /// </remarks>
+        /// <returns>A <see cref="ColumnWriter"/> for the next column.</returns>
         public ColumnWriter NextColumn()
         {
             return ColumnWriter.Create(ExceptionInfo.Return<IntPtr>(_handle, RowGroupWriter_NextColumn), this, CurrentColumn);

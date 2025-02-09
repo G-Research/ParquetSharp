@@ -9,6 +9,9 @@ using ParquetSharp.Schema;
 
 namespace ParquetSharp
 {
+    /// <summary>
+    /// Opens and writes Parquet files.
+    /// </summary>
     public sealed class ParquetFileWriter : IDisposable
     {
         /// <summary>
@@ -391,11 +394,21 @@ namespace ParquetSharp
             GC.KeepAlive(_handle);
         }
 
+        /// <summary>
+        /// Creates and returns a new <see cref="RowGroupWriter"/> for writing a row group to the file.
+        /// </summary>
+        /// <returns>A new <see cref="RowGroupWriter"/> instance.</returns>
         public RowGroupWriter AppendRowGroup()
         {
             return new(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendRowGroup), this);
         }
 
+        /// <summary>
+        /// Creates and returns a new <see cref="RowGroupWriter"/> for writing a buffered row group.
+        /// Using a buffered writer allows writing to columns in any order, and writes to different columns
+        /// may be interleaved, but requires more memory.
+        /// </summary>
+        /// <returns>A new <see cref="RowGroupWriter"/> instance.</returns>
         public RowGroupWriter AppendBufferedRowGroup()
         {
             return new(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_AppendBufferedRowGroup), this);
@@ -405,10 +418,31 @@ namespace ParquetSharp
         internal long NumRows => ExceptionInfo.Return<long>(_handle, ParquetFileWriter_Num_Rows); // 2021-04-08: calling this results in a segfault when the writer has been closed
         internal int NumRowGroups => ExceptionInfo.Return<int>(_handle, ParquetFileWriter_Num_Row_Groups); // 2021-04-08: calling this results in a segfault when the writer has been closed
 
+        /// <summary>
+        /// The <see cref="ParquetSharp.LogicalTypeFactory"/> for handling custom types.
+        /// </summary>
         public LogicalTypeFactory LogicalTypeFactory { get; set; } = LogicalTypeFactory.Default; // TODO make this init only at some point when C# 9 is more widespread
+
+        /// <summary>
+        /// The <see cref="LogicalWriteConverterFactory"/> for writing custom types.
+        /// </summary>
         public LogicalWriteConverterFactory LogicalWriteConverterFactory { get; set; } = LogicalWriteConverterFactory.Default; // TODO make this init only at some point when C# 9 is more widespread
+
+        /// <summary>
+        /// The <see cref="ParquetSharp.WriterProperties"/> used to configure the writer.
+        /// </summary>
         public WriterProperties WriterProperties => _writerProperties ??= new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Properties));
+
+        /// <summary>
+        /// The schema of the file.
+        /// </summary>        
         public SchemaDescriptor Schema => new(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Schema));
+
+        /// <summary>
+        /// Get the <see cref="ParquetSharp.ColumnDescriptor"/> for the specified column index.
+        /// </summary>
+        /// <param name="i">The column index.</param>
+        /// <returns>A <see cref="ParquetSharp.ColumnDescriptor"/> instance for the specified column.</returns>
         public ColumnDescriptor ColumnDescriptor(int i) => new(ExceptionInfo.Return<int, IntPtr>(_handle, i, ParquetFileWriter_Descr));
 
         /// <summary>
@@ -432,6 +466,9 @@ namespace ParquetSharp
             }
         }
 
+        /// <summary>
+        /// Returns the file metadata for the file.
+        /// </summary>
         public FileMetaData? FileMetaData
         {
             get
