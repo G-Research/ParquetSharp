@@ -31,7 +31,7 @@ items:
   - uid: Writing
     name: Writing
     href: docs/Writing.md
-- uid:
+- uid: API Reference
   name: API Reference
   type: Namespace
   items:
@@ -53,3 +53,6 @@ items:
   - uid: ParquetSharp.Schema
     name: ParquetSharp.Schema
     href: api/ParquetSharp.Schema.html
+- uid: GitHub
+  name: GitHub
+  href: https://github.com/G-Research/ParquetSharp
