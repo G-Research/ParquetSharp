@@ -678,7 +678,8 @@ ParquetSharp.Schema.GroupNode.FieldCount.get -> int
 ParquetSharp.Schema.GroupNode.FieldIndex(ParquetSharp.Schema.Node! node) -> int
 ParquetSharp.Schema.GroupNode.FieldIndex(string! name) -> int
 ParquetSharp.Schema.GroupNode.Fields.get -> ParquetSharp.Schema.Node![]!
-ParquetSharp.Schema.GroupNode.GroupNode(string! name, ParquetSharp.Repetition repetition, System.Collections.Generic.IReadOnlyList<ParquetSharp.Schema.Node!>! fields, ParquetSharp.LogicalType? logicalType = null) -> void
+ParquetSharp.Schema.GroupNode.GroupNode(string! name, ParquetSharp.Repetition repetition, System.Collections.Generic.IReadOnlyList<ParquetSharp.Schema.Node!>! fields, ParquetSharp.LogicalType? logicalType) -> void
+ParquetSharp.Schema.GroupNode.GroupNode(string! name, ParquetSharp.Repetition repetition, System.Collections.Generic.IReadOnlyList<ParquetSharp.Schema.Node!>! fields, ParquetSharp.LogicalType? logicalType = null, int fieldId = -1) -> void
 ParquetSharp.Schema.Node
 ParquetSharp.Schema.Node.ConvertedType.get -> ParquetSharp.Schema.ConvertedType
 ParquetSharp.Schema.Node.Dispose() -> void
@@ -697,7 +698,8 @@ ParquetSharp.Schema.NodeType.Primitive = 0 -> ParquetSharp.Schema.NodeType
 ParquetSharp.Schema.PrimitiveNode
 ParquetSharp.Schema.PrimitiveNode.ColumnOrder.get -> ParquetSharp.ColumnOrder
 ParquetSharp.Schema.PrimitiveNode.PhysicalType.get -> ParquetSharp.PhysicalType
-ParquetSharp.Schema.PrimitiveNode.PrimitiveNode(string! name, ParquetSharp.Repetition repetition, ParquetSharp.LogicalType! logicalType, ParquetSharp.PhysicalType physicalType, int primitiveLength = -1) -> void
+ParquetSharp.Schema.PrimitiveNode.PrimitiveNode(string! name, ParquetSharp.Repetition repetition, ParquetSharp.LogicalType! logicalType, ParquetSharp.PhysicalType physicalType, int primitiveLength) -> void
+ParquetSharp.Schema.PrimitiveNode.PrimitiveNode(string! name, ParquetSharp.Repetition repetition, ParquetSharp.LogicalType! logicalType, ParquetSharp.PhysicalType physicalType, int primitiveLength = -1, int fieldId = -1) -> void
 ParquetSharp.Schema.PrimitiveNode.TypeLength.get -> int
 ParquetSharp.SchemaDescriptor
 ParquetSharp.SchemaDescriptor.Column(int i) -> ParquetSharp.ColumnDescriptor!

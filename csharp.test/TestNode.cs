@@ -83,6 +83,22 @@ namespace ParquetSharp.Test
             Assert.AreEqual(name, primitiveNode.Name);
         }
 
+        [Test]
+        public static void TestNodeFieldId()
+        {
+            using var groupNode = new GroupNode("group", Repetition.Required, new Node[0], fieldId: 42);
+            using var logicalType = LogicalType.Int(32, true);
+            using var primitiveNode = new PrimitiveNode("primitive", Repetition.Required, logicalType, PhysicalType.Int32, fieldId: 64);
+
+            using var clonedGroupNode = groupNode.DeepClone();
+            using var clonedPrimitiveNode = primitiveNode.DeepClone();
+
+            Assert.AreEqual(42, groupNode.FieldId);
+            Assert.AreEqual(42, clonedGroupNode.FieldId);
+            Assert.AreEqual(64, primitiveNode.FieldId);
+            Assert.AreEqual(64, clonedPrimitiveNode.FieldId);
+        }
+
         /// <summary>
         /// Verify that two nodes are not references to the same instance,
         /// and that none of their fields are.
