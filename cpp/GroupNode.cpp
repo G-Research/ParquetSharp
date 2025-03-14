@@ -14,6 +14,7 @@ extern "C"
 		const std::shared_ptr<schema::Node>** fields, 
 		const int numFields, 
 		const std::shared_ptr<const LogicalType>* logical_type, 
+		const int field_id, 
 		std::shared_ptr<schema::Node>** groupNode)
 	{
 		TRYCATCH
@@ -25,7 +26,7 @@ extern "C"
 				nodes.push_back(*fields[i]);
 			}
 
-			*groupNode = new std::shared_ptr(schema::GroupNode::Make(name, repetition, nodes, logical_type == nullptr ? nullptr : *logical_type));
+			*groupNode = new std::shared_ptr(schema::GroupNode::Make(name, repetition, nodes, logical_type == nullptr ? nullptr : *logical_type, field_id));
 		)
 	}
 

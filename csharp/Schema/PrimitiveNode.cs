@@ -15,8 +15,19 @@ namespace ParquetSharp.Schema
             Repetition repetition,
             LogicalType logicalType,
             PhysicalType physicalType,
-            int primitiveLength = -1)
-            : this(Make(name, repetition, logicalType, physicalType, primitiveLength))
+            int primitiveLength)
+            : this(name, repetition, logicalType, physicalType, primitiveLength, -1)
+        {
+        }
+
+        public PrimitiveNode(
+            string name,
+            Repetition repetition,
+            LogicalType logicalType,
+            PhysicalType physicalType,
+            int primitiveLength = -1,
+            int fieldId = -1)
+            : this(Make(name, repetition, logicalType, physicalType, primitiveLength, fieldId))
         {
         }
 
@@ -37,7 +48,8 @@ namespace ParquetSharp.Schema
                 Repetition,
                 logicalType,
                 PhysicalType,
-                TypeLength);
+                TypeLength,
+                FieldId);
         }
 
         private static IntPtr Make(
@@ -45,19 +57,20 @@ namespace ParquetSharp.Schema
             Repetition repetition,
             LogicalType logicalType,
             PhysicalType physicalType,
-            int primitiveLength)
+            int primitiveLength,
+            int fieldId)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (logicalType == null) throw new ArgumentNullException(nameof(logicalType));
 
-            ExceptionInfo.Check(PrimitiveNode_Make(name, repetition, logicalType.Handle.IntPtr, physicalType, primitiveLength, out var primitiveNode));
+            ExceptionInfo.Check(PrimitiveNode_Make(name, repetition, logicalType.Handle.IntPtr, physicalType, primitiveLength, fieldId, out var primitiveNode));
             GC.KeepAlive(logicalType.Handle);
             return primitiveNode;
         }
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr PrimitiveNode_Make(
-            [MarshalAs(UnmanagedType.LPUTF8Str)] string name, Repetition repetition, IntPtr logicalType, PhysicalType type, int primitiveLength, out IntPtr primitiveNode);
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string name, Repetition repetition, IntPtr logicalType, PhysicalType type, int primitiveLength, int fieldId, out IntPtr primitiveNode);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr PrimitiveNode_Column_Order(IntPtr node, out ColumnOrder columnOrder);

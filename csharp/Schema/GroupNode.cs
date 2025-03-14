@@ -7,8 +7,13 @@ namespace ParquetSharp.Schema
 {
     public sealed class GroupNode : Node
     {
-        public GroupNode(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType? logicalType = null)
-            : this(Make(name, repetition, fields, logicalType))
+        public GroupNode(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType? logicalType)
+            : this(Make(name, repetition, fields, logicalType, -1))
+        {
+        }
+
+        public GroupNode(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType? logicalType = null, int fieldId = -1)
+            : this(Make(name, repetition, fields, logicalType, fieldId))
         {
         }
 
@@ -46,7 +51,8 @@ namespace ParquetSharp.Schema
                     Name,
                     Repetition,
                     clonedFields,
-                    logicalType is NoneLogicalType ? null : logicalType);
+                    logicalType is NoneLogicalType ? null : logicalType,
+                    FieldId);
             }
             finally
             {
@@ -57,13 +63,13 @@ namespace ParquetSharp.Schema
             }
         }
 
-        private static unsafe IntPtr Make(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType? logicalType)
+        private static unsafe IntPtr Make(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType? logicalType, int fieldId)
         {
             var handles = fields.Select(f => f.Handle.IntPtr).ToArray();
 
             fixed (IntPtr* pHandles = handles)
             {
-                ExceptionInfo.Check(GroupNode_Make(name, repetition, (IntPtr) pHandles, handles.Length, logicalType?.Handle.IntPtr ?? IntPtr.Zero, out var groupNode));
+                ExceptionInfo.Check(GroupNode_Make(name, repetition, (IntPtr) pHandles, handles.Length, logicalType?.Handle.IntPtr ?? IntPtr.Zero, fieldId, out var groupNode));
                 GC.KeepAlive(fields);
                 GC.KeepAlive(logicalType);
                 return groupNode;
@@ -72,7 +78,7 @@ namespace ParquetSharp.Schema
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr GroupNode_Make(
-            [MarshalAs(UnmanagedType.LPUTF8Str)] string name, Repetition repetition, IntPtr fields, int numFields, IntPtr logicalType, out IntPtr groupNode);
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string name, Repetition repetition, IntPtr fields, int numFields, IntPtr logicalType, int fieldId, out IntPtr groupNode);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr GroupNode_Field(IntPtr groupNode, int i, out IntPtr field);
