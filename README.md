@@ -35,7 +35,7 @@ Supported platforms:
 
 The following examples show how to write and then read a Parquet file with three columns representing a timeseries of object-value pairs.
 These use the low-level API, which is the recommended API for working with native .NET types and closely maps to the API of Apache Parquet C++.
-For reading and writing data in the [Apache Arrow](https://arrow.apache.org/) format, an [Arrow-based API](docs/Arrow.md) is also provided.
+For reading and writing data in the [Apache Arrow](https://arrow.apache.org/) format, an [Arrow-based API](https://g-research.github.io/ParquetSharp/guides/Arrow.html) is also provided.
 
 ### 1. Initialize a new project
 
@@ -159,18 +159,7 @@ Timestamp: 2025-01-25 10:16:25 AM, ObjectId: 2, Value: 4.56
 
 ## Documentation
 
-For more detailed information on how to use ParquetSharp, see the following documentation:
-
-* [Writing Parquet files](docs/Writing.md)
-* [Reading Parquet files](docs/Reading.md)
-* [Working with nested data](docs/Nested.md)
-* [Reading and writing Arrow data](docs/Arrow.md) &mdash; how to read and write data using the [Apache Arrow format](https://arrow.apache.org/)
-* [Row-oriented API](docs/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
-* [Custom types](docs/TypeFactories.md) &mdash; how to customize the mapping between .NET and Parquet types,
-    including using the `DateOnly` and `TimeOnly` types added in .NET 6.
-* [Encryption](docs/Encryption.md) &mdash; using Parquet Modular Encryption to read and write encrypted data
-* [Writing TimeSpan data](docs/TimeSpan.md) &mdash; interoperability with other libraries when writing TimeSpan data
-* [Use from PowerShell](docs/PowerShell.md)
+For more detailed guides on how to use ParquetSharp and an API reference, please see [the documentation](https://g-research.github.io/ParquetSharp/).
 
 ## Rationale
 
