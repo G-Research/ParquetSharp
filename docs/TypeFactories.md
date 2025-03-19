@@ -156,5 +156,6 @@ private sealed class CustomTypeFactory : LogicalTypeFactory
 
 ### Learn More
 
-Check [TestLogicalTypeFactory.cs](../csharp.test/TestLogicalTypeFactory.cs) for a more comprehensive set of examples,
+Check [TestLogicalTypeFactory.cs](https://github.com/G-Research/ParquetSharp/blob/master/csharp.test/TestLogicalTypeFactory.cs)
+for a more comprehensive set of examples,
 as there are many places that can be customized and optimized by the user.
