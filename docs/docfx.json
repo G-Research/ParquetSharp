@@ -4,13 +4,13 @@
     {
       "src": [
         {
-          "src": "./csharp",
+          "src": "../csharp",
           "files": [
             "**/*.csproj"
           ]
         }
       ],
-      "dest": "api",
+      "dest": "api"
     }
   ],
   "build": {
@@ -27,7 +27,7 @@
     "resource": [
       {
         "files": [
-          "images/**"
+          "images/*"
         ]
       }
     ],
@@ -37,8 +37,8 @@
       "modern"
     ],
     "globalMetadata": {
-      "_appFaviconPath": "images/logo/svg/ParquetSharp_IconLogo_RGB-Black.svg",
-      "_appLogoPath": "images/logo/svg/ParquetSharp_IconLogo_RGB-Black_small.svg",
+      "_appFaviconPath": "images/favicon.svg",
+      "_appLogoPath": "images/logo.svg",
       "_appName": "ParquetSharp",
       "_appTitle": "ParquetSharp",
       "_enableNewTab": true,

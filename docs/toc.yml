@@ -1,18 +1,58 @@
-- name: Arrow
-  href: Arrow.md
-- name: Encryption
-  href: Encryption.md
-- name: Nested
-  href: Nested.md
-- name: PowerShell
-  href: PowerShell.md
-- name: Reading
-  href: Reading.md
-- name: Row-Oriented API
-  href: RowOriented.md
-- name: Time Span
-  href: TimeSpan.md
-- name: Type Factories
-  href: TypeFactories.md
-- name: Writing
-  href: Writing.md
+### YamlMime:TableOfContent
+items:
+- uid: guides
+  name: Docs
+  type: Namespace
+  items:
+  - uid: Arrow
+    name: Arrow
+    href: guides/Arrow.md
+  - uid: Encryption
+    name: Encryption
+    href: guides/Encryption.md
+  - uid: Nested
+    name: Nested
+    href: guides/Nested.md
+  - uid: PowerShell
+    name: PowerShell
+    href: guides/PowerShell.md
+  - uid: Reading
+    name: Reading
+    href: guides/Reading.md
+  - uid: RowOriented
+    name: Row-Oriented API
+    href: guides/RowOriented.md
+  - uid: TimeSpan
+    name: Time Span
+    href: guides/TimeSpan.md
+  - uid: TypeFactories
+    name: Type Factories
+    href: guides/TypeFactories.md
+  - uid: Writing
+    name: Writing
+    href: guides/Writing.md
+- uid: API Reference
+  name: API Reference
+  type: Namespace
+  items:
+  - uid: ParquetSharp
+    name: ParquetSharp
+    href: api/ParquetSharp.html
+  - uid: ParquetSharp.Arrow
+    name: ParquetSharp.Arrow
+    href: api/ParquetSharp.Arrow.html
+  - uid: ParquetSharp.Encryption
+    name: ParquetSharp.Encryption
+    href: api/ParquetSharp.Encryption.html
+  - uid: ParquetSharp.IO
+    name: ParquetSharp.IO
+    href: api/ParquetSharp.IO.html
+  - uid: ParquetSharp.RowOriented
+    name: ParquetSharp.RowOriented
+    href: api/ParquetSharp.RowOriented.html
+  - uid: ParquetSharp.Schema
+    name: ParquetSharp.Schema
+    href: api/ParquetSharp.Schema.html
+- uid: GitHub
+  name: GitHub
+  href: https://github.com/G-Research/ParquetSharp
