@@ -1,7 +1,7 @@
 ---
 _layout: landing
 ---
-![Main logo](images/header.svg)
+![Main logo](images/header.svg){width=70%}
 
 ## Introduction
 

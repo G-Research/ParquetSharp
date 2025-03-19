@@ -43,6 +43,11 @@
       "_appTitle": "ParquetSharp",
       "_enableNewTab": true,
       "_enableSearch": true
+    },
+    "markdownEngineProperties": {
+      "markdigExtensions": [
+        "attributes"
+      ]
     }
   }
 }
