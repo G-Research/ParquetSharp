@@ -16,12 +16,6 @@ Supported platforms:
 | x64   | &#x2714; | &#x2714; | &#x2714; |
 | arm64 | &#x2714; |          | &#x2714; |
 
-|                       | Status                                                                                                                                                                                                                         |
-| --------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Release Nuget**     | [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp)                                                                                                        |
-| **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp/absoluteLatest)                                                                                  |
-| **CI Build**          | [![CI Status](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml?query=branch%3Amaster+event%3Apush) |
-
 ## Why use Parquet?
 
 **Apache Parquet** is an [open source][6], column-oriented data file format designed for efficient data storage and retrieval. It provides efficient data compression and encoding schemes with enhanced performance to handle complex data in bulk. Relative to CSV files, Parquet executes queries **34x faster** while taking up **87% less space**. [Source][7]
@@ -162,7 +156,7 @@ Timestamp: 2025-01-25 10:16:25 AM, ObjectId: 2, Value: 4.56
 
 ## Documentation
 
-For more detailed information on how to use ParquetSharp, see the following documentation:
+For more detailed information on how to use ParquetSharp, see the following guides:
 
 * [Writing Parquet files](guides/Writing.md)
 * [Reading Parquet files](guides/Reading.md)
