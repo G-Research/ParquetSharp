@@ -35,11 +35,12 @@ jobs:
 
     - name: Build Documentation
       run: docfx docfx.json
+      working-directory: ./docs
 
     - name: Upload Site Artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: '_site'
+        path: './docs/_site'
 
     - name: Deploy to GitHub Pages
       uses: actions/deploy-pages@v4
