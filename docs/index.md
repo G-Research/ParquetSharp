@@ -168,3 +168,5 @@ For more detailed information on how to use ParquetSharp, see the following guid
 * [Encryption](guides/Encryption.md) &mdash; using Parquet Modular Encryption to read and write encrypted data
 * [Writing TimeSpan data](guides/TimeSpan.md) &mdash; interoperability with other libraries when writing TimeSpan data
 * [Use from PowerShell](guides/PowerShell.md)
+
+For auto-generated API documentation, see the [API reference](xref:ParquetSharp).
