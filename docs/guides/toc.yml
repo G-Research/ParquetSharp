@@ -1,0 +1,18 @@
+- name: Reading Parquet
+  href: Reading.md
+- name: Writing Parquet
+  href: Writing.md
+- name: Arrow API
+  href: Arrow.md
+- name: Row-Oriented API
+  href: RowOriented.md
+- name: Nested Data
+  href: Nested.md
+- name: Encryption
+  href: Encryption.md
+- name: Type Factories
+  href: TypeFactories.md
+- name: Time Span Handling
+  href: TimeSpan.md
+- name: Use from PowerShell
+  href: PowerShell.md

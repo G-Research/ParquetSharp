@@ -1,7 +1,7 @@
 ---
 _layout: landing
 ---
-![Main logo](images/logo/svg/ParquetSharp_SignatureLogo_RGB-Black.svg)
+![Main logo](images/header.svg){width=70%}
 
 ## Introduction
 
@@ -15,12 +15,6 @@ Supported platforms:
 | :---- | :------: | :------: | :------: |
 | x64   | &#x2714; | &#x2714; | &#x2714; |
 | arm64 | &#x2714; |          | &#x2714; |
-
-|                       | Status                                                                                                                                                                                                                         |
-| --------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Release Nuget**     | [![NuGet latest release](https://img.shields.io/nuget/v/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp)                                                                                                        |
-| **Pre-Release Nuget** | [![NuGet latest pre-release](https://img.shields.io/nuget/vpre/ParquetSharp.svg)](https://www.nuget.org/packages/ParquetSharp/absoluteLatest)                                                                                  |
-| **CI Build**          | [![CI Status](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/G-Research/ParquetSharp/actions/workflows/ci.yml?query=branch%3Amaster+event%3Apush) |
 
 ## Why use Parquet?
 
@@ -38,7 +32,7 @@ Supported platforms:
 
 The following examples show how to write and then read a Parquet file with three columns representing a timeseries of object-value pairs.
 These use the low-level API, which is the recommended API for working with native .NET types and closely maps to the API of Apache Parquet C++.
-For reading and writing data in the [Apache Arrow](https://arrow.apache.org/) format, an [Arrow-based API](docs/Arrow.md) is also provided.
+For reading and writing data in the [Apache Arrow](https://arrow.apache.org/) format, an [Arrow-based API](guides/Arrow.md) is also provided.
 
 ### 1. Initialize a new project
 
@@ -162,15 +156,17 @@ Timestamp: 2025-01-25 10:16:25 AM, ObjectId: 2, Value: 4.56
 
 ## Documentation
 
-For more detailed information on how to use ParquetSharp, see the following documentation:
+For more detailed information on how to use ParquetSharp, see the following guides:
 
-* [Writing Parquet files](docs/Writing.md)
-* [Reading Parquet files](docs/Reading.md)
-* [Working with nested data](docs/Nested.md)
-* [Reading and writing Arrow data](docs/Arrow.md) &mdash; how to read and write data using the [Apache Arrow format](https://arrow.apache.org/)
-* [Row-oriented API](docs/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
-* [Custom types](docs/TypeFactories.md) &mdash; how to customize the mapping between .NET and Parquet types,
+* [Writing Parquet files](guides/Writing.md)
+* [Reading Parquet files](guides/Reading.md)
+* [Working with nested data](guides/Nested.md)
+* [Reading and writing Arrow data](guides/Arrow.md) &mdash; how to read and write data using the [Apache Arrow format](https://arrow.apache.org/)
+* [Row-oriented API](guides/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
+* [Custom types](guides/TypeFactories.md) &mdash; how to customize the mapping between .NET and Parquet types,
     including using the `DateOnly` and `TimeOnly` types added in .NET 6.
-* [Encryption](docs/Encryption.md) &mdash; using Parquet Modular Encryption to read and write encrypted data
-* [Writing TimeSpan data](docs/TimeSpan.md) &mdash; interoperability with other libraries when writing TimeSpan data
-* [Use from PowerShell](docs/PowerShell.md)
+* [Encryption](guides/Encryption.md) &mdash; using Parquet Modular Encryption to read and write encrypted data
+* [Writing TimeSpan data](guides/TimeSpan.md) &mdash; interoperability with other libraries when writing TimeSpan data
+* [Use from PowerShell](guides/PowerShell.md)
+
+For auto-generated API documentation, see the [API reference](xref:ParquetSharp).
