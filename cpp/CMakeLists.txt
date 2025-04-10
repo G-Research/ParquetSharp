@@ -104,6 +104,10 @@ add_definitions(-DARROW_STATIC)
 add_definitions(-DARROW_NO_DEPRECATED_API)
 add_definitions(-DPARQUET_STATIC)
 
+if (MSVC AND (MSVC_VERSION GREATER 1900))
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /guard:cf")
+endif()
+
 if (UNIX AND CMAKE_BUILD_TYPE STREQUAL Release)
 	if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
 		set(STRIP_OPTIONS -x)
