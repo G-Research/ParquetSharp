@@ -23,7 +23,7 @@ jobs:
   check-format:
     if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     name: Check format
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-13, windows-2022]
+        os: [ubuntu-22.04, macos-13, windows-2022]
         arch: [x64, arm64]
         exclude:
         - os: windows-2022
@@ -231,7 +231,7 @@ jobs:
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04-arm64, macos-13, macos-14, windows-2022]
+        os: [ubuntu-22.04, ubuntu-22.04-arm64, macos-13, macos-14, windows-2022]
         dotnet: [netcoreapp3.1, net6.0, net7.0, net8.0]
         include:
         - os: windows-2022
