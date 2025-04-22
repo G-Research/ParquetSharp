@@ -4,7 +4,58 @@
   "version-string": "undefined",
   "builtin-baseline": "6f29f12e82a8293156836ad81cc9bf5af41fe836",
   "dependencies": [
-    "arrow"
+    {
+      "name": "arrow",
+      "platform": "!arm"
+    },
+    {
+      "name": "brotli",
+      "platform": "arm"
+    },
+    {
+      "name": "bzip2",
+      "platform": "arm"
+    },
+    {
+      "name": "lz4",
+      "platform": "arm"
+    },
+    {
+      "name": "re2",
+      "platform": "arm"
+    },
+    {
+      "name": "abseil",
+      "platform": "arm"
+    },
+    {
+      "name": "snappy",
+      "platform": "arm"
+    },
+    {
+      "name": "thrift",
+      "platform": "arm"
+    },
+    {
+      "name": "zlib",
+      "platform": "arm"
+    },
+    {
+      "name": "libevent",
+      "platform": "arm"
+    },
+    {
+      "name": "utf8proc",
+      "platform": "arm"
+    },
+    {
+      "name": "zstd",
+      "platform": "arm"
+    },
+    {
+      "name": "openssl",
+      "platform": "arm"
+    }
   ],
   "overrides": [
     {
