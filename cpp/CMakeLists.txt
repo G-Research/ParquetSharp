@@ -1,10 +1,8 @@
 include(GenerateExportHeader)
 
-find_package(Arrow CONFIG REQUIRED)
 find_package(unofficial-brotli CONFIG REQUIRED)
 find_package(BZip2 REQUIRED)
 find_package(lz4 CONFIG REQUIRED)
-find_package(Parquet CONFIG REQUIRED)
 find_package(re2 CONFIG REQUIRED)
 find_package(Snappy CONFIG REQUIRED)
 find_package(Thrift CONFIG REQUIRED)
@@ -86,9 +84,19 @@ include_directories(
 	${PROJECT_BINARY_DIR}
 	${PARQUET_INCLUDE_DIRS})
 
+target_include_directories(ParquetSharpNative PRIVATE
+	"$<$<CONFIG:Debug>:${ARROW_ROOT_DEBUG}/include>"
+	"$<$<CONFIG:Release>:${ARROW_ROOT_RELEASE}/include>"
+)
+
+target_link_libraries(ParquetSharpNative PRIVATE 
+	debug ${ARROW_ROOT_DEBUG}/lib/arrow.lib
+	optimized ${ARROW_ROOT_RELEASE}/lib/arrow.lib
+	debug ${ARROW_ROOT_DEBUG}/lib/parquet.lib
+	optimized ${ARROW_ROOT_RELEASE}/lib/parquet.lib
+)
+
 target_link_libraries(ParquetSharpNative PRIVATE
-	Parquet::parquet_static
-	Arrow::arrow_static
 	unofficial::brotli::brotlidec unofficial::brotli::brotlienc unofficial::brotli::brotlicommon
 	BZip2::BZip2
 	lz4::lz4
@@ -97,7 +105,7 @@ target_link_libraries(ParquetSharpNative PRIVATE
 	thrift::thrift
 	utf8proc
 	ZLIB::ZLIB
-	zstd::libzstd_static
+	zstd::libzstd
 )
 
 add_definitions(-DARROW_STATIC)
