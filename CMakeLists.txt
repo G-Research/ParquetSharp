@@ -31,7 +31,10 @@ if (MSVC)
 		endif()
 	endforeach()
 
-	add_compile_options("/MP") # Compile files in parallel.
+	if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+		add_compile_options(/MP) # Compile files in parallel with MSVC.
+	endif()
+
 	add_compile_options("/WX") # Threat warnings as errors.
 
 endif ()
