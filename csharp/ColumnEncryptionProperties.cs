@@ -24,8 +24,6 @@ namespace ParquetSharp
         public byte[] Key => ExceptionInfo.Return<AesKey>(Handle, ColumnEncryptionProperties_Key).ToBytes();
         public string KeyMetadata => ExceptionInfo.ReturnString(Handle, ColumnEncryptionProperties_Key_Metadata, ColumnEncryptionProperties_Key_Metadata_Free);
 
-        public ColumnEncryptionProperties DeepClone() => new ColumnEncryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, ColumnEncryptionProperties_Deep_Clone));
-
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnEncryptionProperties_Deep_Clone(IntPtr properties, out IntPtr clone);
 

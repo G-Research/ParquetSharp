@@ -11,7 +11,7 @@ extern "C"
 {
     PARQUETSHARP_EXPORT ExceptionInfo* ColumnDecryptionProperties_Deep_Clone(const std::shared_ptr<ColumnDecryptionProperties>* properties, std::shared_ptr<ColumnDecryptionProperties>** clone)
     {
-        TRYCATCH(*clone = new std::shared_ptr((*properties)->DeepClone());)
+        TRYCATCH(*clone = new std::shared_ptr((*properties));)
     }
 	
     PARQUETSHARP_EXPORT void ColumnDecryptionProperties_Free(const std::shared_ptr<const ColumnDecryptionProperties>* properties)
