@@ -113,9 +113,9 @@ extern "C"
     )
   }
 
-  PARQUETSHARP_EXPORT ExceptionInfo* FileWriter_NewRowGroup(FileWriter* writer, int64_t chunk_size)
+  PARQUETSHARP_EXPORT ExceptionInfo* FileWriter_NewRowGroup(FileWriter* writer)
   {
-    TRYCATCH(PARQUET_THROW_NOT_OK(writer->NewRowGroup(chunk_size));)
+    TRYCATCH(PARQUET_THROW_NOT_OK(writer->NewRowGroup());)
   }
 
   PARQUETSHARP_EXPORT ExceptionInfo* FileWriter_NewBufferedRowGroup(FileWriter* writer)
