@@ -10,7 +10,6 @@ abstract ParquetSharp.LogicalColumnReader.Apply<TReturn>(ParquetSharp.ILogicalCo
 abstract ParquetSharp.LogicalColumnReader.HasNext.get -> bool
 abstract ParquetSharp.LogicalColumnReader.Skip(long numRowsToSkip) -> long
 abstract ParquetSharp.LogicalColumnWriter.Apply<TReturn>(ParquetSharp.ILogicalColumnWriterVisitor<TReturn>! visitor) -> TReturn
-abstract ParquetSharp.Schema.Node.DeepClone() -> ParquetSharp.Schema.Node!
 abstract ParquetSharp.Statistics.MaxUntyped.get -> object!
 abstract ParquetSharp.Statistics.MinUntyped.get -> object!
 const ParquetSharp.LogicalRead.DateTimeOffset = 621355968000000000 -> long
@@ -41,8 +40,6 @@ override ParquetSharp.LogicalColumnWriter<TElement>.Apply<TReturn>(ParquetSharp.
 override ParquetSharp.LogicalColumnWriter<TElement>.Dispose() -> void
 override ParquetSharp.LogicalType.ToString() -> string!
 override ParquetSharp.Schema.ColumnPath.ToString() -> string!
-override ParquetSharp.Schema.GroupNode.DeepClone() -> ParquetSharp.Schema.Node!
-override ParquetSharp.Schema.PrimitiveNode.DeepClone() -> ParquetSharp.Schema.Node!
 override ParquetSharp.Statistics<TValue>.MaxUntyped.get -> object!
 override ParquetSharp.Statistics<TValue>.MinUntyped.get -> object!
 override ParquetSharp.TimeSpanNanos.ToString() -> string!
@@ -161,7 +158,6 @@ ParquetSharp.ColumnCryptoMetaData.EncryptedWithFooterKey.get -> bool
 ParquetSharp.ColumnCryptoMetaData.KeyMetadata.get -> string!
 ParquetSharp.ColumnDecryptionProperties
 ParquetSharp.ColumnDecryptionProperties.ColumnPath.get -> string!
-ParquetSharp.ColumnDecryptionProperties.DeepClone() -> ParquetSharp.ColumnDecryptionProperties!
 ParquetSharp.ColumnDecryptionProperties.Dispose() -> void
 ParquetSharp.ColumnDecryptionProperties.Key.get -> byte[]!
 ParquetSharp.ColumnDecryptionPropertiesBuilder
@@ -190,7 +186,6 @@ ParquetSharp.ColumnDescriptor.TypePrecision.get -> int
 ParquetSharp.ColumnDescriptor.TypeScale.get -> int
 ParquetSharp.ColumnEncryptionProperties
 ParquetSharp.ColumnEncryptionProperties.ColumnPath.get -> string!
-ParquetSharp.ColumnEncryptionProperties.DeepClone() -> ParquetSharp.ColumnEncryptionProperties!
 ParquetSharp.ColumnEncryptionProperties.Dispose() -> void
 ParquetSharp.ColumnEncryptionProperties.IsEncrypted.get -> bool
 ParquetSharp.ColumnEncryptionProperties.IsEncryptedWithFooterKey.get -> bool
@@ -347,7 +342,6 @@ ParquetSharp.FileDecryptionProperties.AadPrefix.get -> string!
 ParquetSharp.FileDecryptionProperties.AadPrefixVerifier.get -> ParquetSharp.AadPrefixVerifier?
 ParquetSharp.FileDecryptionProperties.CheckPlaintextFooterIntegrity.get -> bool
 ParquetSharp.FileDecryptionProperties.ColumnKey(string! columPath) -> byte[]!
-ParquetSharp.FileDecryptionProperties.DeepClone() -> ParquetSharp.FileDecryptionProperties!
 ParquetSharp.FileDecryptionProperties.Dispose() -> void
 ParquetSharp.FileDecryptionProperties.FooterKey.get -> byte[]!
 ParquetSharp.FileDecryptionProperties.KeyRetriever.get -> ParquetSharp.DecryptionKeyRetriever?
@@ -365,7 +359,6 @@ ParquetSharp.FileDecryptionPropertiesBuilder.KeyRetriever(ParquetSharp.Decryptio
 ParquetSharp.FileDecryptionPropertiesBuilder.PlaintextFilesAllowed() -> ParquetSharp.FileDecryptionPropertiesBuilder!
 ParquetSharp.FileEncryptionProperties
 ParquetSharp.FileEncryptionProperties.ColumnEncryptionProperties(string! columnPath) -> ParquetSharp.ColumnEncryptionProperties?
-ParquetSharp.FileEncryptionProperties.DeepClone() -> ParquetSharp.FileEncryptionProperties!
 ParquetSharp.FileEncryptionProperties.Dispose() -> void
 ParquetSharp.FileEncryptionProperties.EncryptedFooter.get -> bool
 ParquetSharp.FileEncryptionProperties.FileAad.get -> string!
