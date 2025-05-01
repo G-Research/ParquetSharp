@@ -42,8 +42,6 @@ namespace ParquetSharp
             }
         }
 
-        public FileDecryptionProperties DeepClone() => new FileDecryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, FileDecryptionProperties_Deep_Clone));
-
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileDecryptionProperties_Deep_Clone(IntPtr properties, out IntPtr clone);
 

@@ -29,11 +29,6 @@ namespace ParquetSharp.Schema
         public ColumnPath Path => new(ExceptionInfo.Return<IntPtr>(Handle, Node_Path));
         public Repetition Repetition => ExceptionInfo.Return<Repetition>(Handle, Node_Repetition);
 
-        /// <summary>
-        /// Deep cloning of the node. If the node is a group node, its children will be deep cloned as well.
-        /// </summary>
-        public abstract Node DeepClone();
-
         public bool Equals(Node? other)
         {
             return other != null && ExceptionInfo.Return<bool>(Handle, other.Handle, Node_Equals);
