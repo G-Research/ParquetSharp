@@ -1,1 +1,2 @@
 #nullable enable
+virtual ParquetSharp.LogicalTypeFactory.IsNullable(System.Type! type) -> bool

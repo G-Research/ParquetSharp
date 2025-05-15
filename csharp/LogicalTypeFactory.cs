@@ -84,6 +84,15 @@ namespace ParquetSharp
             }
         }
 
+        /// <summary>
+        /// Returns whether the specified type can represent null values.
+        /// If this returns false, then optional values are wrapped in the `System.Nullable`
+        /// type so that nulls can be represented.
+        /// </summary>
+        public virtual bool IsNullable(Type type)
+        {
+            return !type.IsValueType || TypeUtils.IsNullable(type, out _);
+        }
 
         /// <summary>
         /// Get the mapping from a column descriptor to the actual C# physical and logical element types.

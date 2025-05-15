@@ -122,8 +122,7 @@ namespace ParquetSharp
                     }
 
                     if (node.Repetition == Repetition.Optional &&
-                        elementType.IsValueType &&
-                        !TypeUtils.IsNullable(elementType, out _))
+                        !typeFactory.IsNullable(elementType))
                     {
                         // Node is optional and the element type is not already a nullable type
                         elementType = typeof(Nullable<>).MakeGenericType(elementType);
