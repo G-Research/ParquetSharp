@@ -33,18 +33,24 @@ namespace ParquetSharp
 
         public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, IColumnDescriptorVisitor<TReturn> visitor)
         {
-            return Apply(typeFactory, null, false, visitor);
+            return Apply(typeFactory, null, null, false, visitor);
         }
 
         public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride, IColumnDescriptorVisitor<TReturn> visitor)
         {
-            return Apply(typeFactory, columnLogicalTypeOverride, false, visitor);
+            return Apply(typeFactory, null, columnLogicalTypeOverride, false, visitor);
         }
 
         public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? columnLogicalTypeOverride, bool useNesting, IColumnDescriptorVisitor<TReturn> visitor)
         {
+            return Apply(typeFactory, null, columnLogicalTypeOverride, useNesting, visitor);
+        }
+
+        public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? elementTypeOverride, Type? columnLogicalTypeOverride, bool useNesting, IColumnDescriptorVisitor<TReturn> visitor)
+        {
             var types = GetSystemTypes(typeFactory, columnLogicalTypeOverride, useNesting);
-            var visitorApply = VisitorCache.GetOrAdd((types.physicalType, types.logicalType, types.elementType, typeof(TReturn)), t =>
+            var elementType = elementTypeOverride ?? types.elementType;
+            var visitorApply = VisitorCache.GetOrAdd((types.physicalType, types.logicalType, elementType, typeof(TReturn)), t =>
             {
 
                 var iface = typeof(IColumnDescriptorVisitor<TReturn>);
@@ -122,7 +128,8 @@ namespace ParquetSharp
                     }
 
                     if (node.Repetition == Repetition.Optional &&
-                        !typeFactory.IsNullable(elementType))
+                        elementType.IsValueType &&
+                        !TypeUtils.IsNullable(elementType, out _))
                     {
                         // Node is optional and the element type is not already a nullable type
                         elementType = typeof(Nullable<>).MakeGenericType(elementType);

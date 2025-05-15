@@ -1,2 +1,2 @@
 #nullable enable
-virtual ParquetSharp.LogicalTypeFactory.IsNullable(System.Type! type) -> bool
+ParquetSharp.ColumnDescriptor.Apply<TReturn>(ParquetSharp.LogicalTypeFactory! typeFactory, System.Type? elementTypeOverride, System.Type? columnLogicalTypeOverride, bool useNesting, ParquetSharp.IColumnDescriptorVisitor<TReturn>! visitor) -> TReturn

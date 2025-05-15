@@ -27,7 +27,6 @@ namespace ParquetSharp.Test
             {
                 using var writer = new ParquetFileWriter(outStream, schema, WriterProperties.GetDefaultWriterProperties());
                 writer.LogicalWriteConverterFactory = new ValueLogicalWriteConverterFactory();
-                writer.LogicalTypeFactory = new ValueLogicalTypeFactory();
 
                 using var rowGroup = writer.AppendRowGroup();
                 using var column = rowGroup.NextColumn();
@@ -41,7 +40,6 @@ namespace ParquetSharp.Test
             using var input = new BufferReader(buffer);
             using var fileReader = new ParquetFileReader(input);
             fileReader.LogicalReadConverterFactory = new ValueLogicalReadConverterFactory();
-            fileReader.LogicalTypeFactory = new ValueLogicalTypeFactory();
 
             using var groupReader = fileReader.RowGroup(0);
             using var columnReader = groupReader.Column(0).LogicalReaderOverride<Value>();
@@ -138,19 +136,6 @@ namespace ParquetSharp.Test
                 {
                     destination[i] = defLevels[i] != definedLevel ? default : new Value(source[src++]);
                 }
-            }
-        }
-
-        private class ValueLogicalTypeFactory : LogicalTypeFactory
-        {
-            public override bool IsNullable(Type type)
-            {
-                if (type == typeof(Value))
-                {
-                    return true;
-                }
-
-                return base.IsNullable(type);
             }
         }
     }
