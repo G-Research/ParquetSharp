@@ -1,2 +1,1 @@
 #nullable enable
-ParquetSharp.ColumnDescriptor.Apply<TReturn>(ParquetSharp.LogicalTypeFactory! typeFactory, System.Type? elementTypeOverride, System.Type? columnLogicalTypeOverride, bool useNesting, ParquetSharp.IColumnDescriptorVisitor<TReturn>! visitor) -> TReturn

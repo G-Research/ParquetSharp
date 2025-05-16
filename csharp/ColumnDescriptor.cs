@@ -46,7 +46,7 @@ namespace ParquetSharp
             return Apply(typeFactory, null, columnLogicalTypeOverride, useNesting, visitor);
         }
 
-        public TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? elementTypeOverride, Type? columnLogicalTypeOverride, bool useNesting, IColumnDescriptorVisitor<TReturn> visitor)
+        internal TReturn Apply<TReturn>(LogicalTypeFactory typeFactory, Type? elementTypeOverride, Type? columnLogicalTypeOverride, bool useNesting, IColumnDescriptorVisitor<TReturn> visitor)
         {
             var types = GetSystemTypes(typeFactory, columnLogicalTypeOverride, useNesting);
             var elementType = elementTypeOverride ?? types.elementType;
