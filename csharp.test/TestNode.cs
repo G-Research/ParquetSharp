@@ -99,6 +99,40 @@ namespace ParquetSharp.Test
             Assert.AreEqual(64, clonedPrimitiveNode.FieldId);
         }
 
+        [Test]
+        public static void TestPrimitiveNodeToString()
+        {
+            using var logicalType = LogicalType.Timestamp(true, TimeUnit.Micros);
+            using var node = new PrimitiveNode("timestamp", Repetition.Required, logicalType, PhysicalType.Int64);
+            using var group = new GroupNode("root", Repetition.Required, new[] {node});
+
+            var stringRepresentation = group.Fields[0].ToString();
+            Assert.AreEqual(
+                "PrimitiveNode {Path=\"timestamp\", PhysicalType=Int64, Repetition=Required, LogicalType=Timestamp}",
+                stringRepresentation);
+        }
+
+        [Test]
+        public static void TestGroupNodeToString()
+        {
+            using var noneType = LogicalType.None();
+            using var listType = LogicalType.List();
+
+            using var element = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Float);
+            using var list = new GroupNode("list", Repetition.Repeated, new[] {element});
+            using var values = new GroupNode("values", Repetition.Optional, new[] {list}, listType);
+            using var group = new GroupNode("root", Repetition.Required, new[] {values});
+
+            var stringRepresentation = group.Fields[0].ToString();
+            Assert.AreEqual(
+                "GroupNode {Path=\"values\", Repetition=Optional, LogicalType=List, Fields=[" +
+                "GroupNode {Path=\"values.list\", Repetition=Repeated, LogicalType=None, Fields=[" +
+                "PrimitiveNode {Path=\"values.list.element\", PhysicalType=Float, Repetition=Required, LogicalType=None}" +
+                "]}" +
+                "]}",
+                stringRepresentation);
+        }
+
         /// <summary>
         /// Verify that two nodes are not references to the same instance,
         /// and that none of their fields are.

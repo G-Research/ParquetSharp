@@ -63,6 +63,14 @@ namespace ParquetSharp.Schema
             }
         }
 
+        public override string ToString()
+        {
+            using var path = Path;
+            using var logicalType = LogicalType;
+            var fields = string.Join(", ", Fields.Select(f => f.ToString()));
+            return $"GroupNode {{Path=\"{path.ToDotString()}\", Repetition={Repetition}, LogicalType={logicalType.Type}, Fields=[{fields}]}}";
+        }
+
         private static unsafe IntPtr Make(string name, Repetition repetition, IReadOnlyList<Node> fields, LogicalType? logicalType, int fieldId)
         {
             var handles = fields.Select(f => f.Handle.IntPtr).ToArray();

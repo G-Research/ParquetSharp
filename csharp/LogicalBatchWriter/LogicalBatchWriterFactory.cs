@@ -53,7 +53,7 @@ namespace ParquetSharp.LogicalBatchWriter
             {
                 if (schemaNodes.Length != 1)
                 {
-                    throw new Exception("Expected only a single schema node for the leaf element writer");
+                    throw new Exception($"Expected a primitive schema node for element type {typeof(TElement)}. Got schema {schemaNodes[0]}.");
                 }
 
                 var optional = schemaNodes[0].Repetition == Repetition.Optional;
@@ -92,7 +92,8 @@ namespace ParquetSharp.LogicalBatchWriter
                 return MakeArrayWriter<TElement>(schemaNodes, definitionLevel, repetitionLevel, firstRepetitionLevel);
             }
 
-            throw new Exception($"Failed to create a batch writer for type {typeof(TElement)}");
+            throw new Exception(
+                $"Failed to create a batch writer for type {typeof(TElement)} from schema {schemaNodes[0]}");
         }
 
         /// <summary>
