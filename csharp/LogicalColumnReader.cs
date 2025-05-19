@@ -27,6 +27,7 @@ namespace ParquetSharp
 
             return columnReader.ColumnDescriptor.Apply(
                 columnReader.LogicalTypeFactory,
+                elementTypeOverride,
                 columnLogicalTypeOverride,
                 useNesting,
                 new Creator(columnReader, bufferLength));

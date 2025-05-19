@@ -106,6 +106,46 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestWriteInvalidArrayElementOverride()
+        {
+            using var buffer = new ResizableBuffer();
+            using var output = new BufferOutputStream(buffer);
+
+            using var schema = Column.CreateSchemaNode(new Column[] {new Column<float>("values")});
+            using var writerProperties = CreateWriterProperties();
+            using var fileWriter = new ParquetFileWriter(output, schema, writerProperties);
+            fileWriter.LogicalWriteConverterFactory = new WriteConverterFactory();
+            using var groupWriter = fileWriter.AppendRowGroup();
+
+            // Try to read as an array type rather than scalars
+            var exception = Assert.Throws<Exception>(() =>
+            {
+                using var writer = groupWriter.NextColumn().LogicalWriterOverride<VolumeInDollars[]>();
+            });
+            Assert.That(exception?.Message, Does.StartWith("Failed to create a batch writer"));
+        }
+
+        [Test]
+        public static void TestWriteInvalidScalarElementOverride()
+        {
+            using var buffer = new ResizableBuffer();
+            using var output = new BufferOutputStream(buffer);
+
+            using var schema = GetListSchema();
+            using var writerProperties = CreateWriterProperties();
+            using var fileWriter = new ParquetFileWriter(output, schema, writerProperties);
+            fileWriter.LogicalWriteConverterFactory = new WriteConverterFactory();
+            using var groupWriter = fileWriter.AppendRowGroup();
+
+            // Try to read as a plain scalar type rather than array
+            var exception = Assert.Throws<Exception>(() =>
+            {
+                using var writer = groupWriter.NextColumn().LogicalWriterOverride<VolumeInDollars>();
+            });
+            Assert.That(exception?.Message, Does.StartWith("Expected a primitive schema node"));
+        }
+
+        [Test]
         public static void TestRead()
         {
             TestRead(CustomValues, Values);
@@ -269,6 +309,17 @@ namespace ParquetSharp.Test
             using var floatNode = new PrimitiveNode("values", Repetition.Required, noneType, PhysicalType.Float);
             using var groupNode = new GroupNode("group", Repetition.Optional, new[] {floatNode});
             return new GroupNode("schema", Repetition.Required, new[] {groupNode});
+        }
+
+        private static GroupNode GetListSchema()
+        {
+            using var noneType = LogicalType.None();
+            using var listType = LogicalType.List();
+
+            using var element = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Float);
+            using var list = new GroupNode("list", Repetition.Repeated, new[] {element});
+            using var values = new GroupNode("values", Repetition.Optional, new[] {list}, listType);
+            return new GroupNode("schema", Repetition.Required, new[] {values});
         }
 
         // Reader tests.
