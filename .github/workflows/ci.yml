@@ -301,26 +301,12 @@ jobs:
 
   # Create a GitHub release and publish the NuGet packages to nuget.org when a tag is pushed.
   publish-release:
-    # This should match env.PUBLISH_RELEASE (which we can't access in an if condition)
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && !github.event.repository.fork
     name: Publish release
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     needs: [build-nuget,all-required-checks-done]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Check version
-      id: check-version
-      shell: pwsh
-      run: |
-        $version = "${{ needs.build-nuget.outputs.version }}"
-        $tag = "${{ github.ref }}".SubString(10)
-        if (-not ($tag -eq $version)) {
-          echo "::error ::There is a mismatch between the project version ($version) and the tag ($tag)"
-          exit 1
-        }
     - name: Check for unshipped API updates
       shell: pwsh
       run: |
@@ -337,21 +323,3 @@ jobs:
       with:
         name: nuget-package
         path: nuget
-    - name: Setup .NET SDK v8.0.x
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    # if version contains "-" treat it as pre-release
-    # example: 1.0.0-beta1
-    - name: Create release
-      uses: softprops/action-gh-release@v2
-      with:
-        name: ParquetSharp ${{ needs.build-nuget.outputs.version }}
-        draft: true
-        prerelease: ${{ contains(needs.build-nuget.outputs.version, '-') }}
-        files: |
-          nuget/ParquetSharp.${{ needs.build-nuget.outputs.version }}.nupkg
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Publish to NuGet
-      run: dotnet nuget push nuget/ParquetSharp.${{ needs.build-nuget.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
