@@ -1,3 +1,1 @@
 #nullable enable
-override ParquetSharp.Schema.GroupNode.ToString() -> string!
-override ParquetSharp.Schema.PrimitiveNode.ToString() -> string!
