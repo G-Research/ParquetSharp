@@ -230,6 +230,11 @@ namespace ParquetSharp
                 return (typeof(ByteArray), typeof(byte[]));
             }
 
+            if (logicalType.Type == LogicalTypeEnum.None && physicalType == PhysicalType.ByteArray)
+            {
+                return (typeof(ByteArray), typeof(byte[]));
+            }
+
             throw new ArgumentOutOfRangeException(nameof(logicalType), $"unsupported logical type {logicalType} with physical type {physicalType}");
         }
 
