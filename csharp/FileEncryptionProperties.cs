@@ -51,9 +51,7 @@ namespace ParquetSharp
             return columnHandle == IntPtr.Zero ? null : new ColumnEncryptionProperties(columnHandle);
         }
 
-        /// <summary>
-        /// Create a deep clone of the file encryption properties object.
-        /// </summary>
+        [Obsolete("Re-using FileEncryptionProperties no longer requires deep cloning")]
         public FileEncryptionProperties DeepClone() => new FileEncryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, FileEncryptionProperties_Deep_Clone));
 
         [DllImport(ParquetDll.Name)]
