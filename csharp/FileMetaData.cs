@@ -72,7 +72,7 @@ namespace ParquetSharp
         /// <summary>
         /// Get the Parquet format version of the file.
         /// </summary>
-        public ParquetVersion Version => ExceptionInfo.Return<ParquetVersion>(_handle, FileMetaData_Version);
+        public ParquetVersion Version => ExceptionInfo.Return<CppParquetVersion>(_handle, FileMetaData_Version).ToPublicEnum();
         /// <summary>
         /// Get the version of the writer that created the file.
         /// </summary>
@@ -114,7 +114,7 @@ namespace ParquetSharp
         private static extern IntPtr FileMetaData_Size(IntPtr fileMetaData, out int size);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileMetaData_Version(IntPtr fileMetaData, out ParquetVersion version);
+        private static extern IntPtr FileMetaData_Version(IntPtr fileMetaData, out CppParquetVersion version);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileMetaData_Writer_Version(IntPtr fileMetaData, out AppVer applicationVersion);
