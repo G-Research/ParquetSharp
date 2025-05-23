@@ -211,9 +211,21 @@ namespace ParquetSharp.Arrow
         /// before creating a new row group or closing the file.
         /// </summary>
         /// <param name="chunkSize">The number of rows to be written in this row group</param>
+        [Obsolete("Use the override that does not have a chunkSize parameter because this parameter has no effect")]
         public void NewRowGroup(long chunkSize)
         {
-            ExceptionInfo.Check(FileWriter_NewRowGroup(_handle.IntPtr, chunkSize));
+            ExceptionInfo.Check(FileWriter_NewRowGroup(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+        }
+
+        /// <summary>
+        /// Start writing a new row group to the file. After calling this method,
+        /// each column required in the schema must be written using WriteColumn
+        /// before creating a new row group or closing the file.
+        /// </summary>
+        public void NewRowGroup()
+        {
+            ExceptionInfo.Check(FileWriter_NewRowGroup(_handle.IntPtr));
             GC.KeepAlive(_handle);
         }
 
@@ -328,7 +340,7 @@ namespace ParquetSharp.Arrow
         private static extern unsafe IntPtr FileWriter_WriteRecordBatches(IntPtr writer, CArrowArrayStream* stream);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileWriter_NewRowGroup(IntPtr writer, long chunkSize);
+        private static extern IntPtr FileWriter_NewRowGroup(IntPtr writer);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileWriter_NewBufferedRowGroup(IntPtr writer);
