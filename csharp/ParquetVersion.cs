@@ -28,7 +28,7 @@ namespace ParquetSharp
         // ReSharper restore InconsistentNaming
     }
 
-    internal static class CppParquetVersionExtensions
+    internal static class ParquetVersionExtensions
     {
         public static ParquetVersion ToPublicEnum(this CppParquetVersion enumValue)
         {
@@ -40,10 +40,7 @@ namespace ParquetSharp
                 _ => throw new ArgumentOutOfRangeException(nameof(enumValue), enumValue, null)
             };
         }
-    }
 
-    internal static class ParquetVersionExtensions
-    {
         public static CppParquetVersion ToCppEnum(this ParquetVersion enumValue)
         {
             return enumValue switch
