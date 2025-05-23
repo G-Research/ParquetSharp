@@ -222,7 +222,7 @@ namespace ParquetSharp.Test.Arrow
                 for (var rowGroupIdx = 0; rowGroupIdx < numRowGroups; ++rowGroupIdx)
                 {
                     var start = rowGroupIdx * rowsPerRowGroup;
-                    writer.NewRowGroup(rowsPerRowGroup);
+                    writer.NewRowGroup();
 
                     using (var intArray = new Int32Array.Builder()
                         .AppendRange(Enumerable.Range(start, rowsPerRowGroup))
@@ -268,7 +268,7 @@ namespace ParquetSharp.Test.Arrow
                 {
                     var start0 = rowGroupIdx * rowsPerRowGroup;
                     var start1 = start0 + chunkSize;
-                    writer.NewRowGroup(rowsPerRowGroup);
+                    writer.NewRowGroup();
 
                     {
                         using var intArray0 = new Int32Array.Builder()

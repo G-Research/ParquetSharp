@@ -14,7 +14,7 @@ namespace ParquetSharp.Test
         {
             var p = WriterProperties.GetDefaultWriterProperties();
 
-            Assert.AreEqual("parquet-cpp-arrow version 19.0.1", p.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 20.0.0", p.CreatedBy);
             Assert.AreEqual(Compression.Uncompressed, p.Compression(new ColumnPath("anypath")));
             Assert.AreEqual(int.MinValue, p.CompressionLevel(new ColumnPath("anypath")));
             Assert.AreEqual(1024 * 1024, p.DataPageSize);
@@ -24,7 +24,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(1024 * 1024, p.MaxRowGroupLength);
             Assert.AreEqual(ParquetVersion.PARQUET_2_6, p.Version);
             Assert.AreEqual(1024, p.WriteBatchSize);
-            Assert.False(p.WritePageIndex);
+            Assert.True(p.WritePageIndex);
             Assert.False(p.PageChecksumEnabled);
         }
 
@@ -41,8 +41,8 @@ namespace ParquetSharp.Test
                 .MaxRowGroupLength(789)
                 .Version(ParquetVersion.PARQUET_1_0)
                 .WriteBatchSize(666)
-                .DisableWritePageIndex()
                 .EnableWritePageIndex()
+                .DisableWritePageIndex()
                 .EnablePageChecksum()
                 .Build();
 
@@ -56,7 +56,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(789, p.MaxRowGroupLength);
             Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
             Assert.AreEqual(666, p.WriteBatchSize);
-            Assert.True(p.WritePageIndex);
+            Assert.False(p.WritePageIndex);
             Assert.True(p.PageChecksumEnabled);
         }
 
@@ -112,7 +112,7 @@ namespace ParquetSharp.Test
                 DefaultWriterProperties.MaxRowGroupLength = 789;
                 DefaultWriterProperties.Version = ParquetVersion.PARQUET_1_0;
                 DefaultWriterProperties.WriteBatchSize = 666;
-                DefaultWriterProperties.WritePageIndex = true;
+                DefaultWriterProperties.WritePageIndex = false;
                 DefaultWriterProperties.PageChecksumEnabled = true;
 
                 using var builder = new WriterPropertiesBuilder();
@@ -130,7 +130,7 @@ namespace ParquetSharp.Test
                 Assert.AreEqual(789, p.MaxRowGroupLength);
                 Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
                 Assert.AreEqual(666, p.WriteBatchSize);
-                Assert.True(p.WritePageIndex);
+                Assert.False(p.WritePageIndex);
                 Assert.True(p.PageChecksumEnabled);
             }
             finally

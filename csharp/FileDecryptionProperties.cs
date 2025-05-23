@@ -42,6 +42,7 @@ namespace ParquetSharp
             }
         }
 
+        [Obsolete("Re-using FileDecryptionProperties no longer requires deep cloning")]
         public FileDecryptionProperties DeepClone() => new FileDecryptionProperties(ExceptionInfo.Return<IntPtr>(Handle, FileDecryptionProperties_Deep_Clone));
 
         [DllImport(ParquetDll.Name)]

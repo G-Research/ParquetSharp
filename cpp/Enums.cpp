@@ -59,12 +59,9 @@ namespace
 		static_assert(ParquetCipher::AES_GCM_CTR_V1 == 1);
 
 		static_assert(ParquetVersion::PARQUET_1_0 == 0);
-		ARROW_SUPPRESS_DEPRECATION_WARNING
-		static_assert(ParquetVersion::PARQUET_2_0 == 1);
-		ARROW_UNSUPPRESS_DEPRECATION_WARNING
-		static_assert(ParquetVersion::PARQUET_2_4 == 2);
-		static_assert(ParquetVersion::PARQUET_2_6 == 3);
-		static_assert(ParquetVersion::PARQUET_2_LATEST == 3);
+		static_assert(ParquetVersion::PARQUET_2_4 == 1);
+		static_assert(ParquetVersion::PARQUET_2_6 == 2);
+		static_assert(ParquetVersion::PARQUET_2_LATEST == 2);
 
 		static_assert(Type::BOOLEAN == 0);
 		static_assert(Type::INT32 == 1);

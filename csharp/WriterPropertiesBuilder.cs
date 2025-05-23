@@ -360,7 +360,7 @@ namespace ParquetSharp
         /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder Version(ParquetVersion version)
         {
-            ExceptionInfo.Check(WriterPropertiesBuilder_Version(_handle.IntPtr, version));
+            ExceptionInfo.Check(WriterPropertiesBuilder_Version(_handle.IntPtr, version.ToCppEnum()));
             GC.KeepAlive(_handle);
             return this;
         }
@@ -657,7 +657,7 @@ namespace ParquetSharp
         private static extern IntPtr WriterPropertiesBuilder_Max_Row_Group_Length(IntPtr builder, long maxRowGroupLength);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr WriterPropertiesBuilder_Version(IntPtr builder, ParquetVersion version);
+        private static extern IntPtr WriterPropertiesBuilder_Version(IntPtr builder, CppParquetVersion version);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Write_Batch_Size(IntPtr builder, long writeBatchSize);
