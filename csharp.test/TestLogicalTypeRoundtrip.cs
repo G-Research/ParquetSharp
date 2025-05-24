@@ -1700,6 +1700,62 @@ namespace ParquetSharp.Test
             Assert.That(readValues, Is.EqualTo(stringValues));
         }
 
+        [Test]
+        public static void TestRequiredBytesRoundTrip()
+        {
+            var byteValues = Enumerable.Range(0, 100)
+                .Select(i => new[] {(byte) i, (byte) (i + 1)})
+                .ToArray();
+
+            using var noneType = LogicalType.None();
+            using var bytesColumn = new PrimitiveNode("bytes", Repetition.Required, noneType, PhysicalType.ByteArray);
+            using var schema = new GroupNode("schema", Repetition.Required, new[] {bytesColumn});
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var builder = new WriterPropertiesBuilder();
+                using var properties = builder.Build();
+                using var fileWriter = new ParquetFileWriter(outStream, schema, properties);
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+                using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<byte[]>();
+                columnWriter.WriteBatch(byteValues);
+                fileWriter.Close();
+            }
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(inStream);
+            using var rowGroupReader = fileReader.RowGroup(0);
+            using var columnReader = rowGroupReader.Column(0).LogicalReader<byte[]>();
+            var readValues = columnReader.ReadAll(byteValues.Length);
+            Assert.That(readValues, Is.EqualTo(byteValues));
+        }
+
+        [Test]
+        public static void TestWriteNullToRequiredBytes()
+        {
+            var byteValues = new byte[][]
+            {
+                new byte[] {0, 1, 2},
+                null!,
+            };
+
+            using var noneType = LogicalType.None();
+            using var bytesColumn = new PrimitiveNode("bytes", Repetition.Required, noneType, PhysicalType.ByteArray);
+            using var schema = new GroupNode("schema", Repetition.Required, new[] {bytesColumn});
+
+            using var buffer = new ResizableBuffer();
+            using var outStream = new BufferOutputStream(buffer);
+            using var builder = new WriterPropertiesBuilder();
+            using var properties = builder.Build();
+            using var fileWriter = new ParquetFileWriter(outStream, schema, properties);
+            using var rowGroupWriter = fileWriter.AppendRowGroup();
+            using var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<byte[]>();
+            var exception = Assert.Throws<ArgumentException>(() => columnWriter.WriteBatch(byteValues));
+            Assert.That(exception!.Message, Does.StartWith("encountered null value"));
+            fileWriter.Close();
+        }
+
         [TestCaseGeneric(PhysicalType.Int32, TypeArguments = new[] {typeof(int)})]
         [TestCaseGeneric(PhysicalType.Int64, TypeArguments = new[] {typeof(long)})]
         [TestCaseGeneric(PhysicalType.Int96, TypeArguments = new[] {typeof(Int96)})]

@@ -52,6 +52,13 @@ namespace ParquetSharp.Schema
                 FieldId);
         }
 
+        public override string ToString()
+        {
+            using var path = Path;
+            using var logicalType = LogicalType;
+            return $"PrimitiveNode {{Path=\"{path.ToDotString()}\", PhysicalType={PhysicalType}, Repetition={Repetition}, LogicalType={logicalType.Type}}}";
+        }
+
         private static IntPtr Make(
             string name,
             Repetition repetition,

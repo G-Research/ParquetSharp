@@ -321,6 +321,17 @@ jobs:
           echo "::error ::There is a mismatch between the project version ($version) and the tag ($tag)"
           exit 1
         }
+    - name: Check for unshipped API updates
+      shell: pwsh
+      run: |
+        $version = "${{ needs.build-nuget.outputs.version }}"
+        if (-not ($version -like "*-*")) {
+            $unshipped = Get-Content "./csharp/PublicAPI/*/PublicAPI.Unshipped.txt" | Select-String -notMatch "^#" | % { $_.Line }
+            if ($unshipped) {
+                echo "::error ::Unshipped API changes must be empty before publishing a stable release"
+                exit 1
+            }
+        }
     - name: Download NuGet artifact
       uses: actions/download-artifact@v4
       with:
