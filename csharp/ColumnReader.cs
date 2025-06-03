@@ -121,66 +121,82 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnReader_Type(IntPtr columnReader, out PhysicalType type);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Bool(
             IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, bool* values,
             out long valuesRead, out long levelsRead);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Int32(
             IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, int* values,
             out long valuesRead, out long levelsRead);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Int64(
             IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, long* values,
             out long valuesRead, out long levelsRead);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Int96(
             IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, Int96* values,
             out long valuesRead, out long levelsRead);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Float(
             IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, float* values,
             out long valuesRead, out long levelsRead);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_Double(
             IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, double* values,
             out long valuesRead, out long levelsRead);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_ByteArray(
             IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, ByteArray* values,
             out long valuesRead, out long levelsRead);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnReader_ReadBatch_FixedLenByteArray(
             IntPtr columnReader, long batchSize, short* defLevels, short* repLevels, FixedLenByteArray* values, out long valuesRead, out long levelsRead);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedColumnReader_Skip_Bool(IntPtr columnReader, long numRowsToSkip, out long levelsSkipped);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedColumnReader_Skip_Int32(IntPtr columnReader, long numRowsToSkip, out long levelsSkipped);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedColumnReader_Skip_Int64(IntPtr columnReader, long numRowsToSkip, out long levelsSkipped);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedColumnReader_Skip_Int96(IntPtr columnReader, long numRowsToSkip, out long levelsSkipped);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedColumnReader_Skip_Float(IntPtr columnReader, long numRowsToSkip, out long levelsSkipped);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedColumnReader_Skip_Double(IntPtr columnReader, long numRowsToSkip, out long levelsSkipped);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedColumnReader_Skip_ByteArray(IntPtr columnReader, long numRowsToSkip, out long levelsSkipped);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedColumnReader_Skip_FixedLenByteArray(IntPtr columnReader, long numRowsToSkip, out long levelsSkipped);
 
