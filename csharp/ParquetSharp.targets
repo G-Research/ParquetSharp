@@ -8,5 +8,10 @@
       <Link>ParquetSharpNative.dll</Link>
       <Visible>False</Visible>
     </Content>
+    <Content Include="$(MSBuildThisFileDirectory)..\runtimes\win-arm64\native\ParquetSharpNatived.dll" Condition="'$(TargetFrameworkIdentifier)'=='.NETFramework'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>ParquetSharpNatived.dll</Link>
+      <Visible>False</Visible>
+    </Content>
   </ItemGroup>
 </Project>
