@@ -59,7 +59,7 @@ namespace ParquetSharp
         /// <summary>
         /// The version of the Parquet format to write.
         /// </summary>
-        public ParquetVersion Version => ExceptionInfo.Return<ParquetVersion>(Handle, WriterProperties_Version);
+        public ParquetVersion Version => ExceptionInfo.Return<CppParquetVersion>(Handle, WriterProperties_Version).ToPublicEnum();
         /// <summary>
         /// The number of records to batch together when writing.
         /// </summary>
@@ -173,7 +173,7 @@ namespace ParquetSharp
         private static extern IntPtr WriterProperties_Max_Row_Group_Length(IntPtr writerProperties, out long length);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr WriterProperties_Version(IntPtr writerProperties, out ParquetVersion version);
+        private static extern IntPtr WriterProperties_Version(IntPtr writerProperties, out CppParquetVersion version);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Write_Batch_Size(IntPtr writerProperties, out long size);

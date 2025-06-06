@@ -93,13 +93,13 @@ extern "C"
       }
       if (columns == nullptr)
       {
-        PARQUET_THROW_NOT_OK(reader->GetRecordBatchReader(row_groups_vec, &batch_reader));
+        PARQUET_ASSIGN_OR_THROW(batch_reader, reader->GetRecordBatchReader(row_groups_vec));
       }
       else
       {
         std::vector<int> columns_vec(columns_count);
         std::copy(columns, columns + columns_count, columns_vec.begin());
-        PARQUET_THROW_NOT_OK(reader->GetRecordBatchReader(row_groups_vec, columns_vec, &batch_reader));
+        PARQUET_ASSIGN_OR_THROW(batch_reader, reader->GetRecordBatchReader(row_groups_vec, columns_vec));
       }
       PARQUET_THROW_NOT_OK(arrow::ExportRecordBatchReader(batch_reader, stream_out));
     )
