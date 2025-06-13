@@ -143,66 +143,82 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnWriter_Type(IntPtr columnWriter, out PhysicalType type);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatch_Bool(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, bool* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatch_Int32(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, int* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatch_Int64(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, long* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatch_Int96(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, Int96* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatch_Float(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, float* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatch_Double(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, double* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatch_ByteArray(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, ByteArray* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatch_FixedLenByteArray(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, FixedLenByteArray* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatchSpaced_Bool(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, byte* validBits, long validBitsOffset, bool* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatchSpaced_Int32(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, byte* validBits, long validBitsOffset, int* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatchSpaced_Int64(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, byte* validBits, long validBitsOffset, long* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatchSpaced_Int96(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, byte* validBits, long validBitsOffset, Int96* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatchSpaced_Float(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, byte* validBits, long validBitsOffset, float* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatchSpaced_Double(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, byte* validBits, long validBitsOffset, double* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatchSpaced_ByteArray(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, byte* validBits, long validBitsOffset, ByteArray* values);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern unsafe IntPtr TypedColumnWriter_WriteBatchSpaced_FixedLenByteArray(
             IntPtr columnWriter, long numValues, short* defLevels, short* repLevels, byte* validBits, long validBitsOffset, FixedLenByteArray* values);
