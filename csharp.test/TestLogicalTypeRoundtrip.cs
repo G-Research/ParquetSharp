@@ -2154,7 +2154,6 @@ namespace ParquetSharp.Test
                     Name = "uuid_field",
                     PhysicalType = PhysicalType.FixedLenByteArray,
                     LogicalType = LogicalType.Uuid(),
-                    LogicalTypeOverride = LogicalType.Uuid(),
                     Length = 16,
                     Values = Enumerable.Range(0, NumRows).Select(i => new Guid(i, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F)).ToArray(),
                     Min = new Guid(0, 0x1234, 0x5678, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x7F),
