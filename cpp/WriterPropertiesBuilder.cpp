@@ -1,4 +1,3 @@
-
 #include "cpp/ParquetSharpExport.h"
 #include "ExceptionInfo.h"
 
@@ -208,5 +207,22 @@ extern "C"
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Disable_Page_Checksum(WriterProperties::Builder* builder)
 	{
 		TRYCATCH(builder->disable_page_checksum();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Sorting_Columns(WriterProperties::Builder* builder, int32_t* column_indices, bool* descending, bool* nulls_first, int num_columns)
+	{
+		std::vector<parquet::SortingColumn> sorting_columns;
+		
+		// Create SortingColumn objects for each column
+		for (int i = 0; i < num_columns; ++i)
+		{
+			parquet::SortingColumn column;
+			column.column_idx = column_indices[i];
+			column.descending = descending[i];
+			column.nulls_first = nulls_first[i];
+			sorting_columns.push_back(column);
+		}
+		
+		TRYCATCH(builder->set_sorting_columns(sorting_columns);)
 	}
 }

@@ -1,4 +1,3 @@
-
 #include "cpp/ParquetSharpExport.h"
 #include "CString.h"
 #include "ExceptionInfo.h"
@@ -80,45 +79,57 @@ extern "C"
 		TRYCATCH(*enabled = (*writer_properties)->page_checksum_enabled();)
 	}
 
-	// ColumnPath taking methods.
-
-	//PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Column_Properties(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, const ColumnProperties** columnProperties)
-	//{
-	//	TRYCATCH(*columnProperties = &(*writer_properties)->column_properties(*path);)
-	//}
-
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Compression(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, Compression::type* compression)
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Sorting_Columns(const std::shared_ptr<WriterProperties>* writer_properties, int32_t** column_indices, bool** descending, bool** nulls_first, int* num_columns)
 	{
-		TRYCATCH(*compression = (*writer_properties)->compression(*path);)
+		try
+		{
+			auto sorting_columns = (*writer_properties)->sorting_columns();
+			
+			*num_columns = static_cast<int>(sorting_columns.size());
+			
+			if (*num_columns > 0)
+			{
+				*column_indices = new int32_t[*num_columns];
+				*descending = new bool[*num_columns];
+				*nulls_first = new bool[*num_columns];
+				
+				for (int i = 0; i < *num_columns; ++i)
+				{
+					(*column_indices)[i] = sorting_columns[i].column_idx;
+					(*descending)[i] = sorting_columns[i].descending;
+					(*nulls_first)[i] = sorting_columns[i].nulls_first;
+				}
+			}
+			else
+			{
+				*column_indices = nullptr;
+				*descending = nullptr;
+				*nulls_first = nullptr;
+			}
+			
+			return nullptr;
+		}
+		catch (const std::exception& e)
+		{
+			return new ExceptionInfo(typeid(e).name(), e.what());
+		}
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Compression_Level(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, int32_t* compression_level)
+	PARQUETSHARP_EXPORT void WriterProperties_Sorting_Columns_Free(int32_t* column_indices, bool* descending, bool* nulls_first)
 	{
-		TRYCATCH(*compression_level = (*writer_properties)->compression_level(*path);)
-	}
-
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Dictionary_Enabled(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, bool* enabled)
-	{
-		TRYCATCH(*enabled = (*writer_properties)->dictionary_enabled(*path);)
-	}
-
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Encoding(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, Encoding::type* encoding)
-	{
-		TRYCATCH(*encoding = (*writer_properties)->encoding(*path);)
-	}
-
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_File_Encryption_Properties(const std::shared_ptr<WriterProperties>* writer_properties, std::shared_ptr<FileEncryptionProperties>** file_encryption_properties)
-	{
-		TRYCATCH(*file_encryption_properties = new std::shared_ptr<FileEncryptionProperties>((*writer_properties)->file_encryption_properties());)
-	}
-
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Statistics_Enabled(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, bool* enabled)
-	{
-		TRYCATCH(*enabled = (*writer_properties)->statistics_enabled(*path);)
-	}
-
-	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Max_Statistics_Size(const std::shared_ptr<WriterProperties>* writer_properties, const std::shared_ptr<schema::ColumnPath>* path, size_t* max_statistics_size)
-	{
-		TRYCATCH(*max_statistics_size = (*writer_properties)->max_statistics_size(*path);)
+		if (column_indices != nullptr)
+		{
+			delete[] column_indices;
+		}
+		
+		if (descending != nullptr)
+		{
+			delete[] descending;
+		}
+		
+		if (nulls_first != nullptr)
+		{
+			delete[] nulls_first;
+		}
 	}
 }

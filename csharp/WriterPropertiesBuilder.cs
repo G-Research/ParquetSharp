@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ParquetSharp.Schema;
@@ -475,6 +476,77 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the sorting columns used to sort data when writing to a Parquet file.
+        /// </summary>
+        /// <param name="columnIndices">Indices of the columns to sort by.</param>
+        /// <param name="isDescending">Whether each column should be sorted in descending order.</param>
+        /// <param name="nullsFirst">Whether nulls should come before non-null values for each column.</param>
+        /// <returns>This builder instance.</returns>
+        public WriterPropertiesBuilder SortingColumns(int[] columnIndices, bool[] isDescending, bool[] nullsFirst)
+        {
+            if (columnIndices == null)
+            {
+                throw new ArgumentNullException(nameof(columnIndices));
+            }
+
+            if (isDescending == null)
+            {
+                throw new ArgumentNullException(nameof(isDescending));
+            }
+
+            if (nullsFirst == null)
+            {
+                throw new ArgumentNullException(nameof(nullsFirst));
+            }
+
+            if (columnIndices.Length != isDescending.Length || columnIndices.Length != nullsFirst.Length)
+            {
+                throw new ArgumentException("The length of columnIndices, isDescending, and nullsFirst must be the same");
+            }
+
+            // Pin the arrays in memory
+            GCHandle columnIndicesHandle = GCHandle.Alloc(columnIndices, GCHandleType.Pinned);
+            try
+            {
+                IntPtr columnIndicesPtr = columnIndicesHandle.AddrOfPinnedObject();
+                
+                GCHandle isDescendingHandle = GCHandle.Alloc(isDescending, GCHandleType.Pinned);
+                try
+                {
+                    IntPtr isDescendingPtr = isDescendingHandle.AddrOfPinnedObject();
+                    
+                    GCHandle nullsFirstHandle = GCHandle.Alloc(nullsFirst, GCHandleType.Pinned);
+                    try
+                    {
+                        IntPtr nullsFirstPtr = nullsFirstHandle.AddrOfPinnedObject();
+                        
+                        ExceptionInfo.Check(WriterPropertiesBuilder_Sorting_Columns(
+                            _handle.IntPtr,
+                            columnIndicesPtr,
+                            isDescendingPtr,
+                            nullsFirstPtr,
+                            columnIndices.Length));
+                    }
+                    finally
+                    {
+                        nullsFirstHandle.Free();
+                    }
+                }
+                finally
+                {
+                    isDescendingHandle.Free();
+                }
+            }
+            finally
+            {
+                columnIndicesHandle.Free();
+            }
+
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
         private void ApplyDefaults()
         {
             OnDefaultProperty(DefaultWriterProperties.EnableDictionary, enabled =>
@@ -542,6 +614,20 @@ namespace ParquetSharp
                     DisablePageChecksum();
                 }
             });
+
+            // Apply sorting columns default if all required arrays are provided and have the same length
+            if (DefaultWriterProperties.SortingColumnIndices != null && 
+                DefaultWriterProperties.SortingColumnsDescending != null &&
+                DefaultWriterProperties.SortingColumnsNullsFirst != null &&
+                DefaultWriterProperties.SortingColumnIndices.Length == DefaultWriterProperties.SortingColumnsDescending.Length &&
+                DefaultWriterProperties.SortingColumnIndices.Length == DefaultWriterProperties.SortingColumnsNullsFirst.Length &&
+                DefaultWriterProperties.SortingColumnIndices.Length > 0)
+            {
+                SortingColumns(
+                    DefaultWriterProperties.SortingColumnIndices, 
+                    DefaultWriterProperties.SortingColumnsDescending,
+                    DefaultWriterProperties.SortingColumnsNullsFirst);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -685,6 +771,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Disable_Page_Checksum(IntPtr builder);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Sorting_Columns(IntPtr builder, IntPtr columnIndices, IntPtr isDescending, IntPtr nullsFirst, int numColumns);
 
         private readonly ParquetHandle _handle;
     }

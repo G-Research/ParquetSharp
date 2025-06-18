@@ -1,0 +1,10 @@
+ParquetSharp.DefaultWriterProperties.SortingColumnIndices.get
+ParquetSharp.DefaultWriterProperties.SortingColumnIndices.set
+ParquetSharp.DefaultWriterProperties.SortingColumnsDescending.get
+ParquetSharp.DefaultWriterProperties.SortingColumnsDescending.set
+ParquetSharp.DefaultWriterProperties.SortingColumnsNullsFirst.get
+ParquetSharp.DefaultWriterProperties.SortingColumnsNullsFirst.set
+ParquetSharp.WriterProperties.SortingColumns
+static ParquetSharp.WriterProperties.GetDefaultWriterProperties() -> ParquetSharp.WriterProperties!
+static ParquetSharp.RowOriented.ParquetFile.OnReadExpressionCreated -> System.Action<System.Linq.Expressions.Expression!>?
+static ParquetSharp.RowOriented.ParquetFile.OnWriteExpressionCreated -> System.Action<System.Linq.Expressions.Expression!>?

@@ -143,6 +143,64 @@ namespace ParquetSharp
         /// </summary>
         public bool PageChecksumEnabled => ExceptionInfo.Return<bool>(Handle, WriterProperties_Page_Checksum_Enabled);
 
+        /// <summary>
+        /// Gets the columns by which the data is sorted when writing to the file, along with sort order details.
+        /// </summary>
+        /// <returns>
+        /// A tuple containing three arrays:
+        /// - The first array contains the indices of the columns being sorted
+        /// - The second array indicates whether each corresponding column is sorted in descending order (true) or ascending order (false)
+        /// - The third array indicates whether nulls come before non-null values (true) or after (false) for each column
+        /// </returns>
+        public (int[] ColumnIndices, bool[] IsDescending, bool[] NullsFirst) SortingColumns()
+        {
+            IntPtr columnIndicesPtr = IntPtr.Zero;
+            IntPtr descendingPtr = IntPtr.Zero;
+            IntPtr nullsFirstPtr = IntPtr.Zero;
+            int numColumns = 0;
+
+            try
+            {
+                ExceptionInfo.Check(WriterProperties_Sorting_Columns(
+                    Handle.IntPtr,
+                    ref columnIndicesPtr,
+                    ref descendingPtr,
+                    ref nullsFirstPtr,
+                    ref numColumns));
+
+                var columnIndices = new int[numColumns];
+                var isDescending = new bool[numColumns];
+                var nullsFirst = new bool[numColumns];
+
+                // Read column indices
+                for (var i = 0; i < numColumns; ++i)
+                {
+                    columnIndices[i] = Marshal.ReadInt32(columnIndicesPtr, i * sizeof(int));
+                }
+
+                // Read descending flags 
+                for (var i = 0; i < numColumns; ++i)
+                {
+                    isDescending[i] = Marshal.ReadByte(descendingPtr, i) != 0;
+                }
+
+                // Read nulls_first flags
+                for (var i = 0; i < numColumns; ++i)
+                {
+                    nullsFirst[i] = Marshal.ReadByte(nullsFirstPtr, i) != 0;
+                }
+
+                return (columnIndices, isDescending, nullsFirst);
+            }
+            finally
+            {
+                if (columnIndicesPtr != IntPtr.Zero || descendingPtr != IntPtr.Zero || nullsFirstPtr != IntPtr.Zero)
+                {
+                    WriterProperties_Sorting_Columns_Free(columnIndicesPtr, descendingPtr, nullsFirstPtr);
+                }
+            }
+        }
+
         internal readonly ParquetHandle Handle;
 
         [DllImport(ParquetDll.Name)]
@@ -210,5 +268,11 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Max_Statistics_Size(IntPtr writerProperties, IntPtr path, [MarshalAs(UnmanagedType.I1)] out ulong maxStatisticsSize);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Sorting_Columns(IntPtr writerProperties, ref IntPtr columnIndices, ref IntPtr descending, ref IntPtr nullsFirst, ref int numColumns);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern void WriterProperties_Sorting_Columns_Free(IntPtr columnIndices, IntPtr descending, IntPtr nullsFirst);
     }
 }

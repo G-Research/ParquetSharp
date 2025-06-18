@@ -247,5 +247,33 @@ namespace ParquetSharp.Test
             using var valueReader = groupReader.Column(0).LogicalReader<float?>();
             Assert.AreEqual(values, valueReader.ReadAll(numRows));
         }
+
+        [Test]
+        public static void TestSortingColumns()
+        {
+            // Test with some sorting columns
+            var columnIndices = new[] { 0, 1 }; // First and second columns
+            var isDescending = new[] { false, true }; // First column ascending, second descending
+            var nullsFirst = new[] { true, false }; // Nulls first for first column, nulls last for second column
+
+            var p = new WriterPropertiesBuilder()
+                .SortingColumns(columnIndices, isDescending, nullsFirst)
+                .Build();
+
+            var sortingColumns = p.SortingColumns();
+            
+            Assert.AreEqual(2, sortingColumns.ColumnIndices.Length);
+            Assert.AreEqual(2, sortingColumns.IsDescending.Length);
+            Assert.AreEqual(2, sortingColumns.NullsFirst.Length);
+            
+            Assert.AreEqual(0, sortingColumns.ColumnIndices[0]);
+            Assert.AreEqual(1, sortingColumns.ColumnIndices[1]);
+            
+            Assert.AreEqual(false, sortingColumns.IsDescending[0]);
+            Assert.AreEqual(true, sortingColumns.IsDescending[1]);
+            
+            Assert.AreEqual(true, sortingColumns.NullsFirst[0]);
+            Assert.AreEqual(false, sortingColumns.NullsFirst[1]);
+        }
     }
 }
