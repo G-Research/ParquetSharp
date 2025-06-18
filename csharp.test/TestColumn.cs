@@ -76,6 +76,18 @@ namespace ParquetSharp.Test
                 Contains.Substring("JSON cannot be applied to primitive type INT64"));
         }
 
+        [Test]
+        public static void TestInvalidGuidLogicalTypeOverride()
+        {
+            using var decimalType = LogicalType.Decimal(29, 3);
+
+            var exception = Assert.Throws<ArgumentException>(() => { _ = new Column<Guid>("guid", decimalType); });
+
+            Assert.That(
+                exception?.Message,
+                Contains.Substring("Invalid logical type override"));
+        }
+
         private static ExpectedPrimitive[] CreateExpectedPrimitives()
         {
             return new[]

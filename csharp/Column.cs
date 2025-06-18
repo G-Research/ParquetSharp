@@ -55,9 +55,9 @@ namespace ParquetSharp
                 throw new ArgumentException("decimal type requires a DecimalLogicalType override");
             }
 
-            if (isUuid && !(logicalTypeOverride is UuidLogicalType))
+            if (isUuid && logicalTypeOverride != null && !(logicalTypeOverride is UuidLogicalType or NoneLogicalType))
             {
-                throw new ArgumentException("Guid type requires a UuidLogicalType override");
+                throw new ArgumentException($"Invalid logical type override '{logicalTypeOverride}' for Guid typed column");
             }
 
             LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
