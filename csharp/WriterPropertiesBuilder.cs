@@ -476,6 +476,89 @@ namespace ParquetSharp
             return this;
         }
 
+        private void ApplyDefaults()
+        {
+            OnDefaultProperty(DefaultWriterProperties.EnableDictionary, enabled =>
+            {
+                if (enabled)
+                {
+                    EnableDictionary();
+                }
+                else
+                {
+                    DisableDictionary();
+                }
+            });
+
+            OnDefaultProperty(DefaultWriterProperties.EnableStatistics, enabled =>
+            {
+                if (enabled)
+                {
+                    EnableStatistics();
+                }
+                else
+                {
+                    DisableStatistics();
+                }
+            });
+
+            OnDefaultProperty(DefaultWriterProperties.Compression, compression => { Compression(compression); });
+
+            OnDefaultProperty(DefaultWriterProperties.CompressionLevel, compressionLevel => { CompressionLevel(compressionLevel); });
+
+            OnDefaultRefProperty(DefaultWriterProperties.CreatedBy, createdBy => { CreatedBy(createdBy); });
+
+            OnDefaultProperty(DefaultWriterProperties.DataPagesize, dataPagesize => { DataPagesize(dataPagesize); });
+
+            OnDefaultProperty(DefaultWriterProperties.DictionaryPagesizeLimit, dictionaryPagesizeLimit => { DictionaryPagesizeLimit(dictionaryPagesizeLimit); });
+
+            OnDefaultProperty(DefaultWriterProperties.Encoding, encoding => { Encoding(encoding); });
+
+            OnDefaultProperty(DefaultWriterProperties.MaxRowGroupLength, maxRowGroupLength => { MaxRowGroupLength(maxRowGroupLength); });
+
+            OnDefaultProperty(DefaultWriterProperties.Version, version => { Version(version); });
+
+            OnDefaultProperty(DefaultWriterProperties.WriteBatchSize, writeBatchSize => { WriteBatchSize(writeBatchSize); });
+
+            OnDefaultProperty(DefaultWriterProperties.WritePageIndex, writePageIndex =>
+            {
+                if (writePageIndex)
+                {
+                    EnableWritePageIndex();
+                }
+                else
+                {
+                    DisableWritePageIndex();
+                }
+            });
+
+            OnDefaultProperty(DefaultWriterProperties.PageChecksumEnabled, checksumEnabled =>
+            {
+                if (checksumEnabled)
+                {
+                    EnablePageChecksum();
+                }
+                else
+                {
+                    DisablePageChecksum();
+                }
+            });
+
+            // Apply sorting columns default if all required arrays are provided and have the same length
+            if (DefaultWriterProperties.SortingColumnIndices != null && 
+                DefaultWriterProperties.SortingColumnsDescending != null &&
+                DefaultWriterProperties.SortingColumnsNullsFirst != null &&
+                DefaultWriterProperties.SortingColumnIndices.Length == DefaultWriterProperties.SortingColumnsDescending.Length &&
+                DefaultWriterProperties.SortingColumnIndices.Length == DefaultWriterProperties.SortingColumnsNullsFirst.Length &&
+                DefaultWriterProperties.SortingColumnIndices.Length > 0)
+            {
+                SortingColumns(
+                    DefaultWriterProperties.SortingColumnIndices, 
+                    DefaultWriterProperties.SortingColumnsDescending,
+                    DefaultWriterProperties.SortingColumnsNullsFirst);
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void OnDefaultProperty<T>(T? defaultPropertyValue, Action<T> setProperty)
             where T : struct
