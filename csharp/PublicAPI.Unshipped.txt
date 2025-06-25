@@ -1,9 +1,10 @@
-ParquetSharp.DefaultWriterProperties.SortingColumnIndices.get
-ParquetSharp.DefaultWriterProperties.SortingColumnIndices.set
-ParquetSharp.DefaultWriterProperties.SortingColumnsDescending.get
-ParquetSharp.DefaultWriterProperties.SortingColumnsDescending.set
-ParquetSharp.DefaultWriterProperties.SortingColumnsNullsFirst.get
-ParquetSharp.DefaultWriterProperties.SortingColumnsNullsFirst.set
+#nullable enable
+static ParquetSharp.DefaultWriterProperties.SortingColumnIndices.get -> int[]?
+static ParquetSharp.DefaultWriterProperties.SortingColumnIndices.set -> void
+static ParquetSharp.DefaultWriterProperties.SortingColumnsDescending.get -> bool[]?
+static ParquetSharp.DefaultWriterProperties.SortingColumnsDescending.set -> void
+static ParquetSharp.DefaultWriterProperties.SortingColumnsNullsFirst.get -> bool[]?
+static ParquetSharp.DefaultWriterProperties.SortingColumnsNullsFirst.set -> void
 ParquetSharp.WriterProperties.SortingColumn
 ParquetSharp.WriterProperties.SortingColumn.SortingColumn(int columnIndex, bool isDescending, bool nullsFirst) -> void
 ParquetSharp.WriterProperties.SortingColumn.ColumnIndex.get -> int
@@ -15,7 +16,5 @@ ParquetSharp.WriterProperties.SortingColumn.GetHashCode() -> int
 static ParquetSharp.WriterProperties.SortingColumn.operator ==(ParquetSharp.WriterProperties.SortingColumn left, ParquetSharp.WriterProperties.SortingColumn right) -> bool
 static ParquetSharp.WriterProperties.SortingColumn.operator !=(ParquetSharp.WriterProperties.SortingColumn left, ParquetSharp.WriterProperties.SortingColumn right) -> bool
 ParquetSharp.WriterProperties.SortingColumns() -> ParquetSharp.WriterProperties.SortingColumn[]!
+ParquetSharp.WriterPropertiesBuilder.SortingColumns(int[]! columnIndices, bool[]! isDescending, bool[]! nullsFirst) -> ParquetSharp.WriterPropertiesBuilder!
 ParquetSharp.WriterPropertiesBuilder.SortingColumns(ParquetSharp.WriterProperties.SortingColumn[]! sortingColumns) -> ParquetSharp.WriterPropertiesBuilder!
-static ParquetSharp.WriterProperties.GetDefaultWriterProperties() -> ParquetSharp.WriterProperties!
-static ParquetSharp.RowOriented.ParquetFile.OnReadExpressionCreated -> System.Action<System.Linq.Expressions.Expression!>?
-static ParquetSharp.RowOriented.ParquetFile.OnWriteExpressionCreated -> System.Action<System.Linq.Expressions.Expression!>?
