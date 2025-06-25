@@ -12,3 +12,4 @@ static ParquetSharp.WriterProperties.SortingColumn.operator ==(ParquetSharp.Writ
 static ParquetSharp.WriterProperties.SortingColumn.operator !=(ParquetSharp.WriterProperties.SortingColumn left, ParquetSharp.WriterProperties.SortingColumn right) -> bool
 ParquetSharp.WriterProperties.SortingColumns() -> ParquetSharp.WriterProperties.SortingColumn[]!
 ParquetSharp.WriterPropertiesBuilder.SortingColumns(ParquetSharp.WriterProperties.SortingColumn[]! sortingColumns) -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.RowGroupMetaData.SortingColumns() -> ParquetSharp.WriterProperties.SortingColumn[]!
