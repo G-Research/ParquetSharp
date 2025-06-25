@@ -251,29 +251,29 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestSortingColumns()
         {
-            // Test with some sorting columns
-            var columnIndices = new[] { 0, 1 }; // First and second columns
-            var isDescending = new[] { false, true }; // First column ascending, second descending
-            var nullsFirst = new[] { true, false }; // Nulls first for first column, nulls last for second column
+            // Test with some sorting columns using the new SortingColumn struct API
+            var sortingColumns = new[]
+            {
+                new WriterProperties.SortingColumn(0, false, true),  // First column: ascending, nulls first
+                new WriterProperties.SortingColumn(1, true, false)   // Second column: descending, nulls last
+            };
 
             var p = new WriterPropertiesBuilder()
-                .SortingColumns(columnIndices, isDescending, nullsFirst)
+                .SortingColumns(sortingColumns)
                 .Build();
 
-            var sortingColumns = p.SortingColumns();
+            var retrievedSortingColumns = p.SortingColumns();
             
-            Assert.AreEqual(2, sortingColumns.ColumnIndices.Length);
-            Assert.AreEqual(2, sortingColumns.IsDescending.Length);
-            Assert.AreEqual(2, sortingColumns.NullsFirst.Length);
+            Assert.AreEqual(2, retrievedSortingColumns.Length);
             
-            Assert.AreEqual(0, sortingColumns.ColumnIndices[0]);
-            Assert.AreEqual(1, sortingColumns.ColumnIndices[1]);
+            Assert.AreEqual(0, retrievedSortingColumns[0].ColumnIndex);
+            Assert.AreEqual(1, retrievedSortingColumns[1].ColumnIndex);
             
-            Assert.AreEqual(false, sortingColumns.IsDescending[0]);
-            Assert.AreEqual(true, sortingColumns.IsDescending[1]);
+            Assert.AreEqual(false, retrievedSortingColumns[0].IsDescending);
+            Assert.AreEqual(true, retrievedSortingColumns[1].IsDescending);
             
-            Assert.AreEqual(true, sortingColumns.NullsFirst[0]);
-            Assert.AreEqual(false, sortingColumns.NullsFirst[1]);
+            Assert.AreEqual(true, retrievedSortingColumns[0].NullsFirst);
+            Assert.AreEqual(false, retrievedSortingColumns[1].NullsFirst);
         }
     }
 }
