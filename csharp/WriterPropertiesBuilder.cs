@@ -543,20 +543,6 @@ namespace ParquetSharp
                     DisablePageChecksum();
                 }
             });
-
-            // Apply sorting columns default if all required arrays are provided and have the same length
-            if (DefaultWriterProperties.SortingColumnIndices != null && 
-                DefaultWriterProperties.SortingColumnsDescending != null &&
-                DefaultWriterProperties.SortingColumnsNullsFirst != null &&
-                DefaultWriterProperties.SortingColumnIndices.Length == DefaultWriterProperties.SortingColumnsDescending.Length &&
-                DefaultWriterProperties.SortingColumnIndices.Length == DefaultWriterProperties.SortingColumnsNullsFirst.Length &&
-                DefaultWriterProperties.SortingColumnIndices.Length > 0)
-            {
-                SortingColumns(
-                    DefaultWriterProperties.SortingColumnIndices, 
-                    DefaultWriterProperties.SortingColumnsDescending,
-                    DefaultWriterProperties.SortingColumnsNullsFirst);
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
