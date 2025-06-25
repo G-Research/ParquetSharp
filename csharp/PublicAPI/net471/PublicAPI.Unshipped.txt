@@ -2,3 +2,22 @@
 override ParquetSharp.Schema.GroupNode.ToString() -> string!
 override ParquetSharp.Schema.PrimitiveNode.ToString() -> string!
 ParquetSharp.Arrow.FileWriter.NewRowGroup() -> void
+ParquetSharp.DefaultWriterProperties.SortingColumnIndices.get
+ParquetSharp.DefaultWriterProperties.SortingColumnIndices.set
+ParquetSharp.DefaultWriterProperties.SortingColumnsDescending.get
+ParquetSharp.DefaultWriterProperties.SortingColumnsDescending.set
+ParquetSharp.DefaultWriterProperties.SortingColumnsNullsFirst.get
+ParquetSharp.DefaultWriterProperties.SortingColumnsNullsFirst.set
+ParquetSharp.WriterProperties.SortingColumn
+ParquetSharp.WriterProperties.SortingColumn.SortingColumn(int columnIndex, bool isDescending, bool nullsFirst) -> void
+ParquetSharp.WriterProperties.SortingColumn.ColumnIndex.get -> int
+ParquetSharp.WriterProperties.SortingColumn.IsDescending.get -> bool
+ParquetSharp.WriterProperties.SortingColumn.NullsFirst.get -> bool
+ParquetSharp.WriterProperties.SortingColumn.Equals(ParquetSharp.WriterProperties.SortingColumn other) -> bool
+ParquetSharp.WriterProperties.SortingColumn.Equals(object? obj) -> bool
+ParquetSharp.WriterProperties.SortingColumn.GetHashCode() -> int
+static ParquetSharp.WriterProperties.SortingColumn.operator ==(ParquetSharp.WriterProperties.SortingColumn left, ParquetSharp.WriterProperties.SortingColumn right) -> bool
+static ParquetSharp.WriterProperties.SortingColumn.operator !=(ParquetSharp.WriterProperties.SortingColumn left, ParquetSharp.WriterProperties.SortingColumn right) -> bool
+ParquetSharp.WriterProperties.SortingColumns() -> ParquetSharp.WriterProperties.SortingColumn[]!
+ParquetSharp.WriterPropertiesBuilder.SortingColumns(ParquetSharp.WriterProperties.SortingColumn[]! sortingColumns) -> ParquetSharp.WriterPropertiesBuilder!
+static ParquetSharp.WriterProperties.GetDefaultWriterProperties() -> ParquetSharp.WriterProperties!

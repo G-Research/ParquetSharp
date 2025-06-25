@@ -547,6 +547,32 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Set the sorting columns used to sort data when writing to a Parquet file.
+        /// </summary>
+        /// <param name="sortingColumns">Array of sorting column specifications</param>
+        /// <returns>This builder instance.</returns>
+        public WriterPropertiesBuilder SortingColumns(WriterProperties.SortingColumn[] sortingColumns)
+        {
+            if (sortingColumns == null)
+            {
+                throw new ArgumentNullException(nameof(sortingColumns));
+            }
+
+            var columnIndices = new int[sortingColumns.Length];
+            var isDescending = new bool[sortingColumns.Length];
+            var nullsFirst = new bool[sortingColumns.Length];
+
+            for (int i = 0; i < sortingColumns.Length; i++)
+            {
+                columnIndices[i] = sortingColumns[i].ColumnIndex;
+                isDescending[i] = sortingColumns[i].IsDescending;
+                nullsFirst[i] = sortingColumns[i].NullsFirst;
+            }
+
+            return SortingColumns(columnIndices, isDescending, nullsFirst);
+        }
+
         private void ApplyDefaults()
         {
             OnDefaultProperty(DefaultWriterProperties.EnableDictionary, enabled =>
