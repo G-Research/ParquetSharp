@@ -76,51 +76,67 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr Statistics_Physical_Type(IntPtr statistics, out PhysicalType physicalType);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Min_Bool(IntPtr statistics, [MarshalAs(UnmanagedType.I1)] out bool min);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Min_Int32(IntPtr statistics, out int min);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Min_Int64(IntPtr statistics, out long min);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Min_Int96(IntPtr statistics, out Int96 min);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Min_Float(IntPtr statistics, out float min);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Min_Double(IntPtr statistics, out double min);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Min_ByteArray(IntPtr statistics, out ByteArray min);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Min_FLBA(IntPtr statistics, out FixedLenByteArray min);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Max_Bool(IntPtr statistics, [MarshalAs(UnmanagedType.I1)] out bool max);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Max_Int32(IntPtr statistics, out int max);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Max_Int64(IntPtr statistics, out long max);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Max_Int96(IntPtr statistics, out Int96 max);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Max_Float(IntPtr statistics, out float max);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Max_Double(IntPtr statistics, out double max);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Max_ByteArray(IntPtr statistics, out ByteArray max);
 
+        /// <exclude />
         [DllImport(ParquetDll.Name)]
         protected static extern IntPtr TypedStatistics_Max_FLBA(IntPtr statistics, out FixedLenByteArray max);
 
