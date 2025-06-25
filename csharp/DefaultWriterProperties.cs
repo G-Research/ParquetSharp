@@ -75,20 +75,5 @@ namespace ParquetSharp
         /// Write CRC page checksums
         /// </summary>
         public static bool? PageChecksumEnabled { get; set; }
-
-        /// <summary>
-        /// Column indices to sort by when writing to a Parquet file
-        /// </summary>
-        public static int[]? SortingColumnIndices { get; set; }
-
-        /// <summary>
-        /// Whether each corresponding sorting column should be sorted in descending order
-        /// </summary>
-        public static bool[]? SortingColumnsDescending { get; set; }
-
-        /// <summary>
-        /// Whether nulls should come before non-null values for each sorting column
-        /// </summary>
-        public static bool[]? SortingColumnsNullsFirst { get; set; }
     }
 }
