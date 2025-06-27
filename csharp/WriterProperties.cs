@@ -267,10 +267,7 @@ namespace ParquetSharp
             }
             finally
             {
-                if (columnIndicesPtr != IntPtr.Zero || descendingPtr != IntPtr.Zero || nullsFirstPtr != IntPtr.Zero)
-                {
-                    WriterProperties_Sorting_Columns_Free(columnIndicesPtr, descendingPtr, nullsFirstPtr);
-                }
+                WriterProperties_Sorting_Columns_Free(columnIndicesPtr, descendingPtr, nullsFirstPtr);
             }
         }
 

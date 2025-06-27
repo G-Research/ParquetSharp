@@ -90,10 +90,7 @@ namespace ParquetSharp
             }
             finally
             {
-                if (columnIndicesPtr != IntPtr.Zero || descendingPtr != IntPtr.Zero || nullsFirstPtr != IntPtr.Zero)
-                {
-                    RowGroupMetaData_Sorting_Columns_Free(columnIndicesPtr, descendingPtr, nullsFirstPtr);
-                }
+                RowGroupMetaData_Sorting_Columns_Free(columnIndicesPtr, descendingPtr, nullsFirstPtr);
             }
         }
 

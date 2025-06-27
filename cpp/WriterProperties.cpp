@@ -160,19 +160,8 @@ extern "C"
 
 	PARQUETSHARP_EXPORT void WriterProperties_Sorting_Columns_Free(int32_t* column_indices, bool* descending, bool* nulls_first)
 	{
-		if (column_indices != nullptr)
-		{
-			delete[] column_indices;
-		}
-		
-		if (descending != nullptr)
-		{
-			delete[] descending;
-		}
-		
-		if (nulls_first != nullptr)
-		{
-			delete[] nulls_first;
-		}
+		delete[] column_indices;
+		delete[] descending;
+		delete[] nulls_first;
 	}
 }
