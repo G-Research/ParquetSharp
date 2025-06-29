@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 
 namespace ParquetSharp.LogicalBatchReader
 {
@@ -11,27 +12,35 @@ namespace ParquetSharp.LogicalBatchReader
         public NestedReader(ILogicalBatchReader<TItem> innerReader, int bufferLength)
         {
             _innerReader = innerReader;
-            _buffer = new TItem[bufferLength];
+            _bufferLength = bufferLength;
         }
 
         public int ReadBatch(Span<Nested<TItem>> destination)
         {
             // Read batches of values from the underlying reader and convert them to nested values
             var totalRead = 0;
-            while (totalRead < destination.Length)
+            var buffer = ArrayPool<TItem>.Shared.Rent(_bufferLength);
+            try
             {
-                var readSize = Math.Min(destination.Length - totalRead, _buffer.Length);
-                var valuesRead = _innerReader.ReadBatch(_buffer.AsSpan(0, readSize));
-                for (var i = 0; i < valuesRead; ++i)
+                while (totalRead < destination.Length)
                 {
-                    destination[totalRead + i] = new Nested<TItem>(_buffer[i]);
-                }
+                    var readSize = Math.Min(destination.Length - totalRead, buffer.Length);
+                    var valuesRead = _innerReader.ReadBatch(buffer.AsSpan(0, readSize));
+                    for (var i = 0; i < valuesRead; ++i)
+                    {
+                        destination[totalRead + i] = new Nested<TItem>(buffer[i]);
+                    }
 
-                totalRead += valuesRead;
-                if (valuesRead < readSize)
-                {
-                    break;
+                    totalRead += valuesRead;
+                    if (valuesRead < readSize)
+                    {
+                        break;
+                    }
                 }
+            }
+            finally
+            {
+                ArrayPool<TItem>.Shared.Return(buffer);
             }
 
             return totalRead;
@@ -48,6 +57,6 @@ namespace ParquetSharp.LogicalBatchReader
         }
 
         private readonly ILogicalBatchReader<TItem> _innerReader;
-        private readonly TItem[] _buffer;
+        private readonly int _bufferLength;
     }
 }
