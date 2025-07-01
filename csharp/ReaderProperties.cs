@@ -28,12 +28,17 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Whether the buffered stream is enabled for reading.
+        /// Whether a buffered stream is used for reading.
+        ///
+        /// This limits the size of reads from the underlying file to limit memory usage in resource
+        /// constrained environments.
+        /// Using a buffered stream is disabled by default.
+        /// Note that this has no effect when reading as Arrow data and <see cref="ParquetSharp.Arrow.ArrowReaderProperties.PreBuffer" /> is enabled.
         /// </summary>
         public bool IsBufferedStreamEnabled => ExceptionInfo.Return<bool>(Handle, ReaderProperties_Is_Buffered_Stream_Enabled);
 
         /// <summary>
-        /// The size of the buffer (in bytes) used for reading.
+        /// The size of the buffer (in bytes) used for the buffered stream. This has no effect when the buffered stream is disabled.
         /// </summary>
         public long BufferSize
         {
@@ -64,7 +69,12 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Enable buffered stream for reading.
+        /// Enable using a buffered stream for reading.
+        ///
+        /// This limits the size of reads from the underlying file to limit memory usage in resource
+        /// constrained environments.
+        /// The size of the buffer can be controlled with the <see cref="BufferSize" /> parameter.
+        /// Note that this has no effect when reading as Arrow data and <see cref="ParquetSharp.Arrow.ArrowReaderProperties.PreBuffer" /> is enabled.
         /// </summary>
         public void EnableBufferedStream()
         {
@@ -73,7 +83,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Disable buffered stream for reading.
+        /// Disable using a buffered stream for reading.
         /// </summary>
         public void DisableBufferedStream()
         {
