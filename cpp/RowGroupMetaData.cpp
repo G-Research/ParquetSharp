@@ -34,8 +34,7 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* RowGroupMetaData_Sorting_Columns(const RowGroupMetaData* row_group_meta_data, int32_t** column_indices, bool** descending, bool** nulls_first, int* num_columns)
 	{
-		try
-		{
+		TRYCATCH(
 			auto sorting_columns = row_group_meta_data->sorting_columns();
 			
 			*num_columns = static_cast<int>(sorting_columns.size());
@@ -59,13 +58,7 @@ extern "C"
 				*descending = nullptr;
 				*nulls_first = nullptr;
 			}
-			
-			return nullptr;
-		}
-		catch (const std::exception& e)
-		{
-			return new ExceptionInfo(typeid(e).name(), e.what());
-		}
+		)
 	}
 
 	PARQUETSHARP_EXPORT void RowGroupMetaData_Sorting_Columns_Free(int32_t* column_indices, bool* descending, bool* nulls_first)
