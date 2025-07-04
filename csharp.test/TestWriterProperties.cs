@@ -305,7 +305,7 @@ namespace ParquetSharp.Test
                 using var groupWriter = fileWriter.AppendRowGroup();
 
                 using var idWriter = groupWriter.NextColumn().LogicalWriter<int>();
-                idWriter.WriteBatch(new[] { 3, 1, 2 });
+                idWriter.WriteBatch(new[] { 1, 2, 3 });
 
                 using var nameWriter = groupWriter.NextColumn().LogicalWriter<string>();
                 nameWriter.WriteBatch(new[] { "Charlie", "Alice", "Bob" });
