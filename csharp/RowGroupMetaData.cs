@@ -36,6 +36,65 @@ namespace ParquetSharp
         public long TotalByteSize => ExceptionInfo.Return<long>(_handle, RowGroupMetaData_Total_Byte_Size);
 
         /// <summary>
+        /// Gets the columns by which the data is sorted in this row group.
+        /// </summary>
+        /// <returns>
+        /// An array of <see cref="WriterProperties.SortingColumn"/> specifying the sorting order for this row group,
+        /// or an empty array if no sorting columns are defined.
+        /// </returns>
+        public WriterProperties.SortingColumn[] SortingColumns()
+        {
+            IntPtr columnIndicesPtr = IntPtr.Zero;
+            IntPtr descendingPtr = IntPtr.Zero;
+            IntPtr nullsFirstPtr = IntPtr.Zero;
+            int numColumns = 0;
+
+            try
+            {
+                ExceptionInfo.Check(RowGroupMetaData_Sorting_Columns(
+                    _handle,
+                    ref columnIndicesPtr,
+                    ref descendingPtr,
+                    ref nullsFirstPtr,
+                    ref numColumns));
+
+                var columnIndices = new int[numColumns];
+                var isDescending = new bool[numColumns];
+                var nullsFirst = new bool[numColumns];
+
+                if (numColumns > 0)
+                {
+                    // Read column indices
+                    Marshal.Copy(columnIndicesPtr, columnIndices, 0, numColumns);
+
+                    // Read descending flags 
+                    for (var i = 0; i < numColumns; ++i)
+                    {
+                        isDescending[i] = Marshal.ReadByte(descendingPtr, i) != 0;
+                    }
+
+                    // Read nulls_first flags
+                    for (var i = 0; i < numColumns; ++i)
+                    {
+                        nullsFirst[i] = Marshal.ReadByte(nullsFirstPtr, i) != 0;
+                    }
+                }
+
+                // Create and return SortingColumn array
+                var result = new WriterProperties.SortingColumn[numColumns];
+                for (var i = 0; i < numColumns; i++)
+                {
+                    result[i] = new WriterProperties.SortingColumn(columnIndices[i], isDescending[i], nullsFirst[i]);
+                }
+                return result;
+            }
+            finally
+            {
+                RowGroupMetaData_Sorting_Columns_Free(columnIndicesPtr, descendingPtr, nullsFirstPtr);
+            }
+        }
+
+        /// <summary>
         /// Get the metadata for the column chunk at the specified index.
         /// </summary>
         /// <param name="i">The index of the column chunk.</param>
@@ -62,6 +121,12 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr RowGroupMetaData_Total_Byte_Size(IntPtr rowGroupMetaData, out long totalByteSize);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr RowGroupMetaData_Sorting_Columns(IntPtr rowGroupMetaData, ref IntPtr columnIndices, ref IntPtr descending, ref IntPtr nullsFirst, ref int numColumns);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern void RowGroupMetaData_Sorting_Columns_Free(IntPtr columnIndices, IntPtr descending, IntPtr nullsFirst);
 
         private readonly IntPtr _handle;
         private SchemaDescriptor? _schema;
