@@ -20,7 +20,7 @@ namespace ParquetSharp
             /// <param name="columnIndex">The index of the column to sort by</param>
             /// <param name="isDescending">Whether to sort in descending order (true) or ascending order (false)</param>
             /// <param name="nullsFirst">Whether nulls should come first (true) or last (false)</param>
-            public SortingColumn(int columnIndex, bool isDescending, bool nullsFirst)
+            public SortingColumn(int columnIndex, bool isDescending = false, bool nullsFirst = false)
             {
                 ColumnIndex = columnIndex;
                 IsDescending = isDescending;
