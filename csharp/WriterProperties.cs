@@ -56,19 +56,7 @@ namespace ParquetSharp
 
             public override int GetHashCode()
             {
-#if NET6_0_OR_GREATER
                 return HashCode.Combine(ColumnIndex, IsDescending, NullsFirst);
-#else
-                // For older frameworks, use a simple hash combination
-                unchecked
-                {
-                    int hash = 17;
-                    hash = hash * 23 + ColumnIndex.GetHashCode();
-                    hash = hash * 23 + IsDescending.GetHashCode();
-                    hash = hash * 23 + NullsFirst.GetHashCode();
-                    return hash;
-                }
-#endif
             }
 
             public static bool operator ==(SortingColumn left, SortingColumn right)
