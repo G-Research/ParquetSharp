@@ -6,7 +6,13 @@
   "dependencies": [
     {
       "name": "arrow",
-      "features": ["jemalloc", "mimalloc"]
+      "features": [
+        "mimalloc",
+        {
+          "name": "jemalloc",
+          "platform": "!windows&!arm64"
+        }
+      ]
     }
   ],
   "overrides": [
