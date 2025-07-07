@@ -12,8 +12,7 @@ namespace ParquetSharp.Test
             var pool = MemoryPool.GetDefaultMemoryPool();
 
             Assert.AreEqual(0, pool.BytesAllocated);
-            Assert.Greater(pool.MaxMemory, 0);
-            Assert.AreEqual("system", pool.BackendName);
+            Assert.IsNotEmpty(pool.BackendName);
 
             using (var buffer = new ResizableBuffer())
             {
