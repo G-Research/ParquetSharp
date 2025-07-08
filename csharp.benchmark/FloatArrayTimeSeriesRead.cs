@@ -28,6 +28,7 @@ namespace ParquetSharp.Benchmark
             _allValues = dates.SelectMany((d, i) => values[i]).ToArray();
 
             using var writerPropertiesBuilder = new WriterPropertiesBuilder();
+            // Disable writing page indexes to work around https://github.com/apache/arrow/issues/47027
             using var writerProperties = writerPropertiesBuilder
                 .DisableWritePageIndex()
                 .Build();
