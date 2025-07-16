@@ -44,8 +44,8 @@ namespace ParquetSharp
 
             public bool Equals(SortingColumn other)
             {
-                return ColumnIndex == other.ColumnIndex && 
-                       IsDescending == other.IsDescending && 
+                return ColumnIndex == other.ColumnIndex &&
+                       IsDescending == other.IsDescending &&
                        NullsFirst == other.NullsFirst;
             }
 

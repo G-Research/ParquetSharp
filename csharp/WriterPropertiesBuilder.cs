@@ -525,9 +525,9 @@ namespace ParquetSharp
                 {
                     ExceptionInfo.Check(WriterPropertiesBuilder_Sorting_Columns(
                         _handle.IntPtr,
-                        (IntPtr)columnIndicesPtr,
-                        (IntPtr)isDescendingPtr,
-                        (IntPtr)nullsFirstPtr,
+                        (IntPtr) columnIndicesPtr,
+                        (IntPtr) isDescendingPtr,
+                        (IntPtr) nullsFirstPtr,
                         sortingColumns.Length));
                 }
             }
