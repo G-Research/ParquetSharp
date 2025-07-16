@@ -124,8 +124,7 @@ extern "C"
 
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Sorting_Columns(const std::shared_ptr<WriterProperties>* writer_properties, int32_t** column_indices, bool** descending, bool** nulls_first, int* num_columns)
 	{
-		try
-		{
+		TRYCATCH(
 			auto sorting_columns = (*writer_properties)->sorting_columns();
 			
 			*num_columns = static_cast<int>(sorting_columns.size());
@@ -149,13 +148,7 @@ extern "C"
 				*descending = nullptr;
 				*nulls_first = nullptr;
 			}
-			
-			return nullptr;
-		}
-		catch (const std::exception& e)
-		{
-			return new ExceptionInfo(typeid(e).name(), e.what());
-		}
+		)
 	}
 
 	PARQUETSHARP_EXPORT void WriterProperties_Sorting_Columns_Free(int32_t* column_indices, bool* descending, bool* nulls_first)

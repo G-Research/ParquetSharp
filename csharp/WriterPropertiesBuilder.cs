@@ -477,7 +477,10 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Set the sorting columns used to sort data when writing to a Parquet file.
+        /// Set the sorting columns to describe how written data is ordered.
+        ///
+        /// Note that no sorting or validation is done automatically. It is your responsibility to ensure
+        /// that data is written in the specified order. 
         /// </summary>
         /// <param name="sortingColumns">Array of SortingColumn specifications defining the sort order.</param>
         /// <returns>This builder instance.</returns>
