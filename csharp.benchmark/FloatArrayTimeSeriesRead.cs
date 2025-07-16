@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Apache.Arrow;
@@ -28,7 +27,12 @@ namespace ParquetSharp.Benchmark
             _allObjectIds = dates.SelectMany(d => objectIds).ToArray();
             _allValues = dates.SelectMany((d, i) => values[i]).ToArray();
 
-            using (var fileWriter = new ParquetFileWriter(Filename, CreateFloatArrayColumns(), Compression.Snappy))
+            using var writerPropertiesBuilder = new WriterPropertiesBuilder();
+            // Disable writing page indexes to work around https://github.com/apache/arrow/issues/47027
+            using var writerProperties = writerPropertiesBuilder
+                .DisableWritePageIndex()
+                .Build();
+            using (var fileWriter = new ParquetFileWriter(Filename, CreateFloatArrayColumns(), writerProperties))
             {
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
 

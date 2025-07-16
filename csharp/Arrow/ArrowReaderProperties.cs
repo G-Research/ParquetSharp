@@ -79,6 +79,7 @@ namespace ParquetSharp.Arrow
         /// When enabled, the Arrow reader will pre-buffer necessary regions
         /// of the file in-memory. This is intended to improve performance on
         /// high-latency filesystems (e.g. Amazon S3).
+        /// This is enabled by default.
         /// </summary>
         public bool PreBuffer
         {

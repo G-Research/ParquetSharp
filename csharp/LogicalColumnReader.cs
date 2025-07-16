@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using ParquetSharp.Schema;
 using ParquetSharp.LogicalBatchReader;
 
 namespace ParquetSharp
@@ -159,16 +158,22 @@ namespace ParquetSharp
 
         public IEnumerator<TElement> GetEnumerator()
         {
-            var buffer = new TElement[BufferLength];
-
-            while (HasNext)
+            var buffer = ArrayPool<TElement>.Shared.Rent(BufferLength);
+            try
             {
-                var read = ReadBatch(buffer);
-
-                for (int i = 0; i != read; ++i)
+                while (HasNext)
                 {
-                    yield return buffer[i];
+                    var read = ReadBatch(buffer);
+
+                    for (int i = 0; i != read; ++i)
+                    {
+                        yield return buffer[i];
+                    }
                 }
+            }
+            finally
+            {
+                ArrayPool<TElement>.Shared.Return(buffer);
             }
         }
 
