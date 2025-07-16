@@ -205,7 +205,7 @@ namespace ParquetSharp
         public bool PageChecksumEnabled => ExceptionInfo.Return<bool>(Handle, WriterProperties_Page_Checksum_Enabled);
 
         /// <summary>
-        /// Gets the columns by which the data is sorted when writing to the file.
+        /// Gets the columns by which the data is sorted.
         /// </summary>
         /// <returns>
         /// An array of <see cref="SortingColumn"/> specifying the sorting order for the file
