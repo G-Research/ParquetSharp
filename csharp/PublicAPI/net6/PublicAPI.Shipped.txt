@@ -1048,3 +1048,6 @@ static ParquetSharp.LogicalWrite.ConvertDecimal(System.ReadOnlySpan<decimal> sou
 static ParquetSharp.LogicalWrite.ConvertDecimal(System.ReadOnlySpan<decimal?> source, System.Span<short> defLevels, System.Span<int> destination, decimal multiplier, short nullLevel) -> void
 static ParquetSharp.LogicalWrite.ConvertDecimal(System.ReadOnlySpan<decimal?> source, System.Span<short> defLevels, System.Span<long> destination, decimal multiplier, short nullLevel) -> void
 static ParquetSharp.LogicalWrite.ConvertDecimal(System.ReadOnlySpan<decimal?> source, System.Span<short> defLevels, System.Span<ParquetSharp.FixedLenByteArray> destination, decimal multiplier, short nullLevel, ParquetSharp.ByteBuffer! byteBuffer, int typeLength) -> void
+override ParquetSharp.Schema.GroupNode.ToString() -> string!
+override ParquetSharp.Schema.PrimitiveNode.ToString() -> string!
+ParquetSharp.Arrow.FileWriter.NewRowGroup() -> void
