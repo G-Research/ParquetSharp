@@ -1,7 +1,7 @@
 #nullable enable
 ParquetSharp.WriterProperties.SortingColumn
 ParquetSharp.WriterProperties.SortingColumn.SortingColumn() -> void
-ParquetSharp.WriterProperties.SortingColumn.SortingColumn(int columnIndex, bool isDescending, bool nullsFirst) -> void
+ParquetSharp.WriterProperties.SortingColumn.SortingColumn(int columnIndex, bool isDescending = false, bool nullsFirst = false) -> void
 ParquetSharp.WriterProperties.SortingColumn.ColumnIndex.get -> int
 ParquetSharp.WriterProperties.SortingColumn.IsDescending.get -> bool
 ParquetSharp.WriterProperties.SortingColumn.NullsFirst.get -> bool
