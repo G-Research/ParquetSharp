@@ -213,7 +213,7 @@ extern "C"
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Sorting_Columns(WriterProperties::Builder* builder, int32_t* column_indices, bool* descending, bool* nulls_first, int num_columns)
 	{
 		std::vector<parquet::SortingColumn> sorting_columns;
-		
+		sorting_columns.reserve(num_columns);
 		// Create SortingColumn objects for each column
 		for (int i = 0; i < num_columns; ++i)
 		{
