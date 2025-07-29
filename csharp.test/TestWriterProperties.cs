@@ -247,5 +247,92 @@ namespace ParquetSharp.Test
             using var valueReader = groupReader.Column(0).LogicalReader<float?>();
             Assert.AreEqual(values, valueReader.ReadAll(numRows));
         }
+
+        [Test]
+        public static void TestSortingColumns()
+        {
+            // Test with some sorting columns using the new SortingColumn struct API
+            var sortingColumns = new[]
+            {
+                new WriterProperties.SortingColumn(0, false, true), // First column: ascending, nulls first
+                new WriterProperties.SortingColumn(1, true, false) // Second column: descending, nulls last
+            };
+
+            var p = new WriterPropertiesBuilder()
+                .SortingColumns(sortingColumns)
+                .Build();
+
+            var retrievedSortingColumns = p.SortingColumns();
+
+            Assert.AreEqual(2, retrievedSortingColumns.Length);
+
+            Assert.AreEqual(0, retrievedSortingColumns[0].ColumnIndex);
+            Assert.AreEqual(1, retrievedSortingColumns[1].ColumnIndex);
+
+            Assert.AreEqual(false, retrievedSortingColumns[0].IsDescending);
+            Assert.AreEqual(true, retrievedSortingColumns[1].IsDescending);
+
+            Assert.AreEqual(true, retrievedSortingColumns[0].NullsFirst);
+            Assert.AreEqual(false, retrievedSortingColumns[1].NullsFirst);
+        }
+
+        [Test]
+        public static void TestSortingColumnsRoundTrip()
+        {
+            // Test writing a file with sorting columns and reading them back from row group metadata
+            var sortingColumns = new[]
+            {
+                new WriterProperties.SortingColumn(0, false, true), // First column: ascending, nulls first
+                new WriterProperties.SortingColumn(1, true, false) // Second column: descending, nulls last
+            };
+
+            var columns = new Column[]
+            {
+                new Column<int>("id"),
+                new Column<string>("name")
+            };
+
+            using var buffer = new ResizableBuffer();
+
+            // Write a file with sorting columns
+            using (var output = new BufferOutputStream(buffer))
+            {
+                var writerProperties = new WriterPropertiesBuilder()
+                    .SortingColumns(sortingColumns)
+                    .Build();
+
+                using var fileWriter = new ParquetFileWriter(output, columns, writerProperties);
+                using var groupWriter = fileWriter.AppendRowGroup();
+
+                using var idWriter = groupWriter.NextColumn().LogicalWriter<int>();
+                idWriter.WriteBatch(new[] {1, 2, 3});
+
+                using var nameWriter = groupWriter.NextColumn().LogicalWriter<string>();
+                nameWriter.WriteBatch(new[] {"Charlie", "Alice", "Bob"});
+
+                fileWriter.Close();
+            }
+
+            // Read back and verify sorting columns from row group metadata
+            using var input = new BufferReader(buffer);
+            using var fileReader = new ParquetFileReader(input);
+            using var rowGroupReader = fileReader.RowGroup(0);
+
+            var rowGroupSortingColumns = rowGroupReader.MetaData.SortingColumns();
+
+            Assert.AreEqual(2, rowGroupSortingColumns.Length);
+
+            Assert.AreEqual(0, rowGroupSortingColumns[0].ColumnIndex);
+            Assert.AreEqual(1, rowGroupSortingColumns[1].ColumnIndex);
+
+            Assert.AreEqual(false, rowGroupSortingColumns[0].IsDescending);
+            Assert.AreEqual(true, rowGroupSortingColumns[1].IsDescending);
+
+            Assert.AreEqual(true, rowGroupSortingColumns[0].NullsFirst);
+            Assert.AreEqual(false, rowGroupSortingColumns[1].NullsFirst);
+
+            // Verify they match the original sorting columns
+            Assert.AreEqual(sortingColumns, rowGroupSortingColumns);
+        }
     }
 }

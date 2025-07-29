@@ -10,6 +10,67 @@ namespace ParquetSharp
     public sealed class WriterProperties : IDisposable
     {
         /// <summary>
+        /// Represents a column sorting specification.
+        /// </summary>
+        public readonly struct SortingColumn : IEquatable<SortingColumn>
+        {
+            /// <summary>
+            /// Creates a new sorting column specification.
+            /// </summary>
+            /// <param name="columnIndex">The index of the column to sort by</param>
+            /// <param name="isDescending">Whether to sort in descending order (true) or ascending order (false)</param>
+            /// <param name="nullsFirst">Whether nulls should come first (true) or last (false)</param>
+            public SortingColumn(int columnIndex, bool isDescending = false, bool nullsFirst = false)
+            {
+                ColumnIndex = columnIndex;
+                IsDescending = isDescending;
+                NullsFirst = nullsFirst;
+            }
+
+            /// <summary>
+            /// The index of the column to sort by
+            /// </summary>
+            public int ColumnIndex { get; }
+
+            /// <summary>
+            /// Whether to sort in descending order (true) or ascending order (false)
+            /// </summary>
+            public bool IsDescending { get; }
+
+            /// <summary>
+            /// Whether nulls should come first (true) or last (false)
+            /// </summary>
+            public bool NullsFirst { get; }
+
+            public bool Equals(SortingColumn other)
+            {
+                return ColumnIndex == other.ColumnIndex &&
+                       IsDescending == other.IsDescending &&
+                       NullsFirst == other.NullsFirst;
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is SortingColumn other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(ColumnIndex, IsDescending, NullsFirst);
+            }
+
+            public static bool operator ==(SortingColumn left, SortingColumn right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(SortingColumn left, SortingColumn right)
+            {
+                return !left.Equals(right);
+            }
+        }
+
+        /// <summary>
         /// Create a new <see cref="WriterProperties"/> with default values.
         /// </summary>
         /// <returns>A new <see cref="WriterProperties"/> object with default values.</returns>
@@ -143,6 +204,61 @@ namespace ParquetSharp
         /// </summary>
         public bool PageChecksumEnabled => ExceptionInfo.Return<bool>(Handle, WriterProperties_Page_Checksum_Enabled);
 
+        /// <summary>
+        /// Gets the columns by which the data is sorted.
+        /// </summary>
+        /// <returns>
+        /// An array of <see cref="SortingColumn"/> specifying the sorting order for the file
+        /// </returns>
+        public SortingColumn[] SortingColumns()
+        {
+            IntPtr columnIndicesPtr = IntPtr.Zero;
+            IntPtr descendingPtr = IntPtr.Zero;
+            IntPtr nullsFirstPtr = IntPtr.Zero;
+            int numColumns = 0;
+
+            try
+            {
+                ExceptionInfo.Check(WriterProperties_Sorting_Columns(
+                    Handle.IntPtr,
+                    ref columnIndicesPtr,
+                    ref descendingPtr,
+                    ref nullsFirstPtr,
+                    ref numColumns));
+
+                var columnIndices = new int[numColumns];
+                var isDescending = new bool[numColumns];
+                var nullsFirst = new bool[numColumns];
+
+                // Read column indices
+                Marshal.Copy(columnIndicesPtr, columnIndices, 0, numColumns);
+
+                // Read descending flags 
+                for (var i = 0; i < numColumns; ++i)
+                {
+                    isDescending[i] = Marshal.ReadByte(descendingPtr, i) != 0;
+                }
+
+                // Read nulls_first flags
+                for (var i = 0; i < numColumns; ++i)
+                {
+                    nullsFirst[i] = Marshal.ReadByte(nullsFirstPtr, i) != 0;
+                }
+
+                // Create and return SortingColumn array
+                var result = new SortingColumn[numColumns];
+                for (var i = 0; i < numColumns; i++)
+                {
+                    result[i] = new SortingColumn(columnIndices[i], isDescending[i], nullsFirst[i]);
+                }
+                return result;
+            }
+            finally
+            {
+                WriterProperties_Sorting_Columns_Free(columnIndicesPtr, descendingPtr, nullsFirstPtr);
+            }
+        }
+
         internal readonly ParquetHandle Handle;
 
         [DllImport(ParquetDll.Name)]
@@ -210,5 +326,11 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Max_Statistics_Size(IntPtr writerProperties, IntPtr path, [MarshalAs(UnmanagedType.I1)] out ulong maxStatisticsSize);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Sorting_Columns(IntPtr writerProperties, ref IntPtr columnIndices, ref IntPtr descending, ref IntPtr nullsFirst, ref int numColumns);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern void WriterProperties_Sorting_Columns_Free(IntPtr columnIndices, IntPtr descending, IntPtr nullsFirst);
     }
 }
