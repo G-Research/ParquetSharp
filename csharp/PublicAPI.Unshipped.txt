@@ -13,3 +13,6 @@ static ParquetSharp.WriterProperties.SortingColumn.operator !=(ParquetSharp.Writ
 ParquetSharp.WriterProperties.SortingColumns() -> ParquetSharp.WriterProperties.SortingColumn[]!
 ParquetSharp.WriterPropertiesBuilder.SortingColumns(ParquetSharp.WriterProperties.SortingColumn[]! sortingColumns) -> ParquetSharp.WriterPropertiesBuilder!
 ParquetSharp.RowGroupMetaData.SortingColumns() -> ParquetSharp.WriterProperties.SortingColumn[]!
+ParquetSharp.LogicalTypeEnum.Geography = 18 -> ParquetSharp.LogicalTypeEnum
+ParquetSharp.LogicalTypeEnum.Geometry = 17 -> ParquetSharp.LogicalTypeEnum
+ParquetSharp.LogicalTypeEnum.Variant = 19 -> ParquetSharp.LogicalTypeEnum
