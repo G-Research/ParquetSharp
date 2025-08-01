@@ -22,6 +22,9 @@ namespace ParquetSharp
         Uuid = 14,
         None = 15,
         Float16 = 16,
+        Geometry = 17,
+        Geography = 18,
+        Variant = 19,
     }
 
     /// <summary>
@@ -47,7 +50,10 @@ namespace ParquetSharp
         Bson = 13,
         Uuid = 14,
         Float16 = 15,
-        None = 16,
+        Geometry = 16,
+        Geography = 17,
+        Variant = 18,
+        None = 19,
     }
 
     internal static class CppLogicalTypeEnumExtensions
@@ -72,6 +78,9 @@ namespace ParquetSharp
                 CppLogicalTypeEnum.Bson => LogicalTypeEnum.Bson,
                 CppLogicalTypeEnum.Uuid => LogicalTypeEnum.Uuid,
                 CppLogicalTypeEnum.Float16 => LogicalTypeEnum.Float16,
+                CppLogicalTypeEnum.Geometry => LogicalTypeEnum.Geometry,
+                CppLogicalTypeEnum.Geography => LogicalTypeEnum.Geography,
+                CppLogicalTypeEnum.Variant => LogicalTypeEnum.Variant,
                 CppLogicalTypeEnum.None => LogicalTypeEnum.None,
                 _ => throw new ArgumentOutOfRangeException(nameof(enumValue), enumValue, null)
             };

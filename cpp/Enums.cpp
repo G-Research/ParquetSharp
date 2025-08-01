@@ -53,7 +53,10 @@ namespace
 		static_assert(LogicalType::Type::BSON == 13);
 		static_assert(LogicalType::Type::UUID == 14);
 		static_assert(LogicalType::Type::FLOAT16 == 15);
-		static_assert(LogicalType::Type::NONE == 16);
+		static_assert(LogicalType::Type::GEOMETRY == 16);
+		static_assert(LogicalType::Type::GEOGRAPHY == 17);
+		static_assert(LogicalType::Type::VARIANT == 18);
+		static_assert(LogicalType::Type::NONE == 19);
 
 		static_assert(ParquetCipher::AES_GCM_V1 == 0);
 		static_assert(ParquetCipher::AES_GCM_CTR_V1 == 1);

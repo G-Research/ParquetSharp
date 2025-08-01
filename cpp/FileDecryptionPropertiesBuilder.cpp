@@ -37,7 +37,7 @@ extern "C"
 	            m.insert(std::make_pair((*column_decryption_properties[i])->column_path(), (*column_decryption_properties[i])));
 	        }
 
-	        builder->column_keys(m);
+	        builder->column_keys(std::move(m));
         )
     }
 

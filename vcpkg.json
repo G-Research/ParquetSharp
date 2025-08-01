@@ -2,14 +2,14 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "parquetsharp",
   "version-string": "undefined",
-  "builtin-baseline": "e08b7bd89ae162f8579df2f8d39a1ae94107c8fd",
+  "builtin-baseline": "8485f14efb70fc778b96b3d3681b285e3f10b104",
   "dependencies": [
     {
       "name": "arrow",
       "features": [
         {
           "name": "mimalloc",
-          "platform": "linux | !arm64"
+          "platform": "linux | (!staticcrt & !arm64)"
         },
         {
           "name": "jemalloc",
@@ -21,7 +21,7 @@
   "overrides": [
     {
       "name": "arrow",
-      "version": "20.0.0#1"
+      "version": "21.0.0"
     }
   ]
 }

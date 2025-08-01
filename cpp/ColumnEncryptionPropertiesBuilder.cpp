@@ -16,7 +16,7 @@ extern "C"
 
     PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionPropertiesBuilder_Create_From_Column_Path(const std::shared_ptr<schema::ColumnPath>* path, ColumnEncryptionProperties::Builder** builder)
     {
-        TRYCATCH(*builder = new ColumnEncryptionProperties::Builder(*path);)
+        TRYCATCH(*builder = new ColumnEncryptionProperties::Builder(**path);)
     }
 	
     PARQUETSHARP_EXPORT void ColumnEncryptionPropertiesBuilder_Free(ColumnEncryptionProperties::Builder* builder)
