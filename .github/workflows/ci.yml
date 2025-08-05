@@ -115,7 +115,7 @@ jobs:
       if: runner.os == 'Linux' && matrix.arch == 'x64'
       run: |
         docker run -d --name centos --entrypoint tail -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT quay.io/pypa/manylinux2014_x86_64 -f /dev/null
-        docker exec centos sh -c "yum install -y devtoolset-7 rh-git227 httpd24-curl flex bison perl-Data-Dumper perl-IPC-Cmd && \
+        docker exec centos sh -c "yum install -y devtoolset-10 rh-git227 httpd24-curl flex bison perl-Data-Dumper perl-IPC-Cmd && \
                                   curl -fsSL -o /tmp/cmake.sh https://github.com/Kitware/CMake/releases/download/v${{ steps.cmake-info.outputs.version }}/cmake-${{ steps.cmake-info.outputs.version }}-linux-x86_64.sh && \
                                   sh /tmp/cmake.sh --skip-license --prefix=/usr/local && \
                                   rm /tmp/cmake.sh"
@@ -150,7 +150,7 @@ jobs:
       if: runner.os == 'Linux' || runner.os == 'macOS'
       run: |
         if [ "${{ runner.os }}" == "Linux" ] && [ "${{ matrix.arch }}" == "x64" ]; then
-          exec="docker exec -w $PWD -e GITHUB_ACTIONS -e ACTIONS_CACHE_URL -e ACTIONS_RUNTIME_TOKEN -e VCPKG_BINARY_SOURCES -e VCPKG_INSTALLATION_ROOT centos scl enable devtoolset-7 rh-git227 httpd24 --"
+          exec="docker exec -w $PWD -e GITHUB_ACTIONS -e ACTIONS_CACHE_URL -e ACTIONS_RUNTIME_TOKEN -e VCPKG_BINARY_SOURCES -e VCPKG_INSTALLATION_ROOT centos scl enable devtoolset-10 rh-git227 httpd24 --"
         fi
         $exec ./build_unix.sh ${{ matrix.arch }}
       env:

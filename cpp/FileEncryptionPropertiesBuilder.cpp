@@ -60,7 +60,7 @@ extern "C"
                 m.insert(std::make_pair((*column_encryption_properties[i])->column_path(), (*column_encryption_properties[i])));
 			}
 
-            builder->encrypted_columns(m);
+            builder->encrypted_columns(std::move(m));
         )
     }
 

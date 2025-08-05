@@ -270,7 +270,7 @@ dotnet jb cleanupcode "csharp" "csharp.test" "csharp.benchmark" --profile="Built
 Building ParquetSharp natively requires the following dependencies:
 - A modern C++ compiler toolchain
 - .NET SDK 8.0
-- Apache Arrow (20.0.0)
+- Apache Arrow (21.0.0)
 
 For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://vcpkg.io).
 The build scripts will use an existing vcpkg installation if either of the `VCPKG_INSTALLATION_ROOT` or `VCPKG_ROOT` environment variables are defined, otherwise vcpkg will be downloaded into the build directory.
