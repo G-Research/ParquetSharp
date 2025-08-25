@@ -38,7 +38,7 @@ jobs:
       working-directory: ./docs
 
     - name: Upload Site Artifact
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v4
       with:
         path: './docs/_site'
 
