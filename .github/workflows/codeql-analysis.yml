@@ -35,7 +35,7 @@ jobs:
         ./bootstrap-vcpkg.sh
 
     - name: Setup .NET SDK v8.0.x
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 8.0.x
 
