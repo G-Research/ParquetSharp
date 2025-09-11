@@ -16,3 +16,6 @@ ParquetSharp.RowGroupMetaData.SortingColumns() -> ParquetSharp.WriterProperties.
 ParquetSharp.LogicalTypeEnum.Geography = 18 -> ParquetSharp.LogicalTypeEnum
 ParquetSharp.LogicalTypeEnum.Geometry = 17 -> ParquetSharp.LogicalTypeEnum
 ParquetSharp.LogicalTypeEnum.Variant = 19 -> ParquetSharp.LogicalTypeEnum
+static ParquetSharp.MemoryPool.JemallocMemoryPool() -> ParquetSharp.MemoryPool!
+static ParquetSharp.MemoryPool.MimallocMemoryPool() -> ParquetSharp.MemoryPool!
+static ParquetSharp.MemoryPool.SystemMemoryPool() -> ParquetSharp.MemoryPool!
