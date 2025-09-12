@@ -17,6 +17,15 @@ namespace ParquetSharp
             return new ReaderProperties(ExceptionInfo.Return<IntPtr>(ReaderProperties_Get_Default_Reader_Properties));
         }
 
+        /// <summary>
+        /// Create a new <see cref="ReaderProperties"/> that uses the specified memory pool for allocations in the reader.
+        /// </summary>
+        /// <returns>A new <see cref="ReaderProperties"/> object.</returns>
+        public static ReaderProperties WithMemoryPool(MemoryPool memoryPool)
+        {
+            return new ReaderProperties(ExceptionInfo.Return<IntPtr, IntPtr>(memoryPool.Handle, ReaderProperties_With_Memory_Pool));
+        }
+
         internal ReaderProperties(IntPtr handle)
         {
             Handle = new ParquetHandle(handle, ReaderProperties_Free);
@@ -114,8 +123,25 @@ namespace ParquetSharp
             GC.KeepAlive(Handle);
         }
 
+        /// <summary>
+        /// Get the memory pool that will be used for allocations in the reader.
+        ///
+        /// This can be set when creating the reader properties with <see cref="WithMemoryPool" />.
+        /// </summary>
+        public MemoryPool MemoryPool
+        {
+            get
+            {
+                var poolPtr = ExceptionInfo.Return<IntPtr>(Handle, ReaderProperties_Get_Memory_Pool);
+                return new MemoryPool(poolPtr);
+            }
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Get_Default_Reader_Properties(out IntPtr readerProperties);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_With_Memory_Pool(IntPtr memoryPool, out IntPtr readerProperties);
 
         [DllImport(ParquetDll.Name)]
         private static extern void ReaderProperties_Free(IntPtr readerProperties);
@@ -149,6 +175,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Disable_Page_Checksum_Verification(IntPtr readerProperties);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_Get_Memory_Pool(IntPtr readerProperties, out IntPtr memoryPool);
 
         internal readonly ParquetHandle Handle;
     }

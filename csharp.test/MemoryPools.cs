@@ -8,7 +8,6 @@ namespace ParquetSharp.Test
         /// <summary>
         /// Used as an Nunit TestCaseSource to test methods with different memory pools.
         /// </summary>
-        /// <returns></returns>
         public static TestCase[] TestCases()
         {
             var pools = new List<MemoryPool?>()
@@ -36,6 +35,15 @@ namespace ParquetSharp.Test
             }
 
             return pools.Select(p => new TestCase(p)).ToArray();
+        }
+
+        /// <summary>
+        /// Used as an Nunit TestCaseSource to test methods with different memory pools.
+        /// Excludes the null pool.
+        /// </summary>
+        public static TestCase[] NonNullTestCases()
+        {
+            return TestCases().Where(t => t.Pool != null).ToArray();
         }
 
         public class TestCase

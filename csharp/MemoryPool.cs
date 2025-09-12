@@ -63,7 +63,7 @@ namespace ParquetSharp
         /// </summary>
         public string BackendName => ExceptionInfo.ReturnString(Handle, MemoryPool_Backend_Name, MemoryPool_Backend_Name_Free);
 
-        private MemoryPool(IntPtr handle)
+        internal MemoryPool(IntPtr handle)
         {
             Handle = handle;
         }
