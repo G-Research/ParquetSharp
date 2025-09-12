@@ -19,3 +19,4 @@ ParquetSharp.LogicalTypeEnum.Variant = 19 -> ParquetSharp.LogicalTypeEnum
 static ParquetSharp.MemoryPool.JemallocMemoryPool() -> ParquetSharp.MemoryPool!
 static ParquetSharp.MemoryPool.MimallocMemoryPool() -> ParquetSharp.MemoryPool!
 static ParquetSharp.MemoryPool.SystemMemoryPool() -> ParquetSharp.MemoryPool!
+ParquetSharp.WriterPropertiesBuilder.MemoryPool(ParquetSharp.MemoryPool! memoryPool) -> ParquetSharp.WriterPropertiesBuilder!

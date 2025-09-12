@@ -51,21 +51,21 @@ namespace ParquetSharp
         /// <summary>
         /// The number of bytes currently allocated by this memory pool and not yet freed.
         /// </summary>
-        public long BytesAllocated => ExceptionInfo.Return<long>(_handle, MemoryPool_Bytes_Allocated);
+        public long BytesAllocated => ExceptionInfo.Return<long>(Handle, MemoryPool_Bytes_Allocated);
 
         /// <summary>
         /// The peak number of bytes allocated by this memory pool.
         /// </summary>
-        public long MaxMemory => ExceptionInfo.Return<long>(_handle, MemoryPool_Max_Memory);
+        public long MaxMemory => ExceptionInfo.Return<long>(Handle, MemoryPool_Max_Memory);
 
         /// <summary>
         /// The name of the backend used by this memory pool.
         /// </summary>
-        public string BackendName => ExceptionInfo.ReturnString(_handle, MemoryPool_Backend_Name, MemoryPool_Backend_Name_Free);
+        public string BackendName => ExceptionInfo.ReturnString(Handle, MemoryPool_Backend_Name, MemoryPool_Backend_Name_Free);
 
         private MemoryPool(IntPtr handle)
         {
-            _handle = handle;
+            Handle = handle;
         }
 
         [DllImport(ParquetDll.Name)]
@@ -92,6 +92,6 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern void MemoryPool_Backend_Name_Free(IntPtr backendName);
 
-        private readonly IntPtr _handle;
+        internal readonly IntPtr Handle;
     }
 }

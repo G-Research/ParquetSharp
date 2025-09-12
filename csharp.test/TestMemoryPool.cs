@@ -21,7 +21,7 @@ namespace ParquetSharp.Test
         {
             var pool = MemoryPool.SystemMemoryPool();
             Assert.That(pool.BackendName, Is.EqualTo("system"));
-            // TODO: TestMemoryPoolInstance(pool);
+            TestMemoryPoolInstance(pool);
         }
 
         [Test]
@@ -52,7 +52,7 @@ namespace ParquetSharp.Test
             }
 
             Assert.That(pool.BackendName, Is.EqualTo("jemalloc"));
-            // TODO: TestMemoryPoolInstance(pool);
+            TestMemoryPoolInstance(pool);
         }
 
         [Test]
@@ -83,7 +83,7 @@ namespace ParquetSharp.Test
             }
 
             Assert.That(pool.BackendName, Is.EqualTo("mimalloc"));
-            // TODO: TestMemoryPoolInstance(pool);
+            TestMemoryPoolInstance(pool);
         }
 
         private static void TestMemoryPoolInstance(MemoryPool pool)
@@ -93,10 +93,15 @@ namespace ParquetSharp.Test
             using (var buffer = new ResizableBuffer())
             {
                 using var stream = new BufferOutputStream(buffer);
-                using var fileWriter = new ParquetFileWriter(stream, new Column[] {new Column<int>("Index")});
+                using var writerPropertiesBuilder = new WriterPropertiesBuilder();
+                writerPropertiesBuilder.MemoryPool(pool);
+                using var writerProperties = writerPropertiesBuilder.Build();
+                using var fileWriter = new ParquetFileWriter(stream, new Column[] {new Column<int>("Index")}, writerProperties);
 
                 Assert.Greater(pool.BytesAllocated, 0);
                 Assert.Greater(pool.MaxMemory, 0);
+
+                fileWriter.Close();
             }
 
             Assert.AreEqual(0, pool.BytesAllocated);

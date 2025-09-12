@@ -226,4 +226,9 @@ extern "C"
 		
 		TRYCATCH(builder->set_sorting_columns(sorting_columns);)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Memory_Pool(WriterProperties::Builder* builder, ::arrow::MemoryPool* pool)
+	{
+		TRYCATCH(builder->memory_pool(pool);)
+	}
 }
