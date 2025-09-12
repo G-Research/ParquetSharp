@@ -58,11 +58,13 @@ namespace ParquetSharp.Test
             }
         }
 
-        [Test]
-        public static void TestBufferOutputStreamFinish()
+        [TestCaseSource(typeof(MemoryPools), nameof(MemoryPools.TestCases))]
+        public static void TestBufferOutputStreamFinish(MemoryPools.TestCase memoryPool)
         {
             var expected = Enumerable.Range(0, 100).ToArray();
-            using var outStream = new BufferOutputStream();
+            using var outStream = memoryPool.Pool == null
+                ? new BufferOutputStream()
+                : new BufferOutputStream(memoryPool.Pool);
 
             // Write out a single column
             using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("int_field")}))
@@ -86,10 +88,10 @@ namespace ParquetSharp.Test
             Assert.AreEqual(expected, allData);
         }
 
-        [Test]
-        public static void TestResizeBuffer()
+        [TestCaseSource(typeof(MemoryPools), nameof(MemoryPools.TestCases))]
+        public static void TestResizeBuffer(MemoryPools.TestCase memoryPool)
         {
-            using var buffer = new ResizableBuffer(initialSize: 128);
+            using var buffer = new ResizableBuffer(initialSize: 128, memoryPool: memoryPool.Pool);
             const int newLength = 256;
             buffer.Resize(newLength);
             var values = Enumerable.Range(0, newLength).Select(i => (byte) i).ToArray();

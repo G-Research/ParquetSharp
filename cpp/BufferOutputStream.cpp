@@ -7,13 +7,16 @@
 
 extern "C"
 {
-	PARQUETSHARP_EXPORT ExceptionInfo* BufferOutputStream_Create(std::shared_ptr<arrow::io::BufferOutputStream>** output_stream)
+	PARQUETSHARP_EXPORT ExceptionInfo* BufferOutputStream_Create(::arrow::MemoryPool* pool, std::shared_ptr<arrow::io::BufferOutputStream>** output_stream)
 	{
 		TRYCATCH
 		(
+			if (pool == nullptr) {
+				pool = ::arrow::default_memory_pool();
+			}
 			PARQUET_ASSIGN_OR_THROW(
 				const std::shared_ptr<arrow::io::BufferOutputStream> output,
-				arrow::io::BufferOutputStream::Create(1024, arrow::default_memory_pool()));
+				arrow::io::BufferOutputStream::Create(1024, pool));
 
 			*output_stream = new std::shared_ptr<arrow::io::BufferOutputStream>(output);
 		)

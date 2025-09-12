@@ -90,7 +90,7 @@ namespace ParquetSharp.Test
         {
             Assert.AreEqual(0, pool.BytesAllocated);
 
-            using (var buffer = new ResizableBuffer())
+            using (var buffer = new ResizableBuffer(memoryPool: pool))
             {
                 using var stream = new BufferOutputStream(buffer);
                 using var writerPropertiesBuilder = new WriterPropertiesBuilder();

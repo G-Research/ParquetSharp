@@ -12,8 +12,16 @@ namespace ParquetSharp.IO
         /// Create a new resizable buffer with the given initial size.
         /// </summary>
         /// <param name="initialSize">The initial size of the buffer in bytes.</param>
-        public ResizableBuffer(long initialSize = 128L)
-            : base(ExceptionInfo.Return<long, IntPtr>(initialSize, ResizableBuffer_Create))
+        /// <param name="memoryPool">The memory pool to use to allocate the buffer.</param>
+        public ResizableBuffer(long initialSize = 128L, MemoryPool? memoryPool = null)
+            : base(ExceptionInfo.Return<long, IntPtr, IntPtr>(initialSize, memoryPool?.Handle ?? IntPtr.Zero, ResizableBuffer_Create))
+        {
+        }
+
+        // Backward compatibility overload
+        /// <exclude />
+        public ResizableBuffer(long initialSize)
+            : this(initialSize, null)
         {
         }
 
@@ -40,7 +48,7 @@ namespace ParquetSharp.IO
         }
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ResizableBuffer_Create(long initialSize, out IntPtr resizableBuffer);
+        private static extern IntPtr ResizableBuffer_Create(long initialSize, IntPtr memoryPool, out IntPtr resizableBuffer);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ResizableBuffer_Resize(IntPtr resizableBuffer, long newSize);

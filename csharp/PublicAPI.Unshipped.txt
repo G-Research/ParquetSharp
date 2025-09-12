@@ -20,3 +20,7 @@ static ParquetSharp.MemoryPool.JemallocMemoryPool() -> ParquetSharp.MemoryPool!
 static ParquetSharp.MemoryPool.MimallocMemoryPool() -> ParquetSharp.MemoryPool!
 static ParquetSharp.MemoryPool.SystemMemoryPool() -> ParquetSharp.MemoryPool!
 ParquetSharp.WriterPropertiesBuilder.MemoryPool(ParquetSharp.MemoryPool! memoryPool) -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.IO.BufferOutputStream.BufferOutputStream(ParquetSharp.MemoryPool! memoryPool) -> void
+ParquetSharp.IO.ResizableBuffer.ResizableBuffer(long initialSize = 128, ParquetSharp.MemoryPool? memoryPool = null) -> void
+ParquetSharp.IO.ResizableBuffer.ResizableBuffer(long initialSize) -> void
+*REMOVED*ParquetSharp.IO.ResizableBuffer.ResizableBuffer(long initialSize = 128) -> void
