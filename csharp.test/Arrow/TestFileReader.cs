@@ -358,6 +358,38 @@ namespace ParquetSharp.Test.Arrow
             Assert.That(exception!.Message, Does.Contain("owning parent has been disposed"));
         }
 
+        [TestCaseSource(typeof(MemoryPools), nameof(MemoryPools.TestCases))]
+        public async Task TestReadWithMemoryPool(MemoryPools.TestCase memoryPool)
+        {
+            using var buffer = new ResizableBuffer(memoryPool: MemoryPool.SystemMemoryPool());
+            WriteTestFile(buffer);
+
+            var pool = memoryPool.Pool;
+            using var readerProperties = pool == null
+                ? ReaderProperties.GetDefaultReaderProperties()
+                : ReaderProperties.WithMemoryPool(pool);
+
+            using var inStream = new BufferReader(buffer);
+            using var fileReader = new FileReader(inStream, readerProperties);
+            using var batchReader = fileReader.GetRecordBatchReader();
+
+            var rowsRead = 0;
+            while (true)
+            {
+                using var batch = await batchReader.ReadNextRecordBatchAsync();
+                if (batch == null)
+                {
+                    break;
+                }
+                rowsRead += batch.Length;
+            }
+
+            var expectedPool = pool ?? MemoryPool.GetDefaultMemoryPool();
+            Assert.That(expectedPool.BytesAllocated, Is.GreaterThan(0));
+
+            Assert.That(rowsRead, Is.EqualTo(RowsPerRowGroup * NumRowGroups));
+        }
+
         private static void WriteTestFile(ResizableBuffer buffer)
         {
             var columns = new Column[]

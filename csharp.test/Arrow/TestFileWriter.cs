@@ -128,8 +128,8 @@ namespace ParquetSharp.Test.Arrow
             await VerifyData(inStream, numRows);
         }
 
-        [Test]
-        public async Task TestWriteBufferedRecordBatches()
+        [TestCaseSource(typeof(MemoryPools), nameof(MemoryPools.TestCases))]
+        public async Task TestWriteBufferedRecordBatches(MemoryPools.TestCase memoryPool)
         {
             var fields = new[]
             {
@@ -152,10 +152,16 @@ namespace ParquetSharp.Test.Arrow
                 return new RecordBatch(schema, arrays, numRows);
             }
 
-            using var buffer = new ResizableBuffer();
+            using var buffer = new ResizableBuffer(memoryPool: MemoryPool.SystemMemoryPool());
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var propertiesBuilder = new WriterPropertiesBuilder();
+                if (memoryPool.Pool != null)
+                {
+                    propertiesBuilder.MemoryPool(memoryPool.Pool);
+                }
+                var expectedPool = memoryPool.Pool ?? MemoryPool.GetDefaultMemoryPool();
+
                 propertiesBuilder.MaxRowGroupLength(250);
                 using var writerProperties = propertiesBuilder.Build();
                 using var writer = new FileWriter(outStream, schema, writerProperties);
@@ -164,6 +170,8 @@ namespace ParquetSharp.Test.Arrow
                 writer.WriteBufferedRecordBatch(batch0);
                 using var batch1 = GetBatch(0, 100);
                 writer.WriteBufferedRecordBatch(batch1);
+
+                Assert.That(expectedPool.BytesAllocated, Is.GreaterThan(0));
 
                 writer.NewBufferedRowGroup();
 
