@@ -259,6 +259,11 @@ namespace ParquetSharp
             }
         }
 
+        /// <summary>
+        /// The memory pool that will be used by allocations in the writer.
+        /// </summary>
+        public MemoryPool MemoryPool => new MemoryPool(ExceptionInfo.Return<IntPtr>(Handle, WriterProperties_Memory_Pool));
+
         internal readonly ParquetHandle Handle;
 
         [DllImport(ParquetDll.Name)]
@@ -332,5 +337,8 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern void WriterProperties_Sorting_Columns_Free(IntPtr columnIndices, IntPtr descending, IntPtr nullsFirst);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Memory_Pool(IntPtr writerProperties, out IntPtr memoryPool);
     }
 }

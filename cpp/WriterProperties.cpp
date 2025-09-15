@@ -157,4 +157,9 @@ extern "C"
 		delete[] descending;
 		delete[] nulls_first;
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Memory_Pool(const std::shared_ptr<WriterProperties>* writer_properties, ::arrow::MemoryPool** memory_pool)
+	{
+		TRYCATCH(*memory_pool = (*writer_properties)->memory_pool();)
+	}
 }

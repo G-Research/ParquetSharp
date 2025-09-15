@@ -12,7 +12,15 @@ namespace ParquetSharp.IO
         /// Create a new buffer output stream.
         /// </summary>
         public BufferOutputStream()
-            : base(ExceptionInfo.Return<IntPtr>(BufferOutputStream_Create))
+            : base(ExceptionInfo.Return<IntPtr, IntPtr>(IntPtr.Zero, BufferOutputStream_Create))
+        {
+        }
+
+        /// <summary>
+        /// Create a new buffer output stream using the specified memory pool.
+        /// </summary>
+        public BufferOutputStream(MemoryPool memoryPool)
+            : base(ExceptionInfo.Return<IntPtr, IntPtr>(memoryPool.Handle, BufferOutputStream_Create))
         {
         }
 
@@ -35,7 +43,7 @@ namespace ParquetSharp.IO
         }
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr BufferOutputStream_Create(out IntPtr outputStream);
+        private static extern IntPtr BufferOutputStream_Create(IntPtr memoryPool, out IntPtr outputStream);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr BufferOutputStream_Create_From_ResizableBuffer(IntPtr resizableBuffer, out IntPtr outputStream);

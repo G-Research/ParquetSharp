@@ -21,7 +21,9 @@ extern "C"
   {
     TRYCATCH
     (
-      arrow::MemoryPool* pool = arrow::default_memory_pool();
+      arrow::MemoryPool* pool = writer_properties == nullptr
+          ? arrow::default_memory_pool()
+          : (*writer_properties)->memory_pool();
 
       std::shared_ptr<::arrow::io::OutputStream> output_stream;
       PARQUET_ASSIGN_OR_THROW(output_stream, ::arrow::io::FileOutputStream::Open(path));
@@ -54,7 +56,9 @@ extern "C"
   {
     TRYCATCH
     (
-      arrow::MemoryPool* pool = arrow::default_memory_pool();
+      arrow::MemoryPool* pool = writer_properties == nullptr
+          ? arrow::default_memory_pool()
+          : (*writer_properties)->memory_pool();
 
       std::shared_ptr<parquet::WriterProperties> properties = writer_properties == nullptr
           ? parquet::default_writer_properties()

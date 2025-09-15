@@ -16,3 +16,14 @@ ParquetSharp.RowGroupMetaData.SortingColumns() -> ParquetSharp.WriterProperties.
 ParquetSharp.LogicalTypeEnum.Geography = 18 -> ParquetSharp.LogicalTypeEnum
 ParquetSharp.LogicalTypeEnum.Geometry = 17 -> ParquetSharp.LogicalTypeEnum
 ParquetSharp.LogicalTypeEnum.Variant = 19 -> ParquetSharp.LogicalTypeEnum
+static ParquetSharp.MemoryPool.JemallocMemoryPool() -> ParquetSharp.MemoryPool!
+static ParquetSharp.MemoryPool.MimallocMemoryPool() -> ParquetSharp.MemoryPool!
+static ParquetSharp.MemoryPool.SystemMemoryPool() -> ParquetSharp.MemoryPool!
+ParquetSharp.WriterProperties.MemoryPool.get -> ParquetSharp.MemoryPool!
+ParquetSharp.WriterPropertiesBuilder.MemoryPool(ParquetSharp.MemoryPool! memoryPool) -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.IO.BufferOutputStream.BufferOutputStream(ParquetSharp.MemoryPool! memoryPool) -> void
+ParquetSharp.IO.ResizableBuffer.ResizableBuffer(long initialSize = 128, ParquetSharp.MemoryPool? memoryPool = null) -> void
+ParquetSharp.IO.ResizableBuffer.ResizableBuffer(long initialSize) -> void
+*REMOVED*ParquetSharp.IO.ResizableBuffer.ResizableBuffer(long initialSize = 128) -> void
+static ParquetSharp.ReaderProperties.WithMemoryPool(ParquetSharp.MemoryPool! memoryPool) -> ParquetSharp.ReaderProperties!
+ParquetSharp.ReaderProperties.MemoryPool.get -> ParquetSharp.MemoryPool!

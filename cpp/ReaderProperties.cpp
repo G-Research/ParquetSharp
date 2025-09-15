@@ -13,6 +13,11 @@ extern "C"
 		TRYCATCH(*reader_properties = new ReaderProperties(default_reader_properties());)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* ReaderProperties_With_Memory_Pool(::arrow::MemoryPool* memory_pool, ReaderProperties** reader_properties)
+	{
+		TRYCATCH(*reader_properties = new ReaderProperties(memory_pool);)
+	}
+
 	PARQUETSHARP_EXPORT void ReaderProperties_Free(ReaderProperties* reader_properties)
 	{
 		delete reader_properties;
@@ -70,5 +75,13 @@ extern "C"
 	PARQUETSHARP_EXPORT ExceptionInfo* ReaderProperties_Disable_Page_Checksum_Verification(ReaderProperties* reader_properties)
 	{
 		TRYCATCH(reader_properties->set_page_checksum_verification(false);)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* ReaderProperties_Get_Memory_Pool(const ReaderProperties* reader_properties, ::arrow::MemoryPool** memory_pool)
+	{
+		TRYCATCH
+		(
+			*memory_pool = reader_properties->memory_pool();
+		)
 	}
 }

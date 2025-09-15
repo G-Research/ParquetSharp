@@ -8,10 +8,10 @@
 
 extern "C"
 {
-	PARQUETSHARP_EXPORT ExceptionInfo* ResizableBuffer_Create(const int64_t initialSize, std::shared_ptr<arrow::ResizableBuffer>** buffer)
+	PARQUETSHARP_EXPORT ExceptionInfo* ResizableBuffer_Create(const int64_t initialSize, ::arrow::MemoryPool* memory_pool, std::shared_ptr<arrow::ResizableBuffer>** buffer)
 	{
 		TRYCATCH(
-			auto pBuffer = arrow::AllocateResizableBuffer(initialSize);
+			auto pBuffer = arrow::AllocateResizableBuffer(initialSize, memory_pool);
 			*buffer = new std::shared_ptr<arrow::ResizableBuffer>(pBuffer.ValueOrDie().release());
 		)
 	}

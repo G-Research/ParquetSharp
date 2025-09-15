@@ -536,6 +536,19 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Specify the native memory pool to use for allocations in the writer.
+        /// </summary>
+        /// <param name="memoryPool">The memory pool to use</param>
+        /// <returns>This builder instance.</returns>
+        public WriterPropertiesBuilder MemoryPool(MemoryPool memoryPool)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Memory_Pool(_handle.IntPtr, memoryPool.Handle));
+
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
         private void ApplyDefaults()
         {
             OnDefaultProperty(DefaultWriterProperties.EnableDictionary, enabled =>
@@ -749,6 +762,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Sorting_Columns(IntPtr builder, IntPtr columnIndices, IntPtr isDescending, IntPtr nullsFirst, int numColumns);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Memory_Pool(IntPtr builder, IntPtr memoryPool);
 
         private readonly ParquetHandle _handle;
     }

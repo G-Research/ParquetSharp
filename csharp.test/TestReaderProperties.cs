@@ -1,14 +1,10 @@
-﻿using System.Linq;
-using NUnit.Framework;
-using ParquetSharp.IO;
-using ParquetSharp.Schema;
+﻿using NUnit.Framework;
 
 namespace ParquetSharp.Test
 {
     [TestFixture]
     internal static class TestReaderProperties
     {
-
         [Test]
         public static void TestDefaultProperties()
         {
@@ -17,6 +13,9 @@ namespace ParquetSharp.Test
             Assert.That(p.BufferSize, Is.EqualTo(1 << 14));
             Assert.That(p.IsBufferedStreamEnabled, Is.False);
             Assert.That(p.PageChecksumVerification, Is.False);
+
+            var memoryPool = p.MemoryPool;
+            Assert.That(memoryPool.BackendName, Is.Not.Empty);
         }
 
         [Test]
@@ -36,6 +35,13 @@ namespace ParquetSharp.Test
             Assert.That(p.IsBufferedStreamEnabled, Is.True);
             p.DisableBufferedStream();
             Assert.That(p.IsBufferedStreamEnabled, Is.False);
+        }
+
+        [TestCaseSource(typeof(MemoryPools), nameof(MemoryPools.NonNullTestCases))]
+        public static void TestSetMemoryPool(MemoryPools.TestCase pool)
+        {
+            using var p = ReaderProperties.WithMemoryPool(pool.Pool!);
+            Assert.That(p.MemoryPool.BackendName, Is.EqualTo(pool.ToString()));
         }
     }
 }
