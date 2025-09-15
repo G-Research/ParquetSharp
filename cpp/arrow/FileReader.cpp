@@ -21,7 +21,9 @@ extern "C"
   {
     TRYCATCH
     (
-      arrow::MemoryPool* pool = arrow::default_memory_pool();
+      arrow::MemoryPool* pool = reader_properties == nullptr
+          ? arrow::default_memory_pool()
+          : reader_properties->memory_pool();
       std::shared_ptr<arrow::io::ReadableFile> input_file;
       std::unique_ptr<FileReader> reader_ptr;
       PARQUET_ASSIGN_OR_THROW(input_file, arrow::io::ReadableFile::Open(path, pool));
