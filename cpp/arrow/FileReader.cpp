@@ -28,6 +28,7 @@ extern "C"
       std::unique_ptr<FileReader> reader_ptr;
       PARQUET_ASSIGN_OR_THROW(input_file, arrow::io::ReadableFile::Open(path, pool));
       FileReaderBuilder builder;
+      builder.memory_pool(pool);
       PARQUET_THROW_NOT_OK(builder.Open(input_file, *reader_properties));
       if (arrow_reader_properties != nullptr) {
         builder.properties(*arrow_reader_properties);
@@ -47,6 +48,10 @@ extern "C"
     (
       std::unique_ptr<FileReader> reader_ptr;
       FileReaderBuilder builder;
+      arrow::MemoryPool* pool = reader_properties == nullptr
+          ? arrow::default_memory_pool()
+          : reader_properties->memory_pool();
+      builder.memory_pool(pool);
       PARQUET_THROW_NOT_OK(builder.Open(*readable_file_interface, *reader_properties));
       if (arrow_reader_properties != nullptr) {
         builder.properties(*arrow_reader_properties);
