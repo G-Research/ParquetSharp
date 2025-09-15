@@ -543,7 +543,7 @@ namespace ParquetSharp
         /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder MemoryPool(MemoryPool memoryPool)
         {
-            WriterPropertiesBuilder_Memory_Pool(_handle.IntPtr, memoryPool.Handle);
+            ExceptionInfo.Check(WriterPropertiesBuilder_Memory_Pool(_handle.IntPtr, memoryPool.Handle));
 
             GC.KeepAlive(_handle);
             return this;
