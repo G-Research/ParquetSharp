@@ -311,6 +311,7 @@ jobs:
     needs:
       - check-format
       - test-nuget
+      - test-benchmarks
     runs-on: ubuntu-latest
     steps:
       - run: echo "All required checks done"
