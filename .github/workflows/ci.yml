@@ -168,9 +168,9 @@ jobs:
         path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
     - name: Build .NET benchmarks & unit tests
       run: |
-        dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
-        dotnet build csharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
-        dotnet build fsharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
+        dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }} --framework net8.0
+        dotnet build csharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }} --framework net8.0
+        dotnet build fsharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }} --framework net8.0
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v4
       with:
