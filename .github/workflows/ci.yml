@@ -137,6 +137,10 @@ jobs:
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 8.0.x
+    - name: Setup .NET SDK v9.0.x
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 9.0.x
     - name: Setup MSBuild
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v2
@@ -168,9 +172,9 @@ jobs:
         path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
     - name: Build .NET benchmarks & unit tests
       run: |
-        dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }} --framework net8.0
-        dotnet build csharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }} --framework net8.0
-        dotnet build fsharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }} --framework net8.0
+        dotnet build csharp.benchmark --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
+        dotnet build csharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
+        dotnet build fsharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
     - name: Upload native ParquetSharp library
       uses: actions/upload-artifact@v4
       with:
