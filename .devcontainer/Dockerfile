@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/dotnet:1-8.0-bookworm-slim AS dotnet
+FROM mcr.microsoft.com/devcontainers/dotnet:1-9.0-bookworm-slim AS dotnet
 
 #====================================================================
 
