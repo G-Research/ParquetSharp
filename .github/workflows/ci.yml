@@ -27,10 +27,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      - name: Setup .NET SDK v8.0.x
+      - name: Setup .NET SDK v9.0.x
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.x
       - name: Code formating check
         run: |
           dotnet tool restore
@@ -133,10 +133,6 @@ jobs:
       run: brew install bison
 
     # .NET Setup (and also MSBuild for Windows).
-    - name: Setup .NET SDK v8.0.x
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: 8.0.x
     - name: Setup .NET SDK v9.0.x
       uses: actions/setup-dotnet@v5
       with:
@@ -204,10 +200,10 @@ jobs:
       run: |
         mkdir bin
         cp -rv artifacts/*-native-library/* bin/
-    - name: Setup .NET SDK v8.0.x
+    - name: Setup .NET SDK v9.0.x
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 9.0.x
     - name: Get version
       id: get-version
       shell: pwsh
@@ -258,11 +254,11 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Setup .NET SDK v8.0.x
+      if: matrix.dotnet == 'net8.0'
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 8.0.x
     - name: Setup .NET SDK v9.0.x
-      if: matrix.dotnet == 'net9.0'
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 9.0.x
@@ -331,10 +327,10 @@ jobs:
       with:
         name: nuget-package
         path: nuget
-    - name: Setup .NET SDK v8.0.x
+    - name: Setup .NET SDK v9.0.x
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 9.0.x
     # if version contains "-" treat it as pre-release
     # example: 1.0.0-beta1
     - name: Create release
