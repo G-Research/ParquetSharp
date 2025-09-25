@@ -301,7 +301,7 @@ jobs:
         dotnet add csharp.benchmark package ParquetSharp -v ${{ needs.build-nuget.outputs.version }}
 
     - name: Build & Run C# benchmarks in check mode
-      run: dotnet run --project=csharp.benchmark --configuration=Release -- --check
+      run: dotnet run --project=csharp.benchmark --configuration=Release -- --check --small
 
   # Virtual job that can be configured as a required check before a PR can be merged.
   # As GitHub considers a check as successful if it is skipped, we need to check its status in
