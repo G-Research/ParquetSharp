@@ -22,7 +22,14 @@ namespace ParquetSharp.Benchmark
                 {
                     if (arg == "--check")
                     {
+                        // Run benchmarks just once to verify they work correctly,
+                        // and compare results to the expected results.
                         Check.Enabled = true;
+                    }
+                    else if (arg == "--small")
+                    {
+                        // Use smaller data to reduce memory required.
+                        DataConfig.Size = DataSize.Small;
                     }
                     else
                     {

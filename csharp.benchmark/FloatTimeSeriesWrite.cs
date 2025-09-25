@@ -23,7 +23,8 @@ namespace ParquetSharp.Benchmark
             var timer = Stopwatch.StartNew();
             int numRows;
 
-            (_dates, _objectIds, _values, numRows) = CreateFloatDataFrame(360);
+            var numDates = DataConfig.Size == DataSize.Small ? 20 : 360;
+            (_dates, _objectIds, _values, numRows) = CreateFloatDataFrame(numDates);
 
             // For Parquet.NET
             _allDates = _dates.SelectMany(d => Enumerable.Repeat(d, _objectIds.Length)).ToArray();
