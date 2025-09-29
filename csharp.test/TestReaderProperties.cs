@@ -40,27 +40,31 @@ namespace ParquetSharp.Test
             Assert.That(p.ThriftStringSizeLimit, Is.EqualTo(2048576));
         }
 
-        // [Test]
-        // public static void TestSetThriftStringSizeLimit_ReturnException()
-        // {
-        //     // Create a Parquet file with a very long column name
-        //     var file = "thrift-limit-test.parquet";
-        //     var longColumnName = new string('X', 100); // 100 chars
+        [Test]
+        public static void TestSetThriftStringSizeLimit_ReturnException()
+        {
+            // Create a Parquet file with a very long column name
+            var file = "thrift-limit-test.parquet";
+            var longColumnName = new string('X', 100); // 100 chars
 
-        //     var schema = new Column[] { new Column<string>(longColumnName) };
-        //     using var writer = new ParquetFileWriter(file, schema);
-        //     using (writer.AppendRowGroup()) { }
-        //     writer.Close();
+            var schema = new Column[] { new Column<string>(longColumnName) };
+            using var writer = new ParquetFileWriter(file, schema);
+            using (var rowGroup = writer.AppendRowGroup())
+            {
+                using var colWriter = rowGroup.NextColumn().LogicalWriter<string>();
+                colWriter.WriteBatch(new[] { "hello" });
+            }
+            writer.Close();
 
-        //     using var p = ReaderProperties.GetDefaultReaderProperties();
-        //     p.SetThriftStringSizeLimit(10);
+            using var p = ReaderProperties.GetDefaultReaderProperties();
+            p.SetThriftStringSizeLimit(10);
 
-        //     Assert.Throws<ParquetException>(() =>
-        //     {
-        //         using var reader = new ParquetFileReader(file, p);
-        //         var rg = reader.RowGroup(0); // Force metadata read
-        //     });
-        // }
+            Assert.Throws<ParquetException>(() =>
+            {
+                using var reader = new ParquetFileReader(file, p);
+                var rg = reader.RowGroup(0); // Force metadata read
+            });
+        }
 
         [TestCaseSource(typeof(MemoryPools), nameof(MemoryPools.NonNullTestCases))]
         public static void TestSetMemoryPool(MemoryPools.TestCase pool)
