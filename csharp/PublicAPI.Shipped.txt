@@ -584,13 +584,16 @@ ParquetSharp.ReaderProperties.BufferSize.get -> long
 ParquetSharp.ReaderProperties.BufferSize.set -> void
 ParquetSharp.ReaderProperties.DisableBufferedStream() -> void
 ParquetSharp.ReaderProperties.DisablePageChecksumVerification() -> void
+ParquetSharp.ReaderProperties.DisableReadDenseForNullable() -> void
 ParquetSharp.ReaderProperties.Dispose() -> void
 ParquetSharp.ReaderProperties.EnableBufferedStream() -> void
 ParquetSharp.ReaderProperties.EnablePageChecksumVerification() -> void
+ParquetSharp.ReaderProperties.EnableReadDenseForNullable() -> void
 ParquetSharp.ReaderProperties.FileDecryptionProperties.get -> ParquetSharp.FileDecryptionProperties?
 ParquetSharp.ReaderProperties.FileDecryptionProperties.set -> void
 ParquetSharp.ReaderProperties.IsBufferedStreamEnabled.get -> bool
 ParquetSharp.ReaderProperties.PageChecksumVerification.get -> bool
+ParquetSharp.ReaderProperties.ReadDenseForNullable.get -> bool
 ParquetSharp.Repetition
 ParquetSharp.Repetition.Optional = 1 -> ParquetSharp.Repetition
 ParquetSharp.Repetition.Repeated = 2 -> ParquetSharp.Repetition

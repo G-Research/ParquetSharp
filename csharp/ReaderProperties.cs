@@ -137,6 +137,29 @@ namespace ParquetSharp
             }
         }
 
+        /// <summary>
+        /// Whether to read dense data for nullable columns.
+        /// </summary>
+        public bool ReadDenseForNullable => ExceptionInfo.Return<bool>(Handle, ReaderProperties_Read_Dense_For_Nullable);
+
+        /// <summary>
+        /// Enable reading dense data for nullable columns.
+        /// </summary>
+        public void EnableReadDenseForNullable()
+        {
+            ExceptionInfo.Check(ReaderProperties_Enable_Read_Dense_For_Nullable(Handle.IntPtr));
+            GC.KeepAlive(Handle);
+        }
+
+        /// <summary>
+        /// Disable reading dense data for nullable columns.
+        /// </summary>
+        public void DisableReadDenseForNullable()
+        {
+            ExceptionInfo.Check(ReaderProperties_Disable_Read_Dense_For_Nullable(Handle.IntPtr));
+            GC.KeepAlive(Handle);
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Get_Default_Reader_Properties(out IntPtr readerProperties);
 
@@ -178,6 +201,15 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Get_Memory_Pool(IntPtr readerProperties, out IntPtr memoryPool);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_Read_Dense_For_Nullable(IntPtr readerProperties, [MarshalAs(UnmanagedType.I1)] out bool enabled);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_Enable_Read_Dense_For_Nullable(IntPtr readerProperties);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_Disable_Read_Dense_For_Nullable(IntPtr readerProperties);
 
         internal readonly ParquetHandle Handle;
     }

@@ -37,6 +37,16 @@ namespace ParquetSharp.Test
             Assert.That(p.IsBufferedStreamEnabled, Is.False);
         }
 
+        [Test]
+        public static void TestReadDenseForNullableToggle()
+        {
+            using var p = ReaderProperties.GetDefaultReaderProperties();
+            p.EnableReadDenseForNullable();
+            Assert.That(p.ReadDenseForNullable, Is.True);
+            p.DisableReadDenseForNullable();
+            Assert.That(p.ReadDenseForNullable, Is.False);
+        }
+
         [TestCaseSource(typeof(MemoryPools), nameof(MemoryPools.NonNullTestCases))]
         public static void TestSetMemoryPool(MemoryPools.TestCase pool)
         {
