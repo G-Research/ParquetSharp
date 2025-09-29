@@ -27,3 +27,5 @@ ParquetSharp.IO.ResizableBuffer.ResizableBuffer(long initialSize) -> void
 *REMOVED*ParquetSharp.IO.ResizableBuffer.ResizableBuffer(long initialSize = 128) -> void
 static ParquetSharp.ReaderProperties.WithMemoryPool(ParquetSharp.MemoryPool! memoryPool) -> ParquetSharp.ReaderProperties!
 ParquetSharp.ReaderProperties.MemoryPool.get -> ParquetSharp.MemoryPool!
+ParquetSharp.ReaderProperties.ThriftStringSizeLimit.get -> int
+ParquetSharp.ReaderProperties.SetThriftStringSizeLimit(int size) -> void

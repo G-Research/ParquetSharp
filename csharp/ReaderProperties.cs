@@ -137,6 +137,26 @@ namespace ParquetSharp
             }
         }
 
+        /// <summary>
+        /// Return the size limit on thrift strings.
+        ///
+        /// This limit helps prevent space and time bombs in files, 
+        /// but may need to increased in order to read files with especially large headers.
+        /// </summary>
+        public int ThriftStringSizeLimit
+        {
+            get => ExceptionInfo.Return<int>(Handle, ReaderProperties_Thrift_String_Size_Limit);
+        }
+
+        /// <summary>
+        /// Set the size limit on thrift strings.
+        /// </summary>
+        public void SetThriftStringSizeLimit(int size)
+        {
+            ExceptionInfo.Check(ReaderProperties_Set_Thrift_String_Size_Limit(Handle.IntPtr, size));
+            GC.KeepAlive(Handle);
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Get_Default_Reader_Properties(out IntPtr readerProperties);
 
@@ -178,6 +198,12 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Get_Memory_Pool(IntPtr readerProperties, out IntPtr memoryPool);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_Thrift_String_Size_Limit(IntPtr readerProperties, out int size);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_Set_Thrift_String_Size_Limit(IntPtr readerProperties, int size);
 
         internal readonly ParquetHandle Handle;
     }

@@ -84,4 +84,14 @@ extern "C"
 			*memory_pool = reader_properties->memory_pool();
 		)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo *ReaderProperties_Thrift_String_Size_Limit(const ReaderProperties *reader_properties, int *size)
+	{
+		TRYCATCH(*size = reader_properties->thrift_string_size_limit();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo *ReaderProperties_Set_Thrift_String_Size_Limit(ReaderProperties *reader_properties, int size)
+	{
+		TRYCATCH(reader_properties->set_thrift_string_size_limit(size);)
+	}
 }
