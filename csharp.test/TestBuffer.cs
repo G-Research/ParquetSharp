@@ -32,7 +32,7 @@ namespace ParquetSharp.Test
             {
                 using (var outStream = new BufferOutputStream(outBuffer))
                 {
-                    using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("int_field")});
+                    using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<int>("int_field") });
                     using var rowGroupWriter = fileWriter.AppendRowGroup();
                     using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<int>();
 
@@ -67,7 +67,7 @@ namespace ParquetSharp.Test
                 : new BufferOutputStream(memoryPool.Pool);
 
             // Write out a single column
-            using (var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<int>("int_field")}))
+            using (var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<int>("int_field") }))
             {
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<int>();

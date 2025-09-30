@@ -37,7 +37,7 @@ namespace ParquetSharp.Test
         private static FileDecryptionProperties CreateProperties()
         {
             using var builder = new FileDecryptionPropertiesBuilder();
-            builder.FooterKey(new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16});
+            builder.FooterKey(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
             builder.AadPrefixVerifier(new TestVerifier("HelloWorld Exception!"));
             return builder.Build();
         }

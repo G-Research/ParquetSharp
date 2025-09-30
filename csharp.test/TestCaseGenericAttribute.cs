@@ -24,9 +24,9 @@ namespace ParquetSharp.Test
 
             if (TypeArguments == null || TypeArguments.Length != method.GetGenericArguments().Length)
             {
-                var parms = new TestCaseParameters {RunState = RunState.NotRunnable};
+                var parms = new TestCaseParameters { RunState = RunState.NotRunnable };
                 parms.Properties.Set("_SKIPREASON", $"{nameof(TypeArguments)} should have {method.GetGenericArguments().Length} elements");
-                return new[] {new NUnitTestCaseBuilder().BuildTestMethod(method, suite, parms)};
+                return new[] { new NUnitTestCaseBuilder().BuildTestMethod(method, suite, parms) };
             }
 
             var genMethod = method.MakeGenericMethod(TypeArguments);

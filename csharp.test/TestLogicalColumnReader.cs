@@ -15,7 +15,7 @@ namespace ParquetSharp.Test
         public static void TestInvalidCastErrorMessage()
         {
             const int numRows = 10;
-            var schemaColumns = new Column[] {new Column<int?>("col")};
+            var schemaColumns = new Column[] { new Column<int?>("col") };
             var values = Enumerable.Range(0, numRows).Select(val => (int?) val).ToArray();
 
             using var buffer = new ResizableBuffer();
@@ -97,7 +97,7 @@ namespace ParquetSharp.Test
             {
                 if (_columnDefinition != null)
                 {
-                    return new ParquetFileWriter(outputStream, new[] {_columnDefinition});
+                    return new ParquetFileWriter(outputStream, new[] { _columnDefinition });
                 }
                 else
                 {
@@ -266,8 +266,8 @@ namespace ParquetSharp.Test
                 // When writing nested data we need to create a schema manually rather than
                 // use the Column abstraction.
                 using var nestedElement = new PrimitiveNode("x", Repetition.Required, LogicalType.Int(32, true), PhysicalType.Int32);
-                using var nestedStructure = new GroupNode("Struct", Repetition.Required, new[] {nestedElement});
-                return new GroupNode("schema", Repetition.Required, new[] {nestedStructure});
+                using var nestedStructure = new GroupNode("Struct", Repetition.Required, new[] { nestedElement });
+                return new GroupNode("schema", Repetition.Required, new[] { nestedStructure });
             }
 
             public override void WriteColumn(ColumnWriter writer, int numRows)
@@ -298,8 +298,8 @@ namespace ParquetSharp.Test
                 // When writing nested data we need to create a schema manually rather than
                 // use the Column abstraction.
                 using var nestedElement = new PrimitiveNode("x", Repetition.Required, LogicalType.Int(32, true), PhysicalType.Int32);
-                using var nestedStructure = new GroupNode("Struct", Repetition.Optional, new[] {nestedElement});
-                return new GroupNode("schema", Repetition.Required, new[] {nestedStructure});
+                using var nestedStructure = new GroupNode("Struct", Repetition.Optional, new[] { nestedElement });
+                return new GroupNode("schema", Repetition.Required, new[] { nestedStructure });
             }
 
             public override void WriteColumn(ColumnWriter writer, int numRows)
@@ -334,8 +334,8 @@ namespace ParquetSharp.Test
             private static GroupNode GetSchema()
             {
                 using var nestedElement = new PrimitiveNode("x", Repetition.Required, LogicalType.Int(32, true), PhysicalType.Int32);
-                using var nestedStructure = new GroupNode("Struct", Repetition.Optional, new[] {nestedElement});
-                return new GroupNode("schema", Repetition.Required, new[] {nestedStructure});
+                using var nestedStructure = new GroupNode("Struct", Repetition.Optional, new[] { nestedElement });
+                return new GroupNode("schema", Repetition.Required, new[] { nestedStructure });
             }
 
             public override void WriteColumn(ColumnWriter writer, int numRows)

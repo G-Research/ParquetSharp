@@ -104,7 +104,7 @@ namespace ParquetSharp.Test
         {
             using var logicalType = LogicalType.Timestamp(true, TimeUnit.Micros);
             using var node = new PrimitiveNode("timestamp", Repetition.Required, logicalType, PhysicalType.Int64);
-            using var group = new GroupNode("root", Repetition.Required, new[] {node});
+            using var group = new GroupNode("root", Repetition.Required, new[] { node });
 
             var stringRepresentation = group.Fields[0].ToString();
             Assert.AreEqual(
@@ -119,9 +119,9 @@ namespace ParquetSharp.Test
             using var listType = LogicalType.List();
 
             using var element = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Float);
-            using var list = new GroupNode("list", Repetition.Repeated, new[] {element});
-            using var values = new GroupNode("values", Repetition.Optional, new[] {list}, listType);
-            using var group = new GroupNode("root", Repetition.Required, new[] {values});
+            using var list = new GroupNode("list", Repetition.Repeated, new[] { element });
+            using var values = new GroupNode("values", Repetition.Optional, new[] { list }, listType);
+            using var group = new GroupNode("root", Repetition.Required, new[] { values });
 
             var stringRepresentation = group.Fields[0].ToString();
             Assert.AreEqual(

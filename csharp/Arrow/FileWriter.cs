@@ -176,7 +176,7 @@ namespace ParquetSharp.Arrow
         /// <param name="chunkSize">The maximum length of row groups to write</param>
         public void WriteRecordBatch(RecordBatch recordBatch, long chunkSize = 1024 * 1024)
         {
-            var arrayStream = new RecordBatchStream(recordBatch.Schema, new[] {recordBatch});
+            var arrayStream = new RecordBatchStream(recordBatch.Schema, new[] { recordBatch });
             WriteRecordBatchStream(arrayStream, chunkSize);
         }
 
@@ -190,7 +190,7 @@ namespace ParquetSharp.Arrow
         /// <param name="recordBatch">The record batch to write</param>
         public void WriteBufferedRecordBatch(RecordBatch recordBatch)
         {
-            var arrayStream = new RecordBatchStream(recordBatch.Schema, new[] {recordBatch});
+            var arrayStream = new RecordBatchStream(recordBatch.Schema, new[] { recordBatch });
             WriteBufferedRecordBatches(arrayStream);
         }
 
@@ -257,14 +257,14 @@ namespace ParquetSharp.Arrow
             // to the C++ library using the C stream interface.
             // The field name doesn't matter as this will be ignored on import in the C++ library.
             var field = new Field("_", array.DataType, true);
-            var schema = new Apache.Arrow.Schema(new[] {field}, null);
+            var schema = new Apache.Arrow.Schema(new[] { field }, null);
             var arrays = new Apache.Arrow.Array[array.ArrayCount];
             for (var i = 0; i < array.ArrayCount; ++i)
             {
                 arrays[i] = array.Array(i);
             }
             var column = new Apache.Arrow.Column(field, arrays);
-            var table = new Table(schema, new[] {column});
+            var table = new Table(schema, new[] { column });
 
             var arrayStream = new RecordBatchStream(table);
 

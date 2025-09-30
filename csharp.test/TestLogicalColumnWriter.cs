@@ -10,7 +10,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestInvalidCastErrorMessage()
         {
-            var schemaColumns = new Column[] {new Column<int?>("col")};
+            var schemaColumns = new Column[] { new Column<int?>("col") };
 
             using var buffer = new ResizableBuffer();
 
@@ -45,7 +45,7 @@ namespace ParquetSharp.Test
             using var colWriterA = rowGroupWriter.NextColumn().LogicalWriter<int>();
             using var colWriterB = rowGroupWriter.NextColumn().LogicalWriter<float>();
 
-            var exception = Assert.Throws<Exception>(() => { colWriterA.WriteBatch(new[] {0, 1, 2, 3, 4}); });
+            var exception = Assert.Throws<Exception>(() => { colWriterA.WriteBatch(new[] { 0, 1, 2, 3, 4 }); });
             Assert.That(exception!.Message, Is.EqualTo(
                 "Writer for column 0 is no longer valid, the current column for the row group writer is 1"));
 

@@ -12,7 +12,7 @@ namespace ParquetSharp.Test
         public static void TestHasNext()
         {
             const int numRows = 5;
-            var schemaColumns = new Column[] {new Column<int>("int32_field")};
+            var schemaColumns = new Column[] { new Column<int>("int32_field") };
             var values = Enumerable.Range(0, numRows).ToArray();
 
             using var buffer = new ResizableBuffer();
@@ -47,7 +47,7 @@ namespace ParquetSharp.Test
         {
             const int numRows = 11;
 
-            var schemaColumns = new Column[] {new Column<int>("int32_field")};
+            var schemaColumns = new Column[] { new Column<int>("int32_field") };
             var values = Enumerable.Range(0, numRows).ToArray();
 
             using var buffer = new ResizableBuffer();

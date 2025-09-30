@@ -16,9 +16,9 @@ namespace ParquetSharp.Test
         [Test]
         public static void RoundTripCustomNullableType()
         {
-            var inputData = new[] {new Value(1), default(Value), new Value(2), new Value(3)};
+            var inputData = new[] { new Value(1), default(Value), new Value(2), new Value(3) };
 
-            var columns = new[] {new PrimitiveNode("column", Repetition.Optional, LogicalType.None(), PhysicalType.Float)};
+            var columns = new[] { new PrimitiveNode("column", Repetition.Optional, LogicalType.None(), PhysicalType.Float) };
             var schema = new GroupNode("schema", Repetition.Required, columns);
 
             using var buffer = new ResizableBuffer();
