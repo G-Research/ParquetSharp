@@ -59,11 +59,14 @@ namespace ParquetSharp.Test
             using var p = ReaderProperties.GetDefaultReaderProperties();
             p.SetThriftStringSizeLimit(10);
 
-            Assert.Throws<ParquetException>(() =>
+            var ex = Assert.Throws<ParquetException>(() =>
             {
                 using var reader = new ParquetFileReader(file, p);
                 var rg = reader.RowGroup(0); // Force metadata read
             });
+
+            // Validate the exception is related to the thrift string size limit
+            Assert.That(ex?.Message, Does.Contain("Couldn't deserialize thrift: TProtocolException: Exceeded size limit").IgnoreCase);
         }
 
         [TestCaseSource(typeof(MemoryPools), nameof(MemoryPools.NonNullTestCases))]
