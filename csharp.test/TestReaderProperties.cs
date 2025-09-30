@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using ParquetSharp.IO;
 
 namespace ParquetSharp.Test
 {
@@ -43,30 +44,37 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestSetThriftStringSizeLimit_ReturnException()
         {
-            // Create a Parquet file with a very long column name
-            var file = "thrift-limit-test.parquet";
-            var longColumnName = new string('X', 100); // 100 chars
+            using var buffer = new ResizableBuffer();
 
-            var schema = new Column[] { new Column<string>(longColumnName) };
-            using var writer = new ParquetFileWriter(file, schema);
-            using (var rowGroup = writer.AppendRowGroup())
+            using (var output = new BufferOutputStream(buffer))
             {
-                using var colWriter = rowGroup.NextColumn().LogicalWriter<string>();
-                colWriter.WriteBatch(new[] { "hello" });
-            }
-            writer.Close();
+                var longColumnName = new string('X', 100); // 100 chars
+                var schema = new Column[] { new Column<string>(longColumnName) };
 
-            using var p = ReaderProperties.GetDefaultReaderProperties();
-            p.SetThriftStringSizeLimit(10);
+                using var writer = new ParquetFileWriter(output, schema);
+                using (var rowGroup = writer.AppendRowGroup())
+                {
+                    using var colWriter = rowGroup.NextColumn().LogicalWriter<string>();
+                    colWriter.WriteBatch(new[] { "hello" });
+                }
+                writer.Close();
+            }
+
+            // Configure reader with a small thrift string size limit
+            using var props = ReaderProperties.GetDefaultReaderProperties();
+            props.SetThriftStringSizeLimit(10);
 
             var ex = Assert.Throws<ParquetException>(() =>
             {
-                using var reader = new ParquetFileReader(file, p);
+                using var input = new BufferReader(buffer);
+                using var reader = new ParquetFileReader(input, props);
                 var rg = reader.RowGroup(0); // Force metadata read
             });
 
             // Validate the exception is related to the thrift string size limit
-            Assert.That(ex?.Message, Does.Contain("Couldn't deserialize thrift: TProtocolException: Exceeded size limit").IgnoreCase);
+            Assert.That(ex?.Message,
+                Does.Contain("Couldn't deserialize thrift: TProtocolException: Exceeded size limit")
+                    .IgnoreCase);
         }
 
         [TestCaseSource(typeof(MemoryPools), nameof(MemoryPools.NonNullTestCases))]

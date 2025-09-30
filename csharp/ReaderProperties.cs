@@ -141,7 +141,7 @@ namespace ParquetSharp
         /// Return the size limit on thrift strings.
         ///
         /// This limit helps prevent space and time bombs in files, 
-        /// but may need to increased in order to read files with especially large headers.
+        /// but may need to be increased in order to read files with especially large headers.
         /// </summary>
         public int ThriftStringSizeLimit
         {
