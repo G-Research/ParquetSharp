@@ -252,7 +252,7 @@ namespace ParquetSharp
             }
 
             // Milliseconds TimeSpan can be stored on Int32
-            if (logicalTypeOverride is TimeLogicalType {TimeUnit: TimeUnit.Millis})
+            if (logicalTypeOverride is TimeLogicalType { TimeUnit: TimeUnit.Millis })
             {
                 physicalType = PhysicalType.Int32;
             }
@@ -267,69 +267,69 @@ namespace ParquetSharp
         public static readonly IReadOnlyDictionary<Type, (LogicalType? logicalType, Repetition repetition, PhysicalType physicalType)>
             DefaultPrimitiveMapping = new Dictionary<Type, (LogicalType?, Repetition, PhysicalType)>
             {
-                {typeof(bool), (LogicalType.None(), Repetition.Required, PhysicalType.Boolean)},
-                {typeof(bool?), (LogicalType.None(), Repetition.Optional, PhysicalType.Boolean)},
-                {typeof(sbyte), (LogicalType.Int(8, isSigned: true), Repetition.Required, PhysicalType.Int32)},
-                {typeof(sbyte?), (LogicalType.Int(8, isSigned: true), Repetition.Optional, PhysicalType.Int32)},
-                {typeof(byte), (LogicalType.Int(8, isSigned: false), Repetition.Required, PhysicalType.Int32)},
-                {typeof(byte?), (LogicalType.Int(8, isSigned: false), Repetition.Optional, PhysicalType.Int32)},
-                {typeof(short), (LogicalType.Int(16, isSigned: true), Repetition.Required, PhysicalType.Int32)},
-                {typeof(short?), (LogicalType.Int(16, isSigned: true), Repetition.Optional, PhysicalType.Int32)},
-                {typeof(ushort), (LogicalType.Int(16, isSigned: false), Repetition.Required, PhysicalType.Int32)},
-                {typeof(ushort?), (LogicalType.Int(16, isSigned: false), Repetition.Optional, PhysicalType.Int32)},
-                {typeof(int), (LogicalType.Int(32, isSigned: true), Repetition.Required, PhysicalType.Int32)},
-                {typeof(int?), (LogicalType.Int(32, isSigned: true), Repetition.Optional, PhysicalType.Int32)},
-                {typeof(uint), (LogicalType.Int(32, isSigned: false), Repetition.Required, PhysicalType.Int32)},
-                {typeof(uint?), (LogicalType.Int(32, isSigned: false), Repetition.Optional, PhysicalType.Int32)},
-                {typeof(long), (LogicalType.Int(64, isSigned: true), Repetition.Required, PhysicalType.Int64)},
-                {typeof(long?), (LogicalType.Int(64, isSigned: true), Repetition.Optional, PhysicalType.Int64)},
-                {typeof(ulong), (LogicalType.Int(64, isSigned: false), Repetition.Required, PhysicalType.Int64)},
-                {typeof(ulong?), (LogicalType.Int(64, isSigned: false), Repetition.Optional, PhysicalType.Int64)},
-                {typeof(Int96), (LogicalType.None(), Repetition.Required, PhysicalType.Int96)},
-                {typeof(Int96?), (LogicalType.None(), Repetition.Optional, PhysicalType.Int96)},
+                { typeof(bool), (LogicalType.None(), Repetition.Required, PhysicalType.Boolean) },
+                { typeof(bool?), (LogicalType.None(), Repetition.Optional, PhysicalType.Boolean) },
+                { typeof(sbyte), (LogicalType.Int(8, isSigned: true), Repetition.Required, PhysicalType.Int32) },
+                { typeof(sbyte?), (LogicalType.Int(8, isSigned: true), Repetition.Optional, PhysicalType.Int32) },
+                { typeof(byte), (LogicalType.Int(8, isSigned: false), Repetition.Required, PhysicalType.Int32) },
+                { typeof(byte?), (LogicalType.Int(8, isSigned: false), Repetition.Optional, PhysicalType.Int32) },
+                { typeof(short), (LogicalType.Int(16, isSigned: true), Repetition.Required, PhysicalType.Int32) },
+                { typeof(short?), (LogicalType.Int(16, isSigned: true), Repetition.Optional, PhysicalType.Int32) },
+                { typeof(ushort), (LogicalType.Int(16, isSigned: false), Repetition.Required, PhysicalType.Int32) },
+                { typeof(ushort?), (LogicalType.Int(16, isSigned: false), Repetition.Optional, PhysicalType.Int32) },
+                { typeof(int), (LogicalType.Int(32, isSigned: true), Repetition.Required, PhysicalType.Int32) },
+                { typeof(int?), (LogicalType.Int(32, isSigned: true), Repetition.Optional, PhysicalType.Int32) },
+                { typeof(uint), (LogicalType.Int(32, isSigned: false), Repetition.Required, PhysicalType.Int32) },
+                { typeof(uint?), (LogicalType.Int(32, isSigned: false), Repetition.Optional, PhysicalType.Int32) },
+                { typeof(long), (LogicalType.Int(64, isSigned: true), Repetition.Required, PhysicalType.Int64) },
+                { typeof(long?), (LogicalType.Int(64, isSigned: true), Repetition.Optional, PhysicalType.Int64) },
+                { typeof(ulong), (LogicalType.Int(64, isSigned: false), Repetition.Required, PhysicalType.Int64) },
+                { typeof(ulong?), (LogicalType.Int(64, isSigned: false), Repetition.Optional, PhysicalType.Int64) },
+                { typeof(Int96), (LogicalType.None(), Repetition.Required, PhysicalType.Int96) },
+                { typeof(Int96?), (LogicalType.None(), Repetition.Optional, PhysicalType.Int96) },
 #if NET5_0_OR_GREATER
                 {typeof(Half), (LogicalType.Float16(), Repetition.Required, PhysicalType.FixedLenByteArray)},
                 {typeof(Half?), (LogicalType.Float16(), Repetition.Optional, PhysicalType.FixedLenByteArray)},
 #endif
-                {typeof(float), (LogicalType.None(), Repetition.Required, PhysicalType.Float)},
-                {typeof(float?), (LogicalType.None(), Repetition.Optional, PhysicalType.Float)},
-                {typeof(double), (LogicalType.None(), Repetition.Required, PhysicalType.Double)},
-                {typeof(double?), (LogicalType.None(), Repetition.Optional, PhysicalType.Double)},
-                {typeof(decimal), (null, Repetition.Required, PhysicalType.FixedLenByteArray)},
-                {typeof(decimal?), (null, Repetition.Optional, PhysicalType.FixedLenByteArray)},
-                {typeof(Guid), (LogicalType.Uuid(), Repetition.Required, PhysicalType.FixedLenByteArray)},
-                {typeof(Guid?), (LogicalType.Uuid(), Repetition.Optional, PhysicalType.FixedLenByteArray)},
-                {typeof(Date), (LogicalType.Date(), Repetition.Required, PhysicalType.Int32)},
-                {typeof(Date?), (LogicalType.Date(), Repetition.Optional, PhysicalType.Int32)},
-                {typeof(DateTime), (LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Required, PhysicalType.Int64)},
-                {typeof(DateTime?), (LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Optional, PhysicalType.Int64)},
-                {typeof(DateTimeNanos), (LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), Repetition.Required, PhysicalType.Int64)},
-                {typeof(DateTimeNanos?), (LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), Repetition.Optional, PhysicalType.Int64)},
-                {typeof(TimeSpan), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Required, PhysicalType.Int64)},
-                {typeof(TimeSpan?), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Optional, PhysicalType.Int64)},
-                {typeof(TimeSpanNanos), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), Repetition.Required, PhysicalType.Int64)},
-                {typeof(TimeSpanNanos?), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), Repetition.Optional, PhysicalType.Int64)},
+                { typeof(float), (LogicalType.None(), Repetition.Required, PhysicalType.Float) },
+                { typeof(float?), (LogicalType.None(), Repetition.Optional, PhysicalType.Float) },
+                { typeof(double), (LogicalType.None(), Repetition.Required, PhysicalType.Double) },
+                { typeof(double?), (LogicalType.None(), Repetition.Optional, PhysicalType.Double) },
+                { typeof(decimal), (null, Repetition.Required, PhysicalType.FixedLenByteArray) },
+                { typeof(decimal?), (null, Repetition.Optional, PhysicalType.FixedLenByteArray) },
+                { typeof(Guid), (LogicalType.Uuid(), Repetition.Required, PhysicalType.FixedLenByteArray) },
+                { typeof(Guid?), (LogicalType.Uuid(), Repetition.Optional, PhysicalType.FixedLenByteArray) },
+                { typeof(Date), (LogicalType.Date(), Repetition.Required, PhysicalType.Int32) },
+                { typeof(Date?), (LogicalType.Date(), Repetition.Optional, PhysicalType.Int32) },
+                { typeof(DateTime), (LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Required, PhysicalType.Int64) },
+                { typeof(DateTime?), (LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Optional, PhysicalType.Int64) },
+                { typeof(DateTimeNanos), (LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), Repetition.Required, PhysicalType.Int64) },
+                { typeof(DateTimeNanos?), (LogicalType.Timestamp(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), Repetition.Optional, PhysicalType.Int64) },
+                { typeof(TimeSpan), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Required, PhysicalType.Int64) },
+                { typeof(TimeSpan?), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Optional, PhysicalType.Int64) },
+                { typeof(TimeSpanNanos), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), Repetition.Required, PhysicalType.Int64) },
+                { typeof(TimeSpanNanos?), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Nanos), Repetition.Optional, PhysicalType.Int64) },
 #if NET6_0_OR_GREATER
                 {typeof(TimeOnly), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Required, PhysicalType.Int64)},
                 {typeof(TimeOnly?), (LogicalType.Time(isAdjustedToUtc: true, timeUnit: TimeUnit.Micros), Repetition.Optional, PhysicalType.Int64)},
                 {typeof(DateOnly), (LogicalType.Date(), Repetition.Required, PhysicalType.Int32)},
                 {typeof(DateOnly?), (LogicalType.Date(), Repetition.Optional, PhysicalType.Int32)},
 #endif
-                {typeof(string), (LogicalType.String(), Repetition.Optional, PhysicalType.ByteArray)},
-                {typeof(byte[]), (LogicalType.None(), Repetition.Optional, PhysicalType.ByteArray)}
+                { typeof(string), (LogicalType.String(), Repetition.Optional, PhysicalType.ByteArray) },
+                { typeof(byte[]), (LogicalType.None(), Repetition.Optional, PhysicalType.ByteArray) }
             };
 
         public static readonly IReadOnlyDictionary<PhysicalType, Type>
             DefaultPhysicalTypeMapping = new Dictionary<PhysicalType, Type>
             {
-                {PhysicalType.Boolean, typeof(bool)},
-                {PhysicalType.Int32, typeof(int)},
-                {PhysicalType.Int64, typeof(long)},
-                {PhysicalType.Int96, typeof(Int96)},
-                {PhysicalType.Float, typeof(float)},
-                {PhysicalType.Double, typeof(double)},
-                {PhysicalType.ByteArray, typeof(ByteArray)},
-                {PhysicalType.FixedLenByteArray, typeof(FixedLenByteArray)},
+                { PhysicalType.Boolean, typeof(bool) },
+                { PhysicalType.Int32, typeof(int) },
+                { PhysicalType.Int64, typeof(long) },
+                { PhysicalType.Int96, typeof(Int96) },
+                { PhysicalType.Float, typeof(float) },
+                { PhysicalType.Double, typeof(double) },
+                { PhysicalType.ByteArray, typeof(ByteArray) },
+                { PhysicalType.FixedLenByteArray, typeof(FixedLenByteArray) },
             };
 
         /// <summary>

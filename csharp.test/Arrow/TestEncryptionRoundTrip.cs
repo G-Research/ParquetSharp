@@ -28,8 +28,8 @@ namespace ParquetSharp.Test.Arrow
             using var encryptionConfig = new EncryptionConfiguration("Key0");
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
-                {"Key1", new[] {"x"}},
-                {"Key2", new[] {"y"}},
+                { "Key1", new[] { "x" } },
+                { "Key2", new[] { "y" } },
             };
 
             using var buffer = new ResizableBuffer();
@@ -74,8 +74,8 @@ namespace ParquetSharp.Test.Arrow
             using var encryptionConfig = new EncryptionConfiguration("Key0");
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
-                {"Key1", new[] {"x"}},
-                {"Key2", new[] {"y"}},
+                { "Key1", new[] { "x" } },
+                { "Key2", new[] { "y" } },
             };
 
             using var buffer = new ResizableBuffer();

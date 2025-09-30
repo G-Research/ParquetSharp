@@ -2,11 +2,12 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-      "jetbrains.resharper.globaltools": {
-          "version": "2021.1.3",
-          "commands": [
-              "jb"
-          ]
-      }
+    "jetbrains.resharper.globaltools": {
+      "version": "2025.2.2.1",
+      "commands": [
+        "jb"
+      ],
+      "rollForward": false
+    }
   }
 }

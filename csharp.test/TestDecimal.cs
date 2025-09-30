@@ -171,11 +171,11 @@ namespace ParquetSharp.Test
             // so we need to define the schema manually.
             using var decimalType = LogicalType.Decimal(precision: 9, scale: 4);
             using var colNode = new PrimitiveNode("value", Repetition.Required, decimalType, PhysicalType.Int32);
-            using var schema = new GroupNode("schema", Repetition.Required, new Node[] {colNode});
+            using var schema = new GroupNode("schema", Repetition.Required, new Node[] { colNode });
 
             var physicalValues = Enumerable.Range(0, 10_000)
                 .Select(i => i - 5_000)
-                .Concat(new[] {int.MinValue, int.MinValue + 1, int.MaxValue - 1, int.MaxValue})
+                .Concat(new[] { int.MinValue, int.MinValue + 1, int.MaxValue - 1, int.MaxValue })
                 .ToArray();
             var multiplier = new decimal(10000);
             var decimalValues = physicalValues.Select(v => new decimal(v) / multiplier).ToArray();
@@ -209,7 +209,7 @@ namespace ParquetSharp.Test
         {
             using var decimalType = LogicalType.Decimal(precision: 9, scale: 4);
             using var colNode = new PrimitiveNode("value", Repetition.Optional, decimalType, PhysicalType.Int32);
-            using var schema = new GroupNode("schema", Repetition.Required, new Node[] {colNode});
+            using var schema = new GroupNode("schema", Repetition.Required, new Node[] { colNode });
 
             const int numValues = 10_000;
             var decimalValues = new decimal?[numValues];
@@ -258,11 +258,11 @@ namespace ParquetSharp.Test
             // so we need to define the schema manually.
             using var decimalType = LogicalType.Decimal(precision: 10, scale: 4);
             using var colNode = new PrimitiveNode("value", Repetition.Required, decimalType, PhysicalType.Int64);
-            using var schema = new GroupNode("schema", Repetition.Required, new Node[] {colNode});
+            using var schema = new GroupNode("schema", Repetition.Required, new Node[] { colNode });
 
             var physicalValues = Enumerable.Range(0, 10_000)
                 .Select(i => (long) (i - 5_000))
-                .Concat(new[] {long.MinValue, long.MinValue + 1, long.MaxValue - 1, long.MaxValue})
+                .Concat(new[] { long.MinValue, long.MinValue + 1, long.MaxValue - 1, long.MaxValue })
                 .ToArray();
             var multiplier = new decimal(10000);
             var decimalValues = physicalValues.Select(v => new decimal(v) / multiplier).ToArray();
@@ -296,7 +296,7 @@ namespace ParquetSharp.Test
         {
             using var decimalType = LogicalType.Decimal(precision: 10, scale: 4);
             using var colNode = new PrimitiveNode("value", Repetition.Optional, decimalType, PhysicalType.Int64);
-            using var schema = new GroupNode("schema", Repetition.Required, new Node[] {colNode});
+            using var schema = new GroupNode("schema", Repetition.Required, new Node[] { colNode });
 
             const int numValues = 10_000;
             var decimalValues = new decimal?[numValues];
@@ -348,7 +348,7 @@ namespace ParquetSharp.Test
         public static void ThrowsWithInsufficientTypeLength()
         {
             using var decimalType = LogicalType.Decimal(precision: 20, scale: 3);
-            var columns = new Column[] {new Column(typeof(decimal), "Decimal", decimalType, length: 5)};
+            var columns = new Column[] { new Column(typeof(decimal), "Decimal", decimalType, length: 5) };
 
             using var buffer = new ResizableBuffer();
             using var outStream = new BufferOutputStream(buffer);
@@ -408,7 +408,7 @@ namespace ParquetSharp.Test
                 {
                     ((byte*) byteArray.Pointer)[i] = 255;
                 }
-                columnWriter.WriteBatch(new[] {new FixedLenByteArray(byteArray.Pointer)});
+                columnWriter.WriteBatch(new[] { new FixedLenByteArray(byteArray.Pointer) });
 
                 fileWriter.Close();
             }

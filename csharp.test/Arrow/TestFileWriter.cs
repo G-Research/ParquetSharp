@@ -15,7 +15,7 @@ namespace ParquetSharp.Test.Arrow
         [Test]
         public void TestWriteFile()
         {
-            var fields = new[] {new Field("x", new Apache.Arrow.Types.Int32Type(), false)};
+            var fields = new[] { new Field("x", new Apache.Arrow.Types.Int32Type(), false) };
             var schema = new Apache.Arrow.Schema(fields, null);
 
             using var dir = new TempWorkingDirectory();
@@ -27,7 +27,7 @@ namespace ParquetSharp.Test.Arrow
         [Test]
         public void TestWriteOutputStream()
         {
-            var fields = new[] {new Field("x", new Apache.Arrow.Types.Int32Type(), false)};
+            var fields = new[] { new Field("x", new Apache.Arrow.Types.Int32Type(), false) };
             var schema = new Apache.Arrow.Schema(fields, null);
 
             using var buffer = new ResizableBuffer();
@@ -40,7 +40,7 @@ namespace ParquetSharp.Test.Arrow
         [Test]
         public void TestWriteAndReadStream()
         {
-            var fields = new[] {new Field("x", new Apache.Arrow.Types.Int32Type(), false)};
+            var fields = new[] { new Field("x", new Apache.Arrow.Types.Int32Type(), false) };
             var schema = new Apache.Arrow.Schema(fields, null);
 
             using var stream = new MemoryStream();
@@ -192,12 +192,12 @@ namespace ParquetSharp.Test.Arrow
             using var fileReader = new FileReader(inStream);
             Assert.That(fileReader.NumRowGroups, Is.EqualTo(4));
 
-            var expectedSizes = new[] {200, 200, 250, 50};
-            var expectedXValues = new[] {0, 1, 2, 2};
+            var expectedSizes = new[] { 200, 200, 250, 50 };
+            var expectedXValues = new[] { 0, 1, 2, 2 };
 
             for (var rowGroupIdx = 0; rowGroupIdx < fileReader.NumRowGroups; ++rowGroupIdx)
             {
-                using var batchReader = fileReader.GetRecordBatchReader(rowGroups: new[] {rowGroupIdx});
+                using var batchReader = fileReader.GetRecordBatchReader(rowGroups: new[] { rowGroupIdx });
                 using var batch = await batchReader.ReadNextRecordBatchAsync();
                 Assert.That(batch, Is.Not.Null);
                 Assert.That(batch.Length, Is.EqualTo(expectedSizes[rowGroupIdx]));
@@ -233,15 +233,15 @@ namespace ParquetSharp.Test.Arrow
                     writer.NewRowGroup();
 
                     using (var intArray = new Int32Array.Builder()
-                        .AppendRange(Enumerable.Range(start, rowsPerRowGroup))
-                        .Build())
+                               .AppendRange(Enumerable.Range(start, rowsPerRowGroup))
+                               .Build())
                     {
                         writer.WriteColumnChunk(intArray);
                     }
 
                     using (var floatArray = new FloatArray.Builder()
-                        .AppendRange(Enumerable.Range(start, rowsPerRowGroup).Select(i => i / 100.0f))
-                        .Build())
+                               .AppendRange(Enumerable.Range(start, rowsPerRowGroup).Select(i => i / 100.0f))
+                               .Build())
                     {
                         writer.WriteColumnChunk(floatArray);
                     }
@@ -285,7 +285,7 @@ namespace ParquetSharp.Test.Arrow
                         using var intArray1 = new Int32Array.Builder()
                             .AppendRange(Enumerable.Range(start1, chunkSize))
                             .Build();
-                        writer.WriteColumnChunk(new ChunkedArray(new Array[] {intArray0, intArray1}));
+                        writer.WriteColumnChunk(new ChunkedArray(new Array[] { intArray0, intArray1 }));
                     }
 
                     {
@@ -295,7 +295,7 @@ namespace ParquetSharp.Test.Arrow
                         using var floatArray1 = new FloatArray.Builder()
                             .AppendRange(Enumerable.Range(start1, chunkSize).Select(i => i / 100.0f))
                             .Build();
-                        writer.WriteColumnChunk(new ChunkedArray(new Array[] {floatArray0, floatArray1}));
+                        writer.WriteColumnChunk(new ChunkedArray(new Array[] { floatArray0, floatArray1 }));
                     }
                 }
 
@@ -309,7 +309,7 @@ namespace ParquetSharp.Test.Arrow
         [Test]
         public void TestWriteWithProperties()
         {
-            var fields = new[] {new Field("x", new Apache.Arrow.Types.Int32Type(), false)};
+            var fields = new[] { new Field("x", new Apache.Arrow.Types.Int32Type(), false) };
             var schema = new Apache.Arrow.Schema(fields, null);
 
             using var propertiesBuilder = new WriterPropertiesBuilder();
@@ -332,11 +332,11 @@ namespace ParquetSharp.Test.Arrow
             // Writing key-value metadata requires using the Arrow schema
             var metadata = new Dictionary<string, string>
             {
-                {"foo", "bar"},
-                {"baz", "123"},
+                { "foo", "bar" },
+                { "baz", "123" },
             };
 
-            var fields = new[] {new Field("x", new Apache.Arrow.Types.Int32Type(), false)};
+            var fields = new[] { new Field("x", new Apache.Arrow.Types.Int32Type(), false) };
             var schema = new Apache.Arrow.Schema(fields, metadata);
 
             using var buffer = new ResizableBuffer();

@@ -33,7 +33,7 @@ namespace ParquetSharp.Benchmark
         [Benchmark(Baseline = true)]
         public long ParquetSharp()
         {
-            using (var fileWriter = new ParquetFileWriter("decimal_timeseries.parquet", new Column[] {new Column<decimal>("Value", LogicalType.Decimal(precision: 29, scale: 3))}))
+            using (var fileWriter = new ParquetFileWriter("decimal_timeseries.parquet", new Column[] { new Column<decimal>("Value", LogicalType.Decimal(precision: 29, scale: 3)) }))
             {
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var valueWriter = rowGroupWriter.NextColumn().LogicalWriter<decimal>();

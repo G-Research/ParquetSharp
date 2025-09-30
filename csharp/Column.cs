@@ -181,12 +181,12 @@ namespace ParquetSharp
             if (type.IsArray)
             {
                 var item = CreateSchemaNode(logicalTypeFactory, type.GetElementType()!, "item", logicalTypeOverride, length);
-                var list = new GroupNode("list", Repetition.Repeated, new[] {item});
+                var list = new GroupNode("list", Repetition.Repeated, new[] { item });
 
                 try
                 {
                     using var listLogicalType = LogicalType.List();
-                    return new GroupNode(name, Repetition.Optional, new[] {list}, listLogicalType);
+                    return new GroupNode(name, Repetition.Optional, new[] { list }, listLogicalType);
                 }
                 finally
                 {

@@ -408,7 +408,7 @@ namespace ParquetSharp.RowOriented
                 )
             );
 
-            var body = Expression.Block(buffers, bufferAssigns.Concat(reads).Concat(new[] {loop}));
+            var body = Expression.Block(buffers, bufferAssigns.Concat(reads).Concat(new[] { loop }));
             var lambda = Expression.Lambda<ParquetRowReader<TTuple>.ReadAction>(body, reader, tuples, length);
             OnReadExpressionCreated?.Invoke(lambda);
             return lambda.Compile();
@@ -447,7 +447,7 @@ namespace ParquetSharp.RowOriented
                 var writeCall = Expression.Call(writer, GetWriteMethod<TTuple>(buffer.Type.GetElementType()!), buffer, length);
 
                 return Expression.Block(
-                    new[] {buffer, index},
+                    new[] { buffer, index },
                     bufferAssign,
                     loop,
                     writeCall,
@@ -490,7 +490,7 @@ namespace ParquetSharp.RowOriented
             var initAssign = Expression.Assign(loopVar, initValue);
             var breakLabel = Expression.Label("LoopBreak");
 
-            return Expression.Block(new[] {loopVar},
+            return Expression.Block(new[] { loopVar },
                 initAssign,
                 Expression.Loop(
                     Expression.IfThenElse(

@@ -26,16 +26,16 @@ namespace ParquetSharp.Test
             using var col1Reader = rowGroupReader.Column(1).LogicalReader<string[]>();
             using var col2Reader = rowGroupReader.Column(2).LogicalReader<string>();
 
-            Assert.AreEqual(new[] {new[] {"key1", "key2"}, new[] {"key3", "key4"}}, col0Reader.ReadAll(2));
-            Assert.AreEqual(new[] {new[] {"aaaa", "bbbb"}, new[] {"1111", "2222"}}, col1Reader.ReadAll(2));
-            Assert.AreEqual(new[] {"foo", "bar"}, col2Reader.ReadAll(2));
+            Assert.AreEqual(new[] { new[] { "key1", "key2" }, new[] { "key3", "key4" } }, col0Reader.ReadAll(2));
+            Assert.AreEqual(new[] { new[] { "aaaa", "bbbb" }, new[] { "1111", "2222" } }, col1Reader.ReadAll(2));
+            Assert.AreEqual(new[] { "foo", "bar" }, col2Reader.ReadAll(2));
         }
 
         [Test]
         public static void CanRoundtripOptionalMaps()
         {
-            var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, null, Array.Empty<string>()};
-            var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, null, Array.Empty<string>()};
+            var keys = new[] { new[] { "k1", "k2" }, new[] { "k3", "k4" }, null, Array.Empty<string>() };
+            var values = new[] { new[] { "v1", "v2" }, new[] { "v3", "v4" }, null, Array.Empty<string>() };
 
             using var schemaNode = CreateMapSchema(true);
             DoRoundtripTest(keys!, values!, schemaNode);
@@ -44,8 +44,8 @@ namespace ParquetSharp.Test
         [Test]
         public static void CanRoundtripRequiredMaps()
         {
-            var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, Array.Empty<string>()};
-            var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, Array.Empty<string>()};
+            var keys = new[] { new[] { "k1", "k2" }, new[] { "k3", "k4" }, Array.Empty<string>() };
+            var values = new[] { new[] { "v1", "v2" }, new[] { "v3", "v4" }, Array.Empty<string>() };
 
             using var schemaNode = CreateMapSchema(false);
             DoRoundtripTest(keys, values, schemaNode);
@@ -54,8 +54,8 @@ namespace ParquetSharp.Test
         [Test]
         public static void CanRoundtripNonStandardMapAnnotation()
         {
-            var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, Array.Empty<string>()};
-            var values = new[] {new[] {"v1", "v2"}, new[] {"v3", "v4"}, Array.Empty<string>()};
+            var keys = new[] { new[] { "k1", "k2" }, new[] { "k3", "k4" }, Array.Empty<string>() };
+            var values = new[] { new[] { "v1", "v2" }, new[] { "v3", "v4" }, Array.Empty<string>() };
 
             using var schemaNode = CreateMapSchema(false, true);
             DoRoundtripTest(keys, values, schemaNode);
@@ -98,14 +98,14 @@ namespace ParquetSharp.Test
             {
                 using var nestedNestedKey = new PrimitiveNode("key", Repetition.Required, LogicalType.String(), PhysicalType.ByteArray);
                 using var nestedNestedValue = new PrimitiveNode("value", Repetition.Required, LogicalType.String(), PhysicalType.ByteArray);
-                using var nestedNestedMap = new GroupNode("key_value", Repetition.Repeated, new[] {nestedNestedKey, nestedNestedValue});
-                using var nestedNestedStructure = new GroupNode("NestedNested", Repetition.Optional, new[] {nestedNestedMap}, LogicalType.Map());
+                using var nestedNestedMap = new GroupNode("key_value", Repetition.Repeated, new[] { nestedNestedKey, nestedNestedValue });
+                using var nestedNestedStructure = new GroupNode("NestedNested", Repetition.Optional, new[] { nestedNestedMap }, LogicalType.Map());
 
-                using var nestedElement = new GroupNode("element", Repetition.Required, new[] {nestedNestedStructure});
-                using var nestedList = new GroupNode("list", Repetition.Repeated, new[] {nestedElement});
-                using var nestedStructure = new GroupNode("Nested", Repetition.Required, new[] {nestedList}, LogicalType.List());
+                using var nestedElement = new GroupNode("element", Repetition.Required, new[] { nestedNestedStructure });
+                using var nestedList = new GroupNode("list", Repetition.Repeated, new[] { nestedElement });
+                using var nestedStructure = new GroupNode("Nested", Repetition.Required, new[] { nestedList }, LogicalType.List());
 
-                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {nestedStructure});
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] { nestedStructure });
 
                 using var builder = new WriterPropertiesBuilder();
                 using var writerProperties = builder.Build();
@@ -177,7 +177,7 @@ namespace ParquetSharp.Test
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriterKeys = rowGroupWriter.NextColumn().LogicalWriter<string[]>();
 
-                var keys = new[] {new[] {"k1", "k2"}, new[] {"k3", "k4"}, null, Array.Empty<string>()};
+                var keys = new[] { new[] { "k1", "k2" }, new[] { "k3", "k4" }, null, Array.Empty<string>() };
 
                 // Writing a column containing a null should throw an exception because the schema says values are required
                 var exception = Assert.Throws<InvalidOperationException>(() => colWriterKeys.WriteBatch(keys!))!;
@@ -239,13 +239,13 @@ namespace ParquetSharp.Test
             using var keyNode = new PrimitiveNode("key", Repetition.Required, stringType, PhysicalType.ByteArray);
             using var valueNode = new PrimitiveNode("value", Repetition.Optional, stringType, PhysicalType.ByteArray);
             using var keyValueNode = new GroupNode(
-                "key_value", Repetition.Repeated, new Node[] {keyNode, valueNode}, extraLogicalMapType ? mapType : null);
+                "key_value", Repetition.Repeated, new Node[] { keyNode, valueNode }, extraLogicalMapType ? mapType : null);
             var repetition = optional ? Repetition.Optional : Repetition.Required;
             using var colNode = new GroupNode(
-                "col1", repetition, new Node[] {keyValueNode}, mapType);
+                "col1", repetition, new Node[] { keyValueNode }, mapType);
 
             return new GroupNode(
-                "schema", Repetition.Required, new Node[] {colNode});
+                "schema", Repetition.Required, new Node[] { colNode });
         }
     }
 }

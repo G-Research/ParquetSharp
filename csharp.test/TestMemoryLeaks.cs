@@ -136,8 +136,8 @@ namespace ParquetSharp.Test
         {
             return new Dictionary<string, string>
             {
-                {"some_property", "this is it's value"},
-                {"longer_property", string.Join(",", Enumerable.Range(0, 100_000))}
+                { "some_property", "this is it's value" },
+                { "longer_property", string.Join(",", Enumerable.Range(0, 100_000)) }
             };
         }
 

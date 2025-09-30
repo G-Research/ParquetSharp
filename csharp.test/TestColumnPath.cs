@@ -10,13 +10,13 @@ namespace ParquetSharp.Test
         public static void TestDotRepresentations()
         {
             using var p0 = new ColumnPath("root.part0.part1");
-            using var p1 = new ColumnPath(new[] {"root", "part0", "part1"});
+            using var p1 = new ColumnPath(new[] { "root", "part0", "part1" });
 
             Assert.AreEqual("root.part0.part1", p0.ToDotString());
             Assert.AreEqual("root.part0.part1", p1.ToDotString());
 
-            Assert.AreEqual(new[] {"root", "part0", "part1"}, p0.ToDotVector());
-            Assert.AreEqual(new[] {"root", "part0", "part1"}, p1.ToDotVector());
+            Assert.AreEqual(new[] { "root", "part0", "part1" }, p0.ToDotVector());
+            Assert.AreEqual(new[] { "root", "part0", "part1" }, p1.ToDotVector());
 
             using var p2 = p0.Extend("part2");
 
@@ -29,13 +29,13 @@ namespace ParquetSharp.Test
             const string part1 = "2H₂ + O₂ ⇌ 2H₂O, R = 47 kΩ, ⌀ 200 mm";
 
             using var p0 = new ColumnPath("root.part0." + part1);
-            using var p1 = new ColumnPath(new[] {"root", "part0", part1});
+            using var p1 = new ColumnPath(new[] { "root", "part0", part1 });
 
             Assert.AreEqual("root.part0." + part1, p0.ToDotString());
             Assert.AreEqual("root.part0." + part1, p1.ToDotString());
 
-            Assert.AreEqual(new[] {"root", "part0", part1}, p0.ToDotVector());
-            Assert.AreEqual(new[] {"root", "part0", part1}, p1.ToDotVector());
+            Assert.AreEqual(new[] { "root", "part0", part1 }, p0.ToDotVector());
+            Assert.AreEqual(new[] { "root", "part0", part1 }, p1.ToDotVector());
 
             using var p2 = p0.Extend("α ∧ ¬β");
 
@@ -45,7 +45,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestNodeRepresentation()
         {
-            var columns = new Column[] {new Column<int[]>("value")};
+            var columns = new Column[] { new Column<int[]>("value") };
 
             using var schema = Column.CreateSchemaNode(columns);
             using var valueNode = schema.Field(0);
@@ -77,7 +77,7 @@ namespace ParquetSharp.Test
         {
             const string name = "2H₂ + O₂ ⇌ 2H₂O, R = 4.7 kΩ, ⌀ 200 mm";
 
-            var columns = new Column[] {new Column<int[]>(name)};
+            var columns = new Column[] { new Column<int[]>(name) };
 
             using var schema = Column.CreateSchemaNode(columns);
             using var colNode = schema.Field(0);
@@ -92,7 +92,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(name, p1.ToDotString());
             Assert.AreEqual(name + ".list", p2.ToDotString());
             Assert.AreEqual(name + ".list.item", p3.ToDotString());
-            Assert.AreEqual(new[] {name, "list", "item"}, p3.ToDotVector());
+            Assert.AreEqual(new[] { name, "list", "item" }, p3.ToDotVector());
 
             using var schemaPath = schema.Path;
             Assert.AreEqual("", schemaPath.ToDotString());

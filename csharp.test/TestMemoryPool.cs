@@ -12,7 +12,7 @@ namespace ParquetSharp.Test
         public static void TestDefaultMemoryPool()
         {
             var pool = MemoryPool.GetDefaultMemoryPool();
-            Assert.That(new[] {"system", "mimalloc", "jemalloc"}, Does.Contain(pool.BackendName));
+            Assert.That(new[] { "system", "mimalloc", "jemalloc" }, Does.Contain(pool.BackendName));
             TestMemoryPoolInstance(pool);
         }
 
@@ -96,7 +96,7 @@ namespace ParquetSharp.Test
                 using var writerPropertiesBuilder = new WriterPropertiesBuilder();
                 writerPropertiesBuilder.MemoryPool(pool);
                 using var writerProperties = writerPropertiesBuilder.Build();
-                using var fileWriter = new ParquetFileWriter(stream, new Column[] {new Column<int>("Index")}, writerProperties);
+                using var fileWriter = new ParquetFileWriter(stream, new Column[] { new Column<int>("Index") }, writerProperties);
 
                 Assert.Greater(pool.BytesAllocated, 0);
                 Assert.Greater(pool.MaxMemory, 0);

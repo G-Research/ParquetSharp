@@ -30,8 +30,8 @@ namespace ParquetSharp.Test.Encryption
             config.FooterKey = "new_footer_key";
             config.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
-                {"key1", new[] {"col_a", "col_b"}},
-                {"key2", new[] {"col_c"}},
+                { "key1", new[] { "col_a", "col_b" } },
+                { "key2", new[] { "col_c" } },
             };
             config.UniformEncryption = true;
             config.EncryptionAlgorithm = ParquetCipher.AesGcmCtrV1;
@@ -45,8 +45,8 @@ namespace ParquetSharp.Test.Encryption
 
             var columnKeys = config.ColumnKeys;
             Assert.That(columnKeys.Count, Is.EqualTo(2));
-            Assert.That(columnKeys["key1"], Is.EqualTo(new[] {"col_a", "col_b"}));
-            Assert.That(columnKeys["key2"], Is.EqualTo(new[] {"col_c"}));
+            Assert.That(columnKeys["key1"], Is.EqualTo(new[] { "col_a", "col_b" }));
+            Assert.That(columnKeys["key2"], Is.EqualTo(new[] { "col_c" }));
 
             Assert.That(config.UniformEncryption, Is.True);
             Assert.That(config.EncryptionAlgorithm, Is.EqualTo(ParquetCipher.AesGcmCtrV1));

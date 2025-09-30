@@ -59,9 +59,9 @@ namespace ParquetSharp.Test.Encryption
 
         public static readonly Dictionary<string, byte[]> DefaultMasterKeys = new()
         {
-            {"Key0", new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}},
-            {"Key1", new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}},
-            {"Key2", new byte[] {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}},
+            { "Key0", new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
+            { "Key1", new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 } },
+            { "Key2", new byte[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 } },
         };
 
         private static byte[] EncryptBytes(ICryptoTransform encryptor, byte[] plainText)
@@ -99,7 +99,7 @@ namespace ParquetSharp.Test.Encryption
         {
             return masterKeys.ToDictionary(
                 kvp => kvp.Key,
-                kvp => (IReadOnlyDictionary<int, byte[]>) new Dictionary<int, byte[]> {{0, kvp.Value}});
+                kvp => (IReadOnlyDictionary<int, byte[]>) new Dictionary<int, byte[]> { { 0, kvp.Value } });
         }
 
         private readonly IReadOnlyDictionary<string, IReadOnlyDictionary<int, byte[]>> _masterKeys;

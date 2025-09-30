@@ -30,11 +30,11 @@ namespace ParquetSharp.LogicalBatchWriter
 
         public void WriteBatch(ReadOnlySpan<TItem[]> values)
         {
-            var arrayDefinitionLevel = new[] {_definitionLevel};
-            var nullDefinitionLevel = new[] {(short) (_definitionLevel - 1)};
+            var arrayDefinitionLevel = new[] { _definitionLevel };
+            var nullDefinitionLevel = new[] { (short) (_definitionLevel - 1) };
 
             var elementWriter = _firstElementWriter;
-            var arrayRepetitionLevel = new[] {_firstRepetitionLevel};
+            var arrayRepetitionLevel = new[] { _firstRepetitionLevel };
 
             for (var i = 0; i < values.Length; ++i)
             {

@@ -18,7 +18,7 @@ namespace ParquetSharp.Test
             // Write test data.
             using (var output = new ManagedOutputStream(buffer, leaveOpen: true))
             {
-                using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+                using var writer = new ParquetFileWriter(output, new Column[] { new Column<int>("ids") });
                 using var groupWriter = writer.AppendRowGroup();
                 using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
 
@@ -46,11 +46,11 @@ namespace ParquetSharp.Test
             {
                 using (var output = new ManagedOutputStream(File.OpenWrite("file.parquet")))
                 {
-                    using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+                    using var writer = new ParquetFileWriter(output, new Column[] { new Column<int>("ids") });
                     using var groupWriter = writer.AppendRowGroup();
                     using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
 
-                    columnWriter.WriteBatch(new[] {1, 2, 3});
+                    columnWriter.WriteBatch(new[] { 1, 2, 3 });
 
                     writer.Close();
                 }
@@ -60,7 +60,7 @@ namespace ParquetSharp.Test
                 using var groupReader = reader.RowGroup(0);
                 using var columnReader = groupReader.Column(0).LogicalReader<int>();
 
-                Assert.AreEqual(new[] {1, 2, 3}, columnReader.ReadAll(3));
+                Assert.AreEqual(new[] { 1, 2, 3 }, columnReader.ReadAll(3));
             }
             finally
             {
@@ -75,7 +75,7 @@ namespace ParquetSharp.Test
             {
                 using (var buffer = new ErroneousWriterStream())
                 using (var output = new ManagedOutputStream(buffer))
-                using (new ParquetFileWriter(output, new Column[] {new Column<int>("ids")}))
+                using (new ParquetFileWriter(output, new Column[] { new Column<int>("ids") }))
                 {
                 }
             });
@@ -96,7 +96,7 @@ namespace ParquetSharp.Test
 
                 using (var output = new ManagedOutputStream(buffer, leaveOpen: true))
                 {
-                    using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+                    using var writer = new ParquetFileWriter(output, new Column[] { new Column<int>("ids") });
                     using var groupWriter = writer.AppendRowGroup();
                     using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
 
@@ -128,7 +128,7 @@ namespace ParquetSharp.Test
             // Write test data.
             using (var output = new ManagedOutputStream(buffer, leaveOpen: true))
             {
-                using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+                using var writer = new ParquetFileWriter(output, new Column[] { new Column<int>("ids") });
                 using var groupWriter = writer.AppendRowGroup();
                 using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
 
@@ -186,7 +186,7 @@ namespace ParquetSharp.Test
             // Write test data.
             using (var output = new ManagedOutputStream(buffer, leaveOpen: true))
             {
-                using var writer = new ParquetFileWriter(output, new Column[] {new Column<int>("ids")});
+                using var writer = new ParquetFileWriter(output, new Column[] { new Column<int>("ids") });
                 for (var i = 0; i < numRowGroups; ++i)
                 {
                     using var groupWriter = writer.AppendRowGroup();
@@ -220,7 +220,7 @@ namespace ParquetSharp.Test
             using var buffer = new MemoryStream();
 
             // Write test data.
-            using (var writer = new ParquetFileWriter(buffer, new Column[] {new Column<int>("ids")}, leaveOpen: true))
+            using (var writer = new ParquetFileWriter(buffer, new Column[] { new Column<int>("ids") }, leaveOpen: true))
             {
                 using var groupWriter = writer.AppendRowGroup();
                 using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
@@ -240,7 +240,7 @@ namespace ParquetSharp.Test
         private static ParquetFileWriter GetWriterWithDroppedOutput(MemoryStream buffer)
         {
             var stream = new ManagedOutputStream(buffer);
-            return new ParquetFileWriter(stream, new Column[] {new Column<int>("ids")});
+            return new ParquetFileWriter(stream, new Column[] { new Column<int>("ids") });
         }
 
         private static ParquetFileReader GetReaderWithDroppedFile(MemoryStream buffer)

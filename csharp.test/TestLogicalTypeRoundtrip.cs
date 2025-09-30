@@ -642,11 +642,11 @@ namespace ParquetSharp.Test
             {
                 using var noneType = LogicalType.None();
                 using var element = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Int32);
-                using var list = new GroupNode("list", Repetition.Repeated, new[] {element});
+                using var list = new GroupNode("list", Repetition.Repeated, new[] { element });
                 using var listType = LogicalType.List();
-                using var ids = new GroupNode("ids", Repetition.Optional, new[] {list}, listType);
-                using var outer = new GroupNode("struct", Repetition.Optional, new[] {ids});
-                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {outer});
+                using var ids = new GroupNode("ids", Repetition.Optional, new[] { list }, listType);
+                using var outer = new GroupNode("struct", Repetition.Optional, new[] { ids });
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] { outer });
 
                 using var builder = new WriterPropertiesBuilder();
                 using var writerProperties = builder.Build();
@@ -713,11 +713,11 @@ namespace ParquetSharp.Test
             {
                 using var noneType = LogicalType.None();
                 using var element = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Int32);
-                using var list = new GroupNode("list", Repetition.Repeated, new[] {element});
+                using var list = new GroupNode("list", Repetition.Repeated, new[] { element });
                 using var listType = LogicalType.List();
-                using var ids = new GroupNode("ids", Repetition.Optional, new[] {list}, listType);
-                using var outer = new GroupNode("struct", Repetition.Required, new[] {ids});
-                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {outer});
+                using var ids = new GroupNode("ids", Repetition.Optional, new[] { list }, listType);
+                using var outer = new GroupNode("struct", Repetition.Required, new[] { ids });
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] { outer });
 
                 using var builder = new WriterPropertiesBuilder();
                 using var writerProperties = builder.Build();
@@ -790,15 +790,15 @@ namespace ParquetSharp.Test
             using (var output = new BufferOutputStream(buffer))
             {
                 using var nestedNestedItem = new PrimitiveNode("nestedNestedIds", Repetition.Required, LogicalType.String(), PhysicalType.ByteArray);
-                using var nestedNestedElement = new GroupNode("element", Repetition.Required, new[] {nestedNestedItem});
-                using var nestedNestedList = new GroupNode("list", Repetition.Repeated, new[] {nestedNestedElement});
-                using var nestedNestedStructure = new GroupNode("NestedNested", Repetition.Optional, new[] {nestedNestedList}, LogicalType.List());
+                using var nestedNestedElement = new GroupNode("element", Repetition.Required, new[] { nestedNestedItem });
+                using var nestedNestedList = new GroupNode("list", Repetition.Repeated, new[] { nestedNestedElement });
+                using var nestedNestedStructure = new GroupNode("NestedNested", Repetition.Optional, new[] { nestedNestedList }, LogicalType.List());
 
-                using var nestedElement = new GroupNode("element", Repetition.Required, new[] {nestedNestedStructure});
-                using var nestedList = new GroupNode("list", Repetition.Repeated, new[] {nestedElement});
-                using var nestedStructure = new GroupNode("Nested", Repetition.Required, new[] {nestedList}, LogicalType.List());
+                using var nestedElement = new GroupNode("element", Repetition.Required, new[] { nestedNestedStructure });
+                using var nestedList = new GroupNode("list", Repetition.Repeated, new[] { nestedElement });
+                using var nestedStructure = new GroupNode("Nested", Repetition.Required, new[] { nestedList }, LogicalType.List());
 
-                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {nestedStructure});
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] { nestedStructure });
 
                 using var builder = new WriterPropertiesBuilder();
                 using var writerProperties = builder.Build();
@@ -849,7 +849,7 @@ namespace ParquetSharp.Test
         public static void TestLargeArraysEnumerator()
         {
             CheckEnumerator(4096, Enumerable.Range(0, 4100).ToArray());
-            CheckEnumerator(4096, Enumerable.Range(0, 4100).Select(i => new[] {$"row {i}"}).ToArray());
+            CheckEnumerator(4096, Enumerable.Range(0, 4100).Select(i => new[] { $"row {i}" }).ToArray());
         }
 
         private static void CheckEnumerator<T>(int bufferLength, T[] values)
@@ -858,7 +858,7 @@ namespace ParquetSharp.Test
 
             using (var output = new BufferOutputStream(buffer))
             {
-                var columns = new Column[] {new Column<T>("col0")};
+                var columns = new Column[] { new Column<T>("col0") };
 
                 using var fileWriter = new ParquetFileWriter(output, columns);
                 using var rowGroupWriter = fileWriter.AppendBufferedRowGroup();
@@ -897,22 +897,22 @@ namespace ParquetSharp.Test
 
             using var itemNode = new PrimitiveNode("item", Repetition.Optional, noneType, PhysicalType.Int64);
             using var listNode = new GroupNode(
-                "list", Repetition.Repeated, new Node[] {itemNode});
+                "list", Repetition.Repeated, new Node[] { itemNode });
             using var idsNode = new GroupNode(
-                "ids", Repetition.Optional, new Node[] {listNode}, listType);
+                "ids", Repetition.Optional, new Node[] { listNode }, listType);
 
             using var msgNode = new PrimitiveNode("msg", Repetition.Optional, stringType, PhysicalType.ByteArray);
 
             using var nestedNode = new GroupNode(
-                "nested", Repetition.Optional, new Node[] {idsNode, msgNode});
+                "nested", Repetition.Optional, new Node[] { idsNode, msgNode });
 
             using var schemaNode = new GroupNode(
-                "schema", Repetition.Required, new Node[] {nestedNode});
+                "schema", Repetition.Required, new Node[] { nestedNode });
 
             var ids = new Nested<long?[]>?[]
             {
-                new Nested<long?[]>(new long?[] {1, 2, 3}),
-                new Nested<long?[]>(new long?[] {4, 5, 6}),
+                new Nested<long?[]>(new long?[] { 1, 2, 3 }),
+                new Nested<long?[]>(new long?[] { 4, 5, 6 }),
                 new Nested<long?[]>(null!),
                 null
             };
@@ -953,9 +953,9 @@ namespace ParquetSharp.Test
                 var idsRead = idsColumnReader.ReadAll(4);
                 Assert.AreEqual(4, idsRead.Length);
                 Assert.IsTrue(idsRead[0].HasValue);
-                Assert.AreEqual(idsRead[0]!.Value.Value, new long?[] {1, 2, 3});
+                Assert.AreEqual(idsRead[0]!.Value.Value, new long?[] { 1, 2, 3 });
                 Assert.IsTrue(idsRead[1].HasValue);
-                Assert.AreEqual(idsRead[1]!.Value.Value, new long?[] {4, 5, 6});
+                Assert.AreEqual(idsRead[1]!.Value.Value, new long?[] { 4, 5, 6 });
                 Assert.IsTrue(idsRead[2].HasValue);
                 Assert.IsNull(idsRead[2]!.Value.Value);
                 Assert.IsFalse(idsRead[3].HasValue);
@@ -977,8 +977,8 @@ namespace ParquetSharp.Test
                 var idsRead = idsColumnReader.ReadAll(4);
                 Assert.That(idsRead, Is.EqualTo(new[]
                 {
-                    new long?[] {1, 2, 3},
-                    new long?[] {4, 5, 6},
+                    new long?[] { 1, 2, 3 },
+                    new long?[] { 4, 5, 6 },
                     null,
                     null,
                 }));
@@ -1002,26 +1002,26 @@ namespace ParquetSharp.Test
             using var idNode = new PrimitiveNode("id", Repetition.Required, noneType, PhysicalType.Int64);
             using var msgNode = new PrimitiveNode("msg", Repetition.Optional, stringType, PhysicalType.ByteArray);
 
-            using var itemNode = new GroupNode("item", Repetition.Optional, new Node[] {idNode, msgNode});
+            using var itemNode = new GroupNode("item", Repetition.Optional, new Node[] { idNode, msgNode });
             using var listNode = new GroupNode(
-                "list", Repetition.Repeated, new Node[] {itemNode});
+                "list", Repetition.Repeated, new Node[] { itemNode });
             using var objectsNode = new GroupNode(
-                "objects", Repetition.Optional, new Node[] {listNode}, listType);
+                "objects", Repetition.Optional, new Node[] { listNode }, listType);
 
             using var schemaNode = new GroupNode(
-                "schema", Repetition.Required, new Node[] {objectsNode});
+                "schema", Repetition.Required, new Node[] { objectsNode });
 
             var ids = new Nested<long>?[]?[]
             {
-                new Nested<long>?[] {new(1), new(2), new(3)},
-                new Nested<long>?[] {new(4), null},
+                new Nested<long>?[] { new(1), new(2), new(3) },
+                new Nested<long>?[] { new(4), null },
                 new Nested<long>?[] { },
                 null
             };
             var msg = new Nested<string?>?[]?[]
             {
-                new Nested<string?>?[] {new("A"), new("B"), new(null)},
-                new Nested<string?>?[] {new("C"), null},
+                new Nested<string?>?[] { new("A"), new("B"), new(null) },
+                new Nested<string?>?[] { new("C"), null },
                 new Nested<string?>?[] { },
                 null
             };
@@ -1117,8 +1117,8 @@ namespace ParquetSharp.Test
                 var idsRead = idsColumnReader.ReadAll(ids.Length);
                 Assert.That(idsRead, Is.EqualTo(new[]
                 {
-                    new long?[] {1, 2, 3},
-                    new long?[] {4, null},
+                    new long?[] { 1, 2, 3 },
+                    new long?[] { 4, null },
                     new long?[] { },
                     null
                 }));
@@ -1127,8 +1127,8 @@ namespace ParquetSharp.Test
                 var msgRead = msgColumnReader.ReadAll(msg.Length);
                 Assert.That(msgRead, Is.EqualTo(new[]
                 {
-                    new string?[] {"A", "B", null},
-                    new string?[] {"C", null},
+                    new string?[] { "A", "B", null },
+                    new string?[] { "C", null },
                     new string?[] { },
                     null
                 }));
@@ -1142,9 +1142,9 @@ namespace ParquetSharp.Test
 
             var items = new[]
             {
-                new[] {1, 2, 3},
+                new[] { 1, 2, 3 },
                 Array.Empty<int>(),
-                new[] {4, 5, 6}
+                new[] { 4, 5, 6 }
             };
 
             using var buffer = new ResizableBuffer();
@@ -1180,9 +1180,9 @@ namespace ParquetSharp.Test
 
             var items = new int[][]
             {
-                new[] {1, 2, 3},
+                new[] { 1, 2, 3 },
                 null!,
-                new[] {4, 5, 6}
+                new[] { 4, 5, 6 }
             };
 
             using var buffer = new ResizableBuffer();
@@ -1233,8 +1233,8 @@ namespace ParquetSharp.Test
                 .ToArray();
             using var noneType = LogicalType.None();
             using var elementNode = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Int32);
-            using var groupNode = new GroupNode("group", Repetition.Optional, new[] {elementNode});
-            using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {groupNode});
+            using var groupNode = new GroupNode("group", Repetition.Optional, new[] { elementNode });
+            using var schemaNode = new GroupNode("schema", Repetition.Required, new[] { groupNode });
 
             using var buffer = new ResizableBuffer();
             using (var output = new BufferOutputStream(buffer))
@@ -1321,8 +1321,8 @@ namespace ParquetSharp.Test
             using var stringType = LogicalType.String();
             using var elementNode = new PrimitiveNode(
                 "element", requiredString ? Repetition.Required : Repetition.Optional, stringType, PhysicalType.ByteArray);
-            using var groupNode = new GroupNode("group", Repetition.Optional, new[] {elementNode});
-            using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {groupNode});
+            using var groupNode = new GroupNode("group", Repetition.Optional, new[] { elementNode });
+            using var schemaNode = new GroupNode("schema", Repetition.Required, new[] { groupNode });
 
             using var buffer = new ResizableBuffer();
             using (var output = new BufferOutputStream(buffer))
@@ -1417,7 +1417,7 @@ namespace ParquetSharp.Test
             // Write out a single column
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<float[]>("big_array_field")});
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<float[]>("big_array_field") });
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<float[]>();
 
@@ -1447,17 +1447,17 @@ namespace ParquetSharp.Test
              */
             var expected = new double?[]?[]?[]
             {
-                new double?[]?[] {null, new double?[] { }, new double?[] {1.0, null, 2.0}},
+                new double?[]?[] { null, new double?[] { }, new double?[] { 1.0, null, 2.0 } },
                 new double?[]?[] { },
                 null,
-                new double?[]?[] {new double?[] { }}
+                new double?[]?[] { new double?[] { } }
             };
 
             using var buffer = new ResizableBuffer();
 
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<double?[][]>("a")});
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<double?[][]>("a") });
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<double?[]?[]?>();
 
@@ -1491,7 +1491,7 @@ namespace ParquetSharp.Test
 
             using (var outStream = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string[]>("a")});
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<string[]>("a") });
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<string[]>();
 
@@ -1557,7 +1557,7 @@ namespace ParquetSharp.Test
                 propertiesBuilder.DataPagesize(1024);
                 using var writerProperties = propertiesBuilder.Build();
 
-                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<string[]>("a")},
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<string[]>("a") },
                     writerProperties);
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriter = (ColumnWriter<ByteArray>) rowGroupWriter.NextColumn();
@@ -1603,7 +1603,7 @@ namespace ParquetSharp.Test
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var timestampType = LogicalType.Timestamp(false, TimeUnit.Millis, forceSetConvertedType: true);
-                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<DateTime>("a", timestampType)});
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<DateTime>("a", timestampType) });
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>();
 
@@ -1644,7 +1644,7 @@ namespace ParquetSharp.Test
             using (var outStream = new BufferOutputStream(buffer))
             {
                 using var timestampType = LogicalType.Timestamp(false, TimeUnit.Millis);
-                using var fileWriter = new ParquetFileWriter(outStream, new Column[] {new Column<DateTime>("a", timestampType)});
+                using var fileWriter = new ParquetFileWriter(outStream, new Column[] { new Column<DateTime>("a", timestampType) });
                 using var rowGroupWriter = fileWriter.AppendRowGroup();
                 using var colWriter = rowGroupWriter.NextColumn().LogicalWriter<DateTime>();
 
@@ -1678,7 +1678,7 @@ namespace ParquetSharp.Test
 
             using var stringType = LogicalType.String();
             using var stringColumn = new PrimitiveNode("strings", Repetition.Required, stringType, PhysicalType.ByteArray);
-            using var schema = new GroupNode("schema", Repetition.Required, new[] {stringColumn});
+            using var schema = new GroupNode("schema", Repetition.Required, new[] { stringColumn });
 
             using var buffer = new ResizableBuffer();
             using (var outStream = new BufferOutputStream(buffer))
@@ -1704,12 +1704,12 @@ namespace ParquetSharp.Test
         public static void TestRequiredBytesRoundTrip()
         {
             var byteValues = Enumerable.Range(0, 100)
-                .Select(i => new[] {(byte) i, (byte) (i + 1)})
+                .Select(i => new[] { (byte) i, (byte) (i + 1) })
                 .ToArray();
 
             using var noneType = LogicalType.None();
             using var bytesColumn = new PrimitiveNode("bytes", Repetition.Required, noneType, PhysicalType.ByteArray);
-            using var schema = new GroupNode("schema", Repetition.Required, new[] {bytesColumn});
+            using var schema = new GroupNode("schema", Repetition.Required, new[] { bytesColumn });
 
             using var buffer = new ResizableBuffer();
             using (var outStream = new BufferOutputStream(buffer))
@@ -1736,13 +1736,13 @@ namespace ParquetSharp.Test
         {
             var byteValues = new byte[][]
             {
-                new byte[] {0, 1, 2},
+                new byte[] { 0, 1, 2 },
                 null!,
             };
 
             using var noneType = LogicalType.None();
             using var bytesColumn = new PrimitiveNode("bytes", Repetition.Required, noneType, PhysicalType.ByteArray);
-            using var schema = new GroupNode("schema", Repetition.Required, new[] {bytesColumn});
+            using var schema = new GroupNode("schema", Repetition.Required, new[] { bytesColumn });
 
             using var buffer = new ResizableBuffer();
             using var outStream = new BufferOutputStream(buffer);
@@ -1756,19 +1756,19 @@ namespace ParquetSharp.Test
             fileWriter.Close();
         }
 
-        [TestCaseGeneric(PhysicalType.Int32, TypeArguments = new[] {typeof(int)})]
-        [TestCaseGeneric(PhysicalType.Int64, TypeArguments = new[] {typeof(long)})]
-        [TestCaseGeneric(PhysicalType.Int96, TypeArguments = new[] {typeof(Int96)})]
-        [TestCaseGeneric(PhysicalType.Boolean, TypeArguments = new[] {typeof(bool)})]
-        [TestCaseGeneric(PhysicalType.Float, TypeArguments = new[] {typeof(float)})]
-        [TestCaseGeneric(PhysicalType.Double, TypeArguments = new[] {typeof(double)})]
+        [TestCaseGeneric(PhysicalType.Int32, TypeArguments = new[] { typeof(int) })]
+        [TestCaseGeneric(PhysicalType.Int64, TypeArguments = new[] { typeof(long) })]
+        [TestCaseGeneric(PhysicalType.Int96, TypeArguments = new[] { typeof(Int96) })]
+        [TestCaseGeneric(PhysicalType.Boolean, TypeArguments = new[] { typeof(bool) })]
+        [TestCaseGeneric(PhysicalType.Float, TypeArguments = new[] { typeof(float) })]
+        [TestCaseGeneric(PhysicalType.Double, TypeArguments = new[] { typeof(double) })]
         public static void TestNullLogicalTypeRoundTrip<T>(PhysicalType physicalType) where T : struct
         {
-            var values = new T?[] {null, null};
+            var values = new T?[] { null, null };
 
             using var nullType = LogicalType.Null();
             using var nullColumn = new PrimitiveNode("nulls", Repetition.Optional, nullType, physicalType);
-            using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {nullColumn});
+            using var schemaNode = new GroupNode("schema", Repetition.Required, new[] { nullColumn });
 
             using var buffer = new ResizableBuffer();
             using (var output = new BufferOutputStream(buffer))
@@ -1800,16 +1800,16 @@ namespace ParquetSharp.Test
 
             using var elementNode = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Int32);
             using var listNode = new GroupNode(
-                "list", Repetition.Repeated, new Node[] {elementNode});
+                "list", Repetition.Repeated, new Node[] { elementNode });
 
             // https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#lists
             // The outer-most level must be a group annotated with LIST that contains a single field named list.
             // The repetition of this level must be either optional or required and determines whether the list is nullable.
             using var arrayNode = new GroupNode(
-                "required_array", Repetition.Required, new Node[] {listNode}, listType);
+                "required_array", Repetition.Required, new Node[] { listNode }, listType);
 
             return new GroupNode(
-                "schema", Repetition.Required, new Node[] {arrayNode});
+                "schema", Repetition.Required, new Node[] { arrayNode });
         }
 
         private static void CheckNestedRoundtrip<T>(Nested<T>[] values, PrimitiveNode elementNode)
@@ -1823,7 +1823,7 @@ namespace ParquetSharp.Test
                 return x.Value!.Equals(y.Value);
             }
 
-            using var structNode = new GroupNode("struct", Repetition.Required, new[] {elementNode});
+            using var structNode = new GroupNode("struct", Repetition.Required, new[] { elementNode });
             CheckRoundtrip(values, structNode, AreEqual);
         }
 
@@ -1833,7 +1833,7 @@ namespace ParquetSharp.Test
 
             using (var output = new BufferOutputStream(buffer))
             {
-                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] {node});
+                using var schemaNode = new GroupNode("schema", Repetition.Required, new[] { node });
 
                 using var properties = WriterProperties.GetDefaultWriterProperties();
                 using var fileWriter = new ParquetFileWriter(output, schemaNode, properties);
@@ -2390,8 +2390,8 @@ namespace ParquetSharp.Test
                         {
                             return new[]
                             {
-                                new long[] {1, 2},
-                                new long[] {3, 4}
+                                new long[] { 1, 2 },
+                                new long[] { 3, 4 }
                             };
                         }
 
@@ -2401,9 +2401,9 @@ namespace ParquetSharp.Test
                             {
                                 null,
                                 null,
-                                new long[] {13, 14},
+                                new long[] { 13, 14 },
                                 null,
-                                new long[] {15, 16}
+                                new long[] { 15, 16 }
                             };
                         }
 
@@ -2428,8 +2428,8 @@ namespace ParquetSharp.Test
                         {
                             return new[]
                             {
-                                new long?[] {1, 2},
-                                new long?[] {3, null}
+                                new long?[] { 1, 2 },
+                                new long?[] { 3, null }
                             };
                         }
 
@@ -2439,9 +2439,9 @@ namespace ParquetSharp.Test
                             {
                                 null,
                                 null,
-                                new long?[] {13, 14},
+                                new long?[] { 13, 14 },
                                 null,
-                                new long?[] {null, 16}
+                                new long?[] { null, 16 }
                             };
                         }
 
