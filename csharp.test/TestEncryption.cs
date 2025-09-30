@@ -316,7 +316,7 @@ namespace ParquetSharp.Test
 
             return builder
                 .FooterKey(Key0)
-                .ColumnKeys(new[] {col0Properties, col1Properties})
+                .ColumnKeys(new[] { col0Properties, col1Properties })
                 .Build();
         }
 
@@ -450,9 +450,9 @@ namespace ParquetSharp.Test
             }
         }
 
-        private static readonly byte[] Key0 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-        private static readonly byte[] Key1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-        private static readonly byte[] Key2 = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17};
+        private static readonly byte[] Key0 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+        private static readonly byte[] Key1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+        private static readonly byte[] Key2 = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 };
 
         private static readonly Column[] Columns =
         {
@@ -460,7 +460,7 @@ namespace ParquetSharp.Test
             new Column<float>("Value")
         };
 
-        private static readonly int[] Ids = {1, 2, 3, 5, 7, 8, 13};
-        private static readonly float[] Values = {3.14f, 1.27f, 42.0f, 10.6f, 9.81f, 2.71f, -1f};
+        private static readonly int[] Ids = { 1, 2, 3, 5, 7, 8, 13 };
+        private static readonly float[] Values = { 3.14f, 1.27f, 42.0f, 10.6f, 9.81f, 2.71f, -1f };
     }
 }

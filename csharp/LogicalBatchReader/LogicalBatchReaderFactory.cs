@@ -83,7 +83,7 @@ namespace ParquetSharp.LogicalBatchReader
 
             if (TypeUtils.IsNullableNested(typeof(TElement), out var nullableNestedType))
             {
-                if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode {Repetition: Repetition.Optional})
+                if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode { Repetition: Repetition.Optional })
                 {
                     return MakeNestedOptionalReader<TElement>(
                         nullableNestedType, schemaNodes, definitionLevel, repetitionLevel);
@@ -93,7 +93,7 @@ namespace ParquetSharp.LogicalBatchReader
 
             if (TypeUtils.IsNested(typeof(TElement), out var requiredNestedType))
             {
-                if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode {Repetition: Repetition.Required})
+                if (schemaNodes.Length > 1 && schemaNodes[0] is GroupNode { Repetition: Repetition.Required })
                 {
                     return MakeNestedReader<TElement>(
                         requiredNestedType, schemaNodes, definitionLevel, repetitionLevel);

@@ -27,8 +27,8 @@ namespace ParquetSharp.Test.Encryption
             config.KeyAccessToken = "12345";
             config.CustomKmsConf = new Dictionary<string, string>
             {
-                {"abc", "def"},
-                {"ghi", "jkl"},
+                { "abc", "def" },
+                { "ghi", "jkl" },
             };
 
             Assert.That(config.KmsInstanceId, Is.EqualTo("kms_id"));

@@ -17,7 +17,7 @@ namespace ParquetSharp.Test.Encryption
             using var encryptionConfig = new EncryptionConfiguration("Key0");
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
-                {"Key1", new[] {"col0", "col1"}}
+                { "Key1", new[] { "col0", "col1" } }
             };
             using var fileEncryptionProperties =
                 cryptoFactory.GetFileEncryptionProperties(connectionConfig, encryptionConfig);
@@ -65,7 +65,7 @@ namespace ParquetSharp.Test.Encryption
             using var encryptionConfig = new EncryptionConfiguration("Key0");
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
-                {"Key1", new[] {"col0", "col1"}}
+                { "Key1", new[] { "col0", "col1" } }
             };
 
             var exception = Assert.Throws<ParquetException>(() =>
@@ -82,7 +82,7 @@ namespace ParquetSharp.Test.Encryption
             const string updatedKeyAccessToken = "NEW_SECRET";
             var customKmsConf = new Dictionary<string, string>
             {
-                {"key", "value"}
+                { "key", "value" }
             };
 
             using var connectionConfig = new KmsConnectionConfig();
@@ -108,7 +108,7 @@ namespace ParquetSharp.Test.Encryption
             using var encryptionConfig = new EncryptionConfiguration("Key0");
             encryptionConfig.ColumnKeys = new Dictionary<string, IReadOnlyList<string>>
             {
-                {"Key1", new[] {"col0", "col1"}}
+                { "Key1", new[] { "col0", "col1" } }
             };
 
             connectionConfig.RefreshKeyAccessToken(updatedKeyAccessToken);

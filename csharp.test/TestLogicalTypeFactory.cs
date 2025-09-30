@@ -65,7 +65,7 @@ namespace ParquetSharp.Test
 
             var exception = Assert.Throws<ArgumentException>(() =>
             {
-                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<VolumeInDollars>("value")});
+                using var fileWriter = new ParquetFileWriter(output, new Column[] { new Column<VolumeInDollars>("value") });
             });
 
             Assert.That(exception?.Message, Does.StartWith("unsupported logical type"));
@@ -77,7 +77,7 @@ namespace ParquetSharp.Test
             // Test that we cannot write values using a custom type without providing a factory.
             using var buffer = new ResizableBuffer();
             using var output = new BufferOutputStream(buffer);
-            using var schema = Column.CreateSchemaNode(new Column[] {new Column<float>("values")});
+            using var schema = Column.CreateSchemaNode(new Column[] { new Column<float>("values") });
             using var writerProperties = CreateWriterProperties();
             using var fileWriter = new ParquetFileWriter(output, schema, writerProperties);
             using var groupWriter = fileWriter.AppendRowGroup();
@@ -96,7 +96,7 @@ namespace ParquetSharp.Test
             // Test that we cannot writer values using a custom type without providing a factory.
             using var buffer = new ResizableBuffer();
             using var output = new BufferOutputStream(buffer);
-            using var schema = Column.CreateSchemaNode(new Column[] {new Column<float>("values")});
+            using var schema = Column.CreateSchemaNode(new Column[] { new Column<float>("values") });
             using var writerProperties = CreateWriterProperties();
             using var fileWriter = new ParquetFileWriter(output, schema, writerProperties);
             using var groupWriter = fileWriter.AppendRowGroup();
@@ -111,7 +111,7 @@ namespace ParquetSharp.Test
             using var buffer = new ResizableBuffer();
             using var output = new BufferOutputStream(buffer);
 
-            using var schema = Column.CreateSchemaNode(new Column[] {new Column<float>("values")});
+            using var schema = Column.CreateSchemaNode(new Column[] { new Column<float>("values") });
             using var writerProperties = CreateWriterProperties();
             using var fileWriter = new ParquetFileWriter(output, schema, writerProperties);
             fileWriter.LogicalWriteConverterFactory = new WriteConverterFactory();
@@ -235,9 +235,9 @@ namespace ParquetSharp.Test
             // It should be valid to use a custom logical type factory to write decimal data
             // that supports a different precision than the built in Decimal128 in ParquetSharp,
             // and use the Column abstraction without needing to manually create a schema.
-            var values = Enumerable.Range(0, 100).Select(i => new CustomDecimal {Value = i}).ToArray();
+            var values = Enumerable.Range(0, 100).Select(i => new CustomDecimal { Value = i }).ToArray();
             using var decimalType = LogicalType.Decimal(precision: 18, scale: 0);
-            var columns = new Column[] {new Column<CustomDecimal>("Decimal", decimalType)};
+            var columns = new Column[] { new Column<CustomDecimal>("Decimal", decimalType) };
 
             using var buffer = new ResizableBuffer();
             using (var outStream = new BufferOutputStream(buffer))
@@ -307,8 +307,8 @@ namespace ParquetSharp.Test
         {
             using var noneType = LogicalType.None();
             using var floatNode = new PrimitiveNode("values", Repetition.Required, noneType, PhysicalType.Float);
-            using var groupNode = new GroupNode("group", Repetition.Optional, new[] {floatNode});
-            return new GroupNode("schema", Repetition.Required, new[] {groupNode});
+            using var groupNode = new GroupNode("group", Repetition.Optional, new[] { floatNode });
+            return new GroupNode("schema", Repetition.Required, new[] { groupNode });
         }
 
         private static GroupNode GetListSchema()
@@ -317,9 +317,9 @@ namespace ParquetSharp.Test
             using var listType = LogicalType.List();
 
             using var element = new PrimitiveNode("element", Repetition.Required, noneType, PhysicalType.Float);
-            using var list = new GroupNode("list", Repetition.Repeated, new[] {element});
-            using var values = new GroupNode("values", Repetition.Optional, new[] {list}, listType);
-            return new GroupNode("schema", Repetition.Required, new[] {values});
+            using var list = new GroupNode("list", Repetition.Repeated, new[] { element });
+            using var values = new GroupNode("values", Repetition.Optional, new[] { list }, listType);
+            return new GroupNode("schema", Repetition.Required, new[] { values });
         }
 
         // Reader tests.
@@ -382,7 +382,7 @@ namespace ParquetSharp.Test
                 ParquetFileWriter fileWriter;
                 if (schema == null)
                 {
-                    fileWriter = new ParquetFileWriter(output, new Column[] {new Column<TCustom>("values")}, new WriteTypeFactory())
+                    fileWriter = new ParquetFileWriter(output, new Column[] { new Column<TCustom>("values") }, new WriteTypeFactory())
                     {
                         LogicalWriteConverterFactory = new WriteConverterFactory()
                     };
@@ -420,7 +420,7 @@ namespace ParquetSharp.Test
 
             using (var output = new BufferOutputStream(buffer))
             {
-                using var schema = Column.CreateSchemaNode(new Column[] {new Column<TValue>("values")});
+                using var schema = Column.CreateSchemaNode(new Column[] { new Column<TValue>("values") });
                 using var writerProperties = CreateWriterProperties();
                 using var fileWriter = new ParquetFileWriter(output, schema, writerProperties)
                 {
@@ -447,7 +447,7 @@ namespace ParquetSharp.Test
 
             using (var output = new BufferOutputStream(buffer))
             {
-                using var fileWriter = new ParquetFileWriter(output, new Column[] {new Column<TCustom>("values")}, new WriteTypeFactory())
+                using var fileWriter = new ParquetFileWriter(output, new Column[] { new Column<TCustom>("values") }, new WriteTypeFactory())
                 {
                     LogicalWriteConverterFactory = new WriteConverterFactory()
                 };
@@ -474,7 +474,7 @@ namespace ParquetSharp.Test
 
             using (var output = new BufferOutputStream(buffer))
             {
-                using var schema = Column.CreateSchemaNode(new Column[] {new Column<TValue>("values")});
+                using var schema = Column.CreateSchemaNode(new Column[] { new Column<TValue>("values") });
                 using var writerProperties = CreateWriterProperties();
                 using var fileWriter = new ParquetFileWriter(output, schema, writerProperties)
                 {
@@ -501,7 +501,7 @@ namespace ParquetSharp.Test
                 using var propertiesBuilder = new WriterPropertiesBuilder();
                 using var properties = propertiesBuilder.Build();
                 using var fileWriter = schema == null
-                    ? new ParquetFileWriter(output, new Column[] {new Column<TValue>("values")}, properties)
+                    ? new ParquetFileWriter(output, new Column[] { new Column<TValue>("values") }, properties)
                     : new ParquetFileWriter(output, schema, properties);
                 using var groupWriter = fileWriter.AppendRowGroup();
                 using var columnWriter = groupWriter.NextColumn().LogicalWriter<TValue>();
@@ -722,14 +722,14 @@ namespace ParquetSharp.Test
             }
         }
 
-        private static readonly float[] Values = {1f, 2f, 3f};
-        private static readonly VolumeInDollars[] CustomValues = {new(1f), new(2f), new(3f)};
+        private static readonly float[] Values = { 1f, 2f, 3f };
+        private static readonly VolumeInDollars[] CustomValues = { new(1f), new(2f), new(3f) };
 
-        private static readonly float[][] ArrayValues = {new[] {1f, 2f, 3f}, new[] {4f}};
+        private static readonly float[][] ArrayValues = { new[] { 1f, 2f, 3f }, new[] { 4f } };
         private static readonly VolumeInDollars[][] ArrayCustomValues =
         {
-            new[] {new VolumeInDollars(1f), new VolumeInDollars(2f), new VolumeInDollars(3f)},
-            new[] {new VolumeInDollars(4f)}
+            new[] { new VolumeInDollars(1f), new VolumeInDollars(2f), new VolumeInDollars(3f) },
+            new[] { new VolumeInDollars(4f) }
         };
 
         private static readonly Nested<float>?[] NestedValues =
@@ -796,7 +796,7 @@ namespace ParquetSharp.Test
                     {
                         for (var i = 0; i < s.Length; ++i)
                         {
-                            d[i] = new CustomDecimal {Value = s[i]};
+                            d[i] = new CustomDecimal { Value = s[i] };
                         }
                     });
                 }

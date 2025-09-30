@@ -86,7 +86,7 @@ namespace ParquetSharp.Test
         {
             using var schema = CreateSchema(expectedColumns);
             using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
-            var keyValueMetadata = new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}};
+            var keyValueMetadata = new Dictionary<string, string> { { "case", "Test" }, { "Awesome", "true" } };
 
             using var buffer = new ResizableBuffer();
 
@@ -123,7 +123,7 @@ namespace ParquetSharp.Test
 
             using var schema = CreateSchema(expectedColumns);
             using var writerProperties = CreateWriterProperties(expectedColumns, useDictionaryEncoding);
-            var keyValueMetadata = new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}};
+            var keyValueMetadata = new Dictionary<string, string> { { "case", "Test" }, { "Awesome", "true" } };
 
             using var buffer = new ResizableBuffer();
 
@@ -164,7 +164,7 @@ namespace ParquetSharp.Test
             var numRows = expectedColumns.First().Values.Length;
 
             Assert.AreEqual("parquet-cpp-arrow version 21.0.0", fileMetaData.CreatedBy);
-            Assert.AreEqual(new Dictionary<string, string> {{"case", "Test"}, {"Awesome", "true"}}, fileMetaData.KeyValueMetadata);
+            Assert.AreEqual(new Dictionary<string, string> { { "case", "Test" }, { "Awesome", "true" } }, fileMetaData.KeyValueMetadata);
             Assert.AreEqual(expectedColumns.Length, fileMetaData.NumColumns);
             Assert.AreEqual(numRows, fileMetaData.NumRows);
             Assert.AreEqual(1, fileMetaData.NumRowGroups);
@@ -262,7 +262,7 @@ namespace ParquetSharp.Test
                 new ExpectedColumn
                 {
                     Name = "boolean_field",
-                    Encodings = new[] {Encoding.Plain, Encoding.Rle},
+                    Encodings = new[] { Encoding.Plain, Encoding.Rle },
                     PhysicalType = PhysicalType.Boolean,
                     Values = Enumerable.Range(0, numRows).Select(i => i % 3 == 0).ToArray()
                 },
@@ -326,7 +326,7 @@ namespace ParquetSharp.Test
                 }
             }
 
-            public Encoding[] Encodings = {Encoding.RleDictionary, Encoding.Plain, Encoding.Rle};
+            public Encoding[] Encodings = { Encoding.RleDictionary, Encoding.Plain, Encoding.Rle };
             public Compression Compression = Compression.Snappy;
 
             public void Dispose()
