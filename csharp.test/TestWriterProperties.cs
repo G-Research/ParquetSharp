@@ -67,17 +67,17 @@ namespace ParquetSharp.Test
         public static void TestWritePageIndex()
         {
             using (var p = new WriterPropertiesBuilder()
-                .DisableWritePageIndex()
-                .Build())
+                       .DisableWritePageIndex()
+                       .Build())
             {
                 Assert.False(p.WritePageIndex);
             }
 
             using (var p = new WriterPropertiesBuilder()
-                .DisableWritePageIndex()
-                .EnableWritePageIndex("column_a")
-                .EnableWritePageIndex(new ColumnPath(new[] {"column_b", "nested"}))
-                .Build())
+                       .DisableWritePageIndex()
+                       .EnableWritePageIndex("column_a")
+                       .EnableWritePageIndex(new ColumnPath(new[] { "column_b", "nested" }))
+                       .Build())
             {
                 Assert.True(p.WritePageIndex); // True if enabled for any path
                 Assert.False(p.WritePageIndexForPath(new ColumnPath("column_c")));
@@ -86,10 +86,10 @@ namespace ParquetSharp.Test
             }
 
             using (var p = new WriterPropertiesBuilder()
-                .EnableWritePageIndex()
-                .DisableWritePageIndex("column_a")
-                .DisableWritePageIndex(new ColumnPath(new[] {"column_b", "nested"}))
-                .Build())
+                       .EnableWritePageIndex()
+                       .DisableWritePageIndex("column_a")
+                       .DisableWritePageIndex(new ColumnPath(new[] { "column_b", "nested" }))
+                       .Build())
             {
                 Assert.True(p.WritePageIndex);
                 Assert.True(p.WritePageIndexForPath(new ColumnPath("column_c")));
@@ -198,8 +198,8 @@ namespace ParquetSharp.Test
             using var metadataId = groupReader.MetaData.GetColumnChunkMetaData(0);
             using var metadataValue = groupReader.MetaData.GetColumnChunkMetaData(1);
 
-            Assert.That(metadataId.Encodings, Is.EquivalentTo(new[] {Encoding.RleDictionary, Encoding.Plain, Encoding.Rle}));
-            Assert.That(metadataValue.Encodings, Is.EquivalentTo(new[] {Encoding.ByteStreamSplit, Encoding.Rle}));
+            Assert.That(metadataId.Encodings, Is.EquivalentTo(new[] { Encoding.RleDictionary, Encoding.Plain, Encoding.Rle }));
+            Assert.That(metadataValue.Encodings, Is.EquivalentTo(new[] { Encoding.ByteStreamSplit, Encoding.Rle }));
 
             using var idReader = groupReader.Column(0).LogicalReader<int>();
             using var valueReader = groupReader.Column(1).LogicalReader<float>();
@@ -245,7 +245,7 @@ namespace ParquetSharp.Test
             using var groupReader = fileReader.RowGroup(0);
 
             using var columnMetadata = groupReader.MetaData.GetColumnChunkMetaData(0);
-            Assert.That(columnMetadata.Encodings, Is.EquivalentTo(new[] {Encoding.ByteStreamSplit, Encoding.Rle}));
+            Assert.That(columnMetadata.Encodings, Is.EquivalentTo(new[] { Encoding.ByteStreamSplit, Encoding.Rle }));
 
             using var valueReader = groupReader.Column(0).LogicalReader<float?>();
             Assert.AreEqual(values, valueReader.ReadAll(numRows));
@@ -308,10 +308,10 @@ namespace ParquetSharp.Test
                 using var groupWriter = fileWriter.AppendRowGroup();
 
                 using var idWriter = groupWriter.NextColumn().LogicalWriter<int>();
-                idWriter.WriteBatch(new[] {1, 2, 3});
+                idWriter.WriteBatch(new[] { 1, 2, 3 });
 
                 using var nameWriter = groupWriter.NextColumn().LogicalWriter<string>();
-                nameWriter.WriteBatch(new[] {"Charlie", "Alice", "Bob"});
+                nameWriter.WriteBatch(new[] { "Charlie", "Alice", "Bob" });
 
                 fileWriter.Close();
             }

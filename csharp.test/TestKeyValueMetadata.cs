@@ -11,13 +11,13 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestSpecifyingKeyValueMetadataUpFront()
         {
-            var columns = new Column[] {new Column<int>("values")};
+            var columns = new Column[] { new Column<int>("values") };
             var values = Enumerable.Range(0, 100).ToArray();
 
             var expectedKeyValueMetadata = new Dictionary<string, string>
             {
-                {"key1", "value1"},
-                {"key2", "value2"},
+                { "key1", "value1" },
+                { "key2", "value2" },
             };
 
             using var buffer = new ResizableBuffer();
@@ -43,15 +43,15 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestSpecifyingKeyValueMetadataAfterWritingData()
         {
-            var columns = new Column[] {new Column<int>("values")};
+            var columns = new Column[] { new Column<int>("values") };
             var values = Enumerable.Range(0, 100).ToArray();
 
             var keyValueMetadata = new Dictionary<string, string>();
 
             var expectedKeyValueMetadata = new Dictionary<string, string>
             {
-                {"key1", "value1"},
-                {"key2", "value2"},
+                { "key1", "value1" },
+                { "key2", "value2" },
             };
 
             using var buffer = new ResizableBuffer();
@@ -85,24 +85,24 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestUpdatingKeyValueMetadata()
         {
-            var columns = new Column[] {new Column<int>("values")};
+            var columns = new Column[] { new Column<int>("values") };
             var values = Enumerable.Range(0, 100).ToArray();
 
             var keyValueMetadata = new Dictionary<string, string>
             {
-                {"key1", "value1"},
-                {"key2", "value2"},
+                { "key1", "value1" },
+                { "key2", "value2" },
             };
             var keyValueMetadataUpdate = new Dictionary<string, string>
             {
-                {"key1", "override1"},
-                {"key3", "value3"},
+                { "key1", "override1" },
+                { "key3", "value3" },
             };
             var expectedKeyValueMetadata = new Dictionary<string, string>
             {
-                {"key1", "override1"},
-                {"key2", "value2"},
-                {"key3", "value3"},
+                { "key1", "override1" },
+                { "key2", "value2" },
+                { "key3", "value3" },
             };
 
             using var buffer = new ResizableBuffer();
@@ -136,7 +136,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestNoMetadata()
         {
-            var columns = new Column[] {new Column<int>("values")};
+            var columns = new Column[] { new Column<int>("values") };
             var values = Enumerable.Range(0, 100).ToArray();
 
             using var buffer = new ResizableBuffer();
@@ -162,13 +162,13 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestWriterNotClosed()
         {
-            var columns = new Column[] {new Column<int>("values")};
+            var columns = new Column[] { new Column<int>("values") };
             var values = Enumerable.Range(0, 100).ToArray();
 
             var expectedKeyValueMetadata = new Dictionary<string, string>
             {
-                {"key1", "value1"},
-                {"key2", "value2"},
+                { "key1", "value1" },
+                { "key2", "value2" },
             };
 
             using var buffer = new ResizableBuffer();

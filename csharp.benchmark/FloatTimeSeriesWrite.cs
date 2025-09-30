@@ -54,7 +54,7 @@ namespace ParquetSharp.Benchmark
                 .Field(new Apache.Arrow.Field("Value", new Apache.Arrow.Types.FloatType(), false))
                 .Build();
             _recordBatch = new RecordBatch(
-                schema, new IArrowArray[] {timestampArray, idArray, valueArray}, timestampArray.Length);
+                schema, new IArrowArray[] { timestampArray, idArray, valueArray }, timestampArray.Length);
 
             Console.WriteLine("Generated {0:N0} rows in {1:N2} sec", numRows, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
@@ -213,7 +213,7 @@ namespace ParquetSharp.Benchmark
         [Benchmark(Description = "RowOriented")]
         public long ParquetRowOriented()
         {
-            using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet.roworiented", new[] {"DateTime", "ObjectId", "Value"}))
+            using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet.roworiented", new[] { "DateTime", "ObjectId", "Value" }))
             {
                 ParquetRowOrientedImpl(rowWriter);
             }
@@ -227,7 +227,7 @@ namespace ParquetSharp.Benchmark
             using (var stream = new FileStream("float_timeseries.parquet.roworiented.stream", FileMode.Create))
             {
                 using var writer = new IO.ManagedOutputStream(stream);
-                using var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>(writer, new[] {"DateTime", "ObjectId", "Value"});
+                using var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>(writer, new[] { "DateTime", "ObjectId", "Value" });
                 ParquetRowOrientedImpl(rowWriter);
             }
 
@@ -250,7 +250,7 @@ namespace ParquetSharp.Benchmark
         [Benchmark(Description = "RowOriented (Batched)")]
         public long ParquetRowOrientedBatched()
         {
-            using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet.roworiented.batched", new[] {"DateTime", "ObjectId", "Value"}))
+            using (var rowWriter = ParquetFile.CreateRowWriter<(DateTime, int, float)>("float_timeseries.parquet.roworiented.batched", new[] { "DateTime", "ObjectId", "Value" }))
             {
                 rowWriter.WriteRowSpan(_allRows);
                 rowWriter.Close();

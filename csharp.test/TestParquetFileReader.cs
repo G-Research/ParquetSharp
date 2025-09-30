@@ -32,12 +32,12 @@ namespace ParquetSharp.Test
             {
                 try
                 {
-                    using (var writer = new ParquetFileWriter("file.parquet", new Column[] {new Column<int>("ids")}))
+                    using (var writer = new ParquetFileWriter("file.parquet", new Column[] { new Column<int>("ids") }))
                     {
                         using var groupWriter = writer.AppendRowGroup();
                         using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();
 
-                        columnWriter.WriteBatch(new[] {1, 2, 3});
+                        columnWriter.WriteBatch(new[] { 1, 2, 3 });
 
                         writer.Close();
                     }
@@ -47,7 +47,7 @@ namespace ParquetSharp.Test
                     using var groupReader = reader.RowGroup(0);
                     using var columnReader = groupReader.Column(0).LogicalReader<float>();
 
-                    Assert.AreEqual(new[] {1, 2, 3}, columnReader.ReadAll(3));
+                    Assert.AreEqual(new[] { 1, 2, 3 }, columnReader.ReadAll(3));
                 }
                 finally
                 {
@@ -69,7 +69,7 @@ namespace ParquetSharp.Test
             var filePath = "test.parquet";
 
             // Write test data.
-            using (var writer = new ParquetFileWriter(filePath, new Column[] {new Column<int>("ids")}))
+            using (var writer = new ParquetFileWriter(filePath, new Column[] { new Column<int>("ids") }))
             {
                 using var groupWriter = writer.AppendRowGroup();
                 using var columnWriter = groupWriter.NextColumn().LogicalWriter<int>();

@@ -53,16 +53,16 @@ namespace ParquetSharp.Test
 
             TestRoundtrip(new[]
             {
-                new Row1 {A = 123, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M},
-                new Row1 {A = 456, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M},
-                new Row1 {A = 789, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M}
+                new Row1 { A = 123, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M },
+                new Row1 { A = 456, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M },
+                new Row1 { A = 789, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M }
             });
 
             TestRoundtrip(new[]
             {
-                new Row2 {A = 123, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M},
-                new Row2 {A = 456, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M},
-                new Row2 {A = 789, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M}
+                new Row2 { A = 123, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M },
+                new Row2 { A = 456, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M },
+                new Row2 { A = 789, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M }
             });
         }
 
@@ -71,9 +71,9 @@ namespace ParquetSharp.Test
         {
             TestCustomTypeRoundtrip(new[]
             {
-                new Row3 {A = 123, B = new VolumeInDollars(3.14f)},
-                new Row3 {A = 456, B = new VolumeInDollars(1.27f)},
-                new Row3 {A = 789, B = new VolumeInDollars(6.66f)}
+                new Row3 { A = 123, B = new VolumeInDollars(3.14f) },
+                new Row3 { A = 456, B = new VolumeInDollars(1.27f) },
+                new Row3 { A = 789, B = new VolumeInDollars(6.66f) }
             });
         }
 
@@ -82,9 +82,9 @@ namespace ParquetSharp.Test
         {
             TestRoundtripMapped<Row1, MappedRow1>(new[]
             {
-                new Row1 {A = 123, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M},
-                new Row1 {A = 456, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M},
-                new Row1 {A = 789, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M}
+                new Row1 { A = 123, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M },
+                new Row1 { A = 456, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M },
+                new Row1 { A = 789, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M }
             });
         }
 
@@ -93,9 +93,9 @@ namespace ParquetSharp.Test
         {
             TestRoundtripMapped<MappedRow2, MappedRow1>(new[]
             {
-                new MappedRow2 {Q = 123, R = 3.14f, S = new DateTime(1981, 06, 10), T = 123.1M},
-                new MappedRow2 {Q = 456, R = 1.27f, S = new DateTime(1987, 03, 16), T = 456.12M},
-                new MappedRow2 {Q = 789, R = 6.66f, S = new DateTime(2018, 05, 02), T = 789.123M}
+                new MappedRow2 { Q = 123, R = 3.14f, S = new DateTime(1981, 06, 10), T = 123.1M },
+                new MappedRow2 { Q = 456, R = 1.27f, S = new DateTime(1987, 03, 16), T = 456.12M },
+                new MappedRow2 { Q = 789, R = 6.66f, S = new DateTime(2018, 05, 02), T = 789.123M }
             });
         }
 
@@ -141,7 +141,7 @@ namespace ParquetSharp.Test
             {
                 using var writer = ParquetFile.CreateRowWriter<(int, float)>(outputStream, compression: compression);
 
-                writer.WriteRows(new[] {(42, 3.14f)});
+                writer.WriteRows(new[] { (42, 3.14f) });
                 writer.Close();
             }
 
@@ -227,8 +227,8 @@ namespace ParquetSharp.Test
             };
             var rows = new[]
             {
-                new Row1 {A = 1, B = 1.5f, C = new DateTime(2022, 6, 14, 10, 7, 1), D = decimal.One / 2},
-                new Row1 {A = 2, B = 2.5f, C = new DateTime(2022, 6, 14, 10, 7, 2), D = decimal.One / 4},
+                new Row1 { A = 1, B = 1.5f, C = new DateTime(2022, 6, 14, 10, 7, 1), D = decimal.One / 2 },
+                new Row1 { A = 2, B = 2.5f, C = new DateTime(2022, 6, 14, 10, 7, 2), D = decimal.One / 4 },
             };
             using var buffer = new ResizableBuffer();
             using (var outputStream = new BufferOutputStream(buffer))
@@ -297,9 +297,9 @@ namespace ParquetSharp.Test
             {
                 expectedRows[i] = new[]
                 {
-                    new Row1 {A = i, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M},
-                    new Row1 {A = i * 2, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M},
-                    new Row1 {A = i * 3, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M}
+                    new Row1 { A = i, B = 3.14f, C = new DateTime(1981, 06, 10), D = 123.1M },
+                    new Row1 { A = i * 2, B = 1.27f, C = new DateTime(1987, 03, 16), D = 456.12M },
+                    new Row1 { A = i * 3, B = 6.66f, C = new DateTime(2018, 05, 02), D = 789.123M }
                 };
             }
 
@@ -333,7 +333,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestWriteMultipleBatches([Values] bool useSpan)
         {
-            var batchSizes = new[] {2, 1024, 0, 4, 1, 2048};
+            var batchSizes = new[] { 2, 1024, 0, 4, 1, 2048 };
             var totalRows = batchSizes.Sum();
             var batches = new Row1[batchSizes.Length][];
             var expected = new Row1[totalRows];
@@ -342,7 +342,7 @@ namespace ParquetSharp.Test
             {
                 var batchSize = batchSizes[batchIdx];
                 batches[batchIdx] = Enumerable.Range(0, batchSize).Select(i => new Row1
-                    {A = batchIdx, B = i, C = new DateTime(2022, 4, 20), D = 123.1M}).ToArray();
+                    { A = batchIdx, B = i, C = new DateTime(2022, 4, 20), D = 123.1M }).ToArray();
                 for (var i = 0; i < batchSize; ++i)
                 {
                     expected[offset + i] = batches[batchIdx][i];
@@ -381,9 +381,9 @@ namespace ParquetSharp.Test
         {
             var rows = new[]
             {
-                new ThrowingClass {A = 1, B = 2},
-                new ThrowingClass {A = 3, B = 4},
-                new ThrowingClass {A = 5, B = 6},
+                new ThrowingClass { A = 1, B = 2 },
+                new ThrowingClass { A = 3, B = 4 },
+                new ThrowingClass { A = 5, B = 6 },
             };
             using var buffer = new ResizableBuffer();
             using var outputStream = new BufferOutputStream(buffer);
@@ -421,8 +421,7 @@ namespace ParquetSharp.Test
 
         private static void TestRoundtripMapped<TTupleWrite, TTupleRead>(TTupleWrite[] rows)
         {
-            var expectedRows = rows.Select(
-                r => (TTupleRead) (Activator.CreateInstance(typeof(TTupleRead), r) ?? throw new Exception("create instance failed"))
+            var expectedRows = rows.Select(r => (TTupleRead) (Activator.CreateInstance(typeof(TTupleRead), r) ?? throw new Exception("create instance failed"))
             );
             RoundTripAndCompare(rows, expectedRows, columnNames: null);
         }

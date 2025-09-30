@@ -37,9 +37,9 @@ namespace ParquetSharp.Benchmark
             using var noneType = LogicalType.None();
             using var nonNullInner = new PrimitiveNode("x0", Repetition.Required, noneType, PhysicalType.Int32);
             using var nullableInner = new PrimitiveNode("x1", Repetition.Required, noneType, PhysicalType.Int32);
-            using var nonNullGroup = new GroupNode("g0", Repetition.Required, new[] {nonNullInner});
-            using var nullableGroup = new GroupNode("g1", Repetition.Optional, new[] {nullableInner});
-            using var schema = new GroupNode("schema", Repetition.Required, new[] {nonNullGroup, nullableGroup});
+            using var nonNullGroup = new GroupNode("g0", Repetition.Required, new[] { nonNullInner });
+            using var nullableGroup = new GroupNode("g1", Repetition.Optional, new[] { nullableInner });
+            using var schema = new GroupNode("schema", Repetition.Required, new[] { nonNullGroup, nullableGroup });
 
             using var propertiesBuilder = new WriterPropertiesBuilder().Compression(Compression.Snappy);
             using var properties = propertiesBuilder.Build();

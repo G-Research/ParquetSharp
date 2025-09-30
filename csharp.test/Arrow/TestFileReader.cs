@@ -127,7 +127,7 @@ namespace ParquetSharp.Test.Arrow
             using var fileReader = new FileReader(inStream);
 
             using var batchReader = fileReader.GetRecordBatchReader(
-                rowGroups: new[] {1, 2});
+                rowGroups: new[] { 1, 2 });
 
             int rowsRead = 0;
             while (true)
@@ -166,7 +166,7 @@ namespace ParquetSharp.Test.Arrow
             using var fileReader = new FileReader(inStream);
 
             using var batchReader = fileReader.GetRecordBatchReader(
-                columns: new[] {1, 2});
+                columns: new[] { 1, 2 });
 
             var schema = batchReader.Schema;
             Assert.That(schema.FieldsList.Count, Is.EqualTo(2));
