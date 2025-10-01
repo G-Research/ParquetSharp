@@ -1,1 +1,3 @@
 #nullable enable
+ParquetSharp.ReaderProperties.ThriftStringSizeLimit.get -> int
+ParquetSharp.ReaderProperties.SetThriftStringSizeLimit(int size) -> void
