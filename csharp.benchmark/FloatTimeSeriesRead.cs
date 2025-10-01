@@ -22,7 +22,8 @@ namespace ParquetSharp.Benchmark
             DateTime[] dates;
             int[] objectIds;
             float[][] values;
-            (dates, objectIds, values, _numRows) = CreateFloatDataFrame(3600);
+            var numDates = DataConfig.Size == DataSize.Small ? 1_000 : 36_000;
+            (dates, objectIds, values, _numRows) = CreateFloatDataFrame(numDates);
 
             _allDates = dates.SelectMany(d => Enumerable.Repeat(d, objectIds.Length)).ToArray();
             _allObjectIds = dates.SelectMany(d => objectIds).ToArray();
