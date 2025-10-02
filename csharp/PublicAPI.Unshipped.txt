@@ -1,3 +1,5 @@
 #nullable enable
 ParquetSharp.ReaderProperties.ThriftStringSizeLimit.get -> int
 ParquetSharp.ReaderProperties.SetThriftStringSizeLimit(int size) -> void
+ParquetSharp.ReaderProperties.ThriftContainerSizeLimit.get -> int
+ParquetSharp.ReaderProperties.SetThriftContainerSizeLimit(int size) -> void
