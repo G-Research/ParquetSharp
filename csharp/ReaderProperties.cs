@@ -177,6 +177,26 @@ namespace ParquetSharp
             GC.KeepAlive(Handle);
         }
 
+        /// <summary>
+        /// Get the size used to read the footer from a file.
+        /// 
+        /// For high latency file systems and files with large metadata (>64KB) this can increase performance
+        /// by reducing the number of round-trips to retrieve the entire file metadata.
+        /// </summary>
+        public long FooterReadSize
+        {
+            get => ExceptionInfo.Return<long>(Handle, ReaderProperties_Footer_Read_Size);
+        }
+
+        /// <summary>
+        /// Set the size used to read the footer from a file.
+        /// </summary>
+        public void SetFooterReadSize(long size)
+        {
+            ExceptionInfo.Check(ReaderProperties_Set_Footer_Read_Size(Handle.IntPtr, size));
+            GC.KeepAlive(Handle);
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Get_Default_Reader_Properties(out IntPtr readerProperties);
 
@@ -230,6 +250,12 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ReaderProperties_Set_Thrift_Container_Size_Limit(IntPtr readerProperties, int size);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_Footer_Read_Size(IntPtr readerProperties, out long size);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ReaderProperties_Set_Footer_Read_Size(IntPtr readerProperties, long size);
 
         internal readonly ParquetHandle Handle;
     }

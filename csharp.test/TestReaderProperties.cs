@@ -42,6 +42,9 @@ namespace ParquetSharp.Test
 
             p.SetThriftContainerSizeLimit(2048576);
             Assert.That(p.ThriftContainerSizeLimit, Is.EqualTo(2048576));
+
+            p.SetFooterReadSize(2048576);
+            Assert.That(p.FooterReadSize, Is.EqualTo(2048576));
         }
 
         [Test]

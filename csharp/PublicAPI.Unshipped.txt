@@ -3,3 +3,5 @@ ParquetSharp.ReaderProperties.ThriftStringSizeLimit.get -> int
 ParquetSharp.ReaderProperties.SetThriftStringSizeLimit(int size) -> void
 ParquetSharp.ReaderProperties.ThriftContainerSizeLimit.get -> int
 ParquetSharp.ReaderProperties.SetThriftContainerSizeLimit(int size) -> void
+ParquetSharp.ReaderProperties.FooterReadSize.get -> long
+ParquetSharp.ReaderProperties.SetFooterReadSize(long size) -> void
