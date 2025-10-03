@@ -94,4 +94,24 @@ extern "C"
 	{
 		TRYCATCH(reader_properties->set_thrift_string_size_limit(size);)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo *ReaderProperties_Thrift_Container_Size_Limit(const ReaderProperties *reader_properties, int *size)
+	{
+		TRYCATCH(*size = reader_properties->thrift_container_size_limit();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo *ReaderProperties_Set_Thrift_Container_Size_Limit(ReaderProperties *reader_properties, int size)
+	{
+		TRYCATCH(reader_properties->set_thrift_container_size_limit(size);)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* ReaderProperties_Footer_Read_Size(const ReaderProperties* reader_properties, int64_t* size)
+	{
+		TRYCATCH(*size = reader_properties->footer_read_size();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* ReaderProperties_Set_Footer_Read_Size(ReaderProperties* reader_properties, int64_t size)
+	{
+		TRYCATCH(reader_properties->set_footer_read_size(size);)
+	}
 }

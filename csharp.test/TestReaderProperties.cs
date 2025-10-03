@@ -39,6 +39,12 @@ namespace ParquetSharp.Test
 
             p.SetThriftStringSizeLimit(2048576);
             Assert.That(p.ThriftStringSizeLimit, Is.EqualTo(2048576));
+
+            p.SetThriftContainerSizeLimit(2048576);
+            Assert.That(p.ThriftContainerSizeLimit, Is.EqualTo(2048576));
+
+            p.SetFooterReadSize(2048576);
+            Assert.That(p.FooterReadSize, Is.EqualTo(2048576));
         }
 
         [Test]
@@ -72,6 +78,50 @@ namespace ParquetSharp.Test
             });
 
             // Validate the exception is related to the thrift string size limit
+            Assert.That(ex?.Message,
+                Does.Contain("Couldn't deserialize thrift: TProtocolException: Exceeded size limit")
+                    .IgnoreCase);
+        }
+
+        [Test]
+        public static void TestSetThriftContainerSizeLimit_ReturnException()
+        {
+            using var buffer = new ResizableBuffer();
+
+            // Create a schema with many columns to exceed the default container size limit
+            var columnCount = 100;
+            var schema = new Column[columnCount];
+            for (int i = 0; i < columnCount; i++)
+            {
+                schema[i] = new Column<string>($"Column{i}");
+            }
+
+            using (var output = new BufferOutputStream(buffer))
+            {
+                using var writer = new ParquetFileWriter(output, schema);
+                using (var rowGroup = writer.AppendRowGroup())
+                {
+                    for (int i = 0; i < columnCount; i++)
+                    {
+                        using var colWriter = rowGroup.NextColumn().LogicalWriter<string>();
+                        colWriter.WriteBatch(new[] { "hello" });
+                    }
+                }
+                writer.Close();
+            }
+
+            // Configure reader with a small thrift container size limit
+            using var props = ReaderProperties.GetDefaultReaderProperties();
+            props.SetThriftContainerSizeLimit(10);
+
+            var ex = Assert.Throws<ParquetException>(() =>
+            {
+                using var input = new BufferReader(buffer);
+                using var reader = new ParquetFileReader(input, props);
+                var rg = reader.RowGroup(0); // Force metadata read
+            });
+
+            // Validate the exception is related to the thrift container size limit
             Assert.That(ex?.Message,
                 Does.Contain("Couldn't deserialize thrift: TProtocolException: Exceeded size limit")
                     .IgnoreCase);
