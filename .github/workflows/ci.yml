@@ -52,11 +52,17 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-13, windows-2022]
-        arch: [x64, arm64]
-        exclude:
-        - os: windows-2022
+        include:
+        - os: ubuntu-22.04-arm
           arch: arm64
+        - os: ubuntu-22.04
+          arch: x64
+        - os: macos-14
+          arch: arm64
+        - os: macos-15-intel
+          arch: x64
+        - os: windows-2022
+          arch: x64
       fail-fast: false
     name: Build native ${{ matrix.arch }} library (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -231,10 +237,21 @@ jobs:
   test-nuget:
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-22.04-arm64, macos-13, macos-14, windows-2022]
+        os:
+        - ubuntu-22.04
+        - ubuntu-22.04-arm
+        - ubuntu-24.04
+        - ubuntu-24.04-arm
+        - macos-14
+        - macos-15
+        - macos-15-intel
+        - windows-2022
+        - windows-2025
         dotnet: [net6.0, net8.0, net9.0]
         include:
         - os: windows-2022
+          dotnet: net472
+        - os: windows-2025
           dotnet: net472
       fail-fast: false
     name: Test NuGet package (${{ matrix.dotnet }} on ${{ matrix.os }})

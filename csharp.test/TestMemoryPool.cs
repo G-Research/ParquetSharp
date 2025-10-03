@@ -27,10 +27,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestJemallocMemoryPool()
         {
-            var expectJemalloc = IsRunningInCi() &&
-                                 (
-                                     !RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-                                     RuntimeInformation.ProcessArchitecture != Architecture.Arm64);
+            var expectJemalloc = IsRunningInCi() && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             MemoryPool pool;
             try
             {
@@ -58,10 +55,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestMimallocMemoryPool()
         {
-            var expectMimalloc = IsRunningInCi() &&
-                                 (
-                                     RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
-                                     (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.ProcessArchitecture != Architecture.Arm64));
+            var expectMimalloc = IsRunningInCi() && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             MemoryPool pool;
             try
             {
