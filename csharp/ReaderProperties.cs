@@ -161,7 +161,7 @@ namespace ParquetSharp
         /// Return the size limit on thrift containers.
         /// 
         /// This limit helps prevent space and time bombs in files, 
-        /// but may need to be increased in order to read files with especially large headers.
+        /// but may need to be increased in order to read files with especially large footers.
         /// </summary>
         public int ThriftContainerSizeLimit
         {
