@@ -105,6 +105,33 @@ namespace ParquetSharp.Arrow
             }
         }
 
+        /// <summary>
+        /// The Arrow binary type to read BYTE_ARRAY columns as.
+        /// </summary>
+        public Apache.Arrow.Types.ArrowTypeId BinaryType
+        {
+            get => ExceptionInfo.Return<Apache.Arrow.Types.ArrowTypeId>(Handle, ArrowReaderProperties_BinaryType);
+        }
+
+        /// <summary>
+        /// Set the Arrow binary type to read BYTE_ARRAY columns as.
+        /// 
+        /// Allowed values are Type::BINARY, Type::LARGE_BINARY and Type::BINARY_VIEW.
+        /// Default is Type::BINARY.
+        ///
+        /// If a BYTE_ARRAY column has the STRING logical type, it is read as the
+        /// Arrow string type corresponding to the configured binary type (for example
+        /// Type::LARGE_STRING if the configured binary type is Type::LARGE_BINARY).
+        ///
+        /// However, if a serialized Arrow schema is found in the Parquet metadata,
+        /// this setting is ignored and the Arrow schema takes precedence
+        /// </summary>
+        public void SetBinaryType(Apache.Arrow.Types.ArrowTypeId value)
+        {
+            ExceptionInfo.Check(ArrowReaderProperties_SetBinaryType(Handle.IntPtr, value));
+            GC.KeepAlive(Handle);
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_GetDefault(out IntPtr readerProperties);
 
@@ -140,6 +167,12 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_SetCoerceInt96TimestampUnit(IntPtr readerProperties, Apache.Arrow.Types.TimeUnit unit);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_BinaryType(IntPtr readerProperties, out Apache.Arrow.Types.ArrowTypeId value);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_SetBinaryType(IntPtr readerProperties, Apache.Arrow.Types.ArrowTypeId value);
 
         internal readonly ParquetHandle Handle;
     }

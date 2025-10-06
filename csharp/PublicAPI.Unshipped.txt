@@ -1,3 +1,5 @@
 #nullable enable
 ParquetSharp.ReaderProperties.ThriftStringSizeLimit.get -> int
 ParquetSharp.ReaderProperties.SetThriftStringSizeLimit(int size) -> void
+ParquetSharp.Arrow.ArrowReaderProperties.BinaryType.get -> Apache.Arrow.Types.ArrowTypeId
+ParquetSharp.Arrow.ArrowReaderProperties.SetBinaryType(Apache.Arrow.Types.ArrowTypeId value) -> void

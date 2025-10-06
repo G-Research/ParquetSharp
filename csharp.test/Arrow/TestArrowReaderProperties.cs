@@ -28,12 +28,14 @@ namespace ParquetSharp.Test.Arrow
             properties.SetReadDictionary(0, true);
             properties.PreBuffer = false;
             properties.CoerceInt96TimestampUnit = Apache.Arrow.Types.TimeUnit.Microsecond;
+            properties.SetBinaryType(Apache.Arrow.Types.ArrowTypeId.Binary);
 
             Assert.That(properties.UseThreads, Is.True);
             Assert.That(properties.BatchSize, Is.EqualTo(789));
             Assert.That(properties.GetReadDictionary(0), Is.True);
             Assert.That(properties.PreBuffer, Is.False);
             Assert.That(properties.CoerceInt96TimestampUnit, Is.EqualTo(Apache.Arrow.Types.TimeUnit.Microsecond));
+            Assert.That(properties.BinaryType, Is.EqualTo(Apache.Arrow.Types.ArrowTypeId.Binary));
         }
     }
 }
