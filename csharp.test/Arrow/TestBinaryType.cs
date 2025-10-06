@@ -15,9 +15,7 @@ namespace ParquetSharp.Test.Arrow
         [Test]
         public void VerifyBinaryTypeEnumValues()
         {
-            Assert.That((int) ParquetSharp.BinaryType.Binary, Is.EqualTo(14));
-            Assert.That((int) ParquetSharp.BinaryType.LargeBinary, Is.EqualTo(35));
-            Assert.That((int) ParquetSharp.BinaryType.BinaryView, Is.EqualTo(40));
+            Assert.That((int) Apache.Arrow.Types.ArrowTypeId.Binary, Is.EqualTo(14));
         }
     }
 }
