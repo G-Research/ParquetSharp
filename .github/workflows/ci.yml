@@ -18,8 +18,6 @@ permissions:
 
 jobs:
 
-  # Note that vcpkg dependencies takes the majority of the build time.
-  # We cache them using GitHub Actions cache, making the scripts below a bit more complex.
   check-format:
     if: github.event_name == 'schedule' || github.event_name == 'push' || github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id
     name: Check format
@@ -90,12 +88,6 @@ jobs:
         echo "root=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_OUTPUT
       shell: bash
 
-    # Get cmake version, which is used by the CentOS 7 container.
-    - name: Get cmake version
-      id: cmake-info
-      run: echo "version=$(cmake --version | head -n1 | awk '{print $3}')" >> $GITHUB_OUTPUT
-      shell: bash
-
     # Ensure vcpkg builtin registry is up-to-date
     - name: Update vcpkg builtin registry
       working-directory: ${{ steps.vcpkg-info.outputs.root }}
@@ -116,22 +108,13 @@ jobs:
       run: |
         ./bootstrap-vcpkg.bat
 
-    # Setup a CentOS 7 container to build on Linux x64 for backwards compatibility.
+    # Setup a CentOS 7 container to build on Linux for backwards compatibility.
     - name: Start CentOS container and install toolchain
-      if: runner.os == 'Linux' && matrix.arch == 'x64'
+      if: runner.os == 'Linux'
       run: |
-        docker run -d --name centos --entrypoint tail -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT quay.io/pypa/manylinux2014_x86_64 -f /dev/null
+        docker run -d --name centos --entrypoint tail -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT quay.io/pypa/manylinux2014_$(uname -m) -f /dev/null
         docker exec centos sh -c "yum install -y devtoolset-10 rh-git227 httpd24-curl flex bison perl-Data-Dumper perl-IPC-Cmd && \
-                                  curl -fsSL -o /tmp/cmake.sh https://github.com/Kitware/CMake/releases/download/v${{ steps.cmake-info.outputs.version }}/cmake-${{ steps.cmake-info.outputs.version }}-linux-x86_64.sh && \
-                                  sh /tmp/cmake.sh --skip-license --prefix=/usr/local && \
-                                  rm /tmp/cmake.sh"
-
-    # Install arm64 cross-compilation toolchain if required
-    - name: Install arm64 cross-compilation toolchain
-      if: runner.os == 'Linux' && matrix.arch == 'arm64'
-      run: |
-        sudo apt-get update
-        sudo apt install g++-aarch64-linux-gnu
+                                  uv tool install ninja"
 
     # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
@@ -147,25 +130,19 @@ jobs:
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v2
 
-    # Expose GitHub Runtime environment variables for vcpkg caching.
-    - name: Expose GitHub Runtime
-      uses: crazy-max/ghaction-github-runtime@v3
-
     # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
-    - name: Compile native ParquetSharp library (Unix)
-      if: runner.os == 'Linux' || runner.os == 'macOS'
+    - name: Compile native ParquetSharp library (Linux)
+      if: runner.os == 'Linux'
       run: |
-        if [ "${{ runner.os }}" == "Linux" ] && [ "${{ matrix.arch }}" == "x64" ]; then
-          exec="docker exec -w $PWD -e GITHUB_ACTIONS -e ACTIONS_CACHE_URL -e ACTIONS_RUNTIME_TOKEN -e VCPKG_BINARY_SOURCES -e VCPKG_INSTALLATION_ROOT centos scl enable devtoolset-10 rh-git227 httpd24 --"
-        fi
-        $exec ./build_unix.sh ${{ matrix.arch }}
-      env:
-        VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
+        docker exec -w $PWD -e GITHUB_ACTIONS -e VCPKG_INSTALLATION_ROOT centos \
+          scl enable devtoolset-10 rh-git227 httpd24 -- \
+          sh -c 'PATH=$(uv tool dir --bin):$PATH ./build_unix.sh'
+    - name: Compile native ParquetSharp library (macOS)
+      if: runner.os == 'macOS'
+      run: ./build_unix.sh
     - name: Compile native ParquetSharp library (Windows)
       if: runner.os == 'Windows'
       run: ./build_windows.ps1
-      env:
-        VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
     - name: Upload vcpkg arrow logs
       if: success() || failure()
       uses: actions/upload-artifact@v4
@@ -184,7 +161,7 @@ jobs:
         path: bin
 
     - name: Stop CentOS container
-      if: runner.os == 'Linux' && matrix.arch == 'x64'
+      if: runner.os == 'Linux'
       run: docker rm -f centos
 
   # Download all native shared libraries and create the nuget package.

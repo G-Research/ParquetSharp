@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-case ${1:-$(uname -m)} in
+case $(uname -m) in
   x86_64|x64)
     vcpkg_arch=x64
     linux_arch=x86_64
@@ -21,15 +21,11 @@ esac
 case $(uname) in
   Linux)
     os=linux
-    [ -f /etc/redhat-release ] && platform=redhat-linux || platform=linux-gnu
-    options="-D CMAKE_SYSTEM_PROCESSOR=$linux_arch \
-             -D CMAKE_C_COMPILER=$(which $linux_arch-$platform-gcc) \
-             -D CMAKE_CXX_COMPILER=$(which $linux_arch-$platform-g++) \
-             -D CMAKE_STRIP=$(which $linux_arch-$platform-strip 2>/dev/null || which strip)"
+    nproc=$(nproc)
     ;;
   Darwin)
     os=osx
-    options="-D CMAKE_OSX_ARCHITECTURES=$osx_arch"
+    nproc=$(sysctl -n hw.logicalcpu)
     if ! which brew >/dev/null || [ ! -x $(brew --prefix)/opt/bison/bin/bison ]
     then
       echo 'The version of bison provided with macOS is too old.'
@@ -86,5 +82,5 @@ do
   echo ">> Building ParquetSharpNative $build_type for $triplet"
   build_dir=build/$triplet-$(tr A-Z a-z <<<$build_type)
   cmake -B $build_dir -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake -D CMAKE_BUILD_TYPE=$build_type $options
-  cmake --build $build_dir -j
+  cmake --build $build_dir -j ${nproc}
 done
