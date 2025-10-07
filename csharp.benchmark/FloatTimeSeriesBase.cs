@@ -24,7 +24,8 @@ namespace ParquetSharp.Benchmark
                 .Where(d => d.DayOfWeek != DayOfWeek.Saturday && d.DayOfWeek != DayOfWeek.Sunday)
                 .ToArray();
 
-            var objectIds = Enumerable.Range(0, 10000)
+            var numObjectIds = DataConfig.Size == DataSize.Small ? 1_000 : 10_000;
+            var objectIds = Enumerable.Range(0, numObjectIds)
                 .Select(i => rand.Next())
                 .Distinct()
                 .OrderBy(i => i)
