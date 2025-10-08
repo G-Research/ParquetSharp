@@ -285,7 +285,7 @@ namespace ParquetSharp.Test.Arrow
                         using var intArray1 = new Int32Array.Builder()
                             .AppendRange(Enumerable.Range(start1, chunkSize))
                             .Build();
-                        writer.WriteColumnChunk(new ChunkedArray(new Array[] { intArray0, intArray1 }));
+                        writer.WriteColumnChunk(new ChunkedArray(new List<IArrowArray> { intArray0, intArray1 }));
                     }
 
                     {
@@ -295,7 +295,7 @@ namespace ParquetSharp.Test.Arrow
                         using var floatArray1 = new FloatArray.Builder()
                             .AppendRange(Enumerable.Range(start1, chunkSize).Select(i => i / 100.0f))
                             .Build();
-                        writer.WriteColumnChunk(new ChunkedArray(new Array[] { floatArray0, floatArray1 }));
+                        writer.WriteColumnChunk(new ChunkedArray(new List<IArrowArray> { floatArray0, floatArray1 }));
                     }
                 }
 
