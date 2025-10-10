@@ -6,7 +6,7 @@ namespace ParquetSharp.Benchmark
     internal static class Check
     {
         // Do not enable checks when benchmarking.
-        public static bool Enabled = false;
+        public static bool Enabled { get; set; } = false;
 
         public static void ArraysAreEqual<T>(T[] expected, T[] result)
         {

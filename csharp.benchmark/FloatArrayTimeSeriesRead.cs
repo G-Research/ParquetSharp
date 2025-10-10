@@ -207,9 +207,9 @@ namespace ParquetSharp.Benchmark
         }
 
         private const string Filename = "float_array_timeseries.parquet";
-        private const int NumArrayEntries = 1_000;
-        private const int NumDates = 1_000;
-        private const int NumObjectIds = 1_000;
+        private static int NumArrayEntries => DataConfig.Size == DataSize.Small ? 100 : 1_000;
+        private static int NumDates => DataConfig.Size == DataSize.Small ? 100 : 1_000;
+        private static int NumObjectIds => DataConfig.Size == DataSize.Small ? 100 : 1_000;
 
         private readonly DateTime[] _allDates;
         private readonly int[] _allObjectIds;

@@ -9,11 +9,11 @@
       "features": [
         {
           "name": "mimalloc",
-          "platform": "linux | (!staticcrt & !arm64)"
+          "platform": "linux | !staticcrt"
         },
         {
           "name": "jemalloc",
-          "platform": "!windows&!arm64"
+          "platform": "!windows"
         }
       ]
     }

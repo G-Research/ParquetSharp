@@ -12,15 +12,35 @@ namespace ParquetSharp.Benchmark
 {
     internal static class Program
     {
-        public static int Main()
+        public static int Main(string[] args)
         {
             try
             {
                 Console.WriteLine("Working directory: {0}", Environment.CurrentDirectory);
 
+                foreach (var arg in args)
+                {
+                    if (arg == "--check")
+                    {
+                        // Run benchmarks just once to verify they work correctly,
+                        // and compare results to the expected results.
+                        Check.Enabled = true;
+                    }
+                    else if (arg == "--small")
+                    {
+                        // Use smaller data to reduce memory required.
+                        DataConfig.Size = DataSize.Small;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Unrecognized argument: '{arg}'");
+                    }
+                }
+
                 IConfig config;
                 if (Check.Enabled)
                 {
+                    Console.WriteLine("Running Benchmarks in Check mode");
                     // When checking enabled, only run each test once and use the in-process toolchain to allow debugging
                     config = ManualConfig
                         .CreateEmpty()

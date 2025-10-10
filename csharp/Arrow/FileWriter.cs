@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -263,7 +264,7 @@ namespace ParquetSharp.Arrow
             {
                 arrays[i] = array.Array(i);
             }
-            var column = new Apache.Arrow.Column(field, arrays);
+            var column = new Apache.Arrow.Column(field, arrays as IList<IArrowArray>);
             var table = new Table(schema, new[] { column });
 
             var arrayStream = new RecordBatchStream(table);
