@@ -618,6 +618,37 @@ namespace ParquetSharp
             });
         }
 
+        /// <summary>
+        /// Allow decimals between 1 and 18 (inclusive) to be stored as integers.
+        /// By default, this is DISABLED and all decimal types annotate fixed_len_byte_array.
+        ///
+        /// When enabled, the Parquet writer will use following physical types to store decimals:
+        /// - int32: for precision between 1 and 9.
+        /// - int64: for precision between 10 and 18.
+        /// - fixed_len_byte_array: for precision > 18.
+        ///
+        /// As a consequence, decimal columns stored in integer types are more compact.
+        /// </summary>
+        public WriterPropertiesBuilder EnableStoreDecimalAsInteger()
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Store_Decimal_As_Integer(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Disable decimal logical type between 1 and 18 (inclusive) to be stored
+        /// as integer physical type.
+        /// 
+        /// This is the default.
+        /// </summary>
+        public WriterPropertiesBuilder DisableStoreDecimalAsInteger()
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Store_Decimal_As_Integer(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void OnDefaultProperty<T>(T? defaultPropertyValue, Action<T> setProperty)
             where T : struct
@@ -765,6 +796,12 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Memory_Pool(IntPtr builder, IntPtr memoryPool);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Enable_Store_Decimal_As_Integer(IntPtr builder);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Disable_Store_Decimal_As_Integer(IntPtr builder);
 
         private readonly ParquetHandle _handle;
     }

@@ -162,4 +162,9 @@ extern "C"
 	{
 		TRYCATCH(*memory_pool = (*writer_properties)->memory_pool();)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Store_Decimal_As_Integer(const std::shared_ptr<WriterProperties>* writer_properties, bool* store_decimal_as_integer)
+	{
+		TRYCATCH(*store_decimal_as_integer = (*writer_properties)->store_decimal_as_integer();)
+	}
 }
