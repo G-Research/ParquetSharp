@@ -27,6 +27,7 @@ namespace ParquetSharp.Test
             Assert.True(p.WritePageIndex);
             Assert.False(p.PageChecksumEnabled);
             Assert.That(p.MemoryPool.BackendName, Is.Not.Empty);
+            Assert.False(p.StoreDecimalAsInteger);
         }
 
         [Test]
@@ -46,6 +47,7 @@ namespace ParquetSharp.Test
                 .DisableWritePageIndex()
                 .EnablePageChecksum()
                 .MemoryPool(MemoryPool.SystemMemoryPool())
+                .EnableStoreDecimalAsInteger()
                 .Build();
 
             Assert.AreEqual("Meeeee!!!", p.CreatedBy);
@@ -61,6 +63,7 @@ namespace ParquetSharp.Test
             Assert.False(p.WritePageIndex);
             Assert.True(p.PageChecksumEnabled);
             Assert.AreEqual("system", p.MemoryPool.BackendName);
+            Assert.True(p.StoreDecimalAsInteger);
         }
 
         [Test]

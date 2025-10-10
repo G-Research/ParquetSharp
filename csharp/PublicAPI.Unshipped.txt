@@ -5,3 +5,6 @@ ParquetSharp.ReaderProperties.ThriftContainerSizeLimit.get -> int
 ParquetSharp.ReaderProperties.SetThriftContainerSizeLimit(int size) -> void
 ParquetSharp.ReaderProperties.FooterReadSize.get -> long
 ParquetSharp.ReaderProperties.SetFooterReadSize(long size) -> void
+ParquetSharp.WriterProperties.StoreDecimalAsInteger.get -> bool
+ParquetSharp.WriterPropertiesBuilder.EnableStoreDecimalAsInteger() -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.WriterPropertiesBuilder.DisableStoreDecimalAsInteger() -> ParquetSharp.WriterPropertiesBuilder!
