@@ -27,7 +27,7 @@ switch -Regex ($env:PROCESSOR_ARCHITECTURE) {
   default { throw "Unsupported architecture: $env:PROCESSOR_ARCHITECTURE" }
 }
 
-$triplet = "$arch-windows-static"
+$triplet = "$arch-windows-static-md"
 
 $build_types = @("Debug", "Release")
 
