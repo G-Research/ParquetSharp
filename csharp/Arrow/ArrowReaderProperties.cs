@@ -107,17 +107,9 @@ namespace ParquetSharp.Arrow
 
         /// <summary>
         /// The Arrow binary type to read BYTE_ARRAY columns as.
-        /// </summary>
-        public Apache.Arrow.Types.ArrowTypeId BinaryType
-        {
-            get => ExceptionInfo.Return<Apache.Arrow.Types.ArrowTypeId>(Handle, ArrowReaderProperties_BinaryType);
-        }
-
-        /// <summary>
-        /// Set the Arrow binary type to read BYTE_ARRAY columns as.
         /// 
-        /// Allowed values are Type::BINARY, Type::LARGE_BINARY and Type::BINARY_VIEW.
-        /// Default is Type::BINARY.
+        /// Allowed values are ArrowTypeId.Binary, ArrowTypeId.LargeBinary and ArrowTypeId.BinaryView.
+        /// Default is ArrowTypeId.Binary.
         ///
         /// If a BYTE_ARRAY column has the STRING logical type, it is read as the
         /// Arrow string type corresponding to the configured binary type (for example
@@ -126,10 +118,19 @@ namespace ParquetSharp.Arrow
         /// However, if a serialized Arrow schema is found in the Parquet metadata,
         /// this setting is ignored and the Arrow schema takes precedence
         /// </summary>
-        public void SetBinaryType(Apache.Arrow.Types.ArrowTypeId value)
+        public Apache.Arrow.Types.ArrowTypeId BinaryType
         {
-            ExceptionInfo.Check(ArrowReaderProperties_SetBinaryType(Handle.IntPtr, value));
-            GC.KeepAlive(Handle);
+            get
+            {
+                ParquetSharp.CppEnums value = ExceptionInfo.Return<ParquetSharp.CppEnums>(Handle, ArrowReaderProperties_BinaryType);
+                return value.toPublicEnum();
+            }
+            set
+            {
+                ParquetSharp.CppEnums cppValue = value.toCppEnum();
+                ExceptionInfo.Check(ArrowReaderProperties_SetBinaryType(Handle.IntPtr, cppValue));
+                GC.KeepAlive(Handle);
+            }
         }
 
         [DllImport(ParquetDll.Name)]
@@ -169,10 +170,10 @@ namespace ParquetSharp.Arrow
         private static extern IntPtr ArrowReaderProperties_SetCoerceInt96TimestampUnit(IntPtr readerProperties, Apache.Arrow.Types.TimeUnit unit);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ArrowReaderProperties_BinaryType(IntPtr readerProperties, out Apache.Arrow.Types.ArrowTypeId value);
+        private static extern IntPtr ArrowReaderProperties_BinaryType(IntPtr readerProperties, out ParquetSharp.CppEnums value);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ArrowReaderProperties_SetBinaryType(IntPtr readerProperties, Apache.Arrow.Types.ArrowTypeId value);
+        private static extern IntPtr ArrowReaderProperties_SetBinaryType(IntPtr readerProperties, ParquetSharp.CppEnums value);
 
         internal readonly ParquetHandle Handle;
     }

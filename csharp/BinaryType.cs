@@ -1,20 +1,16 @@
+using System;
+using System.Runtime.InteropServices;
+
 namespace ParquetSharp
 {
-    internal enum BinaryType
+    internal static class BinaryTypeExtensions
     {
-        /// <summary>
-        /// Variable-length bytes (no guarantee of UTF8-ness)
-        /// </summary>
-        Binary = 14,
-
-        /// <summary>
-        /// Like BINARY, but with 64-bit offsets
-        /// </summary>
-        LargeBinary = 35,
-
-        /// <summary>
-        /// Bytes view type with 4-byte prefix and inline small string optimization
-        /// </summary>
-        BinaryView = 40
+        public static ParquetSharp.CppEnums toCppEnum(this Apache.Arrow.Types.ArrowTypeId arrowTypeId) => arrowTypeId switch
+        {
+            Apache.Arrow.Types.ArrowTypeId.Binary => ParquetSharp.CppEnums.Binary,
+            Apache.Arrow.Types.ArrowTypeId.LargeBinary => ParquetSharp.CppEnums.LargeBinary,
+            Apache.Arrow.Types.ArrowTypeId.BinaryView => ParquetSharp.CppEnums.BinaryView,
+            _ => throw new ArgumentOutOfRangeException(nameof(arrowTypeId), arrowTypeId, null)
+        };
     }
 }
