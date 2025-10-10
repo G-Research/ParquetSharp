@@ -66,4 +66,14 @@ extern "C"
   {
     TRYCATCH(properties->set_coerce_int96_timestamp_unit(unit);)
   }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_BinaryType(ArrowReaderProperties* properties, ::arrow::Type::type* value)
+  {
+    TRYCATCH(*value = properties->binary_type();)
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_SetBinaryType(ArrowReaderProperties* properties, ::arrow::Type::type value)
+  {
+    TRYCATCH(properties->set_binary_type(value);)
+  }
 }
