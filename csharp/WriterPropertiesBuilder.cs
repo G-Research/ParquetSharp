@@ -619,7 +619,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Allow decimals between 1 and 18 (inclusive) to be stored as integers.
+        /// Allow decimals with precision between 1 and 18 (inclusive) to be stored as integers.
         /// By default, this is DISABLED and all decimal types annotate fixed_len_byte_array.
         ///
         /// When enabled, the Parquet writer will use following physical types to store decimals:
@@ -637,7 +637,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Disable decimal logical type between 1 and 18 (inclusive) to be stored
+        /// Disable decimal logical type with precision between 1 and 18 (inclusive) to be stored
         /// as integer physical type.
         /// 
         /// This is the default.

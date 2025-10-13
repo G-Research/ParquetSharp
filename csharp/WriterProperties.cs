@@ -265,7 +265,7 @@ namespace ParquetSharp
         public MemoryPool MemoryPool => new MemoryPool(ExceptionInfo.Return<IntPtr>(Handle, WriterProperties_Memory_Pool));
 
         /// <summary>
-        /// Whether decimals between 1 and 18 (inclusive) are stored as integers.
+        /// Whether decimals with precision between 1 and 18 (inclusive) are stored as integers.
         /// </summary>
         public bool StoreDecimalAsInteger => ExceptionInfo.Return<bool>(Handle, WriterProperties_Store_Decimal_As_Integer);
 
