@@ -3,20 +3,20 @@ using System.Runtime.InteropServices;
 
 namespace ParquetSharp
 {
-    internal enum CppEnums
+    internal enum CppTypeId
     {
         Binary = 14,
         LargeBinary = 35,
         BinaryView = 40,
     }
 
-    internal static class ArrowTypeIdExtensions
+    internal static class CppTypeIdExtensions
     {
-        public static Apache.Arrow.Types.ArrowTypeId toPublicEnum(this CppEnums binaryType) => binaryType switch
+        public static Apache.Arrow.Types.ArrowTypeId toPublicEnum(this CppTypeId binaryType) => binaryType switch
         {
-            CppEnums.Binary => Apache.Arrow.Types.ArrowTypeId.Binary,
-            CppEnums.LargeBinary => Apache.Arrow.Types.ArrowTypeId.LargeBinary,
-            CppEnums.BinaryView => Apache.Arrow.Types.ArrowTypeId.BinaryView,
+            CppTypeId.Binary => Apache.Arrow.Types.ArrowTypeId.Binary,
+            CppTypeId.LargeBinary => Apache.Arrow.Types.ArrowTypeId.LargeBinary,
+            CppTypeId.BinaryView => Apache.Arrow.Types.ArrowTypeId.BinaryView,
             _ => throw new ArgumentOutOfRangeException(nameof(binaryType), binaryType, null)
         };
     }

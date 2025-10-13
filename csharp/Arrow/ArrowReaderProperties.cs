@@ -122,12 +122,12 @@ namespace ParquetSharp.Arrow
         {
             get
             {
-                ParquetSharp.CppEnums value = ExceptionInfo.Return<ParquetSharp.CppEnums>(Handle, ArrowReaderProperties_BinaryType);
+                ParquetSharp.CppTypeId value = ExceptionInfo.Return<ParquetSharp.CppTypeId>(Handle, ArrowReaderProperties_BinaryType);
                 return value.toPublicEnum();
             }
             set
             {
-                ParquetSharp.CppEnums cppValue = value.toCppEnum();
+                ParquetSharp.CppTypeId cppValue = value.toCppEnum();
                 ExceptionInfo.Check(ArrowReaderProperties_SetBinaryType(Handle.IntPtr, cppValue));
                 GC.KeepAlive(Handle);
             }
@@ -170,10 +170,10 @@ namespace ParquetSharp.Arrow
         private static extern IntPtr ArrowReaderProperties_SetCoerceInt96TimestampUnit(IntPtr readerProperties, Apache.Arrow.Types.TimeUnit unit);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ArrowReaderProperties_BinaryType(IntPtr readerProperties, out ParquetSharp.CppEnums value);
+        private static extern IntPtr ArrowReaderProperties_BinaryType(IntPtr readerProperties, out ParquetSharp.CppTypeId value);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ArrowReaderProperties_SetBinaryType(IntPtr readerProperties, ParquetSharp.CppEnums value);
+        private static extern IntPtr ArrowReaderProperties_SetBinaryType(IntPtr readerProperties, ParquetSharp.CppTypeId value);
 
         internal readonly ParquetHandle Handle;
     }
