@@ -134,7 +134,7 @@ jobs:
     - name: Compile native ParquetSharp library (Linux)
       if: runner.os == 'Linux'
       run: |
-        docker exec -w $PWD -e GITHUB_ACTIONS -e VCPKG_INSTALLATION_ROOT centos \
+        docker exec -w $PWD -e GITHUB_ACTIONS -e VCPKG_INSTALLATION_ROOT -e VCPKG_FORCE_SYSTEM_BINARIES=1 centos \
           scl enable devtoolset-10 rh-git227 httpd24 -- \
           sh -c 'PATH=$(uv tool dir --bin):$PATH ./build_unix.sh'
     - name: Compile native ParquetSharp library (macOS)
