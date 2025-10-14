@@ -61,6 +61,8 @@ jobs:
           arch: x64
         - os: windows-2022
           arch: x64
+        - os: windows-11-arm
+          arch: arm64
       fail-fast: false
     name: Build native ${{ matrix.arch }} library (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -113,7 +115,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         docker run -d --name centos --entrypoint tail -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT quay.io/pypa/manylinux2014_$(uname -m) -f /dev/null
-        docker exec centos sh -c "yum install -y devtoolset-10 rh-git227 httpd24-curl flex bison perl-Data-Dumper perl-IPC-Cmd && \
+        docker exec centos sh -c "yum install -y devtoolset-10 rh-git227 httpd24-curl flex bison perl-Data-Dumper perl-IPC-Cmd perl-Time-Piece && \
                                   uv tool install ninja"
 
     # Install vcpkg dependencies
@@ -134,7 +136,7 @@ jobs:
     - name: Compile native ParquetSharp library (Linux)
       if: runner.os == 'Linux'
       run: |
-        docker exec -w $PWD -e GITHUB_ACTIONS -e VCPKG_INSTALLATION_ROOT centos \
+        docker exec -w $PWD -e GITHUB_ACTIONS -e VCPKG_INSTALLATION_ROOT -e VCPKG_FORCE_SYSTEM_BINARIES=1 centos \
           scl enable devtoolset-10 rh-git227 httpd24 -- \
           sh -c 'PATH=$(uv tool dir --bin):$PATH ./build_unix.sh'
     - name: Compile native ParquetSharp library (macOS)
@@ -224,11 +226,14 @@ jobs:
         - macos-15-intel
         - windows-2022
         - windows-2025
+        - windows-11-arm
         dotnet: [net6.0, net8.0, net9.0]
         include:
         - os: windows-2022
           dotnet: net472
         - os: windows-2025
+          dotnet: net472
+        - os: windows-11-arm
           dotnet: net472
       fail-fast: false
     name: Test NuGet package (${{ matrix.dotnet }} on ${{ matrix.os }})

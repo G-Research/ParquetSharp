@@ -10,7 +10,6 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ParquetSharp.Test</AssemblyName>
     <RootNamespace>ParquetSharp.Test</RootNamespace>
-    <PlatformTarget Condition="'$(TargetFramework)'=='net472'">x64</PlatformTarget>
     <GenerateProgramFile>false</GenerateProgramFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
