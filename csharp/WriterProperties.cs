@@ -264,6 +264,11 @@ namespace ParquetSharp
         /// </summary>
         public MemoryPool MemoryPool => new MemoryPool(ExceptionInfo.Return<IntPtr>(Handle, WriterProperties_Memory_Pool));
 
+        /// <summary>
+        /// Whether decimals with precision between 1 and 18 (inclusive) are stored as integers.
+        /// </summary>
+        public bool StoreDecimalAsInteger => ExceptionInfo.Return<bool>(Handle, WriterProperties_Store_Decimal_As_Integer);
+
         internal readonly ParquetHandle Handle;
 
         [DllImport(ParquetDll.Name)]
@@ -340,5 +345,8 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Memory_Pool(IntPtr writerProperties, out IntPtr memoryPool);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Store_Decimal_As_Integer(IntPtr writerProperties, out bool storeDecimalAsInteger);
     }
 }

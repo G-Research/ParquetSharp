@@ -231,4 +231,14 @@ extern "C"
 	{
 		TRYCATCH(builder->memory_pool(pool);)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Enable_Store_Decimal_As_Integer(WriterProperties::Builder* builder)
+	{
+		TRYCATCH(builder->enable_store_decimal_as_integer();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Disable_Store_Decimal_As_Integer(WriterProperties::Builder* builder)
+	{
+		TRYCATCH(builder->disable_store_decimal_as_integer();)
+	}
 }
