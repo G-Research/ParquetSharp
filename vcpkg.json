@@ -9,7 +9,7 @@
       "features": [
         {
           "name": "mimalloc",
-          "platform": "linux | !staticcrt"
+          "platform": "!staticcrt"
         },
         {
           "name": "jemalloc",
