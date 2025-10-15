@@ -55,7 +55,7 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestMimallocMemoryPool()
         {
-            var expectMimalloc = IsRunningInCi() && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            var expectMimalloc = IsRunningInCi();
             MemoryPool pool;
             try
             {
