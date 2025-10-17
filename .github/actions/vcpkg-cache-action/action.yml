@@ -1,0 +1,7 @@
+name: vcpkg cache action
+description: GitHub Action to provide vcpkg binary caching via a custom HTTP server that proxies to GitHub Actions cache
+
+runs:
+  using: node24
+  main: dist/index.js
+  post: dist/index.js
