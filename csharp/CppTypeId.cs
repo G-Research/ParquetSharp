@@ -10,7 +10,7 @@ namespace ParquetSharp
         BinaryView = 40,
         List = 25,
         LargeList = 36,
-        ListView = 41   
+        ListView = 41
     }
 
     internal static class CppTypeIdExtensions
