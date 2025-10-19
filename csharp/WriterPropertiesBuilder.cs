@@ -549,6 +549,13 @@ namespace ParquetSharp
             return this;
         }
 
+        public WriterPropertiesBuilder SetMaxStatisticsSize(ulong maxStatisticsSize)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Set_Max_Statistics_Size(_handle.IntPtr, maxStatisticsSize));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
         private void ApplyDefaults()
         {
             OnDefaultProperty(DefaultWriterProperties.EnableDictionary, enabled =>
@@ -802,6 +809,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Disable_Store_Decimal_As_Integer(IntPtr builder);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Set_Max_Statistics_Size(IntPtr builder, [MarshalAs(UnmanagedType.U8)] ulong maxStatisticsSize);
 
         private readonly ParquetHandle _handle;
     }

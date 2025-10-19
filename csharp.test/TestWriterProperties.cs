@@ -48,6 +48,7 @@ namespace ParquetSharp.Test
                 .EnablePageChecksum()
                 .MemoryPool(MemoryPool.SystemMemoryPool())
                 .EnableStoreDecimalAsInteger()
+                .SetMaxStatisticsSize(512)
                 .Build();
 
             Assert.AreEqual("Meeeee!!!", p.CreatedBy);
@@ -64,6 +65,7 @@ namespace ParquetSharp.Test
             Assert.True(p.PageChecksumEnabled);
             Assert.AreEqual("system", p.MemoryPool.BackendName);
             Assert.True(p.StoreDecimalAsInteger);
+            Assert.AreEqual(512, p.MaxStatisticsSize(new ColumnPath("anypath")));
         }
 
         [Test]

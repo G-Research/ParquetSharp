@@ -335,7 +335,7 @@ namespace ParquetSharp
         private static extern IntPtr WriterProperties_Statistics_Enabled(IntPtr writerProperties, IntPtr path, [MarshalAs(UnmanagedType.I1)] out bool enabled);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr WriterProperties_Max_Statistics_Size(IntPtr writerProperties, IntPtr path, [MarshalAs(UnmanagedType.I1)] out ulong maxStatisticsSize);
+        private static extern IntPtr WriterProperties_Max_Statistics_Size(IntPtr writerProperties, IntPtr path, [MarshalAs(UnmanagedType.U8)] out ulong maxStatisticsSize);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Sorting_Columns(IntPtr writerProperties, ref IntPtr columnIndices, ref IntPtr descending, ref IntPtr nullsFirst, ref int numColumns);
