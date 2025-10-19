@@ -133,6 +133,30 @@ namespace ParquetSharp.Arrow
             }
         }
 
+        /// <summary>
+        /// The Arrow list type to read Parquet list columns as.
+        /// 
+        /// Allowed values are ArrowTypeId.List, ArrowTypeId.LargeList and ArrowTypeId.ListView.
+        /// Default is ArrowTypeId.List.
+        ///
+        /// If a serialized Arrow schema is found in the Parquet metadata,
+        /// this setting is ignored and the Arrow schema takes precedence
+        /// </summary>
+        public Apache.Arrow.Types.ArrowTypeId ListType
+        {
+            get
+            {
+                ParquetSharp.CppTypeId value = ExceptionInfo.Return<ParquetSharp.CppTypeId>(Handle, ArrowReaderProperties_ListType);
+                return value.toPublicEnum();
+            }
+            set
+            {
+                ParquetSharp.CppTypeId cppValue = value.toCppEnum();
+                ExceptionInfo.Check(ArrowReaderProperties_SetListType(Handle.IntPtr, cppValue));
+                GC.KeepAlive(Handle);
+            }
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_GetDefault(out IntPtr readerProperties);
 
@@ -174,6 +198,12 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_SetBinaryType(IntPtr readerProperties, ParquetSharp.CppTypeId value);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_ListType(IntPtr readerProperties, out ParquetSharp.CppTypeId value);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_SetListType(IntPtr readerProperties, ParquetSharp.CppTypeId value);
 
         internal readonly ParquetHandle Handle;
     }

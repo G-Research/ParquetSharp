@@ -76,4 +76,14 @@ extern "C"
   {
     TRYCATCH(properties->set_binary_type(value);)
   }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_ListType(ArrowReaderProperties* properties, ::arrow::Type::type* value)
+  {
+    TRYCATCH(*value = properties->list_type();)
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_SetListType(ArrowReaderProperties* properties, ::arrow::Type::type value)
+  {
+    TRYCATCH(properties->set_list_type(value);)
+  }
 }
