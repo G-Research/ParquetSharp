@@ -86,4 +86,14 @@ extern "C"
   {
     TRYCATCH(properties->set_list_type(value);)
   }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetArrowExtensionEnabled(ArrowReaderProperties* properties, bool* extensions_enabled)
+  {
+    TRYCATCH(*extensions_enabled = properties->get_arrow_extensions_enabled();)
+  }
+  
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_SetArrowExtensionEnabled(ArrowReaderProperties* properties, bool extensions_enabled)
+  {
+    TRYCATCH(properties->set_arrow_extensions_enabled(extensions_enabled);)
+  }
 }

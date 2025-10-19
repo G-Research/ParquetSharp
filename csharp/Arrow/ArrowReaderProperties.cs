@@ -157,6 +157,20 @@ namespace ParquetSharp.Arrow
             }
         }
 
+        /// <summary>
+        /// Whether to enable Parquet-supported Arrow extension types.
+        /// Default is false.
+        /// </summary>
+        public bool ArrowExtensionEnabled
+        {
+            get => ExceptionInfo.Return<bool>(Handle, ArrowReaderProperties_GetArrowExtensionEnabled);
+            set
+            {
+                ExceptionInfo.Check(ArrowReaderProperties_SetArrowExtensionEnabled(Handle.IntPtr, value));
+                GC.KeepAlive(Handle);
+            }
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_GetDefault(out IntPtr readerProperties);
 
@@ -204,6 +218,12 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_SetListType(IntPtr readerProperties, ParquetSharp.CppTypeId value);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_GetArrowExtensionEnabled(IntPtr readerProperties, out bool extensionsEnabled);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_SetArrowExtensionEnabled(IntPtr readerProperties, bool extensionsEnabled);
 
         internal readonly ParquetHandle Handle;
     }

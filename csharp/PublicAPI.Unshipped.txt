@@ -1,4 +1,6 @@
 #nullable enable
+ParquetSharp.Arrow.ArrowReaderProperties.ArrowExtensionEnabled.get -> bool
+ParquetSharp.Arrow.ArrowReaderProperties.ArrowExtensionEnabled.set -> void
 ParquetSharp.Arrow.ArrowReaderProperties.BinaryType.get -> Apache.Arrow.Types.ArrowTypeId
 ParquetSharp.Arrow.ArrowReaderProperties.BinaryType.set -> void
 ParquetSharp.Arrow.ArrowReaderProperties.ListType.get -> Apache.Arrow.Types.ArrowTypeId
