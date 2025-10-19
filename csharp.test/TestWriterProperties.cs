@@ -28,6 +28,7 @@ namespace ParquetSharp.Test
             Assert.False(p.PageChecksumEnabled);
             Assert.That(p.MemoryPool.BackendName, Is.Not.Empty);
             Assert.False(p.StoreDecimalAsInteger);
+            Assert.AreEqual(4096, p.MaxStatisticsSize(new ColumnPath("anypath")));
         }
 
         [Test]

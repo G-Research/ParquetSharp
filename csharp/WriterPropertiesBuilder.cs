@@ -549,6 +549,12 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Specify max statistics size to store min max value.
+        /// Default 4KB.
+        /// </summary>
+        /// <param name="maxStatisticsSize">The max statistics size to store min max value</param>
+        /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder SetMaxStatisticsSize(ulong maxStatisticsSize)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Set_Max_Statistics_Size(_handle.IntPtr, maxStatisticsSize));
