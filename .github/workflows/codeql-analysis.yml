@@ -22,41 +22,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v5
 
-    # Ensure vcpkg builtin registry is up-to-date
-    - name: Update vcpkg builtin registry
-      run: |
-        cd $VCPKG_INSTALLATION_ROOT
-        git reset --hard
-        git pull
-
-    - name: Bootstrap vcpkg
-      run: |
-        cd $VCPKG_INSTALLATION_ROOT
-        ./bootstrap-vcpkg.sh
-
-    - name: Setup .NET SDK v9.0.x
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: 9.0.x
-
-    # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
         languages: cpp, csharp
-
-    # Expose GitHub Runtime environment variables for vcpkg caching.
-    - name: Expose GitHub Runtime
-      uses: crazy-max/ghaction-github-runtime@v3
-
-    - name: Build C++ library and CSharp projects
-      run: |
-        ./build_unix.sh
-        dotnet build csharp.benchmark --configuration=Release
-        dotnet build csharp.test --configuration=Release
-        dotnet build csharp --configuration=Release
-      env:
-        VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
+        build-mode: none
+        trap-caching: false
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
