@@ -106,5 +106,9 @@ namespace
 		static_assert((int) ::arrow::Type::type::BINARY == 14);
 		static_assert((int) ::arrow::Type::type::LARGE_BINARY == 35);
 		static_assert((int) ::arrow::Type::type::BINARY_VIEW == 40);
+
+		static_assert((int) ::arrow::Type::type::LIST == 25);
+		static_assert((int) ::arrow::Type::type::LARGE_LIST == 36);
+		static_assert((int) ::arrow::Type::type::LIST_VIEW == 41);
 	}
 }
