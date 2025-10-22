@@ -550,10 +550,10 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Specify max statistics size to store min max value.
-        /// Default 4KB.
+        /// Specify the maximum size in bytes for minimum and maximum values in page and column chunk statistics.
+        /// Default 4 KiB.
         /// </summary>
-        /// <param name="maxStatisticsSize">The max statistics size to store min max value</param>
+        /// <param name="maxStatisticsSize">The max statistics size in bytes</param>
         /// <returns>This builder instance.</returns>
         public WriterPropertiesBuilder SetMaxStatisticsSize(ulong maxStatisticsSize)
         {
@@ -817,7 +817,7 @@ namespace ParquetSharp
         private static extern IntPtr WriterPropertiesBuilder_Disable_Store_Decimal_As_Integer(IntPtr builder);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr WriterPropertiesBuilder_Set_Max_Statistics_Size(IntPtr builder, [MarshalAs(UnmanagedType.U8)] ulong maxStatisticsSize);
+        private static extern IntPtr WriterPropertiesBuilder_Set_Max_Statistics_Size(IntPtr builder, ulong maxStatisticsSize);
 
         private readonly ParquetHandle _handle;
     }
