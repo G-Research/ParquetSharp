@@ -29,7 +29,7 @@ namespace ParquetSharp.Test
             Assert.That(p.MemoryPool.BackendName, Is.Not.Empty);
             Assert.False(p.StoreDecimalAsInteger);
             Assert.AreEqual(p.DataPageVersion, ParquetDataPageVersion.V1);
-            Assert.AreEqual(p.SizeStatisticsLevel, SizeStatisticsLevel.PageAndColumnChunk);
+            Assert.AreEqual(p.SizeStatisticsLevel, SizeStatisticsLevel.None);
         }
 
         [Test]

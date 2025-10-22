@@ -269,8 +269,16 @@ namespace ParquetSharp
         /// </summary>
         public bool StoreDecimalAsInteger => ExceptionInfo.Return<bool>(Handle, WriterProperties_Store_Decimal_As_Integer);
 
+        /// <summary>
+        /// The data page version to use when writing data pages.
+        /// Default is V1.
+        /// </summary>
         public ParquetDataPageVersion DataPageVersion => ExceptionInfo.Return<ParquetDataPageVersion>(Handle, WriterProperties_Data_Page_Version);
 
+        /// <summary>
+        /// The level to write size statistics for all columns. 
+        /// Default is None.
+        /// </summary>
         public SizeStatisticsLevel SizeStatisticsLevel => ExceptionInfo.Return<SizeStatisticsLevel>(Handle, WriterProperties_Size_Statistics_Level);
 
         internal readonly ParquetHandle Handle;
