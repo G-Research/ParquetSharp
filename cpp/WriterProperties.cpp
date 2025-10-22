@@ -172,4 +172,9 @@ extern "C"
 	{
 		TRYCATCH(*data_page_version = (*writer_properties)->data_page_version();)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Size_Statistics_Level(const std::shared_ptr<WriterProperties>* writer_properties, ::SizeStatisticsLevel* size_statistics_level)
+	{
+		TRYCATCH(*size_statistics_level = (*writer_properties)->size_statistics_level();)
+	}
 }

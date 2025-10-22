@@ -656,6 +656,13 @@ namespace ParquetSharp
             return this;
         }
 
+        public WriterPropertiesBuilder SetSizeStatisticsLevel(SizeStatisticsLevel sizeStatisticsLevel)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Set_Size_Statistics_Level(_handle.IntPtr, sizeStatisticsLevel));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void OnDefaultProperty<T>(T? defaultPropertyValue, Action<T> setProperty)
             where T : struct
@@ -812,6 +819,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Data_Page_Version(IntPtr builder, ParquetDataPageVersion dataPageVersion);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Set_Size_Statistics_Level(IntPtr builder, SizeStatisticsLevel sizeStatisticsLevel);
 
         private readonly ParquetHandle _handle;
     }

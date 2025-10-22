@@ -271,6 +271,8 @@ namespace ParquetSharp
 
         public ParquetDataPageVersion DataPageVersion => ExceptionInfo.Return<ParquetDataPageVersion>(Handle, WriterProperties_Data_Page_Version);
 
+        public SizeStatisticsLevel SizeStatisticsLevel => ExceptionInfo.Return<SizeStatisticsLevel>(Handle, WriterProperties_Size_Statistics_Level);
+
         internal readonly ParquetHandle Handle;
 
         [DllImport(ParquetDll.Name)]
@@ -353,5 +355,8 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Data_Page_Version(IntPtr writerProperties, out ParquetDataPageVersion dataPageVersion);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Size_Statistics_Level(IntPtr writerProperties, out SizeStatisticsLevel sizeStatisticsLevel);
     }
 }

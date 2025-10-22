@@ -1,6 +1,3 @@
-using System;
-using System.Runtime.InteropServices;
-
 namespace ParquetSharp
 {
     public enum ParquetDataPageVersion

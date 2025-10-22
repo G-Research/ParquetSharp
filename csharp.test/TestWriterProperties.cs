@@ -29,6 +29,7 @@ namespace ParquetSharp.Test
             Assert.That(p.MemoryPool.BackendName, Is.Not.Empty);
             Assert.False(p.StoreDecimalAsInteger);
             Assert.AreEqual(p.DataPageVersion, ParquetDataPageVersion.V1);
+            Assert.AreEqual(p.SizeStatisticsLevel, SizeStatisticsLevel.PageAndColumnChunk);
         }
 
         [Test]
@@ -50,6 +51,7 @@ namespace ParquetSharp.Test
                 .MemoryPool(MemoryPool.SystemMemoryPool())
                 .EnableStoreDecimalAsInteger()
                 .DataPageVersion(ParquetDataPageVersion.V2)
+                .SetSizeStatisticsLevel(SizeStatisticsLevel.ColumnChunk)
                 .Build();
 
             Assert.AreEqual("Meeeee!!!", p.CreatedBy);
@@ -67,6 +69,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual("system", p.MemoryPool.BackendName);
             Assert.True(p.StoreDecimalAsInteger);
             Assert.AreEqual(p.DataPageVersion, ParquetDataPageVersion.V2);
+            Assert.AreEqual(p.SizeStatisticsLevel, SizeStatisticsLevel.ColumnChunk);
         }
 
         [Test]

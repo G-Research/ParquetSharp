@@ -246,4 +246,9 @@ extern "C"
 	{
 		TRYCATCH(builder->data_page_version(data_page_version);)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Set_Size_Statistics_Level(WriterProperties::Builder* builder, ::SizeStatisticsLevel size_statistics_level)
+	{
+		TRYCATCH(builder->set_size_statistics_level(size_statistics_level);)
+	}
 }

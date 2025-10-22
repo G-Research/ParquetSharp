@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace ParquetSharp.Test.Arrow
+namespace ParquetSharp.Test
 {
     [TestFixture]
     public class TestParquetDataPageVersion

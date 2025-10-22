@@ -113,5 +113,9 @@ namespace
 
 		static_assert((int) ::ParquetDataPageVersion::V1 == 0);
 		static_assert((int) ::ParquetDataPageVersion::V2 == 1);
+
+		static_assert((int) ::parquet::SizeStatisticsLevel::None == 0);
+		static_assert((int) ::parquet::SizeStatisticsLevel::ColumnChunk == 1);
+		static_assert((int) ::parquet::SizeStatisticsLevel::PageAndColumnChunk == 2);
 	}
 }
