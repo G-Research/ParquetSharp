@@ -242,6 +242,11 @@ extern "C"
 		TRYCATCH(builder->disable_store_decimal_as_integer();)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Set_Max_Statistics_Size(WriterProperties::Builder* builder, size_t max_statistics_size)
+	{
+		TRYCATCH(builder->max_statistics_size(max_statistics_size);)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Data_Page_Version(WriterProperties::Builder* builder, ::ParquetDataPageVersion data_page_version)
 	{
 		TRYCATCH(builder->data_page_version(data_page_version);)
