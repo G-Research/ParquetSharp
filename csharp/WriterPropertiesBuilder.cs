@@ -649,6 +649,13 @@ namespace ParquetSharp
             return this;
         }
 
+        public WriterPropertiesBuilder DataPageVersion(ParquetDataPageVersion dataPageVersion)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Data_Page_Version(_handle.IntPtr, dataPageVersion));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void OnDefaultProperty<T>(T? defaultPropertyValue, Action<T> setProperty)
             where T : struct
@@ -802,6 +809,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Disable_Store_Decimal_As_Integer(IntPtr builder);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Data_Page_Version(IntPtr builder, ParquetDataPageVersion dataPageVersion);
 
         private readonly ParquetHandle _handle;
     }

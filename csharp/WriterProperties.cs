@@ -269,6 +269,8 @@ namespace ParquetSharp
         /// </summary>
         public bool StoreDecimalAsInteger => ExceptionInfo.Return<bool>(Handle, WriterProperties_Store_Decimal_As_Integer);
 
+        public ParquetDataPageVersion DataPageVersion => ExceptionInfo.Return<ParquetDataPageVersion>(Handle, WriterProperties_Data_Page_Version);
+
         internal readonly ParquetHandle Handle;
 
         [DllImport(ParquetDll.Name)]
@@ -348,5 +350,8 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Store_Decimal_As_Integer(IntPtr writerProperties, out bool storeDecimalAsInteger);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Data_Page_Version(IntPtr writerProperties, out ParquetDataPageVersion dataPageVersion);
     }
 }

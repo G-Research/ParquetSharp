@@ -167,4 +167,9 @@ extern "C"
 	{
 		TRYCATCH(*store_decimal_as_integer = (*writer_properties)->store_decimal_as_integer();)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Data_Page_Version(const std::shared_ptr<WriterProperties>* writer_properties, ::ParquetDataPageVersion* data_page_version)
+	{
+		TRYCATCH(*data_page_version = (*writer_properties)->data_page_version();)
+	}
 }

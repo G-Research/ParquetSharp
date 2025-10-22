@@ -14,3 +14,8 @@ ParquetSharp.ReaderProperties.SetFooterReadSize(long size) -> void
 ParquetSharp.WriterProperties.StoreDecimalAsInteger.get -> bool
 ParquetSharp.WriterPropertiesBuilder.EnableStoreDecimalAsInteger() -> ParquetSharp.WriterPropertiesBuilder!
 ParquetSharp.WriterPropertiesBuilder.DisableStoreDecimalAsInteger() -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.ParquetDataPageVersion
+ParquetSharp.ParquetDataPageVersion.V1 = 0 -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.ParquetDataPageVersion.V2 = 1 -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.WriterProperties.DataPageVersion.get -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.WriterPropertiesBuilder.DataPageVersion(ParquetSharp.ParquetDataPageVersion dataPageVersion) -> ParquetSharp.WriterPropertiesBuilder!
