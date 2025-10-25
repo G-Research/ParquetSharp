@@ -30,7 +30,7 @@ namespace ParquetSharp.Test
             Assert.False(p.StoreDecimalAsInteger);
             Assert.AreEqual(4096, p.MaxStatisticsSize(new ColumnPath("anypath")));
             Assert.AreEqual(p.DataPageVersion, ParquetDataPageVersion.V1);
-            Assert.AreEqual(p.SizeStatisticsLevel, SizeStatisticsLevel.None);
+            Assert.AreEqual(p.SizeStatisticsLevel, SizeStatisticsLevel.PageAndColumnChunk);
             Assert.AreEqual(4096, p.MaxStatisticsSize(new ColumnPath("anypath")));
         }
 
