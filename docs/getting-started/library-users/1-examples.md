@@ -1,32 +1,3 @@
----
-_layout: landing
----
-![Main logo](images/header.svg){width=70%}
-
-## Introduction
-
-**ParquetSharp** is a cross-platform .NET library for reading and writing Apache [Parquet][1] files.
-
-ParquetSharp is implemented in C# as a [PInvoke][2] wrapper around [Apache Parquet C++][3] to provide high performance and compatibility. Check out [ParquetSharp.DataFrame][4] if you need a convenient integration with the .NET [DataFrames][5].
-
-Supported platforms:
-
-| Chip  | Linux    | Windows  | macOS    |
-| :---- | :------: | :------: | :------: |
-| x64   | &#x2714; | &#x2714; | &#x2714; |
-| arm64 | &#x2714; |          | &#x2714; |
-
-## Why use Parquet?
-
-**Apache Parquet** is an [open source][6], column-oriented data file format designed for efficient data storage and retrieval. It provides efficient data compression and encoding schemes with enhanced performance to handle complex data in bulk. Relative to CSV files, Parquet executes queries **34x faster** while taking up **87% less space**. [Source][7]
-
-[1]: https://parquet.apache.org/
-[2]: https://docs.microsoft.com/en-us/cpp/dotnet/how-to-call-native-dlls-from-managed-code-using-pinvoke
-[3]: https://github.com/apache/arrow
-[4]: https://github.com/G-Research/ParquetSharp.DataFrame
-[5]: https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.analysis.dataframe
-[6]: https://github.com/apache/parquet-format
-[7]: https://towardsdatascience.com/demystifying-the-parquet-file-format-13adb0206705
 
 ## Quickstart
 
@@ -153,20 +124,3 @@ Read Parquet file:
 Timestamp: 2025-01-25 10:15:25 AM, ObjectId: 1, Value: 1.23
 Timestamp: 2025-01-25 10:16:25 AM, ObjectId: 2, Value: 4.56
 ```
-
-## Documentation
-
-For more detailed information on how to use ParquetSharp, see the following guides:
-
-* [Writing Parquet files](guides/Writing.md)
-* [Reading Parquet files](guides/Reading.md)
-* [Working with nested data](guides/Nested.md)
-* [Reading and writing Arrow data](guides/Arrow.md) &mdash; how to read and write data using the [Apache Arrow format](https://arrow.apache.org/)
-* [Row-oriented API](guides/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
-* [Custom types](guides/TypeFactories.md) &mdash; how to customize the mapping between .NET and Parquet types,
-    including using the `DateOnly` and `TimeOnly` types added in .NET 6.
-* [Encryption](guides/Encryption.md) &mdash; using Parquet Modular Encryption to read and write encrypted data
-* [Writing TimeSpan data](guides/TimeSpan.md) &mdash; interoperability with other libraries when writing TimeSpan data
-* [Use from PowerShell](guides/PowerShell.md)
-
-For auto-generated API documentation, see the [API reference](xref:ParquetSharp).
