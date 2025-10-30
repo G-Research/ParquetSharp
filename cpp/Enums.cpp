@@ -110,5 +110,12 @@ namespace
 		static_assert((int) ::arrow::Type::type::LIST == 25);
 		static_assert((int) ::arrow::Type::type::LARGE_LIST == 36);
 		static_assert((int) ::arrow::Type::type::LIST_VIEW == 41);
+
+		static_assert((int) ::ParquetDataPageVersion::V1 == 0);
+		static_assert((int) ::ParquetDataPageVersion::V2 == 1);
+
+		static_assert((int) ::parquet::SizeStatisticsLevel::None == 0);
+		static_assert((int) ::parquet::SizeStatisticsLevel::ColumnChunk == 1);
+		static_assert((int) ::parquet::SizeStatisticsLevel::PageAndColumnChunk == 2);
 	}
 }

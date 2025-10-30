@@ -15,3 +15,14 @@ ParquetSharp.WriterProperties.StoreDecimalAsInteger.get -> bool
 ParquetSharp.WriterPropertiesBuilder.EnableStoreDecimalAsInteger() -> ParquetSharp.WriterPropertiesBuilder!
 ParquetSharp.WriterPropertiesBuilder.DisableStoreDecimalAsInteger() -> ParquetSharp.WriterPropertiesBuilder!
 ParquetSharp.WriterPropertiesBuilder.SetMaxStatisticsSize(ulong maxStatisticsSize) -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.ParquetDataPageVersion
+ParquetSharp.ParquetDataPageVersion.V1 = 0 -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.ParquetDataPageVersion.V2 = 1 -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.WriterProperties.DataPageVersion.get -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.WriterPropertiesBuilder.DataPageVersion(ParquetSharp.ParquetDataPageVersion dataPageVersion) -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.SizeStatisticsLevel
+ParquetSharp.SizeStatisticsLevel.None = 0 -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.SizeStatisticsLevel.ColumnChunk = 1 -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.SizeStatisticsLevel.PageAndColumnChunk = 2 -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.WriterProperties.SizeStatisticsLevel.get -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.WriterPropertiesBuilder.SetSizeStatisticsLevel(ParquetSharp.SizeStatisticsLevel level) -> ParquetSharp.WriterPropertiesBuilder!

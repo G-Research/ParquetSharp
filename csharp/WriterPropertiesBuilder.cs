@@ -662,6 +662,32 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Specify the data page version.
+        /// </summary>
+        public WriterPropertiesBuilder DataPageVersion(ParquetDataPageVersion dataPageVersion)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Data_Page_Version(_handle.IntPtr, dataPageVersion));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Set the level to write size statistics for all columns. 
+        /// 
+        /// Note that if page index is not enabled, 
+        /// page level size statistics will not be written even if the level
+        /// is set to PageAndColumnChunk.
+        /// </summary>
+        /// <param name="level"> The level to write size statistics</param>
+        /// <returns>This builder instance.</returns>
+        public WriterPropertiesBuilder SetSizeStatisticsLevel(SizeStatisticsLevel level)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Set_Size_Statistics_Level(_handle.IntPtr, level));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void OnDefaultProperty<T>(T? defaultPropertyValue, Action<T> setProperty)
             where T : struct
@@ -818,6 +844,13 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Set_Max_Statistics_Size(IntPtr builder, ulong maxStatisticsSize);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Data_Page_Version(IntPtr builder, ParquetDataPageVersion dataPageVersion);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Set_Size_Statistics_Level(IntPtr builder, SizeStatisticsLevel level);
+
 
         private readonly ParquetHandle _handle;
     }
