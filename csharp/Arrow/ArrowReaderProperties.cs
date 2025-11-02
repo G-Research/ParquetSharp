@@ -171,6 +171,33 @@ namespace ParquetSharp.Arrow
             }
         }
 
+        /// <summary>
+        /// The options for read coalescing.
+        /// This can be used to tune the
+        /// implementation for characteristics of different filesystems.
+        /// </summary>
+        public CacheOption CacheOptions
+        {
+            get
+            {
+                ExceptionInfo.Check(ArrowReaderProperties_GetCacheOptions(Handle.IntPtr, out CacheOption cacheOptions));
+                GC.KeepAlive(Handle);
+                return cacheOptions;
+            }
+
+            set
+            {
+                ExceptionInfo.Check(ArrowReaderProperties_SetCacheOptions(
+                    Handle.IntPtr,
+                    value.hole_size_limit,
+                    value.range_size_limit,
+                    value.lazy,
+                    value.prefetch_limit));
+
+                GC.KeepAlive(Handle);
+            }
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_GetDefault(out IntPtr readerProperties);
 
@@ -224,6 +251,12 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_SetArrowExtensionEnabled(IntPtr readerProperties, bool extensionsEnabled);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_GetCacheOptions(IntPtr readerProperties, out ParquetSharp.CacheOption cacheOptions);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_SetCacheOptions(IntPtr readerProperties, long holeSizeLimit, long rangeSizeLimit, bool lazy, long prefetchLimit);
 
         internal readonly ParquetHandle Handle;
     }

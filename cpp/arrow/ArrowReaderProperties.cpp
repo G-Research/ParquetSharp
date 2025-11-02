@@ -96,4 +96,20 @@ extern "C"
   {
     TRYCATCH(properties->set_arrow_extensions_enabled(extensions_enabled);)
   }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions(ArrowReaderProperties* properties, ::arrow::io::CacheOptions* cache_options)
+  {
+    TRYCATCH(*cache_options = properties->cache_options();)
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_SetCacheOptions(ArrowReaderProperties* properties, int64_t hole_size_limit, int64_t range_size_limit, bool lazy, int64_t prefetch_limit)
+  {
+    ::arrow::io::CacheOptions cache_options = ::arrow::io::CacheOptions(
+      hole_size_limit,
+      range_size_limit,
+      lazy,
+      prefetch_limit
+    );
+    TRYCATCH(properties->set_cache_options(cache_options);)
+  }
 }
