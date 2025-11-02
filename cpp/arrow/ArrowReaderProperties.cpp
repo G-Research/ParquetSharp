@@ -104,12 +104,11 @@ extern "C"
 
   PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_SetCacheOptions(ArrowReaderProperties* properties, int64_t hole_size_limit, int64_t range_size_limit, bool lazy, int64_t prefetch_limit)
   {
-    ::arrow::io::CacheOptions cache_options = ::arrow::io::CacheOptions(
-      hole_size_limit,
-      range_size_limit,
-      lazy,
-      prefetch_limit
-    );
+    ::arrow::io::CacheOptions cache_options;
+    cache_options.hole_size_limit = hole_size_limit;
+    cache_options.range_size_limit = range_size_limit;
+    cache_options.lazy = lazy;
+    cache_options.prefetch_limit = prefetch_limit;
     TRYCATCH(properties->set_cache_options(cache_options);)
   }
 }
