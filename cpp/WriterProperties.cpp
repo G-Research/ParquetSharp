@@ -162,4 +162,19 @@ extern "C"
 	{
 		TRYCATCH(*memory_pool = (*writer_properties)->memory_pool();)
 	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Store_Decimal_As_Integer(const std::shared_ptr<WriterProperties>* writer_properties, bool* store_decimal_as_integer)
+	{
+		TRYCATCH(*store_decimal_as_integer = (*writer_properties)->store_decimal_as_integer();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Data_Page_Version(const std::shared_ptr<WriterProperties>* writer_properties, ::ParquetDataPageVersion* data_page_version)
+	{
+		TRYCATCH(*data_page_version = (*writer_properties)->data_page_version();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Size_Statistics_Level(const std::shared_ptr<WriterProperties>* writer_properties, ::SizeStatisticsLevel* size_statistics_level)
+	{
+		TRYCATCH(*size_statistics_level = (*writer_properties)->size_statistics_level();)
+	}
 }

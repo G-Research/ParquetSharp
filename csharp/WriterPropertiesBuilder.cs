@@ -549,6 +549,19 @@ namespace ParquetSharp
             return this;
         }
 
+        /// <summary>
+        /// Specify the maximum size in bytes for minimum and maximum values in page and column chunk statistics.
+        /// Default 4 KiB.
+        /// </summary>
+        /// <param name="maxStatisticsSize">The max statistics size in bytes</param>
+        /// <returns>This builder instance.</returns>
+        public WriterPropertiesBuilder SetMaxStatisticsSize(ulong maxStatisticsSize)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Set_Max_Statistics_Size(_handle.IntPtr, maxStatisticsSize));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
         private void ApplyDefaults()
         {
             OnDefaultProperty(DefaultWriterProperties.EnableDictionary, enabled =>
@@ -616,6 +629,63 @@ namespace ParquetSharp
                     DisablePageChecksum();
                 }
             });
+        }
+
+        /// <summary>
+        /// Allow decimals with precision between 1 and 18 (inclusive) to be stored as integers.
+        /// By default, this is DISABLED and all decimal types annotate fixed_len_byte_array.
+        ///
+        /// When enabled, the Parquet writer will use following physical types to store decimals:
+        /// - int32: for precision between 1 and 9.
+        /// - int64: for precision between 10 and 18.
+        /// - fixed_len_byte_array: for precision > 18.
+        ///
+        /// As a consequence, decimal columns stored in integer types are more compact.
+        /// </summary>
+        public WriterPropertiesBuilder EnableStoreDecimalAsInteger()
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Enable_Store_Decimal_As_Integer(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Disable decimal logical type with precision between 1 and 18 (inclusive) to be stored
+        /// as integer physical type.
+        /// 
+        /// This is the default.
+        /// </summary>
+        public WriterPropertiesBuilder DisableStoreDecimalAsInteger()
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Disable_Store_Decimal_As_Integer(_handle.IntPtr));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Specify the data page version.
+        /// </summary>
+        public WriterPropertiesBuilder DataPageVersion(ParquetDataPageVersion dataPageVersion)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Data_Page_Version(_handle.IntPtr, dataPageVersion));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
+        /// Set the level to write size statistics for all columns. 
+        /// 
+        /// Note that if page index is not enabled, 
+        /// page level size statistics will not be written even if the level
+        /// is set to PageAndColumnChunk.
+        /// </summary>
+        /// <param name="level"> The level to write size statistics</param>
+        /// <returns>This builder instance.</returns>
+        public WriterPropertiesBuilder SetSizeStatisticsLevel(SizeStatisticsLevel level)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Set_Size_Statistics_Level(_handle.IntPtr, level));
+            GC.KeepAlive(_handle);
+            return this;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -765,6 +835,22 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Memory_Pool(IntPtr builder, IntPtr memoryPool);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Enable_Store_Decimal_As_Integer(IntPtr builder);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Disable_Store_Decimal_As_Integer(IntPtr builder);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Set_Max_Statistics_Size(IntPtr builder, ulong maxStatisticsSize);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Data_Page_Version(IntPtr builder, ParquetDataPageVersion dataPageVersion);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Set_Size_Statistics_Level(IntPtr builder, SizeStatisticsLevel level);
+
 
         private readonly ParquetHandle _handle;
     }

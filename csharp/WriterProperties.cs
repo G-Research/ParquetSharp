@@ -264,6 +264,23 @@ namespace ParquetSharp
         /// </summary>
         public MemoryPool MemoryPool => new MemoryPool(ExceptionInfo.Return<IntPtr>(Handle, WriterProperties_Memory_Pool));
 
+        /// <summary>
+        /// Whether decimals with precision between 1 and 18 (inclusive) are stored as integers.
+        /// </summary>
+        public bool StoreDecimalAsInteger => ExceptionInfo.Return<bool>(Handle, WriterProperties_Store_Decimal_As_Integer);
+
+        /// <summary>
+        /// The data page version to use when writing data pages.
+        /// Default is V1.
+        /// </summary>
+        public ParquetDataPageVersion DataPageVersion => ExceptionInfo.Return<ParquetDataPageVersion>(Handle, WriterProperties_Data_Page_Version);
+
+        /// <summary>
+        /// The level to write size statistics for all columns. 
+        /// Default is None.
+        /// </summary>
+        public SizeStatisticsLevel SizeStatisticsLevel => ExceptionInfo.Return<SizeStatisticsLevel>(Handle, WriterProperties_Size_Statistics_Level);
+
         internal readonly ParquetHandle Handle;
 
         [DllImport(ParquetDll.Name)]
@@ -330,7 +347,7 @@ namespace ParquetSharp
         private static extern IntPtr WriterProperties_Statistics_Enabled(IntPtr writerProperties, IntPtr path, [MarshalAs(UnmanagedType.I1)] out bool enabled);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr WriterProperties_Max_Statistics_Size(IntPtr writerProperties, IntPtr path, [MarshalAs(UnmanagedType.I1)] out ulong maxStatisticsSize);
+        private static extern IntPtr WriterProperties_Max_Statistics_Size(IntPtr writerProperties, IntPtr path, out ulong maxStatisticsSize);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Sorting_Columns(IntPtr writerProperties, ref IntPtr columnIndices, ref IntPtr descending, ref IntPtr nullsFirst, ref int numColumns);
@@ -340,5 +357,14 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Memory_Pool(IntPtr writerProperties, out IntPtr memoryPool);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Store_Decimal_As_Integer(IntPtr writerProperties, out bool storeDecimalAsInteger);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Data_Page_Version(IntPtr writerProperties, out ParquetDataPageVersion dataPageVersion);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Size_Statistics_Level(IntPtr writerProperties, out SizeStatisticsLevel sizeStatisticsLevel);
     }
 }

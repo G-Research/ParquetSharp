@@ -27,6 +27,11 @@ namespace ParquetSharp.Test
             Assert.True(p.WritePageIndex);
             Assert.False(p.PageChecksumEnabled);
             Assert.That(p.MemoryPool.BackendName, Is.Not.Empty);
+            Assert.False(p.StoreDecimalAsInteger);
+            Assert.AreEqual(4096, p.MaxStatisticsSize(new ColumnPath("anypath")));
+            Assert.AreEqual(p.DataPageVersion, ParquetDataPageVersion.V1);
+            Assert.AreEqual(p.SizeStatisticsLevel, SizeStatisticsLevel.PageAndColumnChunk);
+            Assert.AreEqual(4096, p.MaxStatisticsSize(new ColumnPath("anypath")));
         }
 
         [Test]
@@ -46,6 +51,10 @@ namespace ParquetSharp.Test
                 .DisableWritePageIndex()
                 .EnablePageChecksum()
                 .MemoryPool(MemoryPool.SystemMemoryPool())
+                .EnableStoreDecimalAsInteger()
+                .SetMaxStatisticsSize(512)
+                .DataPageVersion(ParquetDataPageVersion.V2)
+                .SetSizeStatisticsLevel(SizeStatisticsLevel.ColumnChunk)
                 .Build();
 
             Assert.AreEqual("Meeeee!!!", p.CreatedBy);
@@ -61,6 +70,10 @@ namespace ParquetSharp.Test
             Assert.False(p.WritePageIndex);
             Assert.True(p.PageChecksumEnabled);
             Assert.AreEqual("system", p.MemoryPool.BackendName);
+            Assert.True(p.StoreDecimalAsInteger);
+            Assert.AreEqual(512, p.MaxStatisticsSize(new ColumnPath("anypath")));
+            Assert.AreEqual(p.DataPageVersion, ParquetDataPageVersion.V2);
+            Assert.AreEqual(p.SizeStatisticsLevel, SizeStatisticsLevel.ColumnChunk);
         }
 
         [Test]

@@ -1,0 +1,23 @@
+{
+  "name": "vcpkg-cache-action",
+  "version": "0.0.1",
+  "description": "GitHub Action to provide vcpkg binary caching via a custom HTTP server that proxies to GitHub Actions cache",
+  "main": "lib/main.js",
+  "scripts": {
+    "build": "tsc && ncc build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/exec": "^1.1.1",
+    "@actions/io": "^1.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.8.1",
+    "@vercel/ncc": "^0.38.4",
+    "typescript": "^5.9.3"
+  }
+}
