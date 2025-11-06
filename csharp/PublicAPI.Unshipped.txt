@@ -1,7 +1,28 @@
 #nullable enable
+ParquetSharp.Arrow.ArrowReaderProperties.ArrowExtensionEnabled.get -> bool
+ParquetSharp.Arrow.ArrowReaderProperties.ArrowExtensionEnabled.set -> void
+ParquetSharp.Arrow.ArrowReaderProperties.BinaryType.get -> Apache.Arrow.Types.ArrowTypeId
+ParquetSharp.Arrow.ArrowReaderProperties.BinaryType.set -> void
+ParquetSharp.Arrow.ArrowReaderProperties.ListType.get -> Apache.Arrow.Types.ArrowTypeId
+ParquetSharp.Arrow.ArrowReaderProperties.ListType.set -> void
 ParquetSharp.ReaderProperties.ThriftStringSizeLimit.get -> int
 ParquetSharp.ReaderProperties.SetThriftStringSizeLimit(int size) -> void
 ParquetSharp.ReaderProperties.ThriftContainerSizeLimit.get -> int
 ParquetSharp.ReaderProperties.SetThriftContainerSizeLimit(int size) -> void
 ParquetSharp.ReaderProperties.FooterReadSize.get -> long
 ParquetSharp.ReaderProperties.SetFooterReadSize(long size) -> void
+ParquetSharp.WriterProperties.StoreDecimalAsInteger.get -> bool
+ParquetSharp.WriterPropertiesBuilder.EnableStoreDecimalAsInteger() -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.WriterPropertiesBuilder.DisableStoreDecimalAsInteger() -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.WriterPropertiesBuilder.SetMaxStatisticsSize(ulong maxStatisticsSize) -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.ParquetDataPageVersion
+ParquetSharp.ParquetDataPageVersion.V1 = 0 -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.ParquetDataPageVersion.V2 = 1 -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.WriterProperties.DataPageVersion.get -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.WriterPropertiesBuilder.DataPageVersion(ParquetSharp.ParquetDataPageVersion dataPageVersion) -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.SizeStatisticsLevel
+ParquetSharp.SizeStatisticsLevel.None = 0 -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.SizeStatisticsLevel.ColumnChunk = 1 -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.SizeStatisticsLevel.PageAndColumnChunk = 2 -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.WriterProperties.SizeStatisticsLevel.get -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.WriterPropertiesBuilder.SetSizeStatisticsLevel(ParquetSharp.SizeStatisticsLevel level) -> ParquetSharp.WriterPropertiesBuilder!

@@ -61,6 +61,8 @@ jobs:
           arch: x64
         - os: windows-2022
           arch: x64
+        - os: windows-11-arm
+          arch: arm64
       fail-fast: false
     name: Build native ${{ matrix.arch }} library (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -112,8 +114,10 @@ jobs:
     - name: Start CentOS container and install toolchain
       if: runner.os == 'Linux'
       run: |
-        docker run -d --name centos --entrypoint tail -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT quay.io/pypa/manylinux2014_$(uname -m) -f /dev/null
-        docker exec centos sh -c "yum install -y devtoolset-10 rh-git227 httpd24-curl flex bison perl-Data-Dumper perl-IPC-Cmd && \
+        docker run -d --name centos --entrypoint tail --net host \
+                   -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT\
+                   quay.io/pypa/manylinux2014_$(uname -m) -f /dev/null
+        docker exec centos sh -c "yum install -y devtoolset-10 rh-git227 httpd24-curl flex bison perl-Data-Dumper perl-IPC-Cmd perl-Time-Piece && \
                                   uv tool install ninja"
 
     # Install vcpkg dependencies
@@ -130,11 +134,17 @@ jobs:
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v2
 
+    # Setup vcpkg caching
+    - name: Setup vcpkg caching
+      uses: ./.github/actions/vcpkg-cache-action
+
     # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Linux)
       if: runner.os == 'Linux'
       run: |
-        docker exec -w $PWD -e GITHUB_ACTIONS -e VCPKG_INSTALLATION_ROOT centos \
+        docker exec -w $PWD \
+          -e GITHUB_ACTIONS -e VCPKG_BINARY_SOURCES -e VCPKG_INSTALLATION_ROOT -e VCPKG_FORCE_SYSTEM_BINARIES=1 \
+          centos \
           scl enable devtoolset-10 rh-git227 httpd24 -- \
           sh -c 'PATH=$(uv tool dir --bin):$PATH ./build_unix.sh'
     - name: Compile native ParquetSharp library (macOS)
@@ -145,7 +155,7 @@ jobs:
       run: ./build_windows.ps1
     - name: Upload vcpkg arrow logs
       if: success() || failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-vcpkg-arrow-logs
         path: ${{ steps.vcpkg-info.outputs.root }}/buildtrees/arrow/*.log
@@ -155,13 +165,13 @@ jobs:
         dotnet build csharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
         dotnet build fsharp.test --configuration=Release -p:OSArchitecture=${{ matrix.arch }}
     - name: Upload native ParquetSharp library
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-native-library
         path: bin
 
     - name: Stop CentOS container
-      if: runner.os == 'Linux'
+      if: always() && runner.os == 'Linux'
       run: docker rm -f centos
 
   # Download all native shared libraries and create the nuget package.
@@ -176,7 +186,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v5
     - name: Download all artifacts
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         path: artifacts
     - name: Copy native ParquetSharp libraries
@@ -205,7 +215,7 @@ jobs:
     - name: Build NuGet package
       run: dotnet build csharp --configuration=Release --version-suffix "${{ steps.get-version.outputs.version_suffix }}"
     - name: Upload NuGet artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: nuget-package
         path: nuget
@@ -224,11 +234,14 @@ jobs:
         - macos-15-intel
         - windows-2022
         - windows-2025
+        - windows-11-arm
         dotnet: [net6.0, net8.0, net9.0]
         include:
         - os: windows-2022
           dotnet: net472
         - os: windows-2025
+          dotnet: net472
+        - os: windows-11-arm
           dotnet: net472
       fail-fast: false
     name: Test NuGet package (${{ matrix.dotnet }} on ${{ matrix.os }})
@@ -238,7 +251,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v5
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: nuget-package
         path: nuget
@@ -280,7 +293,7 @@ jobs:
       uses: actions/checkout@v5
 
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: nuget-package
         path: nuget
@@ -350,7 +363,7 @@ jobs:
             }
         }
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: nuget-package
         path: nuget
