@@ -1,3 +1,6 @@
+using System;
+using System.Runtime.InteropServices;
+
 namespace ParquetSharp
 {
     public struct CacheOption
@@ -30,7 +33,10 @@ namespace ParquetSharp
         /// needs them.
         /// lazy = True, prefetch_limit = k: prefetch up to k merged byte ranges ahead of the
         /// range that is currently being read.
+        /// 
+        /// Marshal as a 1-byte C/C++ bool so layout matches native code on all platforms.
         ///  </summary>
+        [MarshalAs(UnmanagedType.I1)]
         public bool lazy;
 
         /// <summary>
