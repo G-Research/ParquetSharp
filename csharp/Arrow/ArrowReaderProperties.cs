@@ -269,7 +269,7 @@ namespace ParquetSharp.Arrow
         private static extern IntPtr ArrowReaderProperties_GetCacheOptions_PrefetchLimit(IntPtr readerProperties, out long prefetchLimit);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ArrowReaderProperties_SetCacheOptions(IntPtr readerProperties, long holeSizeLimit, long rangeSizeLimit, [MarshalAs(UnmanagedType.I1)] bool lazy, long prefetchLimit);
+        private static extern IntPtr ArrowReaderProperties_SetCacheOptions(IntPtr readerProperties, long holeSizeLimit, long rangeSizeLimit, bool lazy, long prefetchLimit);
 
         internal readonly ParquetHandle Handle;
     }
