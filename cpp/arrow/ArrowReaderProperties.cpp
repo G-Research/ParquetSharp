@@ -97,7 +97,7 @@ extern "C"
     TRYCATCH(properties->set_arrow_extensions_enabled(extensions_enabled);)
   }
 
-  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_HoleSizeLimit(const ArrowReaderProperties* properties, long* value)
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_HoleSizeLimit(const ArrowReaderProperties* properties, int64_t* value)
   {
     TRYCATCH(
         const auto& opts = properties->cache_options();
@@ -105,7 +105,7 @@ extern "C"
     )
   }
 
-  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_RangeSizeLimit(const ArrowReaderProperties* properties, long* value)
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_RangeSizeLimit(const ArrowReaderProperties* properties, int64_t* value)
   {
     TRYCATCH(
       const auto& opts = properties->cache_options();
@@ -121,7 +121,7 @@ extern "C"
     )
   }
 
-  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_PrefetchLimit(const ArrowReaderProperties* properties, long* value)
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_PrefetchLimit(const ArrowReaderProperties* properties, int64_t* value)
   {
     TRYCATCH(
       const auto& opts = properties->cache_options();
