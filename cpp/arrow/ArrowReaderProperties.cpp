@@ -107,25 +107,25 @@ extern "C"
 
   PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_RangeSizeLimit(const ArrowReaderProperties* properties, long* value)
   {
-      TRYCATCH(
-        const auto& opts = properties->cache_options();
-        *value = opts.range_size_limit;
+    TRYCATCH(
+      const auto& opts = properties->cache_options();
+      *value = opts.range_size_limit;
     )
   }
 
   PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_Lazy(const ArrowReaderProperties* properties, bool* value)
   {
-      TRYCATCH(
-        const auto& opts = properties->cache_options();
-        *value = opts.lazy;
+    TRYCATCH(
+      const auto& opts = properties->cache_options();
+      *value = opts.lazy;
     )
   }
 
   PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_PrefetchLimit(const ArrowReaderProperties* properties, long* value)
   {
-      TRYCATCH(
-        const auto& opts = properties->cache_options();
-        *value = opts.prefetch_limit;
+    TRYCATCH(
+      const auto& opts = properties->cache_options();
+      *value = opts.prefetch_limit;
     )
   }
 

@@ -38,7 +38,7 @@ namespace ParquetSharp.Test.Arrow
             properties.BinaryType = Apache.Arrow.Types.ArrowTypeId.LargeBinary;
             properties.ListType = Apache.Arrow.Types.ArrowTypeId.LargeList;
             properties.ArrowExtensionEnabled = true;
-            properties.CacheOptions = new CacheOption(hole_size_limit: 1024, range_size_limit: 2048, lazy: false, prefetch_limit: 4096);
+            properties.CacheOptions = new CacheOptions(hole_size_limit: 1024, range_size_limit: 2048, lazy: false, prefetch_limit: 4096);
 
             Assert.That(properties.UseThreads, Is.True);
             Assert.That(properties.BatchSize, Is.EqualTo(789));

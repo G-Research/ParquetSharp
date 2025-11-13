@@ -3,9 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace ParquetSharp
 {
-    public struct CacheOption
+    public struct CacheOptions
     {
-        public CacheOption(long hole_size_limit, long range_size_limit, bool lazy, long prefetch_limit = 0)
+        public CacheOptions(long hole_size_limit, long range_size_limit, bool lazy, long prefetch_limit = 0)
         {
             this.hole_size_limit = hole_size_limit;
             this.range_size_limit = range_size_limit;

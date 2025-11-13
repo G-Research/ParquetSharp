@@ -176,7 +176,7 @@ namespace ParquetSharp.Arrow
         /// This can be used to tune the
         /// implementation for characteristics of different filesystems.
         /// </summary>
-        public CacheOption CacheOptions
+        public CacheOptions CacheOptions
         {
             get
             {
@@ -186,7 +186,7 @@ namespace ParquetSharp.Arrow
                 ExceptionInfo.Check(ArrowReaderProperties_GetCacheOptions_PrefetchLimit(Handle.IntPtr, out long prefetchLimit));
                 GC.KeepAlive(Handle);
 
-                return new CacheOption(holeSizeLimit, rangeSizeLimit, lazy, prefetchLimit);
+                return new CacheOptions(holeSizeLimit, rangeSizeLimit, lazy, prefetchLimit);
             }
 
             set
