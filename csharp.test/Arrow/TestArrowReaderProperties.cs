@@ -19,6 +19,10 @@ namespace ParquetSharp.Test.Arrow
             Assert.That(properties.BinaryType, Is.EqualTo(Apache.Arrow.Types.ArrowTypeId.Binary));
             Assert.That(properties.ListType, Is.EqualTo(Apache.Arrow.Types.ArrowTypeId.List));
             Assert.That(properties.ArrowExtensionEnabled, Is.False);
+            Assert.That(properties.CacheOptions.hole_size_limit, Is.EqualTo(8192));
+            Assert.That(properties.CacheOptions.range_size_limit, Is.EqualTo(32 * 1024 * 1024));
+            Assert.That(properties.CacheOptions.lazy, Is.True);
+            Assert.That(properties.CacheOptions.prefetch_limit, Is.EqualTo(0));
         }
 
         [Test]
@@ -34,6 +38,7 @@ namespace ParquetSharp.Test.Arrow
             properties.BinaryType = Apache.Arrow.Types.ArrowTypeId.LargeBinary;
             properties.ListType = Apache.Arrow.Types.ArrowTypeId.LargeList;
             properties.ArrowExtensionEnabled = true;
+            properties.CacheOptions = new CacheOptions(hole_size_limit: 1024, range_size_limit: 2048, lazy: false, prefetch_limit: 4096);
 
             Assert.That(properties.UseThreads, Is.True);
             Assert.That(properties.BatchSize, Is.EqualTo(789));
@@ -43,6 +48,10 @@ namespace ParquetSharp.Test.Arrow
             Assert.That(properties.BinaryType, Is.EqualTo(Apache.Arrow.Types.ArrowTypeId.LargeBinary));
             Assert.That(properties.ListType, Is.EqualTo(Apache.Arrow.Types.ArrowTypeId.LargeList));
             Assert.That(properties.ArrowExtensionEnabled, Is.True);
+            Assert.That(properties.CacheOptions.hole_size_limit, Is.EqualTo(1024));
+            Assert.That(properties.CacheOptions.range_size_limit, Is.EqualTo(2048));
+            Assert.That(properties.CacheOptions.lazy, Is.False);
+            Assert.That(properties.CacheOptions.prefetch_limit, Is.EqualTo(4096));
         }
     }
 }

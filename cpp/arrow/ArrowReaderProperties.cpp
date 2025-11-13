@@ -96,4 +96,46 @@ extern "C"
   {
     TRYCATCH(properties->set_arrow_extensions_enabled(extensions_enabled);)
   }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_HoleSizeLimit(const ArrowReaderProperties* properties, int64_t* value)
+  {
+    TRYCATCH(
+        const auto& opts = properties->cache_options();
+        *value = opts.hole_size_limit;
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_RangeSizeLimit(const ArrowReaderProperties* properties, int64_t* value)
+  {
+    TRYCATCH(
+      const auto& opts = properties->cache_options();
+      *value = opts.range_size_limit;
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_Lazy(const ArrowReaderProperties* properties, bool* value)
+  {
+    TRYCATCH(
+      const auto& opts = properties->cache_options();
+      *value = opts.lazy;
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_PrefetchLimit(const ArrowReaderProperties* properties, int64_t* value)
+  {
+    TRYCATCH(
+      const auto& opts = properties->cache_options();
+      *value = opts.prefetch_limit;
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_SetCacheOptions(ArrowReaderProperties* properties, int64_t hole_size_limit, int64_t range_size_limit, bool lazy, int64_t prefetch_limit)
+  {
+    ::arrow::io::CacheOptions cache_options;
+    cache_options.hole_size_limit = hole_size_limit;
+    cache_options.range_size_limit = range_size_limit;
+    cache_options.lazy = lazy;
+    cache_options.prefetch_limit = prefetch_limit;
+    TRYCATCH(properties->set_cache_options(cache_options);)
+  }
 }

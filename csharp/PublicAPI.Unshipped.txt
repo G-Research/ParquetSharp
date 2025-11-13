@@ -5,6 +5,15 @@ ParquetSharp.Arrow.ArrowReaderProperties.BinaryType.get -> Apache.Arrow.Types.Ar
 ParquetSharp.Arrow.ArrowReaderProperties.BinaryType.set -> void
 ParquetSharp.Arrow.ArrowReaderProperties.ListType.get -> Apache.Arrow.Types.ArrowTypeId
 ParquetSharp.Arrow.ArrowReaderProperties.ListType.set -> void
+ParquetSharp.Arrow.ArrowReaderProperties.CacheOptions.get -> ParquetSharp.CacheOptions
+ParquetSharp.Arrow.ArrowReaderProperties.CacheOptions.set -> void
+ParquetSharp.CacheOptions
+ParquetSharp.CacheOptions.CacheOptions() -> void
+ParquetSharp.CacheOptions.CacheOptions(long hole_size_limit, long range_size_limit, bool lazy, long prefetch_limit = 0) -> void
+ParquetSharp.CacheOptions.hole_size_limit -> long
+ParquetSharp.CacheOptions.range_size_limit -> long
+ParquetSharp.CacheOptions.lazy -> bool
+ParquetSharp.CacheOptions.prefetch_limit -> long
 ParquetSharp.ReaderProperties.ThriftStringSizeLimit.get -> int
 ParquetSharp.ReaderProperties.SetThriftStringSizeLimit(int size) -> void
 ParquetSharp.ReaderProperties.ThriftContainerSizeLimit.get -> int

@@ -171,6 +171,37 @@ namespace ParquetSharp.Arrow
             }
         }
 
+        /// <summary>
+        /// The options for read coalescing.
+        /// This can be used to tune the
+        /// implementation for characteristics of different filesystems.
+        /// </summary>
+        public CacheOptions CacheOptions
+        {
+            get
+            {
+                ExceptionInfo.Check(ArrowReaderProperties_GetCacheOptions_HoleSizeLimit(Handle.IntPtr, out long holeSizeLimit));
+                ExceptionInfo.Check(ArrowReaderProperties_GetCacheOptions_RangeSizeLimit(Handle.IntPtr, out long rangeSizeLimit));
+                ExceptionInfo.Check(ArrowReaderProperties_GetCacheOptions_Lazy(Handle.IntPtr, out bool lazy));
+                ExceptionInfo.Check(ArrowReaderProperties_GetCacheOptions_PrefetchLimit(Handle.IntPtr, out long prefetchLimit));
+                GC.KeepAlive(Handle);
+
+                return new CacheOptions(holeSizeLimit, rangeSizeLimit, lazy, prefetchLimit);
+            }
+
+            set
+            {
+                ExceptionInfo.Check(ArrowReaderProperties_SetCacheOptions(
+                    Handle.IntPtr,
+                    value.hole_size_limit,
+                    value.range_size_limit,
+                    value.lazy,
+                    value.prefetch_limit));
+
+                GC.KeepAlive(Handle);
+            }
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_GetDefault(out IntPtr readerProperties);
 
@@ -224,6 +255,21 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_SetArrowExtensionEnabled(IntPtr readerProperties, bool extensionsEnabled);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_GetCacheOptions_HoleSizeLimit(IntPtr readerProperties, out long holeSizeLimit);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_GetCacheOptions_RangeSizeLimit(IntPtr readerProperties, out long rangeSizeLimit);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_GetCacheOptions_Lazy(IntPtr readerProperties, out bool lazy);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_GetCacheOptions_PrefetchLimit(IntPtr readerProperties, out long prefetchLimit);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_SetCacheOptions(IntPtr readerProperties, long holeSizeLimit, long rangeSizeLimit, bool lazy, long prefetchLimit);
 
         internal readonly ParquetHandle Handle;
     }
