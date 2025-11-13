@@ -180,9 +180,13 @@ namespace ParquetSharp.Arrow
         {
             get
             {
-                ExceptionInfo.Check(ArrowReaderProperties_GetCacheOptions(Handle.IntPtr, out CacheOption cacheOptions));
+                ExceptionInfo.Check(ArrowReaderProperties_GetCacheOptions_HoleSizeLimit(Handle.IntPtr, out long holeSizeLimit));
+                ExceptionInfo.Check(ArrowReaderProperties_GetCacheOptions_RangeSizeLimit(Handle.IntPtr, out long rangeSizeLimit));
+                ExceptionInfo.Check(ArrowReaderProperties_GetCacheOptions_Lazy(Handle.IntPtr, out bool lazy));
+                ExceptionInfo.Check(ArrowReaderProperties_GetCacheOptions_PrefetchLimit(Handle.IntPtr, out long prefetchLimit));
                 GC.KeepAlive(Handle);
-                return cacheOptions;
+
+                return new CacheOption(holeSizeLimit, rangeSizeLimit, lazy, prefetchLimit);
             }
 
             set
@@ -253,7 +257,16 @@ namespace ParquetSharp.Arrow
         private static extern IntPtr ArrowReaderProperties_SetArrowExtensionEnabled(IntPtr readerProperties, bool extensionsEnabled);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ArrowReaderProperties_GetCacheOptions(IntPtr readerProperties, out ParquetSharp.CacheOption cacheOptions);
+        private static extern IntPtr ArrowReaderProperties_GetCacheOptions_HoleSizeLimit(IntPtr readerProperties, out long holeSizeLimit);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_GetCacheOptions_RangeSizeLimit(IntPtr readerProperties, out long rangeSizeLimit);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_GetCacheOptions_Lazy(IntPtr readerProperties, out bool lazy);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_GetCacheOptions_PrefetchLimit(IntPtr readerProperties, out long prefetchLimit);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_SetCacheOptions(IntPtr readerProperties, long holeSizeLimit, long rangeSizeLimit, [MarshalAs(UnmanagedType.I1)] bool lazy, long prefetchLimit);

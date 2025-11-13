@@ -97,9 +97,36 @@ extern "C"
     TRYCATCH(properties->set_arrow_extensions_enabled(extensions_enabled);)
   }
 
-  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions(ArrowReaderProperties* properties, ::arrow::io::CacheOptions* cache_options)
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_HoleSizeLimit(const ArrowReaderProperties* properties, long* value)
   {
-    TRYCATCH(*cache_options = properties->cache_options();)
+    TRYCATCH(
+        const auto& opts = properties->cache_options();
+        *value = opts.hole_size_limit;
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_RangeSizeLimit(const ArrowReaderProperties* properties, long* value)
+  {
+      TRYCATCH(
+        const auto& opts = properties->cache_options();
+        *value = opts.range_size_limit;
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_Lazy(const ArrowReaderProperties* properties, bool* value)
+  {
+      TRYCATCH(
+        const auto& opts = properties->cache_options();
+        *value = opts.lazy;
+    )
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_PrefetchLimit(const ArrowReaderProperties* properties, long* value)
+  {
+      TRYCATCH(
+        const auto& opts = properties->cache_options();
+        *value = opts.prefetch_limit;
+    )
   }
 
   PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_SetCacheOptions(ArrowReaderProperties* properties, int64_t hole_size_limit, int64_t range_size_limit, bool lazy, int64_t prefetch_limit)
