@@ -1,8 +1,7 @@
 
 ## Working with DataFrames via Arrow
 
-ParquetSharp now provides built-in Arrow support, offering a more efficient way to work with `.NET DataFrame` objects. By using Arrow as the intermediate format, data can move from Parquet to a DataFrame with minimal overhead and without unnecessary conversions.
-
+ParquetSharp now provides Arrow-based APIs for reading and working with `.NET DataFrame objects`. Using Arrow can improve performance and reduce unnecessary memory copies. **However, there are limitations**.
 
 ### Prerequisites
 
@@ -12,106 +11,97 @@ You'll need these packages:
 <PackageReference Include="Microsoft.Data.Analysis" Version="..." />
 ```
 
-### Reading Parquet Files to DataFrames
+### Reading a Single Batch from Parquet
 
-Here's how to read a Parquet file into a DataFrame using Arrow:
+Arrow integration works reliably for reading a single batch. Here's how to read one batch and convert it to a DataFrame:
 
 ```csharp
 using ParquetSharp.Arrow;
 using Microsoft.Data.Analysis;
 using Apache.Arrow;
 
-using var fileReader = new FileReader("data.parquet");
+using var fileReader = new FileReader("sample.parquet");
 using var batchReader = fileReader.GetRecordBatchReader();
 
-RecordBatch batch = await batchReader.ReadNextRecordBatchAsync();
+var batch = await batchReader.ReadNextRecordBatchAsync();
 if (batch != null)
 {
     using (batch)
     {
-        var dataFrame = DataFrame.FromArrowRecordBatch(batch);
-        Console.WriteLine($"Rows: {dataFrame.Rows.Count}, Columns: {dataFrame.Columns.Count}");
-        Console.WriteLine(dataFrame.Head(5));
+        var df = DataFrame.FromArrowRecordBatch(batch).Clone();
+        Console.WriteLine($"Rows: {df.Rows.Count}, Columns: {df.Columns.Count}");
+        Console.WriteLine(df.Head(5));
     }
 }
 ```
 
-This example reads a single Arrow RecordBatch from the Parquet file and converts it directly into a DataFrame. After conversion, the DataFrame can be inspected or used as needed.
+This works reliably for all standard DataFrames.
 
-If the file contains multiple batches, they can be read and merged into one DataFrame:
+
+### Reading All Batches Separately
+For files with multiple batches, each batch can be converted into a DataFrame individually.
+**Note**:  Do not try to merge batches into a single DataFrame using Append; it is unreliable, especially with string columns.
 
 ```csharp
-using var fileReader = new FileReader("data.parquet");
+using var fileReader = new FileReader("sample.parquet");
 using var batchReader = fileReader.GetRecordBatchReader();
 
-DataFrame combinedDataFrame = null;
+var dataFrames = new List<DataFrame>();
 RecordBatch batch;
 
 while ((batch = await batchReader.ReadNextRecordBatchAsync()) != null)
 {
     using (batch)
     {
-        var df = DataFrame.FromArrowRecordBatch(batch);
-
-        if (combinedDataFrame == null)
-        {
-            combinedDataFrame = df;
-        }
-        else
-        {
-            combinedDataFrame = combinedDataFrame.Append(df.Rows);
-        }
+        var df = DataFrame.FromArrowRecordBatch(batch).Clone();
+        dataFrames.Add(df);
     }
 }
 
-var summary = combinedDataFrame.Description();
-Console.WriteLine(summary);
+Console.WriteLine($"Read {dataFrames.Count} batch(es)");
+foreach (var df in dataFrames)
+{
+    Console.WriteLine("\nDataFrame Batch:");
+    Console.WriteLine($"Rows: {df.Rows.Count}, Columns: {df.Columns.Count}");
+    Console.WriteLine(df.Head(5));
+}
 ```
 
-This approach processes the file batch-by-batch. Each batch is converted into a DataFrame, and the individual DataFrames are appended together, producing a single combined dataset.
+### Key Notes
 
-### Writing DataFrames to Parquet Files
+- **Clone to avoid disposal issues:** Each DataFrame should be cloned to remain valid after the batch is disposed.
 
-To write a DataFrame to Parquet via Arrow, it is first converted into Arrow RecordBatch objects. The first batch provides the schema required to initialize the writer. All batches are then written sequentially to the output file.
+- **Do not rely on merging Arrow DataFrames:** Append and combining multiple batches is unreliable, particularly with string columns.
 
+### Writing DataFrames to Parquet
+
+- ToArrowRecordBatches() is not reliable for string columns.
+- For safe writing, continue using ParquetSharp.DataFrame:
+  
 ```csharp
-using ParquetSharp.Arrow;
-using Microsoft.Data.Analysis;
-
-var recordBatches = dataFrame.ToArrowRecordBatches();
-var firstBatch = recordBatches.FirstOrDefault();
-if (firstBatch == null)
-{
-    return;
-}
-
-using var writer = new FileWriter("output.parquet", firstBatch.Schema);
-
-foreach (var batch in recordBatches)
-{
-    writer.WriteRecordBatch(batch);
-}
-
-writer.Close();
+using var reader = new ParquetSharp.ParquetReader("input.parquet");
+var df = reader.ToDataFrame();
 ```
 
 ### When to Use Arrow vs ParquetSharp.DataFrame
 
 **Use the Arrow approach when:**
 
-- You want higher performance and reduced memory copying
-- You are working with large or streaming datasets
-- You prefer compatibility with the broader Arrow ecosystem
+- Reading Parquet data into DataFrames and you want a more efficient way to do this.
+- You want minimal memory copies and higher read performance.
 
-**You might still use ParquetSharp.DataFrame if:**
+**Use ParquetSharp.DataFrame when:**
 
-- You need the simple one-line API: `parquetReader.ToDataFrame()`
-- You're working with small files where performance doesn't matter
-- You have existing code that already uses it
+- Writing DataFrames back to Parquet reliably.
+- Your DataFrames include string columns.
+- Merging multiple batches into a single DataFrame.
 
-### Performance Notes
+### Key Takeaways
 
-The Arrow approach is faster because DataFrames internally use Arrow's memory layout. When you use ParquetSharp.DataFrame, the data gets converted from Parquet → .NET types → DataFrame, but with the Arrow API it goes directly from Parquet → Arrow → DataFrame with zero-copy operations where possible.
+- **Arrow + FromArrowRecordBatch()** is safe and faster for reading Parquet files into DataFrames.
+- **ParquetSharp.DataFrame is more reliable** for writing DataFrames back to Parquet.
+- `ToArrowRecordBatches()` and `Append()` are unreliable for writing or merging batches..
+- **Writing and combining DataFrames** still requires `ParquetSharp.DataFrame`.
 
 ## See Also
 
