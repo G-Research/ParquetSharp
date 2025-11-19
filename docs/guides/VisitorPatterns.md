@@ -56,15 +56,24 @@ sealed class NumericOnlyWriter : ILogicalColumnWriterVisitor<bool>
 
     public bool OnLogicalColumnWriter<TValue>(LogicalColumnWriter<TValue> columnWriter)
     {
-        // Only write if TValue is a numeric type
-        if (typeof(TValue) == typeof(int) || typeof(TValue) == typeof(double) || 
-            typeof(TValue) == typeof(float) || typeof(TValue) == typeof(long))
+        TValue val;
+        if (typeof(TValue) == typeof(int) ||
+            typeof(TValue) == typeof(double) ||
+            typeof(TValue) == typeof(float) ||
+            typeof(TValue) == typeof(long))
         {
-            var values = new TValue[] { (TValue)(object)_fillValue };
-            columnWriter.WriteBatch(values);
-            return true;
+            // Convert _fillValue to the correct TValue
+            val = (TValue)Convert.ChangeType(_fillValue, typeof(TValue));
         }
-        return false;
+        else
+        {
+            // write default(TValue) so the row count matches
+            val = default!;
+        }
+
+        var arr = new TValue[] { val };
+        columnWriter.WriteBatch(arr);
+        return true;
     }
 }
 ```
@@ -90,8 +99,7 @@ sealed class ColumnToStringReader : ILogicalColumnReaderVisitor<string>
             var read = columnReader.ReadBatch(buffer);
             for (var i = 0; i < read; ++i)
             {
-                var v = buffer[i];
-                sb.Append(v?.ToString() ?? "null");
+                sb.Append(buffer[i]?.ToString() ?? "null");
                 sb.Append(", ");
             }
         }
@@ -121,8 +129,7 @@ sealed class RowCountReader : ILogicalColumnReaderVisitor<long>
 
         while (columnReader.HasNext)
         {
-            var read = columnReader.ReadBatch(buffer);
-            count += read;
+            count += columnReader.ReadBatch(buffer);
         }
 
         return count;
@@ -207,14 +214,24 @@ The `IColumnDescriptorVisitor<TReturn>` interface visits column descriptors (sch
 // A visitor that generates a human-readable type description
 sealed class TypeDescriptionVisitor : IColumnDescriptorVisitor<string>
 {
-    public string OnColumnDescriptor<TValue>(ColumnDescriptor<TValue> descriptor) 
-        where TValue : unmanaged
+    public string OnColumnDescriptor(ColumnDescriptor descriptor) 
     {
-        var logicalType = descriptor.LogicalType?.ToString() ?? "none";
-        var physicalType = typeof(TValue).Name;
-        var repetition = descriptor.MaxRepetitionLevel > 0 ? "repeated" : "required";
-        
-        return $"{descriptor.Name}: {logicalType} (physical: {physicalType}, {repetition})";
+        var logical  = descriptor.LogicalType?.ToString() ?? "none";
+        var physical = descriptor.PhysicalType.ToString();
+
+        return $"{descriptor.Name}: logical={logical}, physical={physical}";
+    }
+
+    public string OnColumnDescriptor<TPhysical, TLogical, TElement>()
+        where TPhysical : unmanaged
+    {
+        // This method is for complex (logical) types.
+        // You can return something generic, or customize it as needed.
+        var physical = typeof(TPhysical).Name;
+        var logical = typeof(TLogical).Name;
+        var element = typeof(TElement).Name;
+
+        return $"ComplexType: physical={physical}, logical={logical}, element={element}";
     }
 }
 
@@ -236,8 +253,7 @@ sealed class SchemaValidator : IColumnDescriptorVisitor<bool>
         _allowedNames = allowedNames;
     }
 
-    public bool OnColumnDescriptor<TValue>(ColumnDescriptor<TValue> descriptor) 
-        where TValue : unmanaged
+    public bool OnColumnDescriptor(ColumnDescriptor descriptor) 
     {
         // Check if column name is in allowed list
         if (!_allowedNames.Contains(descriptor.Name))
@@ -250,6 +266,17 @@ sealed class SchemaValidator : IColumnDescriptorVisitor<bool>
         }
 
         return true;
+    }
+
+    public bool OnColumnDescriptor<TPhysical, TLogical, TElement>() where TPhysical : unmanaged
+    {
+
+        var physical = typeof(TPhysical).Name;
+        var logical = typeof(TLogical).Name;
+        var element = typeof(TElement).Name;
+
+        Console.WriteLine($"ComplexType: physical={physical}, logical={logical}, element={element}");
+        throw new NotImplementedException();
     }
 }
 ```
