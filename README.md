@@ -339,7 +339,7 @@ For any other build issues, please [open a new discussion](https://github.com/G-
 
 ## Contributing
 
-We welcome new contributors! We will happily receive PRs for bug fixes or small changes. If you're contemplating something larger please get in touch first by opening a GitHub Issue describing the problem and how you propose to solve it.
+We welcome new contributors! We will happily receive PRs for bug fixes or small changes. If you're contemplating something larger please get in touch first by opening a GitHub Issue describing the problem and how you propose to solve it. Please see our [contributing guide](https://github.com/G-Research/ParquetSharp/blob/master/CONTRIBUTING.md) for more details on contributing.
 
 ## Security
 
