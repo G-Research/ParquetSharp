@@ -214,7 +214,7 @@ The @ParquetSharp.IColumnDescriptorVisitor`1 interface visits column descriptors
 
 - **ILogicalColumnWriterVisitor / ILogicalColumnReaderVisitor**: Use for high-level, type-safe reading and writing when column types are unknown at compile time. Ideal for generic tooling, schema-driven processing, and data exporters.
 
-- **IColumnWriterVisitor / IColumnReaderVisitor**: Use for low-level operations requiring access to definition levels, repetition levels, or physical encodings. Needed for nested types and null handling.
+- **IColumnWriterVisitor / IColumnReaderVisitor**: Use for low-level operations requiring access to definition levels, repetition levels, or physical encodings.
 
 - **IColumnDescriptorVisitor**: Use when you only need to inspect schema metadata without performing I/O. Perfect for schema validation, type checking, and metadata extraction.
 
