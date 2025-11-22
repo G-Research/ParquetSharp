@@ -220,7 +220,7 @@ The @ParquetSharp.IColumnDescriptorVisitor`1 interface visits column descriptors
 
 ### When to avoid visitors
 
-If you already know the schema at compile time, prefer the generic `LogicalWriter<T>` / `LogicalReader<T>` APIs — they are simpler, faster, and more maintainable.
+If you already know the schema at compile time, prefer the generic `LogicalWriter<T>` / `LogicalReader<T>` APIs — they are simpler and more maintainable.
 
 ### Casting arrays safely
 
