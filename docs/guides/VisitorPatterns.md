@@ -4,7 +4,7 @@ ParquetSharp exposes a number of "visitor" interfaces that make it convenient to
 
 ## ILogicalColumnWriterVisitor<TReturn>
 
-The `ILogicalColumnWriterVisitor<TReturn>` interface is invoked for logical writers (high-level typed writers). Use this when you need to write data to columns but don't know the column types at compile time.
+The @ParquetSharp.ILogicalColumnWriterVisitor`1 interface is invoked for logical writers (high-level typed writers). Use this when you need to write data to columns but don't know the column types at compile time.
 
 ### Example: Generic column writer
 
