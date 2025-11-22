@@ -144,7 +144,7 @@ Console.WriteLine($"Total rows: {rowCount}");
 
 ## IColumnWriterVisitor<TReturn>
 
-The `IColumnWriterVisitor<TReturn>` interface provides lower-level access to physical column writers. Use this when you need to work with physical types, definition levels, repetition levels, or encodings.
+The @ParquetSharp.IColumnWriterVisitor`1 interface provides lower-level access to physical column writers. Use this when you need to work with physical types, definition levels, repetition levels, or encodings.
 
 ### Example: Physical type inspector
 
