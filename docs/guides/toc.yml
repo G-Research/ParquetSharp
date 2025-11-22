@@ -16,3 +16,5 @@
   href: TimeSpan.md
 - name: Use from PowerShell
   href: PowerShell.md
+- name: Visitor Patterns
+  href: VisitorPatterns.md

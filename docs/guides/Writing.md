@@ -121,28 +121,8 @@ There is also a `ColumnWriter.LogicalWriterOverride` method, which supports writ
 to the default .NET type corresponding to the column's logical type. For more information on how to use this,
 see the [type factories documentation](TypeFactories.md).
 
-If you don't know ahead of time the column types that will be written,
-you can implement the `ILogicalColumnWriterVisitor<TReturn>` interface to handle writing data in a type-safe way:
-
-```csharp
-sealed class ExampleWriter : ILogicalColumnWriterVisitor<bool>
-{
-    public bool OnLogicalColumnWriter<TValue>(LogicalColumnWriter<TValue> columnWriter)
-    {
-        TValue[] values = GetValues();
-        columnWriter.WriteBatch(values);
-        return true;
-    }
-}
-
-using RowGroupWriter rowGroup = file.AppendRowGroup();
-for (int columnIndex = 0; columnIndex < file.NumColumns; ++columnIndex)
-{
-    using var columnWriter = rowGroup.NextColumn();
-    using var logicalWriter = columnWriter.LogicalWriter();
-    var returnVal = logicalWriter.Apply(new ExampleWriter());
-}
-```
+If you don't know ahead of time the column types that will be written, see the visitor-pattern guide:
+[Visitor patterns: reading & writing with unknown column types](VisitorPatterns.md) — it includes a full example demonstrating writing and then reading a file with mixed column types using `ILogicalColumnWriterVisitor<TReturn>` and `ILogicalColumnReaderVisitor<TReturn>`.
 
 ### Closing the ParquetFileWriter
 
