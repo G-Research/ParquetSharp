@@ -168,7 +168,7 @@ sealed class PhysicalTypeWriter : IColumnWriterVisitor<string>
 
 ## IColumnReaderVisitor<TReturn>
 
-The `IColumnReaderVisitor<TReturn>` interface provides lower-level access to physical column readers. Use this for low-level operations that require access to definition levels, repetition levels, or physical encodings.
+The @ParquetSharp.IColumnReaderVisitor`1 interface provides lower-level access to physical column readers. Use this for low-level operations that require access to definition levels, repetition levels, or physical encodings.
 
 ### Example: Definition level analyzer
 
