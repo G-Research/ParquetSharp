@@ -14,7 +14,7 @@ sealed class GenericColumnWriter : ILogicalColumnWriterVisitor<bool>
 {
     private readonly IDictionary<string, object> _valuesByColumn;
 
-    public GenericColumnWriter(IDictionary<string, object> valuesByColumn)
+    public GenericColumnWriter(IDictionary<string, Array> valuesByColumn)
     {
         _valuesByColumn = valuesByColumn;
     }
@@ -22,11 +22,11 @@ sealed class GenericColumnWriter : ILogicalColumnWriterVisitor<bool>
     public bool OnLogicalColumnWriter<TValue>(LogicalColumnWriter<TValue> columnWriter)
     {
         // Look up values for this column name
-        if (!_valuesByColumn.TryGetValue(columnWriter.ColumnDescriptor.Path[0], out var raw))
+        if (!_valuesByColumn.TryGetValue(columnWriter.ColumnDescriptor.ToDotString(), out var raw))
             return false;
 
         // Cast through object to TValue[] for WriteBatch
-        var values = (TValue[])(object)raw;
+        var values = (TValue[])raw;
         columnWriter.WriteBatch(values);
         return true;
     }
