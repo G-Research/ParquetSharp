@@ -44,6 +44,11 @@ using var logicalWriter = columnWriter.LogicalWriter();
 var success = logicalWriter.Apply(new GenericColumnWriter(valuesByColumn));
 ```
 
+#### Casting arrays safely
+
+The `(TValue[])(object)array` cast pattern is safe when the visitor is invoked with the concrete `TValue` type that matches your stored array element type. Always ensure your stored arrays match the declared column types to avoid runtime exceptions.
+
+
 ### Example: Conditional writer based on type
 
 ```csharp
@@ -221,7 +226,3 @@ The @ParquetSharp.IColumnDescriptorVisitor`1 interface visits column descriptors
 ### When to avoid visitors
 
 If you already know the schema at compile time, prefer the generic `LogicalWriter<T>` / `LogicalReader<T>` APIs — they are simpler and more maintainable.
-
-### Casting arrays safely
-
-The `(TValue[])(object)array` cast pattern is safe when the visitor is invoked with the concrete `TValue` type that matches your stored array element type. Always ensure your stored arrays match the declared column types to avoid runtime exceptions.
