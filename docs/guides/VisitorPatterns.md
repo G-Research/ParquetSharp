@@ -206,7 +206,7 @@ sealed class NullCountReader : IColumnReaderVisitor<int>
 
 ## IColumnDescriptorVisitor<TReturn>
 
-The `IColumnDescriptorVisitor<TReturn>` interface visits column descriptors (schema metadata) without performing any I/O. Use this when you only need to inspect or process schema information.
+The @ParquetSharp.IColumnDescriptorVisitor`1 interface visits column descriptors (schema metadata) without performing any I/O. Use this when you only need to inspect or process schema information.
 
 ## Best practices
 
