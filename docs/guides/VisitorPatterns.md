@@ -80,7 +80,7 @@ sealed class NumericOnlyWriter : ILogicalColumnWriterVisitor<bool>
 
 ## ILogicalColumnReaderVisitor<TReturn>
 
-The `ILogicalColumnReaderVisitor<TReturn>` interface is invoked for logical readers (high-level typed readers). Use this when you need to read data from columns of unknown types.
+The @ParquetSharp.ILogicalColumnReaderVisitor`1 interface is invoked for logical readers (high-level typed readers). Use this when you need to read data from columns of unknown types.
 
 ### Example: Convert columns to strings
 
