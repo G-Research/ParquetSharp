@@ -12,7 +12,7 @@ The @ParquetSharp.ILogicalColumnWriterVisitor`1 interface is invoked for logical
 // A visitor that writes arrays of values to any column type
 sealed class GenericColumnWriter : ILogicalColumnWriterVisitor<bool>
 {
-    private readonly IDictionary<string, object> _valuesByColumn;
+    private readonly IDictionary<string, Array> _valuesByColumn;
 
     public GenericColumnWriter(IDictionary<string, Array> valuesByColumn)
     {
@@ -22,10 +22,9 @@ sealed class GenericColumnWriter : ILogicalColumnWriterVisitor<bool>
     public bool OnLogicalColumnWriter<TValue>(LogicalColumnWriter<TValue> columnWriter)
     {
         // Look up values for this column name
-        if (!_valuesByColumn.TryGetValue(columnWriter.ColumnDescriptor.ToDotString(), out var raw))
+        if (!_valuesByColumn.TryGetValue(columnWriter.ColumnDescriptor.Path.ToDotString(), out var raw))
             return false;
 
-        // Cast through object to TValue[] for WriteBatch
         var values = (TValue[])raw;
         columnWriter.WriteBatch(values);
         return true;
@@ -33,7 +32,7 @@ sealed class GenericColumnWriter : ILogicalColumnWriterVisitor<bool>
 }
 
 // Usage
-var valuesByColumn = new Dictionary<string, object>
+var valuesByColumn = new Dictionary<string, Array>
 {
     { "Id", new[] { 1, 2, 3 } },
     { "Name", new[] { "Alice", "Bob", "Carol" } },
@@ -46,7 +45,7 @@ var success = logicalWriter.Apply(new GenericColumnWriter(valuesByColumn));
 
 #### Casting arrays safely
 
-The `(TValue[])(object)array` cast pattern is safe when the visitor is invoked with the concrete `TValue` type that matches your stored array element type. Always ensure your stored arrays match the declared column types to avoid runtime exceptions.
+The `(TValue[])array` cast pattern is safe when the visitor is invoked with the concrete `TValue` type that matches your stored array element type. Always ensure your stored arrays match the declared column types to avoid runtime exceptions.
 
 
 ### Example: Conditional writer based on type
