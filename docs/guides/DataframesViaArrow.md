@@ -85,16 +85,14 @@ var df = reader.ToDataFrame();
 
 ### When to Use Arrow vs ParquetSharp.DataFrame
 
-**Use the Arrow approach when:**
-
-- Reading Parquet data into DataFrames and you want a more efficient way to do this.
-- You want minimal memory copies and higher read performance.
-
-**Use ParquetSharp.DataFrame when:**
-
-- Writing DataFrames back to Parquet reliably.
-- Your DataFrames include string columns.
-- Merging multiple batches into a single DataFrame.
+| Task | Arrow API | ParquetSharp.DataFrame |
+|------|-----------|------------------------|
+| **Reading** Parquet to DataFrame | ✅ Recommended - Faster, less memory copying | ✅ Works - Simple one-line API |
+| **Writing** DataFrame to Parquet | ❌ Unreliable - Fails with string columns | ✅ Recommended - Reliable for all column types |
+| **String columns** | ⚠️ Read-only support | ✅ Full read/write support |
+| **Merging batches** | ❌ `Append()` is unreliable | ✅ Works reliably |
+| **Performance** | ⚠️ Faster for reads only | ⚠️ Slower but more reliable |
+| **Use case** | Large file reads, streaming | Writing, string data, combining data |
 
 ### Key Takeaways
 
