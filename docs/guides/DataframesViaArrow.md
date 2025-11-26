@@ -7,8 +7,9 @@ ParquetSharp now provides Arrow-based APIs for reading and working with `.NET Da
 
 You'll need these packages:
 ```xml
-<PackageReference Include="ParquetSharp" Version="..." />
-<PackageReference Include="Microsoft.Data.Analysis" Version="..." />
+<PackageReference Include="ParquetSharp" Version="5.*" />
+<PackageReference Include="Apache.Arrow" Version="14.*" />
+<PackageReference Include="Microsoft.Data.Analysis" Version="0.23.*" />
 ```
 
 ### Reading a Single Batch from Parquet
