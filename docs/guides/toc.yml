@@ -18,3 +18,5 @@
   href: PowerShell.md
 - name: Visitor Patterns
   href: VisitorPatterns.md
+- name: Memory Usage Optimization in File Reading
+  href: ReadingMemoryOptimization.md
