@@ -8,7 +8,7 @@ APIs for reading Parquet files:
 1. **LogicalColumnReader API** - Column-oriented reading with type-safe access
 2. **Arrow API (FileReader)** - Row-oriented reading using Apache Arrow's in-memory format
 
-Each API offers different memory management options that significantly impact memory usage, especially when processing large files with multiple row groups.
+Each API offers different memory management options that impact memory usage.
 
 ## Memory Configuration Parameters
 
@@ -29,7 +29,7 @@ Controls whether the Arrow FileReader pre-fetches data from multiple row groups 
 
 **Default**: `true`
 
-**Impact**: Pre-buffering can significantly increase memory usage as it loads data from future row groups before they're needed. This is the primary cause of memory usage scaling with file size reported in Apache Arrow issue #46935.
+**Impact**: Pre-buffering can significantly increase memory usage as it loads data from future row groups before they're needed. This is the primary cause of memory usage scaling with file size reported in Apache Arrow [issue #46935](https://github.com/apache/arrow/issues/46935).
 
 ### 4. Cache (Arrow API Only)
 The Arrow API uses an internal `ReadRangeCache` that stores buffers for column chunks.
