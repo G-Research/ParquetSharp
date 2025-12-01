@@ -96,7 +96,6 @@ jobs:
       run: |
         git reset --hard
         git pull
-        git checkout 9aee6e968f51e15ee93606f064691d8f6d228190
 
     # We may need to re-bootstrap vcpkg after updating
     - name: Bootstrap vcpkg (Unix)
@@ -134,10 +133,6 @@ jobs:
     - name: Setup MSBuild
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v2
-
-    # Setup vcpkg caching
-    - name: Setup vcpkg caching
-      uses: ./.github/actions/vcpkg-cache-action
 
     # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Linux)
