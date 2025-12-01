@@ -96,6 +96,7 @@ jobs:
       run: |
         git reset --hard
         git pull
+        git checkout 9aee6e968f51e15ee93606f064691d8f6d228190
 
     # We may need to re-bootstrap vcpkg after updating
     - name: Bootstrap vcpkg (Unix)
@@ -123,9 +124,7 @@ jobs:
     # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
       if: runner.os == 'macOS'
-      run: |
-        brew install bison
-        brew upgrade --cask
+      run: brew install bison
 
     # .NET Setup (and also MSBuild for Windows).
     - name: Setup .NET SDK v9.0.x
