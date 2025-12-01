@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <string>
+#include <cxxabi.h>
 
 #include <parquet/exception.h>
 
@@ -38,6 +39,6 @@ struct ExceptionInfo final
   }                                                                      \
   catch (...)                                                            \
   {                                                                      \
-    return new ExceptionInfo("unknown", "uncaught exception");           \
+    return new ExceptionInfo("unknown", abi::__cxa_current_exception_type()->name());      \
   }                                                                      \
 

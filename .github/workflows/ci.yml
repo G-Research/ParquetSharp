@@ -96,7 +96,6 @@ jobs:
       run: |
         git reset --hard
         git pull
-        git checkout 9aee6e968f51e15ee93606f064691d8f6d228190
 
     # We may need to re-bootstrap vcpkg after updating
     - name: Bootstrap vcpkg (Unix)
