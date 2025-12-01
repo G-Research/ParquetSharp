@@ -123,7 +123,10 @@ jobs:
     # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
       if: runner.os == 'macOS'
-      run: brew install bison
+      run: |
+        brew install bison
+        brew upgrade
+        brew cask upgrade
 
     # .NET Setup (and also MSBuild for Windows).
     - name: Setup .NET SDK v9.0.x
