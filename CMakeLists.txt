@@ -48,10 +48,6 @@ if (UNIX)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
   endif()
 
-  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
-    add_compile_options("-frtti")
-  endif()
-
 endif ()
 
 if (MSVC)
