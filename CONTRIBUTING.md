@@ -44,7 +44,7 @@ Before you submit your pull request consider the following guidelines:
 git checkout -b my-fix-branch master
 ```
 
-- Follow our coding rules.
+- Follow our [coding rules](#coding-rules).
 - Run the test suite to ensure your changes don't break existing functionality
 - Commit your changes using a descriptive commit message.
 
