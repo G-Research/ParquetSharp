@@ -59,6 +59,9 @@ if ($Env:GITHUB_ACTIONS -eq "true") {
   $options += "VCPKG_OVERLAY_TRIPLETS=$customTripletsDir"
 }
 
+
+$options += " -DCMAKE_VERBOSE_MAKEFILE=ON"
+
 cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$vcpkgDir/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022" -A $arch $options
 if (-not $?) { throw "cmake failed" }
 
