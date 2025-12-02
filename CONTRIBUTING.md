@@ -69,7 +69,19 @@ git rebase origin/master -i
 git push origin my-fix-branch -f
 ```
 
-That's it! Thank you for your contribution!
+We use [`JetBrains.ReSharper.GlobalTools`](https://www.jetbrains.com/help/resharper/ReSharper_Command_Line_Tools.html) to enforce our code formatting rules. To ensure your code will pass the formatting check, you should run the formatter before committing your changes:
+
+```bash
+dotnet tool restore
+dotnet jb cleanupcode "csharp" "csharp.test" "csharp.benchmark" --profile="Built-in: Reformat Code" --settings="ParquetSharp.DotSettings"
+```
+
+The [Public API Analyzer](https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md) is used to ensure ParquetSharp releases don't include any ABI breaking changes. If you're making any changes to the public API, you'll need to update the set of unshipped API changes in the `csharp/PublicAPI.Unshipped.txt` file:
+
+```bash
+cd csharp
+dotnet format analyzers --diagnostics=RS0016
+```
 
 ### Coding Rules
 
@@ -77,3 +89,5 @@ To ensure consistency throughout the source code, keep these rules in mind as yo
 
 - All features or bug fixes **must** be tested by one or more unit tests (if possible and applicable).
 - All public API methods **must** be documented with XML documentation.
+
+That's it! Thank you for your contribution.
