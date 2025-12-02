@@ -77,6 +77,8 @@ then
   options+=" -D VCPKG_OVERLAY_TRIPLETS=$custom_triplets_dir"
 fi
 
+options+=" -DCMAKE_VERBOSE_MAKEFILE=ON"
+
 for build_type in $build_types
 do
   echo ">> Building ParquetSharpNative $build_type for $triplet"
