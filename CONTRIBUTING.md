@@ -64,7 +64,8 @@ If we suggest changes, then:
 If the PR gets too outdated we may ask you to rebase and force push to update the PR:
 
 ```bash
-git rebase target_branch -i
+git fetch origin
+git rebase origin/master -i
 git push origin my-fix-branch -f
 ```
 
