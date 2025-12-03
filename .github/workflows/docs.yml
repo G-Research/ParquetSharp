@@ -20,7 +20,7 @@ jobs:
       run: dotnet tool update -g docfx
 
     - name: Build Documentation
-      run: docfx docfx.json
+      run: docfx --warningsAsErrors docfx.json
       working-directory: ./docs
 
     - name: Upload Site Artifact
