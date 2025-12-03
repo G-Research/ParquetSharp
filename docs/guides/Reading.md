@@ -63,29 +63,8 @@ DateTime[] timestamps = rowGroupReader.Column(0).LogicalReader<DateTime>().ReadA
 
 ### Reading columns with unknown types
 
-However, if you don't know ahead of time the types for each column, you can implement the
-`ILogicalColumnReaderVisitor<TReturn>` interface to handle column data in a type-safe way, for example:
-
-```csharp
-sealed class ColumnPrinter : ILogicalColumnReaderVisitor<string>
-{
-    public string OnLogicalColumnReader<TElement>(LogicalColumnReader<TElement> columnReader)
-    {
-        var stringBuilder = new StringBuilder();
-        foreach (var value in columnReader) {
-            stringBuilder.Append(value?.ToString() ?? "null");
-            stringBuilder.Append(",");
-        }
-        return stringBuilder.ToString();
-    }
-}
-
-string columnValues = rowGroupReader.Column(0).LogicalReader().Apply(new ColumnPrinter());
-```
-
-There's a similar `IColumnReaderVisitor<TReturn>` interface for working with `ColumnReader` objects
-and reading physical values in a type-safe way, but most users will want to work at the logical element level.
-
+If you don't know ahead of time the types for each column, use the visitor-based guide:
+See [Visitor patterns: reading & writing with unknown column types](VisitorPatterns.md) for examples using `ILogicalColumnReaderVisitor<TReturn>` and related visitor types.
 
 ### Reading data in batches
 

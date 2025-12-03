@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup .NET SDK v9.0.x
         uses: actions/setup-dotnet@v5
         with:
@@ -68,7 +68,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     # Compute vcpkg triplet and root
     - name: Compute vcpkg triplet and root
@@ -184,7 +184,7 @@ jobs:
       version: ${{ steps.get-version.outputs.version }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Download all artifacts
       uses: actions/download-artifact@v6
       with:
@@ -249,7 +249,7 @@ jobs:
     needs: build-nuget
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Download NuGet artifact
       uses: actions/download-artifact@v6
       with:
@@ -290,7 +290,7 @@ jobs:
     needs: build-nuget
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Download NuGet artifact
       uses: actions/download-artifact@v6
@@ -340,7 +340,7 @@ jobs:
     needs: [build-nuget,all-required-checks-done]
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Check version
       id: check-version
       shell: pwsh
