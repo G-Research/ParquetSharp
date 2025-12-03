@@ -10,22 +10,22 @@ This means that:
 
 ## API
 
-The API at the core of this is encompassed by the `ParquetSharp.LogicalTypeFactory`,
-`ParquetSharp.LogicalReadConverterFactory` and `ParquetSharp.LogicalWriteConverterFactory` classes.
+The API at the core of this is encompassed by the @ParquetSharp.LogicalTypeFactory,
+@ParquetSharp.LogicalReadConverterFactory and @ParquetSharp.LogicalWriteConverterFactory classes.
 These classes implement the default ParquetSharp type mapping and conversion logic,
 but may be subclassed in order to implement custom type mapping logic.
 The `LogicalTypeFactory` class also allows some customization of the default type mappings
 without needing to subclass it.
 
-Both `ParquetSharp.ParquetFileReader` and `ParquetSharp.ParquetFileWriter` have
+Both @ParquetSharp.ParquetFileReader and @ParquetSharp.ParquetFileWriter have
 `LogicalTypeFactory` properties that can be set to an instance of the `LogicalTypeFactory` class,
 while `LogicalReadConverterFactory` is only used by `ParquetFileReader`,
 and `LogicalWriteConverterFactory` is only used by `ParquetFileWriter`.
 
 Whenever the user uses a custom type to read or write values to a Parquet file,
 a `LogicalReadConverterFactory` or `LogicalWriteConverterFactory` needs to be provided, respectively.
-This converter factory tells to the `ParquetSharp.LogicalColumnReader` or
-`ParquetSharp.LogicalColumnWriter` how to convert between the user's custom type and a physical type
+This converter factory tells to the @ParquetSharp.LogicalColumnReader or
+@ParquetSharp.LogicalColumnWriter how to convert between the user's custom type and a physical type
 that is understood by Parquet.
 
 On top of that, if the custom type is used for creating the schema (when writing),
@@ -33,7 +33,7 @@ or if accessing a `LogicalColumnReader` or `LogicalColumnWriter` without explici
 (e.g. `columnWriter.LogicalReaderOverride<CustomType>()`),
 then a `LogicalTypeFactory` is needed in order to establish the proper logical type mapping.
 
-In other words, the `LogicalTypeFactory` is required if the user provides a `ParquetSharp.Column` class with a custom type when writing,
+In other words, the `LogicalTypeFactory` is required if the user provides a @ParquetSharp.Column class with a custom type when writing,
 or gets the `LogicalColumnReader` or `LogicalColumnWriter` via the non type-overriding methods
 (in which case the factory is needed to know the full type of the logical column reader/writer).
 The corresponding converter factory is always needed if using a custom type that the default converter doesn't know how to handle.
