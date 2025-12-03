@@ -11,14 +11,6 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v6
 
-    - name: Setup Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: 3.x
-
-    - name: Run Preprocessing Script
-      run: python docs/tools/preprocess_docs.py
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
