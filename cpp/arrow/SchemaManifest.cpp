@@ -18,7 +18,7 @@ extern "C"
     TRYCATCH(
       if (index >= static_cast<int32_t>(manifest->schema_fields.size()))
       {
-        throw std::out_of_range("Field index out of range");
+        throw std::runtime_error("Field index out of range");
       }
       *field = &(manifest->schema_fields[index]);
     )
