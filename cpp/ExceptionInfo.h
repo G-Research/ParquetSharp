@@ -36,8 +36,5 @@ struct ExceptionInfo final
   {                                                                      \
     return new ExceptionInfo(exception);                                 \
   }                                                                      \
-  catch (...)                                                            \
-  {                                                                      \
-    return new ExceptionInfo("unknown", "uncaught exception");           \
-  }                                                                      \
+
 

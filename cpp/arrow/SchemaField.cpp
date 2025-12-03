@@ -20,7 +20,7 @@ extern "C"
     TRYCATCH(
       if (index >= static_cast<int32_t>(field->children.size()))
       {
-        throw std::runtime_error("Child field index out of range");
+        throw std::out_of_range("Child field index out of range");
       }
       *child = &(field->children[index]);
     )
