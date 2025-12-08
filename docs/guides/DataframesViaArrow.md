@@ -1,5 +1,4 @@
-
-## Working with DataFrames via Arrow
+# Working with DataFrames via Arrow
 
 ParquetSharp now provides Arrow-based APIs for reading and working with `.NET DataFrame objects`. Using Arrow can improve performance and reduce unnecessary memory copies. **However, there are limitations**.
 
