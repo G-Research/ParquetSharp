@@ -2,7 +2,7 @@
 
 ParquetSharp now provides Arrow-based APIs for reading and working with `.NET DataFrame objects`. Using Arrow can improve performance and reduce unnecessary memory copies. **However, there are limitations**.
 
-### Prerequisites
+## Prerequisites
 
 You'll need these packages:
 ```xml
@@ -11,7 +11,7 @@ You'll need these packages:
 <PackageReference Include="Microsoft.Data.Analysis" Version="0.23.*" />
 ```
 
-### Reading a Single Batch from Parquet
+## Reading a Single Batch from Parquet
 
 Arrow integration works reliably for reading a single batch. Here's how to read one batch and convert it to a DataFrame:
 
@@ -38,7 +38,7 @@ if (batch != null)
 This works reliably for all standard DataFrames.
 
 
-### Reading All Batches Separately
+## Reading All Batches Separately
 For files with multiple batches, each batch can be converted into a DataFrame individually.
 
 **Note**:  Combining multiple batches using `Append()` is unreliable... Particularly with sting columns.
@@ -68,13 +68,13 @@ foreach (var df in dataFrames)
 }
 ```
 
-### Key Notes
+## Key Notes
 
 - **Clone to avoid disposal issues:** Each DataFrame should be cloned to remain valid after the batch is disposed.
 
 - **Do not rely on merging Arrow DataFrames:** Append and combining multiple batches is unreliable, particularly with string columns.
 
-### Writing DataFrames to Parquet
+## Writing DataFrames to Parquet
 
 - ToArrowRecordBatches() is not reliable for string columns.
 - For safe writing, continue using ParquetSharp.DataFrame:
@@ -84,7 +84,7 @@ using var reader = new ParquetSharp.ParquetReader("input.parquet");
 var df = reader.ToDataFrame();
 ```
 
-### When to Use Arrow vs ParquetSharp.DataFrame
+## When to Use Arrow vs ParquetSharp.DataFrame
 
 | Task | Arrow API | ParquetSharp.DataFrame |
 |------|-----------|------------------------|
@@ -95,7 +95,7 @@ var df = reader.ToDataFrame();
 | **Performance** | ⚠️ Faster for reads only | ⚠️ Slower but more reliable |
 | **Use case** | Large file reads, streaming | Writing, string data, combining data |
 
-### Key Takeaways
+## Key Takeaways
 
 - **Arrow + FromArrowRecordBatch()** is safe and faster for reading Parquet files into DataFrames.
 - **ParquetSharp.DataFrame is more reliable** for writing DataFrames back to Parquet.
