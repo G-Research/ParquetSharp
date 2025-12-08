@@ -32,6 +32,14 @@ struct ExceptionInfo final
       ? new ExceptionInfo("OutOfMemoryException", exception.what())      \
       : new ExceptionInfo(exception);                                    \
   }                                                                      \
+  catch (const std::out_of_range& exception)                             \
+  {                                                                      \
+    return new ExceptionInfo(exception);                                 \
+  }                                                                      \
+  catch (const std::length_error& exception)                             \
+  {                                                                      \
+    return new ExceptionInfo(exception);                                 \
+  }                                                                      \
   catch (const std::exception& exception)                                \
   {                                                                      \
     return new ExceptionInfo(exception);                                 \
