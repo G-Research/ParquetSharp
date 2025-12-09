@@ -41,7 +41,7 @@ This works reliably for all standard DataFrames.
 ## Reading All Batches Separately
 For files with multiple batches, each batch can be converted into a DataFrame individually.
 
-**Note**:  Combining multiple batches using `Append()` is unreliable... Particularly with sting columns.
+**Note**:  Combining multiple batches using `Append()` is unreliable... Particularly with string columns.
 
 ```csharp
 using var fileReader = new FileReader("sample.parquet");
