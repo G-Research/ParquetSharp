@@ -83,4 +83,8 @@ do
   build_dir=build/$triplet-$(tr A-Z a-z <<<$build_type)
   cmake -B $build_dir -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake -D CMAKE_BUILD_TYPE=$build_type $options
   cmake --build $build_dir -j ${nproc}
+  if [ "${build_type}" == "Debug" ]
+  then
+    ln -snf $build_dir/compile_commands.json .
+  fi
 done
