@@ -1,0 +1,39 @@
+#nullable enable
+ParquetSharp.ByteArray.ByteArray(nint pointer, int length) -> void
+ParquetSharp.FixedLenByteArray.FixedLenByteArray(nint pointer) -> void
+ParquetSharp.IO.Buffer.Buffer(nint data, long size) -> void
+ParquetSharp.IO.Buffer.Data.get -> nint
+ParquetSharp.IO.Buffer.MutableData.get -> nint
+ParquetSharp.IO.OutputStream.OutputStream(nint handle) -> void
+ParquetSharp.IO.RandomAccessFile.RandomAccessFile(nint handle) -> void
+ParquetSharp.LogicalType.LogicalType(nint handle) -> void
+ParquetSharp.LogicalTypeFactory.DateAsDateOnly.get -> bool
+ParquetSharp.LogicalTypeFactory.DateAsDateOnly.set -> void
+ParquetSharp.LogicalTypeFactory.TimeAsTimeOnly.get -> bool
+ParquetSharp.LogicalTypeFactory.TimeAsTimeOnly.set -> void
+ParquetSharp.Schema.Node.Node(nint handle) -> void
+readonly ParquetSharp.ByteArray.Pointer -> nint
+readonly ParquetSharp.FixedLenByteArray.Pointer -> nint
+static ParquetSharp.LogicalRead.ConvertDateOnly(System.ReadOnlySpan<int> source, System.ReadOnlySpan<short> defLevels, System.Span<System.DateOnly?> destination, short definedLevel) -> void
+static ParquetSharp.LogicalRead.ConvertDateOnly(System.ReadOnlySpan<int> source, System.Span<System.DateOnly> destination) -> void
+static ParquetSharp.LogicalRead.ConvertHalf(System.ReadOnlySpan<ParquetSharp.FixedLenByteArray> source, System.ReadOnlySpan<short> defLevels, System.Span<System.Half?> destination, short definedLevel) -> void
+static ParquetSharp.LogicalRead.ConvertHalf(System.ReadOnlySpan<ParquetSharp.FixedLenByteArray> source, System.Span<System.Half> destination) -> void
+static ParquetSharp.LogicalRead.ConvertTimeOnlyMicros(System.ReadOnlySpan<long> source, System.ReadOnlySpan<short> defLevels, System.Span<System.TimeOnly?> destination, short definedLevel) -> void
+static ParquetSharp.LogicalRead.ConvertTimeOnlyMicros(System.ReadOnlySpan<long> source, System.Span<System.TimeOnly> destination) -> void
+static ParquetSharp.LogicalRead.ConvertTimeOnlyMillis(System.ReadOnlySpan<int> source, System.ReadOnlySpan<short> defLevels, System.Span<System.TimeOnly?> destination, short definedLevel) -> void
+static ParquetSharp.LogicalRead.ConvertTimeOnlyMillis(System.ReadOnlySpan<int> source, System.Span<System.TimeOnly> destination) -> void
+static ParquetSharp.LogicalRead.ToDateOnly(int source) -> System.DateOnly
+static ParquetSharp.LogicalRead.ToHalf(ParquetSharp.FixedLenByteArray source) -> System.Half
+static ParquetSharp.LogicalRead.ToTimeOnlyMicros(long source) -> System.TimeOnly
+static ParquetSharp.LogicalRead.ToTimeOnlyMillis(int source) -> System.TimeOnly
+static ParquetSharp.LogicalWrite.ConvertDateOnly(System.ReadOnlySpan<System.DateOnly> source, System.Span<int> destination) -> void
+static ParquetSharp.LogicalWrite.ConvertDateOnly(System.ReadOnlySpan<System.DateOnly?> source, System.Span<short> defLevels, System.Span<int> destination, short nullLevel) -> void
+static ParquetSharp.LogicalWrite.ConvertHalf(System.ReadOnlySpan<System.Half> source, System.Span<ParquetSharp.FixedLenByteArray> destination, ParquetSharp.ByteBuffer! byteBuffer) -> void
+static ParquetSharp.LogicalWrite.ConvertHalf(System.ReadOnlySpan<System.Half?> source, System.Span<short> defLevels, System.Span<ParquetSharp.FixedLenByteArray> destination, short nullLevel, ParquetSharp.ByteBuffer! byteBuffer) -> void
+static ParquetSharp.LogicalWrite.ConvertTimeOnlyMicros(System.ReadOnlySpan<System.TimeOnly> source, System.Span<long> destination) -> void
+static ParquetSharp.LogicalWrite.ConvertTimeOnlyMicros(System.ReadOnlySpan<System.TimeOnly?> source, System.Span<short> defLevels, System.Span<long> destination, short nullLevel) -> void
+static ParquetSharp.LogicalWrite.ConvertTimeOnlyMillis(System.ReadOnlySpan<System.TimeOnly> source, System.Span<int> destination) -> void
+static ParquetSharp.LogicalWrite.ConvertTimeOnlyMillis(System.ReadOnlySpan<System.TimeOnly?> source, System.Span<short> defLevels, System.Span<int> destination, short nullLevel) -> void
+static ParquetSharp.LogicalWrite.FromDateOnly(System.DateOnly source) -> int
+static ParquetSharp.LogicalWrite.FromTimeOnlyMicros(System.TimeOnly source) -> long
+static ParquetSharp.LogicalWrite.FromTimeOnlyMillis(System.TimeOnly source) -> int
