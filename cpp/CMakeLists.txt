@@ -1,14 +1,12 @@
 include(GenerateExportHeader)
 
 find_package(Arrow CONFIG REQUIRED)
-find_package(unofficial-brotli CONFIG REQUIRED)
 find_package(BZip2 REQUIRED)
 find_package(lz4 CONFIG REQUIRED)
 find_package(Parquet CONFIG REQUIRED)
 find_package(re2 CONFIG REQUIRED)
-find_package(Snappy CONFIG REQUIRED)
 find_package(Thrift CONFIG REQUIRED)
-find_package(unofficial-utf8proc CONFIG REQUIRED)
+find_package(utf8proc CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(zstd CONFIG REQUIRED)
 
@@ -89,13 +87,11 @@ include_directories(
 target_link_libraries(ParquetSharpNative PRIVATE
 	Parquet::parquet_static
 	Arrow::arrow_static
-	unofficial::brotli::brotlidec unofficial::brotli::brotlienc unofficial::brotli::brotlicommon
 	BZip2::BZip2
 	lz4::lz4
 	re2::re2
-	Snappy::snappy
 	thrift::thrift
-	utf8proc
+	utf8proc::utf8proc
 	ZLIB::ZLIB
 	zstd::libzstd_static
 )
