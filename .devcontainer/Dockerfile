@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/dotnet:1-9.0-bookworm-slim AS dotnet
+FROM mcr.microsoft.com/devcontainers/dotnet:2-10.0-noble AS dotnet
 
 #====================================================================
 
@@ -10,7 +10,7 @@ USER vscode
 COPY --chown=vscode:vscode . /tmp/build/
 
 # Populate the nuget cache with all of our dependencies
-RUN for project in /tmp/build/csharp*; do \
+RUN for project in /tmp/build/?sharp*; do \
       dotnet restore $project; \
     done
 
