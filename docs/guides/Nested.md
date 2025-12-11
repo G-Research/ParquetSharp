@@ -7,7 +7,7 @@ but the Parquet format can be used to represent data with a complex nested struc
 
 In order to write a file with nested columns,
 we must define the Parquet file schema explicitly as a graph structure using schema nodes,
-rather than using ParquetSharp's `ParquetSharp.Column` type.
+rather than using ParquetSharp's @ParquetSharp.Column type.
 
 Imagine we have the following JSON object we would like to store as Parquet:
 
@@ -41,8 +41,8 @@ or we had a non-null object with a null `message` and null `ids`.
 Instead, we will represent this data in Parquet with a single
 `objects` column.
 
-In order to define the schema, we will be using `ParquetSharp.Schema.PrimitiveNode`
-and `ParquetSharp.Schema.GroupNode`.
+In order to define the schema, we will be using @ParquetSharp.Schema.PrimitiveNode
+and @ParquetSharp.Schema.GroupNode.
 
 In the Parquet schema, we have one one top-level group node named `objects`,
 which contains two nested fields, `ids` and `message`.
@@ -74,7 +74,7 @@ using var schema = new GroupNode(
 
 ### Writing data
 
-We can then create a `ParquetSharp.ParquetFileWriter` with this schema:
+We can then create a @ParquetSharp.ParquetFileWriter with this schema:
 
 ```csharp
 using var propertiesBuilder = new WriterPropertiesBuilder();
@@ -85,7 +85,7 @@ using var fileWriter = new ParquetFileWriter("objects.parquet", schema, writerPr
 
 When writing data to this file,
 the leaf-level values written must be nested within ParquetSharp's
-`ParquetSharp.Nested` type to indicate they are contained in a group,
+@ParquetSharp.Nested type to indicate they are contained in a group,
 and allow nullable nested structures to be represented unambiguously.
 
 For example, both the `objects` and `message` fields are optional,
