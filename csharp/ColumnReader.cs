@@ -227,10 +227,9 @@ namespace ParquetSharp
 
         public unsafe long ReadBatch(long batchSize, Span<short> defLevels, Span<short> repLevels, Span<TValue> values, out long valuesRead)
         {
-            if (values == null) throw new ArgumentNullException(nameof(values));
             if (values.Length < batchSize) throw new ArgumentOutOfRangeException(nameof(values), "batchSize is larger than length of values");
-            if (defLevels != null && defLevels.Length < batchSize) throw new ArgumentOutOfRangeException(nameof(defLevels), "batchSize is larger than length of defLevels");
-            if (repLevels != null && repLevels.Length < batchSize) throw new ArgumentOutOfRangeException(nameof(repLevels), "batchSize is larger than length of repLevels");
+            if (!defLevels.IsEmpty && defLevels.Length < batchSize) throw new ArgumentOutOfRangeException(nameof(defLevels), "batchSize is larger than length of defLevels");
+            if (!repLevels.IsEmpty && repLevels.Length < batchSize) throw new ArgumentOutOfRangeException(nameof(repLevels), "batchSize is larger than length of repLevels");
 
             var type = typeof(TValue);
 
