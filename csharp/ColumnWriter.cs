@@ -284,16 +284,12 @@ namespace ParquetSharp
         /// <remarks>
         /// The lengths of <paramref name="defLevels"/> and <paramref name="repLevels"/> must be at least <paramref name="numValues"/>.
         /// </remarks>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="values"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="numValues"/> is larger
         /// than the length of <paramref name="defLevels"/> or <paramref name="repLevels"/>.</exception>
         public unsafe void WriteBatch(int numValues, ReadOnlySpan<short> defLevels, ReadOnlySpan<short> repLevels, ReadOnlySpan<TValue> values)
         {
-#pragma warning disable CA2265
-            if (values == null) throw new ArgumentNullException(nameof(values));
-            if (defLevels != null && defLevels.Length < numValues) throw new ArgumentOutOfRangeException(nameof(defLevels), "numValues is larger than length of defLevels");
-            if (repLevels != null && repLevels.Length < numValues) throw new ArgumentOutOfRangeException(nameof(repLevels), "numValues is larger than length of repLevels");
-#pragma warning restore CA2265
+            if (!defLevels.IsEmpty && defLevels.Length < numValues) throw new ArgumentOutOfRangeException(nameof(defLevels), "numValues is larger than length of defLevels");
+            if (!repLevels.IsEmpty && repLevels.Length < numValues) throw new ArgumentOutOfRangeException(nameof(repLevels), "numValues is larger than length of repLevels");
 
             var type = typeof(TValue);
 
@@ -365,12 +361,6 @@ namespace ParquetSharp
             int numValues, ReadOnlySpan<short> defLevels, ReadOnlySpan<short> repLevels,
             ReadOnlySpan<byte> validBits, long validBitsOffset, ReadOnlySpan<TValue> values)
         {
-#pragma warning disable CA2265
-            if (values == null) throw new ArgumentNullException(nameof(values));
-            if (defLevels == null) throw new ArgumentNullException(nameof(defLevels));
-            if (repLevels == null) throw new ArgumentNullException(nameof(repLevels));
-            if (validBits == null) throw new ArgumentNullException(nameof(validBits));
-#pragma warning restore CA2265
             //if (values.Length < numValues) throw new ArgumentOutOfRangeException("numValues is larger than length of values");
             if (defLevels.Length < numValues) throw new ArgumentOutOfRangeException(nameof(defLevels), "numValues is larger than length of defLevels");
             if (repLevels.Length < numValues) throw new ArgumentOutOfRangeException(nameof(repLevels), "numValues is larger than length of repLevels");
