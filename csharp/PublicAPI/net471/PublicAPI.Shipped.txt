@@ -1,1 +1,12 @@
 #nullable enable
+ParquetSharp.ByteArray.ByteArray(System.IntPtr pointer, int length) -> void
+ParquetSharp.FixedLenByteArray.FixedLenByteArray(System.IntPtr pointer) -> void
+ParquetSharp.IO.Buffer.Buffer(System.IntPtr data, long size) -> void
+ParquetSharp.IO.Buffer.Data.get -> System.IntPtr
+ParquetSharp.IO.Buffer.MutableData.get -> System.IntPtr
+ParquetSharp.IO.OutputStream.OutputStream(System.IntPtr handle) -> void
+ParquetSharp.IO.RandomAccessFile.RandomAccessFile(System.IntPtr handle) -> void
+ParquetSharp.LogicalType.LogicalType(System.IntPtr handle) -> void
+ParquetSharp.Schema.Node.Node(System.IntPtr handle) -> void
+readonly ParquetSharp.ByteArray.Pointer -> System.IntPtr
+readonly ParquetSharp.FixedLenByteArray.Pointer -> System.IntPtr

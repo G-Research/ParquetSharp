@@ -1,8 +1,19 @@
 #nullable enable
+ParquetSharp.ByteArray.ByteArray(nint pointer, int length) -> void
+ParquetSharp.FixedLenByteArray.FixedLenByteArray(nint pointer) -> void
+ParquetSharp.IO.Buffer.Buffer(nint data, long size) -> void
+ParquetSharp.IO.Buffer.Data.get -> nint
+ParquetSharp.IO.Buffer.MutableData.get -> nint
+ParquetSharp.IO.OutputStream.OutputStream(nint handle) -> void
+ParquetSharp.IO.RandomAccessFile.RandomAccessFile(nint handle) -> void
+ParquetSharp.LogicalType.LogicalType(nint handle) -> void
 ParquetSharp.LogicalTypeFactory.DateAsDateOnly.get -> bool
 ParquetSharp.LogicalTypeFactory.DateAsDateOnly.set -> void
 ParquetSharp.LogicalTypeFactory.TimeAsTimeOnly.get -> bool
 ParquetSharp.LogicalTypeFactory.TimeAsTimeOnly.set -> void
+ParquetSharp.Schema.Node.Node(nint handle) -> void
+readonly ParquetSharp.ByteArray.Pointer -> nint
+readonly ParquetSharp.FixedLenByteArray.Pointer -> nint
 static ParquetSharp.LogicalRead.ConvertDateOnly(System.ReadOnlySpan<int> source, System.ReadOnlySpan<short> defLevels, System.Span<System.DateOnly?> destination, short definedLevel) -> void
 static ParquetSharp.LogicalRead.ConvertDateOnly(System.ReadOnlySpan<int> source, System.Span<System.DateOnly> destination) -> void
 static ParquetSharp.LogicalRead.ConvertHalf(System.ReadOnlySpan<ParquetSharp.FixedLenByteArray> source, System.ReadOnlySpan<short> defLevels, System.Span<System.Half?> destination, short definedLevel) -> void

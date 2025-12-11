@@ -121,7 +121,6 @@ ParquetSharp.Arrow.SchemaManifest.SchemaFields.get -> System.Collections.Generic
 ParquetSharp.BsonLogicalType
 ParquetSharp.ByteArray
 ParquetSharp.ByteArray.ByteArray() -> void
-ParquetSharp.ByteArray.ByteArray(System.IntPtr pointer, int length) -> void
 ParquetSharp.ByteArray.Equals(ParquetSharp.ByteArray other) -> bool
 ParquetSharp.ByteArrayReaderCache<TPhysical, TLogical>
 ParquetSharp.ByteArrayReaderCache<TPhysical, TLogical>.Add(TPhysical physical, TLogical logical) -> TLogical
@@ -398,7 +397,6 @@ ParquetSharp.FileMetaData.WriterVersion.get -> ParquetSharp.ApplicationVersion!
 ParquetSharp.FixedLenByteArray
 ParquetSharp.FixedLenByteArray.Equals(ParquetSharp.FixedLenByteArray other) -> bool
 ParquetSharp.FixedLenByteArray.FixedLenByteArray() -> void
-ParquetSharp.FixedLenByteArray.FixedLenByteArray(System.IntPtr pointer) -> void
 ParquetSharp.Float16LogicalType
 ParquetSharp.IColumnDescriptorVisitor<TReturn>
 ParquetSharp.IColumnDescriptorVisitor<TReturn>.OnColumnDescriptor<TPhysical, TLogical, TElement>() -> TReturn
@@ -419,11 +417,8 @@ ParquetSharp.IntLogicalType
 ParquetSharp.IntLogicalType.BitWidth.get -> int
 ParquetSharp.IntLogicalType.IsSigned.get -> bool
 ParquetSharp.IO.Buffer
-ParquetSharp.IO.Buffer.Buffer(System.IntPtr data, long size) -> void
 ParquetSharp.IO.Buffer.Capacity.get -> long
-ParquetSharp.IO.Buffer.Data.get -> System.IntPtr
 ParquetSharp.IO.Buffer.Dispose() -> void
-ParquetSharp.IO.Buffer.MutableData.get -> System.IntPtr
 ParquetSharp.IO.Buffer.Size.get -> long
 ParquetSharp.IO.Buffer.ToArray() -> byte[]!
 ParquetSharp.IO.BufferOutputStream
@@ -441,11 +436,9 @@ ParquetSharp.IO.ManagedRandomAccessFile.ManagedRandomAccessFile(System.IO.Stream
 ParquetSharp.IO.OutputStream
 ParquetSharp.IO.OutputStream.Dispose() -> void
 ParquetSharp.IO.OutputStream.OutputStream() -> void
-ParquetSharp.IO.OutputStream.OutputStream(System.IntPtr handle) -> void
 ParquetSharp.IO.RandomAccessFile
 ParquetSharp.IO.RandomAccessFile.Dispose() -> void
 ParquetSharp.IO.RandomAccessFile.RandomAccessFile() -> void
-ParquetSharp.IO.RandomAccessFile.RandomAccessFile(System.IntPtr handle) -> void
 ParquetSharp.IO.ResizableBuffer
 ParquetSharp.JsonLogicalType
 ParquetSharp.ListLogicalType
@@ -477,7 +470,6 @@ ParquetSharp.LogicalReadConverterFactory.LogicalReadConverterFactory() -> void
 ParquetSharp.LogicalType
 ParquetSharp.LogicalType.Dispose() -> void
 ParquetSharp.LogicalType.Equals(ParquetSharp.LogicalType? other) -> bool
-ParquetSharp.LogicalType.LogicalType(System.IntPtr handle) -> void
 ParquetSharp.LogicalType.Type.get -> ParquetSharp.LogicalTypeEnum
 ParquetSharp.LogicalTypeEnum
 ParquetSharp.LogicalTypeEnum.Bson = 13 -> ParquetSharp.LogicalTypeEnum
@@ -686,7 +678,6 @@ ParquetSharp.Schema.Node.Equals(ParquetSharp.Schema.Node? other) -> bool
 ParquetSharp.Schema.Node.FieldId.get -> int
 ParquetSharp.Schema.Node.LogicalType.get -> ParquetSharp.LogicalType!
 ParquetSharp.Schema.Node.Name.get -> string!
-ParquetSharp.Schema.Node.Node(System.IntPtr handle) -> void
 ParquetSharp.Schema.Node.NodeType.get -> ParquetSharp.Schema.NodeType
 ParquetSharp.Schema.Node.Parent.get -> ParquetSharp.Schema.Node?
 ParquetSharp.Schema.Node.Path.get -> ParquetSharp.Schema.ColumnPath!
@@ -813,14 +804,12 @@ readonly ParquetSharp.ApplicationVersion.Patch -> int
 readonly ParquetSharp.ApplicationVersion.PreRelease -> string!
 readonly ParquetSharp.ApplicationVersion.Unknown -> string!
 readonly ParquetSharp.ByteArray.Length -> int
-readonly ParquetSharp.ByteArray.Pointer -> System.IntPtr
 readonly ParquetSharp.Column.Length -> int
 readonly ParquetSharp.Column.LogicalSystemType -> System.Type!
 readonly ParquetSharp.Column.LogicalTypeOverride -> ParquetSharp.LogicalType?
 readonly ParquetSharp.Column.Name -> string!
 readonly ParquetSharp.Date.Days -> int
 readonly ParquetSharp.DateTimeNanos.Ticks -> long
-readonly ParquetSharp.FixedLenByteArray.Pointer -> System.IntPtr
 readonly ParquetSharp.Int96.A -> int
 readonly ParquetSharp.Int96.B -> int
 readonly ParquetSharp.Int96.C -> int
