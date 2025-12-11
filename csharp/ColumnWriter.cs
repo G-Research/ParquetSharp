@@ -271,7 +271,7 @@ namespace ParquetSharp
         /// <param name="values">The values to write.</param>
         public void WriteBatch(ReadOnlySpan<TValue> values)
         {
-            WriteBatch(values.Length, null, null, values);
+            WriteBatch(values.Length, ReadOnlySpan<short>.Empty, ReadOnlySpan<short>.Empty, values);
         }
 
         /// <summary>

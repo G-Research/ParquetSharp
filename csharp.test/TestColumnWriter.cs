@@ -21,7 +21,7 @@ namespace ParquetSharp.Test
                 var defLevels = new short[] { 1, 0, 1 };
                 var values = new[] { 1, 2 };
 
-                colWriter.WriteBatch(defLevels.Length, defLevels, null, values);
+                colWriter.WriteBatch(defLevels.Length, defLevels, ReadOnlySpan<short>.Empty, values);
 
                 writer.Close();
             }

@@ -49,7 +49,7 @@ namespace ParquetSharp.LogicalBatchWriter
                     {
                         // Write zero length array
                         _physicalWriter.WriteBatch(
-                            1, arrayDefinitionLevel, arrayRepetitionLevel, Array.Empty<TPhysical>());
+                            1, arrayDefinitionLevel, arrayRepetitionLevel, ReadOnlySpan<TPhysical>.Empty);
                     }
                 }
                 else if (!_optionalArrays)
@@ -60,7 +60,7 @@ namespace ParquetSharp.LogicalBatchWriter
                 {
                     // Write a null array entry
                     _physicalWriter.WriteBatch(
-                        1, nullDefinitionLevel, arrayRepetitionLevel, Array.Empty<TPhysical>());
+                        1, nullDefinitionLevel, arrayRepetitionLevel, ReadOnlySpan<TPhysical>.Empty);
                 }
 
                 if (i == 0)

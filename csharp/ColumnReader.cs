@@ -222,7 +222,7 @@ namespace ParquetSharp
 
         public long ReadBatch(long batchSize, Span<TValue> values, out long valuesRead)
         {
-            return ReadBatch(batchSize, null, null, values, out valuesRead);
+            return ReadBatch(batchSize, Span<short>.Empty, Span<short>.Empty, values, out valuesRead);
         }
 
         public unsafe long ReadBatch(long batchSize, Span<short> defLevels, Span<short> repLevels, Span<TValue> values, out long valuesRead)
