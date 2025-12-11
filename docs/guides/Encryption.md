@@ -27,7 +27,7 @@ Double wrapping is enabled by default.
 For further details, see the
 [Key Management Tools design document](https://docs.google.com/document/d/1bEu903840yb95k9q2X-BlsYKuXoygE4VnMDl9xz_zhk).
 
-The Key Management Tools API is contained in the `ParquetSharp.Encryption` namespace.
+The Key Management Tools API is contained in the @ParquetSharp.Encryption namespace.
 In order to use this API,
 a client for a Key Management Service must be implemented:
 
@@ -55,7 +55,7 @@ internal sealed class MyKmsClient : IKmsClient
 ```
 
 The main entrypoint for the Key Management Tools API is the
-`ParquetSharp.Encryption.CryptoFactory` class.
+@ParquetSharp.Encryption.CryptoFactory class.
 This requires a factory method for creating KMS clients,
 which are cached internally and periodically recreated:
 
@@ -76,7 +76,7 @@ kmsConnectionConfig.KmsInstanceUrl = ...;
 kmsConnectionConfig.KeyAccessToken = ...;
 ```
 
-Then to configure how the file is encrypted, an `ParquetSharp.Encryption.EncryptionConfiguration` is created:
+Then to configure how the file is encrypted, an @ParquetSharp.Encryption.EncryptionConfiguration is created:
 
 ```c#
 string footerKeyId = ...;
@@ -113,7 +113,7 @@ encryptionConfig.PlaintextFooter = true;
 ```
 
 The `kmsConnectionConfig` and `encryptionConfiguration` are used to generate
-file encryption properties, which are used to build the `ParquetSharp.WriterProperties`:
+file encryption properties, which are used to build the @ParquetSharp.WriterProperties:
 
 ```c#
 using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
@@ -126,7 +126,7 @@ using var writerProperties = writerPropertiesBuilder
                 .Build();
 ```
 
-Finally, the Parquet file can be written using the `ParquetSharp.WriterProperties`:
+Finally, the Parquet file can be written using the @ParquetSharp.WriterProperties:
 
 ```c#
 Column[] columns = ...;
@@ -136,9 +136,9 @@ using var fileWriter = new ParquetFileWriter(parquetFilePath, columns, writerPro
 
 ### Reading Encrypted Files
 
-Reading encrypted files requires creating `ParquetSharp.FileDecryptionProperties`
-with a `ParquetSharp.Encryption.CryptoFactory`, and adding these to the
-`ParquetSharp.ReaderProperties`:
+Reading encrypted files requires creating @ParquetSharp.FileDecryptionProperties
+with a @ParquetSharp.Encryption.CryptoFactory, and adding these to the
+@ParquetSharp.ReaderProperties:
 
 ```c#
 using var decryptionConfig = new DecryptionConfiguration();
@@ -164,7 +164,7 @@ Key material is stored inside the Parquet file metadata by default,
 but key material can also be stored in separate JSON files alongside Parquet files,
 to allow rotation of master keys without needing to rewrite the Parquet files.
 
-This is configured in the `ParquetSharp.Encryption.EncryptionConfiguration`:
+This is configured in the @ParquetSharp.Encryption.EncryptionConfiguration:
 
 ```c#
 using var encryptionConfig = new EncryptionConfiguration(footerKeyId);
@@ -172,8 +172,8 @@ encryptionConfig.InternalKeyMaterial = false;  // External key material
 ```
 
 When using external key material, the path to the Parquet file being written or read
-must be specified when creating `ParquetSharp.FileEncryptionProperties` and
-`ParquetSharp.FileDecryptionProperties`:
+must be specified when creating @ParquetSharp.FileEncryptionProperties and
+@ParquetSharp.FileDecryptionProperties:
 
 ```c#
 using var fileEncryptionProperties = cryptoFactory.GetFileEncryptionProperties(
@@ -247,7 +247,7 @@ using var fileDecryptionProperties = builder
 ```
 
 Rather than having to specify decryption keys directly, a
-`ParquetSharp.DecryptionKeyRetriever` can be used to retrieve keys
+@ParquetSharp.DecryptionKeyRetriever can be used to retrieve keys
 based on the key metadata, to allow more flexibility:
 
 ```c#
@@ -298,7 +298,7 @@ using var fileDecryptionProperties = builder
 
 If the AAD prefix doesn't match the expected prefix an exception will be thrown when reading the file.
 
-Alternatively, you can implement an `ParquetSharp.AadPrefixVerifier` if you have more complex verification logic:
+Alternatively, you can implement an @ParquetSharp.AadPrefixVerifier if you have more complex verification logic:
 
 ```c#
 internal sealed class MyAadVerifier : ParquetSharp.AadPrefixVerifier
@@ -324,8 +324,8 @@ using var fileDecryptionProperties = builder
 
 ## Arrow API Compatibility
 
-Note that the above examples use the `ParquetSharp.ParquetFileReader` and
-`ParquetSharp.ParquetFileWriter` classes, but encryption may also be used with the Arrow API.
-The `ParquetSharp.Arrow.FileReader` and `ParquetSharp.Arrow.FileWriter` constructors
-accept `ParquetSharp.ReaderProperties` and `ParquetSharp.WriterProperties` parameters
+Note that the above examples use the @ParquetSharp.ParquetFileReader and
+@ParquetSharp.ParquetFileWriter classes, but encryption may also be used with the Arrow API.
+The @ParquetSharp.Arrow.FileReader and @ParquetSharp.Arrow.FileWriter constructors
+accept @ParquetSharp.ReaderProperties and @ParquetSharp.WriterProperties parameters
 respectively, which can have encryption properties configured.

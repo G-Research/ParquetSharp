@@ -1,6 +1,6 @@
 # ParquetSharp in PowerShell
 
-The main requirement to using ParquetSharp from PowerShell is that `ParquetSharpNative.dll` is in the `PATH` or in the same directory as `ParquetSharp.dll`. The following guide shows one possible approach to achieve this:
+The main requirement to using ParquetSharp from PowerShell is that @ParquetSharpNative.dll is in the `PATH` or in the same directory as @ParquetSharp.dll. The following guide shows one possible approach to achieve this:
 
 ### Installation
 
@@ -23,7 +23,7 @@ Copy-Item -Path ".\lib\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\S
 Copy-Item -Path ".\lib\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll" -Destination ".\bin"
 ```
 
-Finally, copy `ParquetSharp.dll` and `ParquetSharpNative.dll` into `bin`. This will depend on the current version of ParquetSharp, as well as your architecture and OS:
+Finally, copy @ParquetSharp.dll and @ParquetSharpNative.dll into `bin`. This will depend on the current version of ParquetSharp, as well as your architecture and OS:
 
 ```powershell
 # Replace path with the appropriate version of ParquetSharp
@@ -36,7 +36,7 @@ Copy-Item -Path ".\lib\ParquetSharp.12.1.0\runtimes\win-x64\native\ParquetSharpN
 The available runtime architectures are `win-x64`, `linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`.
 
 ### Usage
-Use `Add-Type` to load `ParquetSharp.dll`. Note that we're using custom directories:
+Use `Add-Type` to load @ParquetSharp.dll. Note that we're using custom directories:
 
 ```powershell
 # Replace path with the appropriate versions of ParquetSharp

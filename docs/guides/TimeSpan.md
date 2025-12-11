@@ -110,6 +110,6 @@ Note that when using this approach, if you read the file back with
 ParquetSharp the data will be read as `long` values as there's no
 way to tell it was originally `TimeSpan` data.
 To read the data back as `TimeSpan`s, you'll also need to implement
-a custom `ParquetSharp.LogicalReadConverterFactory` and use the `LogicalReadOverride` method
-or provide a custom `ParquetSharp.LogicalTypeFactory`.
+a custom @ParquetSharp.LogicalReadConverterFactory and use the `LogicalReadOverride` method
+or provide a custom @ParquetSharp.LogicalTypeFactory.
 See the [type factories documentation](TypeFactories.md) for more details.
