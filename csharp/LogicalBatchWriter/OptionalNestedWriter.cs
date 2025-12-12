@@ -98,8 +98,8 @@ namespace ParquetSharp.LogicalBatchWriter
                     _physicalWriter.WriteBatch(
                         nullSpanSize,
                         _buffers.DefLevels.AsSpan(0, nullSpanSize),
-                        _buffers.RepLevels == null ? null : _buffers.RepLevels.AsSpan(0, nullSpanSize),
-                        Array.Empty<TPhysical>());
+                        _buffers.RepLevels == null ? ReadOnlySpan<short>.Empty : _buffers.RepLevels.AsSpan(0, nullSpanSize),
+                        ReadOnlySpan<TPhysical>.Empty);
                     offset += nullSpanSize;
                 }
 
