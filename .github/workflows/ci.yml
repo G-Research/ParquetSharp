@@ -186,7 +186,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v6
     - name: Download all artifacts
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         path: artifacts
     - name: Copy native ParquetSharp libraries
@@ -251,7 +251,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v6
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: nuget-package
         path: nuget
@@ -293,7 +293,7 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: nuget-package
         path: nuget
@@ -363,7 +363,7 @@ jobs:
             }
         }
     - name: Download NuGet artifact
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: nuget-package
         path: nuget
