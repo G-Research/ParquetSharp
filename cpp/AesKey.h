@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <string>
+#include "arrow/util/secure_string.h"
+using ::arrow::util::SecureString;
 
 class AesKey final
 {
@@ -9,15 +11,17 @@ public:
 
 	AesKey() = default;
 	
-	explicit AesKey(const std::string& parquet_key)
+	explicit AesKey(const arrow::util::SecureString& parquet_key)
 	{
-		std::copy(parquet_key.begin(), parquet_key.end(), reinterpret_cast<char*>(key_));
+		std::string_view view = parquet_key.as_view();
+		std::copy(view.begin(), view.end(), reinterpret_cast<char*>(key_));
 		size_ = static_cast<uint32_t>(parquet_key.size());
 	}
 
-	std::string ToParquetKey() const
+	SecureString ToParquetKey() const
 	{
-		return std::string(reinterpret_cast<const char*>(key_), size_);
+	    std::string tmp(reinterpret_cast<const char*>(key_), size_);
+		return SecureString(std::move(tmp));
 	}
 
 private:
