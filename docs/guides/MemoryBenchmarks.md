@@ -1,6 +1,8 @@
 # ParquetSharp Memory-Optimized Reading Benchmarks
 
-This document presents a series of benchmarks for reading Parquet files efficiently with **ParquetSharp**, highlighting property configurations combinations to minimize memory usage. All tests were run using custom benchmarking code with varying reader configurations and properties.
+This document presents a series of benchmarks for reading Parquet files efficiently with **ParquetSharp**, highlighting property configuration combinations that minimize memory usage. All tests were run using custom benchmarking code with varying reader configurations and properties.
+
+> **Note:** The full benchmarking code, including the complete `ParquetBenchmarks` class and console application setup, is available [here](MemoryBenchmarkSamples.md). You can copy it directly to replicate the results or run your own memory and performance tests.
 
 ## Overview
 
@@ -8,7 +10,7 @@ We tested three approaches for reading Parquet files:
 
 1. **LogicalColumnReader (ParquetFileReader)** – Provides direct, column-oriented access with type safety and predictable memory usage.  
 2. **Arrow API (FileReader)** – Uses Apache Arrow’s in-memory columnar format for row-oriented access, which can be tuned for memory efficiency.  
-3. **Row-Oriented API** – Simple, sequential row-by-row iteration using a custom enumerator, useful for very low memory overhead scenarios.
+3. **Row-Oriented API** – A convenient row-by-row abstraction built on top of the column readers. While easier to use for some workloads, it is generally not memory-efficient and may use more memory than the lower-level APIs.
 
 Each API supports configuration options that can change memory consumption and read performance. Understanding these trade-offs is key to optimizing your Parquet workloads.
 
@@ -16,13 +18,13 @@ Each API supports configuration options that can change memory consumption and r
 
 ## Key Memory Configuration Options
 
-### Buffer Size
+### [Buffer Size](https://g-research.github.io/ParquetSharp/api/ParquetSharp.ReaderProperties.html#ParquetSharp_ReaderProperties_BufferSize)
 The buffer size controls how much data is read from disk or streams in a single operation. Larger buffers reduce the number of read operations and can improve throughput, but they also increase memory usage. Smaller buffers are more memory-efficient but may slow down reading.
 
 ### Chunked Reading
 Instead of loading an entire column or row group into memory, data can be processed in smaller chunks. Chunked reading spreads memory usage over time, reducing peak memory consumption, which is especially useful for very large files.
 
-### Pre-buffering (Arrow API Only)
+### [Pre-buffering](https://g-research.github.io/ParquetSharp/api/ParquetSharp.Arrow.ArrowReaderProperties.html#ParquetSharp_Arrow_ArrowReaderProperties_PreBuffer) (Arrow API Only)
 The Arrow API can prefetch multiple row groups ahead of time. While pre-buffering can improve performance for some access patterns, it increases memory usage because data from future row groups is held in memory. Disabling pre-buffering ensures memory consumption remains close to the size of the data currently being processed.
 
 ---
@@ -170,10 +172,7 @@ public async Task Arrow_PreBufferDisabled_BufferedStream()
     Apache.Arrow.RecordBatch batch;
     while ((batch = await batchReader.ReadNextRecordBatchAsync()) != null)
     {
-        using (batch)
-        {
-            for (int i = 0; i < batch.ColumnCount; i++)
-        }
+
     }
 }
 ```
@@ -196,10 +195,12 @@ Iterates over each row sequentially using a custom enumerator.
 ```csharp
 public void RowOriented_Default()
 {
-    using var file = new ParquetFileReader(FilePath);
-    var enumerator = new ParquetRowEnumerator(file);
+    using var rowReader = ParquetFile.CreateRowReader<(DateTime Timestamp, int ObjectId, float Value)>(FilePath);
 
-    foreach (var row in enumerator)
+    for (int rg = 0; rg < rowReader.FileMetaData.NumRowGroups; ++rg)
+    {
+        var rows = rowReader.ReadRows(rg);
+    }
 }
 ```
 # Benchmark Results: Arrow API
@@ -207,11 +208,3 @@ public void RowOriented_Default()
 | Configuration       | Peak Memory (MB) | Memory Increase (MB) | Duration (s) | Throughput (MB/s) | Memory vs Default |
 |--------------------|-----------------|---------------------|--------------|------------------|------------------|
 | Row-Oriented         |                 |                     |              |                  | Baseline         |
-
-# How Were the Benchmarks Run?
-
-The code for the benchmark tests were executed on **Ubuntu 24.04** using a compiled console application called ParquetSharpBenchmarks. The `time` command was used to measure performance and memory usage, running each method directly from the console and getting the resident size.
-
-```bash
-/usr/bin/time -v ./ParquetSharpBenchmarks logical-default
-```
