@@ -14,7 +14,7 @@ mkdir ParquetSharpBenchmarks
 cd ParquetSharpBenchmarks
 ```
 
-## 1. Initialize a new .NET console application
+## 2. Initialize a new .NET console application
 
 1. Open a terminal or command prompt.
 2. Create a new folder for the project:
@@ -24,13 +24,13 @@ dotnet new console -n ParquetSharpBenchmarks
 cd ParquetSharpBenchmarks
 ```
 
-## 2. Add the ParquetSharp Library
+## 3. Add the ParquetSharp Library
 
 ```bash
 dotnet add package ParquetSharp
 ```
 
-## 3. Replace Program.cs
+## 4. Replace Program.cs
 
 ```csharp
 using System;
@@ -45,7 +45,7 @@ class Program
 }
 ```
 
-## 4. Add Benchmark Code
+## 5. Add Benchmark Code
 Create a new class file called ParquetBenchmarks.cs and add the benchmark code provided in the instructions.
 
 ```csharp
@@ -308,7 +308,7 @@ public class ParquetBenchmarks
 }
 ```
 
-## 5. Build and Run Benchmarks
+## 6. Build and Run Benchmarks
 
 1. Publish the project as a self-contained Linux executable:
 
