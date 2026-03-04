@@ -2,8 +2,6 @@
 
 This document presents a series of benchmarks for reading Parquet files efficiently with **ParquetSharp**, highlighting property configuration combinations that minimize memory usage. All tests were run using custom benchmarking code with varying reader configurations and properties.
 
-> **Note:** The full benchmarking code, including the complete `ParquetBenchmarks` class and console application setup, is available [here](MemoryBenchmarkSamples.md). You can copy it directly to replicate the results or run your own memory and performance tests.
-
 ## Overview
 
 We tested three approaches for reading Parquet files:
