@@ -8,8 +8,8 @@ namespace ParquetSharp.Config.Benchmarks
     {
 
         private const string FilePath = "float_timeseries_large.parquet";
-        private const int RowCount = 10_000_000;
-        private const int RowGroups = 10;
+        private const int RowCount = 400_000_000;
+        private const int RowGroups = 40;
         private const int RowsPerGroup = RowCount / RowGroups;
 
         private const int Buffer512KB = 512 * 1024;
