@@ -29,6 +29,7 @@ else {
     if (-not $?) { throw "bootstrap-vcpkg failed" }
   }
 }
+gci env:* | sort-object name
 
 switch -Regex ($env:PROCESSOR_ARCHITECTURE) {
   "AMD64" { $arch = "x64" }
