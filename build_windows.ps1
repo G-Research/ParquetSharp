@@ -31,9 +31,13 @@ $triplet = "$arch-windows-static"
 
 $build_types = @("Debug", "Release")
 
+# Find the latest Visual Studio installation, so we can use the same instance for both cmake and vcpkg.
+$vsInstPath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
+if (-not $vsInstPath) { throw "Could not find a Visual Studio installation via vswhere.exe" }
+Write-Output "Using Visual Studio at $vsInstPath"
+
 $options = @()
 if ($Env:GITHUB_ACTIONS -eq "true") {
-  $build_types = @("Release")
   $customTripletsDir = "$(Get-Location)/build/custom-triplets"
   New-Item -Path $customTripletsDir -ItemType "directory" -Force > $null
   foreach ($subdir in @("", "community")) {
@@ -45,7 +49,6 @@ if ($Env:GITHUB_ACTIONS -eq "true") {
 
       # Ensure vcpkg uses the same MSVC version to build dependencies as we use to build the ParquetSharp library.
       # By default, vcpkg uses the most recent version it can find, which might not be the same as what msbuild uses.
-      $vsInstPath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
       Import-Module "$vsInstPath/Common7/Tools/Microsoft.VisualStudio.DevShell.dll"
       Enter-VsDevShell -VsInstallPath $vsInstPath -SkipAutomaticLocation
       $clPath = Get-Command cl.exe | Select -ExpandProperty "Source"
@@ -59,9 +62,9 @@ if ($Env:GITHUB_ACTIONS -eq "true") {
   $options += "VCPKG_OVERLAY_TRIPLETS=$customTripletsDir"
 }
 
-$options += " -DCMAKE_VERBOSE_MAKEFILE=ON"
+$options += "-DCMAKE_VERBOSE_MAKEFILE=ON"
 
-cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$vcpkgDir/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022" -A $arch $options
+cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$vcpkgDir/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022" -A $arch -D CMAKE_GENERATOR_INSTANCE="$vsInstPath" @options
 if (-not $?) { throw "cmake failed" }
 
 foreach ($build_type in $build_types) {
