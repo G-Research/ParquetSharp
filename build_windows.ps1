@@ -1,12 +1,15 @@
 Set-StrictMode -Version 3
 $ErrorActionPreference = "Stop"
 
-gci env:* | sort-object name
-
 # Pin vcpkg to the same VS installation used by the Developer Shell.
 # VSINSTALLDIR is set when running from a VS Developer PowerShell.
 if ($null -ne $Env:VSINSTALLDIR) {
   $Env:VCPKG_VISUAL_STUDIO_PATH = $Env:VSINSTALLDIR.TrimEnd('\')
+  Write-Output "Using VCPKG_VISUAL_STUDIO_PATH at $Env:VCPKG_VISUAL_STUDIO_PATH"
+}
+else {
+  $vsInstPath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
+  $Env:VCPKG_VISUAL_STUDIO_PATH = $vsInstPath.TrimEnd('\')
   Write-Output "Using VCPKG_VISUAL_STUDIO_PATH at $Env:VCPKG_VISUAL_STUDIO_PATH"
 }
 
@@ -29,7 +32,6 @@ else {
     if (-not $?) { throw "bootstrap-vcpkg failed" }
   }
 }
-gci env:* | sort-object name
 
 switch -Regex ($env:PROCESSOR_ARCHITECTURE) {
   "AMD64" { $arch = "x64" }
