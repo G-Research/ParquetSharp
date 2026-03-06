@@ -43,6 +43,10 @@ $triplet = "$arch-windows-static"
 
 $build_types = @("Debug", "Release")
 
+if ($Env:GITHUB_ACTIONS -eq "true") {
+  $build_types = @("Release")
+}
+
 $options = @()
 $options += "-DCMAKE_VERBOSE_MAKEFILE=ON"
 
