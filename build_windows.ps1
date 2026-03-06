@@ -1,6 +1,15 @@
 Set-StrictMode -Version 3
 $ErrorActionPreference = "Stop"
 
+gci env:* | sort-object name
+
+# Pin vcpkg to the same VS installation used by the Developer Shell.
+# VSINSTALLDIR is set when running from a VS Developer PowerShell.
+if ($null -ne $Env:VSINSTALLDIR) {
+  $Env:VCPKG_VISUAL_STUDIO_PATH = $Env:VSINSTALLDIR.TrimEnd('\')
+  Write-Output "Using VCPKG_VISUAL_STUDIO_PATH at $Env:VCPKG_VISUAL_STUDIO_PATH"
+}
+
 # Find vcpkg or download it if required
 if ($null -ne $Env:VCPKG_INSTALLATION_ROOT) {
   $vcpkgDir = $Env:VCPKG_INSTALLATION_ROOT
