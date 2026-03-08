@@ -134,10 +134,6 @@ jobs:
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v2
 
-    # Setup vcpkg caching
-    - name: Setup vcpkg caching
-      uses: ./.github/actions/vcpkg-cache-action
-
     # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Linux)
       if: runner.os == 'Linux'
