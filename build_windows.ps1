@@ -42,12 +42,23 @@ switch -Regex ($env:PROCESSOR_ARCHITECTURE) {
 $triplet = "$arch-windows-static"
 
 $build_types = @("Debug", "Release")
+$options = @()
 
 if ($Env:GITHUB_ACTIONS -eq "true") {
   $build_types = @("Release")
+  $customTripletsDir = "$(Get-Location)/build/custom-triplets"
+  New-Item -Path $customTripletsDir -ItemType "directory" -Force > $null
+  foreach ($subdir in @("", "community")) {
+    $sourceTripletFile = "$vcpkgDir/triplets/$subdir/$triplet.cmake"
+    if (Test-Path $sourceTripletFile) {
+      $customTripletFile = "$customTripletsDir/$triplet.cmake"
+      Copy-Item -Path $sourceTripletFile -Destination $customTripletFile
+      Add-Content -Path $customTripletFile -Value "set(VCPKG_BUILD_TYPE release)"
+    }
+  }
+  $options += "-DVCPKG_OVERLAY_TRIPLETS=$customTripletsDir"
 }
 
-$options = @()
 $options += "-DCMAKE_VERBOSE_MAKEFILE=ON"
 
 cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$vcpkgDir/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022" -A $arch @options
