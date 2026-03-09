@@ -1,18 +1,6 @@
 Set-StrictMode -Version 3
 $ErrorActionPreference = "Stop"
 
-# Pin vcpkg to the same VS installation used by the Developer Shell.
-# VSINSTALLDIR is set when running from a VS Developer PowerShell.
-if ($null -ne $Env:VSINSTALLDIR) {
-  $Env:VCPKG_VISUAL_STUDIO_PATH = $Env:VSINSTALLDIR.TrimEnd('\')
-  Write-Output "Using VCPKG_VISUAL_STUDIO_PATH at $Env:VCPKG_VISUAL_STUDIO_PATH"
-}
-else {
-  $vsInstPath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
-  $Env:VCPKG_VISUAL_STUDIO_PATH = $vsInstPath.TrimEnd('\')
-  Write-Output "Using VCPKG_VISUAL_STUDIO_PATH at $Env:VCPKG_VISUAL_STUDIO_PATH"
-}
-
 # Find vcpkg or download it if required
 if ($null -ne $Env:VCPKG_INSTALLATION_ROOT) {
   $vcpkgDir = $Env:VCPKG_INSTALLATION_ROOT
@@ -42,13 +30,10 @@ switch -Regex ($env:PROCESSOR_ARCHITECTURE) {
 $triplet = "$arch-windows-static"
 
 $build_types = @("Debug", "Release")
-$options = @()
 
-# Buildd release configuration only
+$options = @()
 if ($Env:GITHUB_ACTIONS -eq "true") {
   $build_types = @("Release")
-  
-  # Build dependencies in release configuration only
   $customTripletsDir = "$(Get-Location)/build/custom-triplets"
   New-Item -Path $customTripletsDir -ItemType "directory" -Force > $null
   foreach ($subdir in @("", "community")) {
@@ -57,6 +42,17 @@ if ($Env:GITHUB_ACTIONS -eq "true") {
       $customTripletFile = "$customTripletsDir/$triplet.cmake"
       Copy-Item -Path $sourceTripletFile -Destination $customTripletFile
       Add-Content -Path $customTripletFile -Value "set(VCPKG_BUILD_TYPE release)"
+
+      # Ensure vcpkg uses the same MSVC version to build dependencies as we use to build the ParquetSharp library.
+      # By default, vcpkg uses the most recent version it can find, which might not be the same as what msbuild uses.
+      $vsInstPath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
+      Import-Module "$vsInstPath/Common7/Tools/Microsoft.VisualStudio.DevShell.dll"
+      Enter-VsDevShell -VsInstallPath $vsInstPath -SkipAutomaticLocation
+      $clPath = Get-Command cl.exe | Select -ExpandProperty "Source"
+      $toolsetVersion = $clPath.Split("\")[8]
+      if (-not $toolsetVersion.StartsWith("14.")) { throw "Couldn't get toolset version from path '$clPath'" }
+      Write-Output "Using platform toolset version = $toolsetVersion"
+      Add-Content -Path $customTripletFile -Value "set(VCPKG_PLATFORM_TOOLSET_VERSION $toolsetVersion)"
     }
   }
   $options += "-DVCPKG_OVERLAY_TRIPLETS=$customTripletsDir"
@@ -68,6 +64,6 @@ cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN
 if (-not $?) { throw "cmake failed" }
 
 foreach ($build_type in $build_types) {
-  cmake --build build/$triplet --target ParquetSharpNative --config $build_type
-  if (-not $?) { throw "cmake build failed" }
+  msbuild build/$triplet/ParquetSharp.sln -t:ParquetSharpNative:Rebuild -p:Configuration=$build_type
+  if (-not $?) { throw "msbuild failed" }
 }
