@@ -43,7 +43,7 @@ jobs:
           echo "push=${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || github.event_name == 'schedule' }}" >> "$GITHUB_OUTPUT"
       - name: Compute image labels
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ steps.image.outputs.name }}
           tags: latest
@@ -59,7 +59,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build image${{ fromJson(steps.image.outputs.push) && ' and push it by digest' || ''}}
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           file: .devcontainer/Dockerfile
           labels: ${{ steps.meta.outputs.labels }}
