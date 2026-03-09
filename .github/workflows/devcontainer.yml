@@ -43,7 +43,7 @@ jobs:
           echo "push=${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || github.event_name == 'schedule' }}" >> "$GITHUB_OUTPUT"
       - name: Compute image labels
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ steps.image.outputs.name }}
           tags: latest
