@@ -94,14 +94,15 @@ private void LogicalReader_Buffered(int bufferSize)
 
 ## Benchmark Results: LogicalColumnReader API
 
+
 | Configuration          | Peak Memory (MB) | Duration (s) | Throughput (MB/s) | Memory vs Default |
-| ---------------------- | ---------------- | ------------ | ----------------- | ----------------- |
-| Logical-default        | 1828.4           | 12.15        | 321.7             | Baseline          |
-| Logical-buffered 512KB | 29.5             | 0.09         | 43,433.3          | −98.4%            |
-| Logical-buffered 8MB   | 29.5             | 0.10         | 39,090.0          | −98.4%            |
-| Logical-buffered 1MB   | 29.6             | 0.11         | 35,536.4          | −98.4%            |
-| Logical-buffered 32MB  | 29.5             | 0.12         | 32,575.0          | −98.4%            |
-| Logical-chunked-50k    | 117.4            | 8.68         | 450.3             | −93.6%            |
+|------------------------|------------------|--------------|-------------------|-------------------|
+| Logical-default        | 1825.2           | 8.26         | 473.2             | Baseline          |
+| Logical-buffered 512KB | 388.1            | 8.27         | 472.7             | −78.7%            |
+| Logical-buffered 1MB   | 388.1            | 8.36         | 467.6             | −78.7%            |
+| Logical-buffered 8MB   | 437.6            | 9.16         | 426.8             | −76.0%            |
+| Logical-buffered 32MB  | 550.5            | 8.75         | 446.7             | −69.8%            |
+| Logical-chunked-50k    | 116.5            | 6.99         | 559.3             | −93.6%            |
 
 
 
