@@ -20,7 +20,7 @@ namespace ParquetSharp
         /// <param name="logicalTypeOverride">Optional override for the logical type of the column.</param>
         /// <param name="fieldId">Optional field ID for the column in the Parquet schema.</param>
         /// <exception cref="ArgumentNullException">Thrown if any of the arguments are null.</exception>
-        public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride, int fieldId = -1)
+        public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride = null, int fieldId = -1)
             : this(logicalSystemType, name, logicalTypeOverride, GetTypeLength(logicalSystemType, logicalTypeOverride), fieldId)
         {
             LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
