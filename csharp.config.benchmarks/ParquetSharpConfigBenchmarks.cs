@@ -15,6 +15,7 @@ namespace ParquetSharp.Config.Benchmarks
         private const int Buffer512KB = 512 * 1024;
         private const int Buffer1MB = 1024 * 1024;
         private const int Buffer32MB = 32 * 1024 * 1024;
+        private const int Buffer8MB = 8 * 1024 * 1024; 
 
         private const int ChunkSize10K = 10_000;
         private const int ChunkSize50K = 50_000;
@@ -50,8 +51,20 @@ namespace ParquetSharp.Config.Benchmarks
                     bench.LogicalReader_Chunked50K();
                     break;
 
-                case "logical-buffered-1m":
+                case "logical-buffered-512kb":
+                    bench.LogicalReader_Buffered(Buffer512KB);
+                     break;
+
+                case "logical-buffered-1mb":
                     bench.LogicalReader_Buffered(Buffer1MB);
+                    break;
+
+                case "logical-buffered-8mb":
+                    bench.LogicalReader_Buffered(Buffer8MB);
+                    break;
+
+                case "logical-buffered-32mb":
+                    bench.LogicalReader_Buffered(Buffer32MB);
                     break;
 
                 case "arrow-default":
