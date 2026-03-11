@@ -1,4 +1,1 @@
 #nullable enable
-ParquetSharp.Column.Column(System.Type! logicalSystemType, string! name, ParquetSharp.LogicalType? logicalTypeOverride = null, int length = -1, int fieldId = -1) -> void
-ParquetSharp.Column.Column(System.Type! logicalSystemType, string! name, ParquetSharp.LogicalType? logicalTypeOverride) -> void
-ParquetSharp.Column<TLogicalType>.Column(string! name, ParquetSharp.LogicalType? logicalTypeOverride) -> void
