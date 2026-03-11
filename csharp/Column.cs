@@ -219,7 +219,7 @@ namespace ParquetSharp
 
     public sealed class Column<TLogicalType> : Column
     {
-        public Column(string name, LogicalType? logicalTypeOverride = null, int? fieldId = -1)
+        public Column(string name, LogicalType? logicalTypeOverride = null, int fieldId = -1)
             : base(typeof(TLogicalType), name, logicalTypeOverride, fieldId: fieldId)
         {
         }
