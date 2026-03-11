@@ -18,9 +18,10 @@ namespace ParquetSharp
         /// <param name="logicalSystemType">The <see cref="Type"/> of the column.</param>
         /// <param name="name">The name of the column.</param>
         /// <param name="logicalTypeOverride">Optional override for the logical type of the column.</param>
+        /// <param name="fieldId">Optional field ID for the column in the Parquet schema.</param>
         /// <exception cref="ArgumentNullException">Thrown if any of the arguments are null.</exception>
-        public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride = null)
-            : this(logicalSystemType, name, logicalTypeOverride, GetTypeLength(logicalSystemType, logicalTypeOverride))
+        public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride, int fieldId = -1)
+            : this(logicalSystemType, name, logicalTypeOverride, GetTypeLength(logicalSystemType, logicalTypeOverride), fieldId)
         {
             LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -36,6 +37,21 @@ namespace ParquetSharp
         /// <exception cref="ArgumentNullException">Thrown if any of the required arguments are null.</exception>
         /// <exception cref="ArgumentException">Thrown if the length is set with an incompatible type.</exception>
         public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride, int length)
+            : this(logicalSystemType, name, logicalTypeOverride, length, -1)
+        {
+        }
+
+        /// <summary>
+        /// Create a column with the given properties.
+        /// </summary>
+        /// <param name="logicalSystemType">The <see cref="Type"/> of the column.</param>
+        /// <param name="name">The name of the column.</param>
+        /// <param name="logicalTypeOverride">Optional override for the logical type of the column.</param>
+        /// <param name="length">The length of the column for decimal, Guid or Half types.</param>
+        /// <param name="fieldId">Optional field ID for the column in the Parquet schema.</param>
+        /// <exception cref="ArgumentNullException">Thrown if any of the required arguments are null.</exception>
+        /// <exception cref="ArgumentException">Thrown if the length is set with an incompatible type.</exception>
+        public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride, int length, int fieldId)
         {
             var isDecimal = logicalSystemType == typeof(decimal) || logicalSystemType == typeof(decimal?);
             var isUuid = logicalSystemType == typeof(Guid) || logicalSystemType == typeof(Guid?);
@@ -64,6 +80,7 @@ namespace ParquetSharp
             Name = name ?? throw new ArgumentNullException(nameof(name));
             LogicalTypeOverride = logicalTypeOverride;
             Length = length;
+            FieldId = fieldId;
         }
 
 #pragma warning restore RS0027
@@ -72,6 +89,7 @@ namespace ParquetSharp
         public readonly string Name;
         public readonly LogicalType? LogicalTypeOverride;
         public readonly int Length;
+        public readonly int FieldId;
 
         /// <summary>
         /// Create a schema node representing this column with its given properties.
@@ -86,7 +104,7 @@ namespace ParquetSharp
         /// </summary>
         public Node CreateSchemaNode(LogicalTypeFactory typeFactory)
         {
-            return CreateSchemaNode(typeFactory, LogicalSystemType, Name, LogicalTypeOverride, Length);
+            return CreateSchemaNode(typeFactory, LogicalSystemType, Name, LogicalTypeOverride, Length, FieldId);
         }
 
 #pragma warning disable RS0026
@@ -170,23 +188,23 @@ namespace ParquetSharp
             return -1;
         }
 
-        private static Node CreateSchemaNode(LogicalTypeFactory logicalTypeFactory, Type type, string name, LogicalType? logicalTypeOverride, int length)
+        private static Node CreateSchemaNode(LogicalTypeFactory logicalTypeFactory, Type type, string name, LogicalType? logicalTypeOverride, int length, int fieldId)
         {
             if (logicalTypeFactory.TryGetParquetTypes(type, out var p))
             {
                 var entry = logicalTypeFactory.GetTypesOverride(logicalTypeOverride, p.logicalType, p.physicalType);
-                return new PrimitiveNode(name, p.repetition, entry.logicalType, entry.physicalType, length);
+                return new PrimitiveNode(name, p.repetition, entry.logicalType, entry.physicalType, length, fieldId);
             }
 
             if (type.IsArray)
             {
-                var item = CreateSchemaNode(logicalTypeFactory, type.GetElementType()!, "item", logicalTypeOverride, length);
+                var item = CreateSchemaNode(logicalTypeFactory, type.GetElementType()!, "item", logicalTypeOverride, length, -1);
                 var list = new GroupNode("list", Repetition.Repeated, new[] { item });
 
                 try
                 {
                     using var listLogicalType = LogicalType.List();
-                    return new GroupNode(name, Repetition.Optional, new[] { list }, listLogicalType);
+                    return new GroupNode(name, Repetition.Optional, new[] { list }, listLogicalType, fieldId);
                 }
                 finally
                 {
@@ -201,8 +219,8 @@ namespace ParquetSharp
 
     public sealed class Column<TLogicalType> : Column
     {
-        public Column(string name, LogicalType? logicalTypeOverride = null)
-            : base(typeof(TLogicalType), name, logicalTypeOverride)
+        public Column(string name, LogicalType? logicalTypeOverride = null, int? fieldId = -1)
+            : base(typeof(TLogicalType), name, logicalTypeOverride, fieldId: fieldId)
         {
         }
     }

@@ -35,3 +35,7 @@ ParquetSharp.SizeStatisticsLevel.ColumnChunk = 1 -> ParquetSharp.SizeStatisticsL
 ParquetSharp.SizeStatisticsLevel.PageAndColumnChunk = 2 -> ParquetSharp.SizeStatisticsLevel
 ParquetSharp.WriterProperties.SizeStatisticsLevel.get -> ParquetSharp.SizeStatisticsLevel
 ParquetSharp.WriterPropertiesBuilder.SetSizeStatisticsLevel(ParquetSharp.SizeStatisticsLevel level) -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.Column.Column(System.Type! logicalSystemType, string! name, ParquetSharp.LogicalType? logicalTypeOverride, int fieldId = -1) -> void
+ParquetSharp.Column.Column(System.Type! logicalSystemType, string! name, ParquetSharp.LogicalType? logicalTypeOverride, int length, int fieldId) -> void
+ParquetSharp.Column<TLogicalType>.Column(string! name, ParquetSharp.LogicalType? logicalTypeOverride = null, int? fieldId = -1) -> void
+readonly ParquetSharp.Column.FieldId -> int
