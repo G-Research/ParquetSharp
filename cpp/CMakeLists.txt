@@ -3,6 +3,7 @@ include(GenerateExportHeader)
 find_package(Arrow CONFIG REQUIRED)
 find_package(Parquet CONFIG REQUIRED)
 
+# TODO: workaround for https://github.com/apache/arrow/issues/49499
 # Arrow's FindSnappyAlt and FindBrotliAlt modules only set the generic
 # IMPORTED_LOCATION (which resolves to the debug library). On multi-config
 # generators like Visual Studio this causes the Release build to link against
