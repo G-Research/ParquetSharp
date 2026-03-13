@@ -135,10 +135,12 @@ ParquetSharp.ByteBuffer.ByteBuffer(int blockSize) -> void
 ParquetSharp.ByteBuffer.Clear() -> void
 ParquetSharp.ByteBuffer.Dispose() -> void
 ParquetSharp.Column
+ParquetSharp.Column.Column(System.Type! logicalSystemType, string! name, ParquetSharp.LogicalType? logicalTypeOverride = null) -> void
 ParquetSharp.Column.Column(System.Type! logicalSystemType, string! name, ParquetSharp.LogicalType? logicalTypeOverride, int length) -> void
 ParquetSharp.Column.CreateSchemaNode() -> ParquetSharp.Schema.Node!
 ParquetSharp.Column.CreateSchemaNode(ParquetSharp.LogicalTypeFactory! typeFactory) -> ParquetSharp.Schema.Node!
 ParquetSharp.Column<TLogicalType>
+ParquetSharp.Column<TLogicalType>.Column(string! name, ParquetSharp.LogicalType? logicalTypeOverride = null) -> void
 ParquetSharp.ColumnChunkMetaData
 ParquetSharp.ColumnChunkMetaData.Compression.get -> ParquetSharp.Compression
 ParquetSharp.ColumnChunkMetaData.CryptoMetadata.get -> ParquetSharp.ColumnCryptoMetaData?
