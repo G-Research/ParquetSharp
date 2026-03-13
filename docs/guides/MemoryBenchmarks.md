@@ -92,10 +92,11 @@ private void LogicalReader_Buffered(int bufferSize)
 }
 ```
 
-## Benchmark Results: LogicalColumnReader API
+## Benchmark Results from 2 different run sets: LogicalColumnReader API
 
+### Run 1
 
-| Configuration          | Peak Memory (MB) | Duration (s) | Throughput (MB/s) | Memory vs Default |
+| Configuration          | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
 |------------------------|------------------|--------------|-------------------|-------------------|
 | Logical-default        | 1825.2           | 8.26         | 473.2             | Baseline          |
 | Logical-buffered 512KB | 388.1            | 8.27         | 472.7             | −78.7%            |
@@ -104,6 +105,16 @@ private void LogicalReader_Buffered(int bufferSize)
 | Logical-buffered 32MB  | 550.5            | 8.75         | 446.7             | −69.8%            |
 | Logical-chunked-50k    | 116.5            | 6.99         | 559.3             | −93.6%            |
 
+### Run 2
+
+| Configuration          | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
+|------------------------|------------------|--------------------------|-------------------|-------------------|
+| Logical-default        | 1827.0           | 13.80                    | 283.3             | Baseline          |
+| Logical-buffered 512KB | 391.2            | 9.43                     | 414.5             | −78.6%            |
+| Logical-buffered 1MB   | 391.0            | 8.57                     | 456.1             | −78.6%            |
+| Logical-buffered 8MB   | 430.4            | 8.60                     | 454.5             | −76.4%            |
+| Logical-buffered 32MB  | 591.4            | 13.75                    | 284.3             | −67.6%            |
+| Logical-chunked-50k    | 119.5            | 6.60                     | 592.3             | −93.5%            |
 
 
 # Arrow API (FileReader)
@@ -182,7 +193,7 @@ public async Task Arrow_PreBufferDisabled_BufferedStream()
 
 ## Benchmark Results: Arrow API
 
-| Configuration                | Peak Memory (MB) | Duration (s) | Throughput (MB/s) | Memory vs Default |
+| Configuration                | Peak Memory (MB) |Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
 | ---------------------------- | ---------------- | ------------ | ----------------- | ----------------- |
 | Arrow-default                | 4117.8           | 10.66        | 366.7             | Baseline          |
 | Arrow-prebuffer-off          | 237.7            | 8.73         | 447.7             | −94.2%            |
@@ -208,7 +219,7 @@ public void RowOriented_Default()
 
 # Benchmark Results: Row-Oriented API
 
-| Configuration | Peak Memory (MB) | Duration (s) | Throughput (MB/s) | Memory vs Default |
+| Configuration | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
 | ------------- | ---------------- | ------------ | ----------------- | ----------------- |
 | Row-default   | 1794.9           | 10.26        | 381.1             | Baseline          |
 
