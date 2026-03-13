@@ -22,8 +22,6 @@ namespace ParquetSharp
         public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride)
             : this(logicalSystemType, name, logicalTypeOverride, GetTypeLength(logicalSystemType, logicalTypeOverride), -1)
         {
-            LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
-            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         /// <summary>
@@ -37,8 +35,6 @@ namespace ParquetSharp
         public Column(Type logicalSystemType, string name, LogicalType? logicalTypeOverride, int length)
             : this(logicalSystemType, name, logicalTypeOverride, length, -1)
         {
-            LogicalSystemType = logicalSystemType ?? throw new ArgumentNullException(nameof(logicalSystemType));
-            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         /// <summary>
