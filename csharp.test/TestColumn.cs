@@ -57,6 +57,39 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestFieldId()
+        {
+            var column = new Column<int>("col", fieldId: 1);
+
+            using var node = column.CreateSchemaNode();
+
+            Assert.AreEqual(1, node.FieldId);
+            Assert.AreEqual("col", node.Name);
+        }
+
+        [Test]
+        public static void TestFieldIdWithLogicalTypeOverride()
+        {
+            using var logicalType = LogicalType.Decimal(29, 3);
+            var column = new Column(typeof(decimal), "dec", logicalType, fieldId: 1);
+
+            using var node = column.CreateSchemaNode();
+
+            Assert.AreEqual(1, node.FieldId);
+            Assert.AreEqual("dec", node.Name);
+        }
+
+        [Test]
+        public static void TestFieldIdDefaultIsMinusOne()
+        {
+            var column = new Column<int>("col");
+
+            using var node = column.CreateSchemaNode();
+
+            Assert.AreEqual(-1, node.FieldId);
+        }
+
+        [Test]
         public static void TestUnsupportedType()
         {
             Assert.False(LogicalTypeFactory.Default.IsSupported(typeof(TestColumn)));
