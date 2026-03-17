@@ -15,6 +15,7 @@ vcpkg_extract_source_archive(
         0005-cmake-msvcruntime.patch
         0006-pcg-msvc-arm64.patch
         0008-tmp.patch
+        0009-snappy-vcpkg.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
