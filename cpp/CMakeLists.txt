@@ -3,35 +3,6 @@ include(GenerateExportHeader)
 find_package(Arrow CONFIG REQUIRED)
 find_package(Parquet CONFIG REQUIRED)
 
-# TODO: workaround for https://github.com/apache/arrow/issues/49499
-# Arrow's FindSnappyAlt and FindBrotliAlt modules only set the generic
-# IMPORTED_LOCATION (which resolves to the debug library). On multi-config
-# generators like Visual Studio this causes the Release build to link against
-# debug libraries. Fix up the targets with per-configuration paths.
-if (MSVC)
-	set(_VCPKG_LIB_DIR "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
-
-	foreach(_snappy_target Snappy::snappy-static Snappy::snappy)
-		if (TARGET ${_snappy_target})
-			set_target_properties(${_snappy_target} PROPERTIES
-				IMPORTED_LOCATION_RELEASE "${_VCPKG_LIB_DIR}/lib/snappy.lib"
-				IMPORTED_LOCATION_DEBUG   "${_VCPKG_LIB_DIR}/debug/lib/snappy.lib"
-			)
-			set_property(TARGET ${_snappy_target} PROPERTY IMPORTED_LOCATION)
-		endif()
-	endforeach()
-
-	foreach(_brotli_target brotlicommon brotlidec brotlienc)
-		if (TARGET Brotli::${_brotli_target})
-			set_target_properties(Brotli::${_brotli_target} PROPERTIES
-				IMPORTED_LOCATION_RELEASE "${_VCPKG_LIB_DIR}/lib/${_brotli_target}.lib"
-				IMPORTED_LOCATION_DEBUG   "${_VCPKG_LIB_DIR}/debug/lib/${_brotli_target}.lib"
-			)
-			set_property(TARGET Brotli::${_brotli_target} PROPERTY IMPORTED_LOCATION)
-		endif()
-	endforeach()
-endif()
-
 add_library(ParquetSharpNative SHARED 
 	AesKey.h
 	Buffer.cpp
