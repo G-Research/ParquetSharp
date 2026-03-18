@@ -21,16 +21,6 @@ extern "C"
         delete properties;
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionProperties_Column_Path(const std::shared_ptr<const ColumnEncryptionProperties>* properties, const char** column_path)
-    {
-        TRYCATCH(*column_path = AllocateCString((*properties)->column_path());)
-    }
-
-    PARQUETSHARP_EXPORT void ColumnEncryptionProperties_Column_Path_Free(const char* column_path)
-    {
-        FreeCString(column_path);
-    }
-
     PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionProperties_Is_Encrypted(const std::shared_ptr<const ColumnEncryptionProperties>* properties, bool* is_encrypted)
     {
         TRYCATCH(*is_encrypted = (*properties)->is_encrypted();)

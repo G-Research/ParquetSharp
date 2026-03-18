@@ -3,6 +3,12 @@ include(GenerateExportHeader)
 find_package(Arrow CONFIG REQUIRED)
 find_package(Parquet CONFIG REQUIRED)
 
+#TODO: workaround for https://github.com/microsoft/vcpkg/pull/48373/changes#r2952691564
+if(ARROW_MIMALLOC)
+	find_package(mimalloc CONFIG REQUIRED)
+	target_link_libraries(Arrow::arrow_static INTERFACE mimalloc-static)
+endif()
+
 # TODO: workaround for https://github.com/apache/arrow/issues/49499
 # Arrow's FindSnappyAlt and FindBrotliAlt modules only set the generic
 # IMPORTED_LOCATION (which resolves to the debug library). On multi-config
