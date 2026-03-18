@@ -49,16 +49,16 @@ extern "C"
         TRYCATCH(builder->disable_aad_prefix_storage();)
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionPropertiesBuilder_Encrypted_Columns(FileEncryptionProperties::Builder* builder, const std::shared_ptr<ColumnEncryptionProperties>** column_encryption_properties, int32_t num_properties)
+    PARQUETSHARP_EXPORT ExceptionInfo* FileEncryptionPropertiesBuilder_Encrypted_Columns(FileEncryptionProperties::Builder* builder, const char** column_paths, const std::shared_ptr<ColumnEncryptionProperties>** column_encryption_properties, int32_t num_properties)
     {
         TRYCATCH
-    	(
+        (
             ColumnPathToEncryptionPropertiesMap m;
 
-			for (int32_t i = 0; i != num_properties; ++i)
-			{
-                m.insert(std::make_pair((*column_encryption_properties[i])->column_path(), (*column_encryption_properties[i])));
-			}
+            for (int32_t i = 0; i != num_properties; ++i)
+            {
+                m.insert(std::make_pair(std::string(column_paths[i]), (*column_encryption_properties[i])));
+            }
 
             builder->encrypted_columns(std::move(m));
         )

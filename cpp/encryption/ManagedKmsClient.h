@@ -42,13 +42,14 @@ public:
     free_gc_handle_(handle_);
   }
 
-  std::string WrapKey(const std::string& key_bytes, const std::string& master_key_identifier) override
+  std::string WrapKey(const ::arrow::util::SecureString& key_bytes, const std::string& master_key_identifier) override
   {
     const char* exception = nullptr;
     const char* wrapped_key = nullptr;
 
+    const auto key_view = key_bytes.as_view();
     wrap_(
-        handle_, key_bytes.data(), static_cast<int32_t>(key_bytes.length()), master_key_identifier.c_str(),
+        handle_, key_view.data(), static_cast<int32_t>(key_view.length()), master_key_identifier.c_str(),
         &wrapped_key, &exception);
 
     if (exception != nullptr)
@@ -63,7 +64,7 @@ public:
     return std::string(wrapped_key);
   }
 
-  std::string UnwrapKey(const std::string& wrapped_key, const std::string& master_key_identifier) override
+  ::arrow::util::SecureString UnwrapKey(const std::string& wrapped_key, const std::string& master_key_identifier) override
   {
     const char* exception = nullptr;
 
@@ -78,7 +79,7 @@ public:
       throw std::runtime_error(exception);
     }
 
-    return std::string(unwrapped_key_buffer->data_as<char>(), unwrapped_key_buffer->size());
+    return ::arrow::util::SecureString(std::string(unwrapped_key_buffer->data_as<char>(), unwrapped_key_buffer->size()));
   }
 
 private:

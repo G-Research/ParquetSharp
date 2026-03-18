@@ -9,16 +9,11 @@ using namespace parquet;
 
 extern "C"
 {
-    PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionPropertiesBuilder_Create(const char* name, ColumnEncryptionProperties::Builder** builder)
+    PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionPropertiesBuilder_Create(ColumnEncryptionProperties::Builder** builder)
     {
-        TRYCATCH(*builder = new ColumnEncryptionProperties::Builder(name);)
+        TRYCATCH(*builder = new ColumnEncryptionProperties::Builder();)
     }
 
-    PARQUETSHARP_EXPORT ExceptionInfo* ColumnEncryptionPropertiesBuilder_Create_From_Column_Path(const std::shared_ptr<schema::ColumnPath>* path, ColumnEncryptionProperties::Builder** builder)
-    {
-        TRYCATCH(*builder = new ColumnEncryptionProperties::Builder(**path);)
-    }
-	
     PARQUETSHARP_EXPORT void ColumnEncryptionPropertiesBuilder_Free(ColumnEncryptionProperties::Builder* builder)
     {
         delete builder;

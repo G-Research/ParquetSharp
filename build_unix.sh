@@ -60,18 +60,39 @@ fi
 # Cmake build types
 build_types="Debug Release"
 
+# Create custom triplet when needed
+custom_triplets_dir=$PWD/build/custom-triplets
+need_custom_triplet=false
+
 # Only build release configuration in CI
 if [ "$GITHUB_ACTIONS" = "true" ]
 then
   build_types="Release"
-  custom_triplets_dir=$PWD/build/custom-triplets
+  need_custom_triplet=true
+fi
+
+if [ "$os" = "linux" ]; then
+  need_custom_triplet=true
+fi
+
+if [ "$need_custom_triplet" = "true" ]; then
   mkdir -p "$custom_triplets_dir"
   for vcpkg_triplet_file in $VCPKG_INSTALLATION_ROOT/triplets/{,community/}$triplet.cmake
   do
     if [ -f "$vcpkg_triplet_file" ]; then
         custom_triplet_file="$custom_triplets_dir/$triplet.cmake"
         cp "$vcpkg_triplet_file" "$custom_triplet_file"
-        echo "set(VCPKG_BUILD_TYPE release)" >> "$custom_triplet_file"
+        if [ "$GITHUB_ACTIONS" = "true" ]; then
+          echo "set(VCPKG_BUILD_TYPE release)" >> "$custom_triplet_file"
+        fi
+        if [ "$os" = "linux" ]; then
+          # Pass MI_LOCAL_DYNAMIC_TLS=ON so mimalloc uses local-dynamic TLS model,
+          # avoiding "cannot allocate memory in static TLS block" when
+          # ParquetSharpNative.so is loaded via dlopen (as .NET P/Invoke does).
+          # See also https://github.com/microsoft/mimalloc/issues/147 for more details.
+          # Since only mimalloc recognizes this option and other ports ignore it. No overlay port is needed.
+          echo 'list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS "-DMI_LOCAL_DYNAMIC_TLS=ON")' >> "$custom_triplet_file"
+        fi
     fi
   done
   options+=" -D VCPKG_OVERLAY_TRIPLETS=$custom_triplets_dir"
