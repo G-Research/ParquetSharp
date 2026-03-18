@@ -14,8 +14,8 @@ vcpkg_extract_source_archive(
         0004-android-datetime.patch
         0005-cmake-msvcruntime.patch
         0006-pcg-msvc-arm64.patch
-        0008-tmp.patch
-        0009-snappy-vcpkg.patch
+        0008-cmake-arrow-vcpkg.patch
+        0009-snappy-type.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
