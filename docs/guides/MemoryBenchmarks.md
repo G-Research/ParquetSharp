@@ -97,24 +97,24 @@ private void LogicalReader_Buffered(int bufferSize)
 ### Run 1
 
 | Configuration          | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
-|------------------------|------------------|--------------|-------------------|-------------------|
-| Logical-default        | 1825.2           | 8.26         | 473.2             | Baseline          |
-| Logical-buffered 512KB | 388.1            | 8.27         | 472.7             | −78.7%            |
-| Logical-buffered 1MB   | 388.1            | 8.36         | 467.6             | −78.7%            |
-| Logical-buffered 8MB   | 437.6            | 9.16         | 426.8             | −76.0%            |
-| Logical-buffered 32MB  | 550.5            | 8.75         | 446.7             | −69.8%            |
-| Logical-chunked-50k    | 116.5            | 6.99         | 559.3             | −93.6%            |
+|------------------------|------------------|---------------------------|-------------------|-------------------|
+| Logical-default        | 1825.2           | 8.26                      | 739.0             | Baseline          |
+| Logical-buffered 512KB | 388.1            | 8.27                      | 738.1             | −78.7%            |
+| Logical-buffered 1MB   | 388.1            | 8.36                      | 730.0             | −78.7%            |
+| Logical-buffered 8MB   | 437.6            | 9.16                      | 666.5             | −76.0%            |
+| Logical-buffered 32MB  | 550.5            | 8.75                      | 697.5             | −69.8%            |
+| Logical-chunked-50k    | 116.5            | 6.99                      | 872.9             | −93.6%            |
 
 ### Run 2
 
 | Configuration          | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
-|------------------------|------------------|--------------------------|-------------------|-------------------|
-| Logical-default        | 1827.0           | 13.80                    | 283.3             | Baseline          |
-| Logical-buffered 512KB | 391.2            | 9.43                     | 414.5             | −78.6%            |
-| Logical-buffered 1MB   | 391.0            | 8.57                     | 456.1             | −78.6%            |
-| Logical-buffered 8MB   | 430.4            | 8.60                     | 454.5             | −76.4%            |
-| Logical-buffered 32MB  | 591.4            | 13.75                    | 284.3             | −67.6%            |
-| Logical-chunked-50k    | 119.5            | 6.60                     | 592.3             | −93.5%            |
+|------------------------|------------------|---------------------------|-------------------|-------------------|
+| Logical-default        | 1827.0           | 13.80                     | 442.2             | Baseline          |
+| Logical-buffered 512KB | 391.2            | 9.43                      | 647.3             | −78.6%            |
+| Logical-buffered 1MB   | 391.0            | 8.57                      | 712.1             | −78.6%            |
+| Logical-buffered 8MB   | 430.4            | 8.60                      | 709.7             | −76.4%            |
+| Logical-buffered 32MB  | 591.4            | 13.75                     | 443.9             | −67.6%            |
+| Logical-chunked-50k    | 119.5            | 6.60                      | 924.7             | −93.5%            |
 
 
 # Arrow API (FileReader)
@@ -191,13 +191,11 @@ public async Task Arrow_PreBufferDisabled_BufferedStream()
 
 ## Benchmark Results: Arrow API
 
-## Benchmark Results: Arrow API
-
-| Configuration                | Peak Memory (MB) |Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
-| ---------------------------- | ---------------- | ------------ | ----------------- | ----------------- |
-| Arrow-default                | 4117.8           | 10.66        | 366.7             | Baseline          |
-| Arrow-prebuffer-off          | 237.7            | 8.73         | 447.7             | −94.2%            |
-| Arrow-prebuffer-off-buffered | 110.6            | 9.39         | 416.3             | −97.3%            |
+| Configuration                | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
+| ---------------------------- | ---------------- | ------------------------- | ----------------- | ----------------- |
+| Arrow-default                | 4117.8           | 10.66                     | 572.5             | Baseline          |
+| Arrow-prebuffer-off          | 237.7            | 8.73                      | 699.0             | −94.2%            |
+| Arrow-prebuffer-off-buffered | 110.6            | 9.39                      | 650.1             | −97.3%            |
 
 
 # Row-Oriented Reading
@@ -215,13 +213,11 @@ public void RowOriented_Default()
     }
 }
 ```
-# Benchmark Results: Arrow API
-
 # Benchmark Results: Row-Oriented API
 
 | Configuration | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
-| ------------- | ---------------- | ------------ | ----------------- | ----------------- |
-| Row-default   | 1794.9           | 10.26        | 381.1             | Baseline          |
+| ------------- | ---------------- | ------------------------- | ----------------- | ----------------- |
+| Row-default   | 1794.9           | 10.26                     | 595.0             | Baseline          |
 
 ---
 
@@ -229,16 +225,34 @@ public void RowOriented_Default()
 
 All benchmarks were executed against a single Parquet file with the following characteristics:
 
-- **File Size:** 3,909 MB (~3.9 GB)
+- **Raw Data Size:** 6103 MB
 - Multiple row groups
 - Three columns:
   - `DateTime`
   - `int`
   - `float`
 
-Throughput = FileSizeMB / DurationSeconds
+- Peak MB = Max RSS (kb) / 1024
 
-Peak MB = Max RSS (kb) / 1024
+### Throughput Calculation
+
+Throughput is calculated based on the **raw (uncompressed) data size**, rather than the Parquet file size on disk.
+
+For this dataset:
+
+- Total rows: 400,000,000  
+- Per-row size:
+  - `DateTime` = 8 bytes  
+  - `int` = 4 bytes  
+  - `float` = 4 bytes  
+
+Total per row = **16 bytes**
+
+RawDataSize = NumRows × (8 + 4 + 4)
+            = 400,000,000 × 16
+            = 6,400,000,000 bytes ≈ 6103 MB
+
+Throughput = RawDataSize (MB) / Duration (seconds)
 
 ---
 
@@ -266,14 +280,15 @@ All benchmarks were executed under the following environment to ensure consisten
 
 | Configuration | Memory | Throughput | Insight |
 |--------------|--------|------------|---------|
-| Default | 1,828 MB | 322 MB/s | Baseline – loads full columns into memory |
-| Chunked (50K rows) | 117 MB | 450 MB/s | 94% less memory, ~40% higher throughput |
-| Buffered Stream | 29.5 MB | 43,433 MB/s* | 98% memory reduction |
+| Default | 1,828 MB | ~740 MB/s | Baseline – loads full columns into memory |
+| Chunked (50K rows) | 117 MB | ~870–925 MB/s | 94% less memory, highest throughput |
+| Buffered Stream | ~390–550 MB | ~650–740 MB/s | 70–80% memory reduction |
 
 ### Key Findings
 
-- Chunked processing reduces peak memory by 94% while improving throughput by ~40% compared to default.
-- Buffered stream mode achieves the lowest memory usage (29.5 MB) — a 98% reduction.
+- Chunked processing reduces peak memory by ~94% while also achieving the highest throughput.
+- Buffered stream mode reduces memory usage significantly (70–80%) but does not outperform chunked processing.
+- Default mode remains the most memory-intensive approach.
 
 ---
 
@@ -281,16 +296,15 @@ All benchmarks were executed under the following environment to ensure consisten
 
 | Configuration | Memory | Throughput | Insight |
 |--------------|--------|------------|---------|
-| Default | 4,118 MB | 367 MB/s | Baseline – PreBuffer enabled |
-| PreBuffer OFF | 238 MB | 448 MB/s | 94% less memory, ~22% higher throughput |
-| PreBuffer OFF + Buffered | 111 MB | 416 MB/s | 97% memory reduction |
+| Default | 4,118 MB | ~573 MB/s | Baseline – PreBuffer enabled |
+| PreBuffer OFF | 238 MB | ~699 MB/s | 94% less memory, improved throughput |
+| PreBuffer OFF + Buffered | 111 MB | ~650 MB/s | 97% memory reduction |
 
 ### Key Findings
 
-- Disabling PreBuffer reduces memory usage by 94% and improves throughput.
-- Combining PreBuffer OFF + Buffered Stream lowers peak memory to 111 MB (97% reduction).
-- Memory savings are substantial without sacrificing performance.
-- Critical optimization: Disabling PreBuffer is the single most impactful Arrow configuration change.
+- Disabling PreBuffer reduces memory usage by ~94% and improves throughput.
+- Combining PreBuffer OFF + Buffered Stream achieves the lowest memory usage (111 MB).
+- Arrow becomes both memory-efficient and performant with proper configuration.
 
 ---
 
@@ -298,12 +312,13 @@ All benchmarks were executed under the following environment to ensure consisten
 
 | Configuration | Memory | Throughput | Insight |
 |--------------|--------|------------|---------|
-| Default | 1,795 MB | 381 MB/s | Convenient abstraction, high memory cost |
+| Default | 1,795 MB | ~595 MB/s | Convenient abstraction, high memory cost |
 
 ### Observation
 
 - Memory usage is comparable to Logical Default.
-- Suitable for simplicity and readability, but not ideal for large files where memory efficiency is critical.
+- Throughput is moderate but not competitive with optimized approaches.
+- Suitable for simplicity, not for large-scale performance workloads.
 
 ---
 
@@ -311,9 +326,9 @@ All benchmarks were executed under the following environment to ensure consisten
 
 | Category | Winner | Memory | Reduction vs Default |
 |----------|--------|--------|----------------------|
-| Lowest Absolute Memory | Logical + Buffered | 29.5 MB | ↓98% |
-| Best Memory/Performance Balance | Logical + Chunked | 117 MB | ↓94% |
-| Best Row-Based Optimization | Arrow + PreBuffer OFF | 238 MB | ↓94% |
+| Lowest Memory | Arrow (PreBuffer OFF + Buffered) | 111 MB | ↓97% |
+| Best Performance | Logical + Chunked | ~117 MB | ↓94% |
+| Best Balance | Arrow (PreBuffer OFF) | 238 MB | ↓94% |
 
 ---
 
