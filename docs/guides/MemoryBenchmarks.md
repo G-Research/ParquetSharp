@@ -1,0 +1,342 @@
+# ParquetSharp Memory-Optimized Reading Benchmarks
+
+This document presents a series of benchmarks for reading Parquet files efficiently with **ParquetSharp**, highlighting property configuration combinations that minimize memory usage. All tests were run using custom benchmarking code with varying reader configurations and properties.
+
+## Overview
+
+We tested three approaches for reading Parquet files:
+
+1. **LogicalColumnReader (ParquetFileReader)** – Provides direct, column-oriented access with type safety and predictable memory usage.  
+2. **Arrow API (FileReader)** – Uses Apache Arrow’s in-memory columnar format for row-oriented access, which can be tuned for memory efficiency.  
+3. **Row-Oriented API** – A convenient row-by-row abstraction built on top of the column readers. While easier to use for some workloads, it is generally not memory-efficient and may use more memory than the lower-level APIs.
+
+Each API supports configuration options that can change memory consumption and read performance. Understanding these trade-offs is key to optimizing your Parquet workloads.
+
+---
+
+## Key Memory Configuration Options
+
+### [Buffer Size](https://g-research.github.io/ParquetSharp/api/ParquetSharp.ReaderProperties.html#ParquetSharp_ReaderProperties_BufferSize)
+The buffer size controls how much data is read from disk or streams in a single operation. Larger buffers reduce the number of read operations and can improve throughput, but they also increase memory usage. Smaller buffers are more memory-efficient but may slow down reading.
+
+### Chunked Reading
+Instead of loading an entire column or row group into memory, data can be processed in smaller chunks. Chunked reading spreads memory usage over time, reducing peak memory consumption, which is especially useful for very large files.
+
+### [Pre-buffering](https://g-research.github.io/ParquetSharp/api/ParquetSharp.Arrow.ArrowReaderProperties.html#ParquetSharp_Arrow_ArrowReaderProperties_PreBuffer) (Arrow API Only)
+The Arrow API can prefetch multiple row groups ahead of time. While pre-buffering can improve performance for some access patterns, it increases memory usage because data from future row groups is held in memory. Disabling pre-buffering ensures memory consumption remains close to the size of the data currently being processed.
+
+---
+
+## LogicalColumnReader
+
+Provides efficient column-oriented access to Parquet data.
+
+### 1. Default Read
+
+```csharp
+public void LogicalReader_Default()
+{
+    using var file = new ParquetFileReader(FilePath);
+
+    for (int rg = 0; rg < file.FileMetaData.NumRowGroups; rg++)
+    {
+        using var rowGroup = file.RowGroup(rg);
+        int numRows = (int)rowGroup.MetaData.NumRows;
+
+        rowGroup.Column(0).LogicalReader<DateTime>().ReadAll(numRows);
+        rowGroup.Column(1).LogicalReader<int>().ReadAll(numRows);
+        rowGroup.Column(2).LogicalReader<float>().ReadAll(numRows);
+    }
+}
+```
+
+### 2. Chunked Read (50K rows per batch)
+
+```csharp
+public void LogicalReader_Chunked50K()
+{
+    using var file = new ParquetFileReader(FilePath);
+
+    for (int rg = 0; rg < file.FileMetaData.NumRowGroups; rg++)
+    {
+        using var rowGroup = file.RowGroup(rg);
+3
+        using var reader = rowGroup.Column(0).LogicalReader<DateTime>();
+        var buffer = new DateTime[ChunkSize50K];
+        while (reader.HasNext)
+            reader.ReadBatch(buffer);
+    }
+}
+```
+
+### 3. Buffered Stream Read (Custom Buffer Size)
+
+```csharp
+private void LogicalReader_Buffered(int bufferSize)
+{
+    var readerProps = ReaderProperties.GetDefaultReaderProperties();
+    readerProps.EnableBufferedStream();
+    readerProps.BufferSize = bufferSize;
+
+    using var file = new ParquetFileReader(FilePath, readerProps);
+
+    for (int rg = 0; rg < file.FileMetaData.NumRowGroups; rg++)
+    {
+        using var rowGroup = file.RowGroup(rg);
+        int numRows = (int)rowGroup.MetaData.NumRows;
+
+        rowGroup.Column(0).LogicalReader<DateTime>().ReadAll(numRows);
+        rowGroup.Column(1).LogicalReader<int>().ReadAll(numRows);
+        rowGroup.Column(2).LogicalReader<float>().ReadAll(numRows);
+    }
+}
+```
+## LogicalColumnReader: Average ± Std Dev (Runs 1–5)
+
+| Configuration          | Peak Memory (MB) | Wall Time (s) | Throughput (MB/s) | Memory vs Default | Throughput vs Default |
+| ---------------------- | ---------------- | ------------- | ----------------- | ---------------- | ------------------- |
+| Logical-default        | 1835 ± 19        | 12.1 ± 4.1    | 529 ± 145         | Baseline         | Baseline            |
+| Logical-buffered 512KB | 402 ± 19         | 8.68 ± 0.36   | 704 ± 30          | −78.1%           | +33.0%              |
+| Logical-buffered 1MB   | 402 ± 21         | 8.49 ± 0.10   | 719 ± 8           | −78.1%           | +36.0%              |
+| Logical-buffered 8MB   | 446 ± 21         | 8.85 ± 0.32   | 706 ± 21          | −75.7%           | +33.4%              |
+| Logical-buffered 32MB  | 567 ± 15         | 10.27 ± 2.25  | 613 ± 108         | −69.1%           | +15.8%              |
+| Logical-chunked-50k    | 120 ± 2          | 6.79 ± 0.13   | 899 ± 19          | −93.5%           | +70.0%              |
+# Arrow API (FileReader)
+
+Row-oriented access using Apache Arrow’s columnar in-memory format.
+
+### 1. Default Arrow Read
+
+```csharp
+public async Task Arrow_Default()
+{
+    using var reader = new FileReader(FilePath);
+    using var batchReader = reader.GetRecordBatchReader();
+
+    Apache.Arrow.RecordBatch batch;
+    while ((batch = await batchReader.ReadNextRecordBatchAsync()) != null)
+    {
+        using (batch)
+        {
+            for (int i = 0; i < batch.ColumnCount; i++)
+        }
+    }
+}
+```
+
+### 2. Pre-buffer Disabled
+
+``` csharp
+public async Task Arrow_PreBufferDisabled()
+{
+    var arrowProps = ArrowReaderProperties.GetDefault();
+    arrowProps.PreBuffer = false;
+
+    using var reader = new FileReader(FilePath, arrowProperties: arrowProps);
+    using var batchReader = reader.GetRecordBatchReader();
+
+    Apache.Arrow.RecordBatch batch;
+    while ((batch = await batchReader.ReadNextRecordBatchAsync()) != null)
+    {
+        using (batch)
+        {
+            for (int i = 0; i < batch.ColumnCount; i++)
+        }
+    }
+}
+```
+
+### 3. Pre-buffer Disabled + Buffered Stream 1MB
+
+```csharp 
+public async Task Arrow_PreBufferDisabled_BufferedStream()
+{
+    var readerProps = ReaderProperties.GetDefaultReaderProperties();
+    readerProps.EnableBufferedStream();
+    readerProps.BufferSize = Buffer1MB;
+
+    var arrowProps = ArrowReaderProperties.GetDefault();
+    arrowProps.PreBuffer = false;
+
+    using var reader = new FileReader(
+        FilePath,
+        properties: readerProps,
+        arrowProperties: arrowProps);
+
+    using var batchReader = reader.GetRecordBatchReader();
+
+    Apache.Arrow.RecordBatch batch;
+    while ((batch = await batchReader.ReadNextRecordBatchAsync()) != null)
+    {
+
+    }
+}
+```
+
+## Benchmark Results: Arrow API
+
+| Configuration                | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
+| ---------------------------- | ---------------- | ------------------------- | ----------------- | ----------------- |
+| Arrow-default                | 4117.8           | 10.66                     | 572.5             | Baseline          |
+| Arrow-prebuffer-off          | 237.7            | 8.73                      | 699.0             | −94.2%            |
+| Arrow-prebuffer-off-buffered | 110.6            | 9.39                      | 650.1             | −97.3%            |
+
+
+# Row-Oriented Reading
+
+Iterates over each row sequentially using a custom enumerator.
+
+```csharp
+public void RowOriented_Default()
+{
+    using var rowReader = ParquetFile.CreateRowReader<(DateTime Timestamp, int ObjectId, float Value)>(FilePath);
+
+    for (int rg = 0; rg < rowReader.FileMetaData.NumRowGroups; ++rg)
+    {
+        var rows = rowReader.ReadRows(rg);
+    }
+}
+```
+# Benchmark Results: Row-Oriented API
+
+| Configuration | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
+| ------------- | ---------------- | ------------------------- | ----------------- | ----------------- |
+| Row-default   | 1794.9           | 10.26                     | 595.0             | Baseline          |
+
+---
+
+# Test Dataset
+
+All benchmarks were executed against a single Parquet file with the following characteristics:
+
+- **Raw Data Size:** 6103 MB
+- Multiple row groups
+- Three columns:
+  - `DateTime`
+  - `int`
+  - `float`
+
+- Peak MB = Max RSS (kb) / 1024
+
+### Throughput Calculation
+
+Throughput is calculated based on the **raw (uncompressed) data size**, rather than the Parquet file size on disk.
+
+For this dataset:
+
+- Total rows: 400,000,000  
+- Per-row size:
+  - `DateTime` = 8 bytes  
+  - `int` = 4 bytes  
+  - `float` = 4 bytes  
+
+Total per row = **16 bytes**
+
+RawDataSize = NumRows × (8 + 4 + 4)
+            = 400,000,000 × 16
+            = 6,400,000,000 bytes ≈ 6103 MB
+
+Throughput = RawDataSize (MB) / Duration (seconds)
+
+---
+
+## Test Environment
+
+All benchmarks were executed under the following environment to ensure consistency and reproducibility:
+
+- **Operating System:** Ubuntu 24.04 LTS  
+- **Execution Environment:** VMware virtual machine  
+- **Allocated Memory:** 32 GB RAM  
+- **CPU Allocation:** 2 virtual processors (vCPUs)  
+- **Storage:** Local file system (no remote or network-based storage)  
+
+### Notes
+
+- Benchmarks were executed using both:
+  - `dotnet run` (runtime execution)
+  - Published binary (`./ParquetSharp.Config.Benchmarks`) for optimized execution
+---
+
+
+# Outcomes
+
+## LogicalColumnReader API
+
+| Configuration | Memory | Throughput | Insight |
+|--------------|--------|------------|---------|
+| Default | 1,828 MB | ~740 MB/s | Baseline – loads full columns into memory |
+| Chunked (50K rows) | 117 MB | ~870–925 MB/s | 94% less memory, highest throughput |
+| Buffered Stream | ~390–550 MB | ~650–740 MB/s | 70–80% memory reduction |
+
+### Key Findings
+
+- Chunked processing reduces peak memory by ~94% while also achieving the highest throughput.
+- Buffered stream mode reduces memory usage significantly (70–80%) but does not outperform chunked processing.
+- Default mode remains the most memory-intensive approach.
+
+---
+
+## Arrow API (FileReader)
+
+| Configuration | Memory | Throughput | Insight |
+|--------------|--------|------------|---------|
+| Default | 4,118 MB | ~573 MB/s | Baseline – PreBuffer enabled |
+| PreBuffer OFF | 238 MB | ~699 MB/s | 94% less memory, improved throughput |
+| PreBuffer OFF + Buffered | 111 MB | ~650 MB/s | 97% memory reduction |
+
+### Key Findings
+
+- Disabling PreBuffer reduces memory usage by ~94% and improves throughput.
+- Combining PreBuffer OFF + Buffered Stream achieves the lowest memory usage (111 MB).
+- Arrow becomes both memory-efficient and performant with proper configuration.
+
+---
+
+## Row-Oriented API
+
+| Configuration | Memory | Throughput | Insight |
+|--------------|--------|------------|---------|
+| Default | 1,795 MB | ~595 MB/s | Convenient abstraction, high memory cost |
+
+### Observation
+
+- Memory usage is comparable to Logical Default.
+- Throughput is moderate but not competitive with optimized approaches.
+- Suitable for simplicity, not for large-scale performance workloads.
+
+---
+
+## Overall Best Performers
+
+| Category | Winner | Memory | Reduction vs Default |
+|----------|--------|--------|----------------------|
+| Lowest Memory | Arrow (PreBuffer OFF + Buffered) | 111 MB | ↓97% |
+| Best Performance | Logical + Chunked | ~117 MB | ↓94% |
+| Best Balance | Arrow (PreBuffer OFF) | 238 MB | ↓94% |
+
+---
+
+## Practical Conclusions
+
+For maximum memory efficiency, use:
+
+```
+EnableBufferedStream()  // Logical API
+```
+
+For balanced memory and performance, use:
+
+```
+Chunked reading  // Logical API
+```
+
+For Arrow workloads, always consider:
+
+```
+PreBuffer = false
+```
+
+Especially if you are reading from slow storage like a remote object store, you may wish to leave pre-buffering enabled as it can improve read time.
+
+These configuration changes reduce memory consumption by 94–98% compared to default behavior while maintaining or improving throughput in our benchmarks.
+However, we recommend you do your own performance tests with your data and infrastructure to determine what works best for you.
