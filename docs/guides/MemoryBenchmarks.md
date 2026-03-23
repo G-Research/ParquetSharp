@@ -91,66 +91,16 @@ private void LogicalReader_Buffered(int bufferSize)
     }
 }
 ```
+## LogicalColumnReader: Average ± Std Dev (Runs 1–5)
 
-## Benchmark Results from 2 different run sets: LogicalColumnReader API
-
-### Run 1
-
-| Configuration          | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
-|------------------------|------------------|---------------------------|-------------------|-------------------|
-| Logical-default        | 1825.2           | 8.26                      | 739.0             | Baseline          |
-| Logical-buffered 512KB | 388.1            | 8.27                      | 738.1             | −78.7%            |
-| Logical-buffered 1MB   | 388.1            | 8.36                      | 730.0             | −78.7%            |
-| Logical-buffered 8MB   | 437.6            | 9.16                      | 666.5             | −76.0%            |
-| Logical-buffered 32MB  | 550.5            | 8.75                      | 697.5             | −69.8%            |
-| Logical-chunked-50k    | 116.5            | 6.99                      | 872.9             | −93.6%            |
-
-### Run 2
-
-| Configuration          | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
-|------------------------|------------------|---------------------------|-------------------|-------------------|
-| Logical-default        | 1827.0           | 13.80                     | 442.2             | Baseline          |
-| Logical-buffered 512KB | 391.2            | 9.43                      | 647.3             | −78.6%            |
-| Logical-buffered 1MB   | 391.0            | 8.57                      | 712.1             | −78.6%            |
-| Logical-buffered 8MB   | 430.4            | 8.60                      | 709.7             | −76.4%            |
-| Logical-buffered 32MB  | 591.4            | 13.75                     | 443.9             | −67.6%            |
-| Logical-chunked-50k    | 119.5            | 6.60                      | 924.7             | −93.5%            |
-
-### Run 3
-
-| Configuration          | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
-|------------------------|------------------|---------------------------|-------------------|-------------------|
-| Logical-default        | 1827.0           | 18.90                     | 322.9             | Baseline          |
-| Logical-buffered 512KB | 391.7            | 8.47                      | 720.5             | −78.6%            |
-| Logical-buffered 1MB   | 391.8            | 8.42                      | 724.8             | −78.6%            |
-| Logical-buffered 8MB   | 434.8            | 8.43                      | 724.0             | −76.2%            |
-| Logical-buffered 32MB  | 553.2            | 10.93                     | 558.5             | −69.7%            |
-| Logical-chunked-50k    | 119.5            | 6.63                      | 920.6             | −93.5%            |
-
-### Run 4
-
-
-| Configuration          | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
-|------------------------|-----------------|--------------------------|------------------|-----------------|
-| Logical-default        | 1827.7          | 11.92                    | 511.9            | Baseline        |
-| Logical-buffered 512KB | 400.3           | 8.64                     | 706.4            | −78.1%          |
-| Logical-buffered 1MB   | 400.2           | 8.44                     | 723.3            | −78.1%          |
-| Logical-buffered 8MB   | 483.9           | 8.42                     | 724.9            | −73.6%          |
-| Logical-buffered 32MB  | 566.1           | 9.11                     | 670.0            | −69.0%          |
-| Logical-chunked-50k    | 122.3           | 6.92                     | 882.8            | −93.3%          |
-
-### Run 5
-
-| Configuration          | Peak Memory (MB) | Wall Time - Duration (s) | Throughput (MB/s) | Memory vs Default |
-|------------------------|-----------------|--------------------------|------------------|-----------------|
-| Logical-default        | 1869.9          | 9.67                     | 631.1            | Baseline        |
-| Logical-buffered 512KB | 439.6           | 8.59                     | 710.7            | −76.5%          |
-| Logical-buffered 1MB   | 439.5           | 8.67                     | 703.9            | −76.5%          |
-| Logical-buffered 8MB   | 445.1           | 8.66                     | 704.9            | −76.2%          |
-| Logical-buffered 32MB  | 574.4           | 8.78                     | 695.0            | −69.3%          |
-| Logical-chunked-50k    | 122.2           | 6.80                     | 898.0            | −93.5%          |
-
-
+| Configuration          | Peak Memory (MB) | Wall Time (s) | Throughput (MB/s) | Memory vs Default | Throughput vs Default |
+| ---------------------- | ---------------- | ------------- | ----------------- | ---------------- | ------------------- |
+| Logical-default        | 1835 ± 19        | 12.1 ± 4.1    | 529 ± 145         | Baseline         | Baseline            |
+| Logical-buffered 512KB | 402 ± 19         | 8.68 ± 0.36   | 704 ± 30          | −78.1%           | +33.0%              |
+| Logical-buffered 1MB   | 402 ± 21         | 8.49 ± 0.10   | 719 ± 8           | −78.1%           | +36.0%              |
+| Logical-buffered 8MB   | 446 ± 21         | 8.85 ± 0.32   | 706 ± 21          | −75.7%           | +33.4%              |
+| Logical-buffered 32MB  | 567 ± 15         | 10.27 ± 2.25  | 613 ± 108         | −69.1%           | +15.8%              |
+| Logical-chunked-50k    | 120 ± 2          | 6.79 ± 0.13   | 899 ± 19          | −93.5%           | +70.0%              |
 # Arrow API (FileReader)
 
 Row-oriented access using Apache Arrow’s columnar in-memory format.
