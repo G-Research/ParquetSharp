@@ -242,6 +242,23 @@ Peak MB = Max RSS (kb) / 1024
 
 ---
 
+## Test Environment
+
+All benchmarks were executed under the following environment to ensure consistency and reproducibility:
+
+- **Operating System:** Ubuntu 24.04 LTS  
+- **Execution Environment:** VMware virtual machine  
+- **Allocated Memory:** 32 GB RAM  
+- **CPU Allocation:** 2 virtual processors (vCPUs)  
+- **Storage:** Local file system (no remote or network-based storage)  
+
+### Notes
+
+- Benchmarks were executed using both:
+  - `dotnet run` (runtime execution)
+  - Published binary (`./ParquetSharp.Config.Benchmarks`) for optimized execution
+---
+
 
 # Outcomes
 
