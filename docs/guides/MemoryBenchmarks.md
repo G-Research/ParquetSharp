@@ -320,4 +320,6 @@ For Arrow workloads, always consider:
 PreBuffer = false
 ```
 
+Especially if you are reading from slow storage like a remote object store, you may wish to leave pre-buffering enabled as it can improve read time.
+
 These configuration changes reduce memory consumption by 94–98% compared to default behavior while maintaining or improving throughput.
