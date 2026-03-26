@@ -48,7 +48,7 @@ namespace ParquetSharp
         {
             var columnHandle = ExceptionInfo.Return<string, IntPtr>(
                 Handle, columnPath, FileEncryptionProperties_Column_Encryption_Properties);
-            return columnHandle == IntPtr.Zero ? null : new ColumnEncryptionProperties(columnHandle);
+            return columnHandle == IntPtr.Zero ? null : new ColumnEncryptionProperties(columnHandle, columnPath);
         }
 
         [Obsolete("Re-using FileEncryptionProperties no longer requires deep cloning")]

@@ -55,13 +55,10 @@ if ($Env:GITHUB_ACTIONS -eq "true") {
       Add-Content -Path $customTripletFile -Value "set(VCPKG_PLATFORM_TOOLSET_VERSION $toolsetVersion)"
     }
   }
-  $options += "-D"
-  $options += "VCPKG_OVERLAY_TRIPLETS=$customTripletsDir"
+  $options += "-DVCPKG_OVERLAY_TRIPLETS=$customTripletsDir"
 }
 
-$options += " -DCMAKE_VERBOSE_MAKEFILE=ON"
-
-cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$vcpkgDir/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022" -A $arch $options
+cmake -B build/$triplet -S . -D VCPKG_TARGET_TRIPLET=$triplet -D CMAKE_TOOLCHAIN_FILE=$vcpkgDir/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022" -A $arch @options
 if (-not $?) { throw "cmake failed" }
 
 foreach ($build_type in $build_types) {

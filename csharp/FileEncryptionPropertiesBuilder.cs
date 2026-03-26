@@ -110,8 +110,10 @@ namespace ParquetSharp
         /// <returns>This builder instance.</returns>
         public FileEncryptionPropertiesBuilder EncryptedColumns(ColumnEncryptionProperties[] columnEncryptionProperties)
         {
+            using var byteBuffer = new ByteBuffer(1024);
+            var columnPathPtrs = columnEncryptionProperties.Select(p => StringUtil.ToCStringUtf8(p.ColumnPath, byteBuffer)).ToArray();
             var handles = columnEncryptionProperties.Select(p => p.Handle.IntPtr).ToArray();
-            ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Encrypted_Columns(_handle.IntPtr, handles, handles.Length));
+            ExceptionInfo.Check(FileEncryptionPropertiesBuilder_Encrypted_Columns(_handle.IntPtr, columnPathPtrs, handles, handles.Length));
             GC.KeepAlive(_handle);
             GC.KeepAlive(columnEncryptionProperties);
             return this;
@@ -148,7 +150,7 @@ namespace ParquetSharp
         private static extern IntPtr FileEncryptionPropertiesBuilder_Disable_Aad_Prefix_Storage(IntPtr builder);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileEncryptionPropertiesBuilder_Encrypted_Columns(IntPtr builder, IntPtr[] columnEncryptionProperties, int numProperties);
+        private static extern IntPtr FileEncryptionPropertiesBuilder_Encrypted_Columns(IntPtr builder, IntPtr[] columnPaths, IntPtr[] columnEncryptionProperties, int numProperties);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileEncryptionPropertiesBuilder_Build(IntPtr builder, out IntPtr properties);

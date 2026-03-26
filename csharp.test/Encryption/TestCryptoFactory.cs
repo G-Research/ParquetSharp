@@ -31,12 +31,14 @@ namespace ParquetSharp.Test.Encryption
             Assert.That(col0Properties.Key, Is.Not.Empty);
             Assert.That(col0Properties.KeyMetadata, Is.Not.Empty);
             Assert.That(col0Properties.KeyMetadata, Does.Contain("\"masterKeyID\":\"Key1\""));
+            Assert.That(col0Properties.ColumnPath.Equals("col0"));
 
             using var col1Properties = fileEncryptionProperties.ColumnEncryptionProperties("col1")!;
             Assert.That(col1Properties, Is.Not.Null);
             Assert.That(col1Properties.Key, Is.Not.Empty);
             Assert.That(col1Properties.KeyMetadata, Is.Not.Empty);
             Assert.That(col1Properties.KeyMetadata, Does.Contain("\"masterKeyID\":\"Key1\""));
+            Assert.That(col1Properties.ColumnPath.Equals("col1"));
 
             using var col2Properties = fileEncryptionProperties.ColumnEncryptionProperties("col2");
             Assert.That(col2Properties, Is.Null);

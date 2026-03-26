@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <arrow/util/secure_string.h>
 #include <parquet/encryption/encryption.h>
 #include <stdexcept>
 
@@ -35,7 +36,7 @@ public:
 		free_gc_handle_(Handle);
 	}
 
-	std::string GetKey(const std::string& key_metadata) override
+	::arrow::util::SecureString GetKey(const std::string& key_metadata) override
 	{
 		const char* exception = nullptr;
 		AesKey key;

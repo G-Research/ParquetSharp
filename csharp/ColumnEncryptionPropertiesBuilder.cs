@@ -15,7 +15,7 @@ namespace ParquetSharp
         /// </summary>
         /// <param name="columnName">The name of the column to encrypt.</param>
         public ColumnEncryptionPropertiesBuilder(string columnName)
-            : this(Make(columnName))
+            : this(Make(columnName), columnName)
         {
         }
 
@@ -24,13 +24,14 @@ namespace ParquetSharp
         /// </summary>
         /// <param name="columnPath">The <see cref="ColumnPath"/> object representing the column to encrypt.</param>
         public ColumnEncryptionPropertiesBuilder(ColumnPath columnPath)
-            : this(Make(columnPath))
+            : this(Make(columnPath), columnPath.ToDotString())
         {
         }
 
-        internal ColumnEncryptionPropertiesBuilder(IntPtr handle)
+        internal ColumnEncryptionPropertiesBuilder(IntPtr handle, string columnPath = "")
         {
             _handle = new ParquetHandle(handle, ColumnEncryptionPropertiesBuilder_Free);
+            _columnPath = columnPath;
         }
 
         public void Dispose()
@@ -79,26 +80,22 @@ namespace ParquetSharp
         /// Builds the <see cref="ColumnEncryptionProperties"/> object.
         /// </summary>
         /// <returns>The configured <see cref="ColumnEncryptionProperties"/> object.</returns>
-        public ColumnEncryptionProperties Build() => new ColumnEncryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, ColumnEncryptionPropertiesBuilder_Build));
+        public ColumnEncryptionProperties Build() => new ColumnEncryptionProperties(ExceptionInfo.Return<IntPtr>(_handle, ColumnEncryptionPropertiesBuilder_Build), _columnPath);
 
         private static IntPtr Make(string columnName)
         {
-            ExceptionInfo.Check(ColumnEncryptionPropertiesBuilder_Create(columnName, out var handle));
+            ExceptionInfo.Check(ColumnEncryptionPropertiesBuilder_Create(out var handle));
             return handle;
         }
 
         private static IntPtr Make(ColumnPath columnPath)
         {
-            ExceptionInfo.Check(ColumnEncryptionPropertiesBuilder_Create_From_Column_Path(columnPath.Handle.IntPtr, out var handle));
-            GC.KeepAlive(columnPath);
+            ExceptionInfo.Check(ColumnEncryptionPropertiesBuilder_Create(out var handle));
             return handle;
         }
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ColumnEncryptionPropertiesBuilder_Create([MarshalAs(UnmanagedType.LPUTF8Str)] string name, out IntPtr builder);
-
-        [DllImport(ParquetDll.Name)]
-        private static extern IntPtr ColumnEncryptionPropertiesBuilder_Create_From_Column_Path(IntPtr path, out IntPtr builder);
+        private static extern IntPtr ColumnEncryptionPropertiesBuilder_Create(out IntPtr builder);
 
         [DllImport(ParquetDll.Name)]
         private static extern void ColumnEncryptionPropertiesBuilder_Free(IntPtr builder);
@@ -116,5 +113,6 @@ namespace ParquetSharp
         private static extern IntPtr ColumnEncryptionPropertiesBuilder_Build(IntPtr builder, out IntPtr properties);
 
         private readonly ParquetHandle _handle;
+        private readonly string _columnPath;
     }
 }
