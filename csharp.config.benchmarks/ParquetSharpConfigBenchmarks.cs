@@ -211,5 +211,97 @@ namespace ParquetSharp.Config.Benchmarks
         }
 
         #endregion
+
+        #region Generate
+
+        private const int WriteRowsPerGroup = 1_000_000;
+
+        public static void Generate_Plain_NoDic_None(string binPath) =>
+            Write(binPath, Encoding.Plain, dictionaryEnabled: false, Compression.Uncompressed,
+                "num_plasma_Plain_NoDic_None.parquet");
+
+        public static void Generate_Plain_NoDic_Snappy(string binPath) =>
+            Write(binPath, Encoding.Plain, dictionaryEnabled: false, Compression.Snappy,
+                "num_plasma_Plain_NoDic_Snappy.parquet");
+
+        public static void Generate_Plain_NoDic_Zstd(string binPath) =>
+            Write(binPath, Encoding.Plain, dictionaryEnabled: false, Compression.Zstd,
+                "num_plasma_Plain_NoDic_Zstd.parquet");
+
+        public static void Generate_Plain_Dic_None(string binPath) =>
+            Write(binPath, Encoding.Plain, dictionaryEnabled: true, Compression.Uncompressed,
+                "num_plasma_Plain_Dic_None.parquet");
+
+        public static void Generate_Plain_Dic_Snappy(string binPath) =>
+            Write(binPath, Encoding.Plain, dictionaryEnabled: true, Compression.Snappy,
+                "num_plasma_Plain_Dic_Snappy.parquet");
+
+        public static void Generate_Plain_Dic_Zstd(string binPath) =>
+            Write(binPath, Encoding.Plain, dictionaryEnabled: true, Compression.Zstd,
+                "num_plasma_Plain_Dic_Zstd.parquet");
+
+        public static void Generate_ByteStreamSplit_NoDic_None(string binPath) =>
+            Write(binPath, Encoding.ByteStreamSplit, dictionaryEnabled: false, Compression.Uncompressed,
+                "num_plasma_ByteStreamSplit_NoDic_None.parquet");
+
+        public static void Generate_ByteStreamSplit_NoDic_Snappy(string binPath) =>
+            Write(binPath, Encoding.ByteStreamSplit, dictionaryEnabled: false, Compression.Snappy,
+                "num_plasma_ByteStreamSplit_NoDic_Snappy.parquet");
+
+        public static void Generate_ByteStreamSplit_NoDic_Zstd(string binPath) =>
+            Write(binPath, Encoding.ByteStreamSplit, dictionaryEnabled: false, Compression.Zstd,
+                "num_plasma_ByteStreamSplit_NoDic_Zstd.parquet");
+
+        private static void Write(string binPath, Encoding encoding, bool dictionaryEnabled, Compression compression, string outputFile)
+        {
+            byte[] rawBytes = File.ReadAllBytes(binPath);
+            int floatCount = rawBytes.Length / sizeof(float);
+            float[] values = new float[floatCount];
+            Buffer.BlockCopy(rawBytes, 0, values, 0, floatCount * sizeof(float));
+
+            Console.WriteLine($"Read {values.Length:N0} floats from {binPath}");
+
+            var columns = new Column[]
+            {
+         new Column<int>("RowIndex"),
+         new Column<float>("Value"),
+            };
+
+            var builder = new WriterPropertiesBuilder().Compression(compression).Encoding(encoding);
+
+            if (!dictionaryEnabled)
+            {
+                builder.DisableDictionary();
+            }
+
+            using var writer = new ParquetFileWriter(outputFile, columns, builder.Build());
+
+            int offset = 0;
+            while (offset < values.Length)
+            {
+                int batchSize = Math.Min(WriteRowsPerGroup, values.Length - offset);
+
+                var indices = new int[batchSize];
+                var chunk = new float[batchSize];
+                for (int i = 0; i < batchSize; i++)
+                {
+                    indices[i] = offset + i;
+                    chunk[i] = values[offset + i];
+                }
+
+                using var rowGroup = writer.AppendRowGroup();
+                rowGroup.NextColumn().LogicalWriter<int>().WriteBatch(indices);
+                rowGroup.NextColumn().LogicalWriter<float>().WriteBatch(chunk);
+
+                offset += batchSize;
+            }
+
+            writer.Close();
+
+            long fileSize = new FileInfo(outputFile).Length;
+            Console.WriteLine($"Written: {outputFile} ({fileSize / (1024.0 * 1024.0):F2} MB)");
+        }
+
+        #endregion
     }
 }
