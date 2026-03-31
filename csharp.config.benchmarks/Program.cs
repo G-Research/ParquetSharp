@@ -1,5 +1,6 @@
-﻿using System.CommandLine;
+﻿using ParquetSharp;
 using ParquetSharp.Config.Benchmarks;
+using System.CommandLine;
 
 var bufferSizeOption = new Option<int>("--buffer-size")
 {
@@ -13,60 +14,56 @@ var chunkSizeOption = new Option<int>("--chunk-size")
     DefaultValueFactory = _ => 50_000
 };
 
+var rootCommand = new RootCommand("ParquetSharp configuration benchmarks");
+
+#region Generate
+
 var binOption = new Option<string>("--bin")
 {
     Description = "Path to the decompressed raw float binary (e.g. num_plasma.bin).",
     Required = true
 };
+var encodingOption = new Option<string>("--encoding")
+{
+    Description = "Parquet encoding to use: plain, dictionary, byte-stream-split.",
+    Required = true
+};
 
-var rootCommand = new RootCommand("ParquetSharp configuration benchmarks");
+var compressionOption = new Option<string>("--compression")
+{
+    Description = "Compression to use: none, snappy, zstd.",
+    Required = true
+};
 
-#region Generate
+var convertDataCmd = new Command("convert-data", "Convert a raw float binary to Parquet with the specified encoding and compression.");
+convertDataCmd.Options.Add(binOption);
+convertDataCmd.Options.Add(encodingOption);
+convertDataCmd.Options.Add(compressionOption);
+convertDataCmd.SetAction(pr =>
+{
+    string binPath = pr.GetValue(binOption)!;
+    string encodingArg = pr.GetValue(encodingOption)!.ToLowerInvariant();
+    string compArg = pr.GetValue(compressionOption)!.ToLowerInvariant();
 
-var plainNoDicNoneCmd = new Command("plain-nodic-none", "Plain encoding, no dictionary, no compression.");
-plainNoDicNoneCmd.Options.Add(binOption);
-plainNoDicNoneCmd.SetAction(pr => ParquetSharpConfigBenchmarks.Generate_Plain_NoDic_None(pr.GetValue(binOption)!));
-rootCommand.Subcommands.Add(plainNoDicNoneCmd);
+    (Encoding encoding, bool dictionaryEnabled) = encodingArg switch
+    {
+        "plain" => (Encoding.Plain, false),
+        "dictionary" => (Encoding.Plain, true),
+        "byte-stream-split" => (Encoding.ByteStreamSplit, false),
+        _ => throw new ArgumentException($"Unknown encoding '{encodingArg}'. Valid values: plain, dictionary, byte-stream-split.")
+    };
 
-var plainNoDicSnappyCmd = new Command("plain-nodic-snappy", "Plain encoding, no dictionary, Snappy compression.");
-plainNoDicSnappyCmd.Options.Add(binOption);
-plainNoDicSnappyCmd.SetAction(pr => ParquetSharpConfigBenchmarks.Generate_Plain_NoDic_Snappy(pr.GetValue(binOption)!));
-rootCommand.Subcommands.Add(plainNoDicSnappyCmd);
+    Compression compression = compArg switch
+    {
+        "none" => Compression.Uncompressed,
+        "snappy" => Compression.Snappy,
+        "zstd" => Compression.Zstd,
+        _ => throw new ArgumentException($"Unknown compression '{compArg}'. Valid values: none, snappy, zstd.")
+    };
 
-var plainNoDicZstdCmd = new Command("plain-nodic-zstd", "Plain encoding, no dictionary, Zstd compression.");
-plainNoDicZstdCmd.Options.Add(binOption);
-plainNoDicZstdCmd.SetAction(pr => ParquetSharpConfigBenchmarks.Generate_Plain_NoDic_Zstd(pr.GetValue(binOption)!));
-rootCommand.Subcommands.Add(plainNoDicZstdCmd);
-
-var plainDicNoneCmd = new Command("plain-dic-none", "Plain encoding, dictionary enabled, no compression.");
-plainDicNoneCmd.Options.Add(binOption);
-plainDicNoneCmd.SetAction(pr => ParquetSharpConfigBenchmarks.Generate_Plain_Dic_None(pr.GetValue(binOption)!));
-rootCommand.Subcommands.Add(plainDicNoneCmd);
-
-var plainDicSnappyCmd = new Command("plain-dic-snappy", "Plain encoding, dictionary enabled, Snappy compression.");
-plainDicSnappyCmd.Options.Add(binOption);
-plainDicSnappyCmd.SetAction(pr => ParquetSharpConfigBenchmarks.Generate_Plain_Dic_Snappy(pr.GetValue(binOption)!));
-rootCommand.Subcommands.Add(plainDicSnappyCmd);
-
-var plainDicZstdCmd = new Command("plain-dic-zstd", "Plain encoding, dictionary enabled, Zstd compression.");
-plainDicZstdCmd.Options.Add(binOption);
-plainDicZstdCmd.SetAction(pr => ParquetSharpConfigBenchmarks.Generate_Plain_Dic_Zstd(pr.GetValue(binOption)!));
-rootCommand.Subcommands.Add(plainDicZstdCmd);
-
-var bssNoDicNoneCmd = new Command("bss-nodic-none", "ByteStreamSplit encoding, no dictionary, no compression.");
-bssNoDicNoneCmd.Options.Add(binOption);
-bssNoDicNoneCmd.SetAction(pr => ParquetSharpConfigBenchmarks.Generate_ByteStreamSplit_NoDic_None(pr.GetValue(binOption)!));
-rootCommand.Subcommands.Add(bssNoDicNoneCmd);
-
-var bssNoDicSnappyCmd = new Command("bss-nodic-snappy", "ByteStreamSplit encoding, no dictionary, Snappy compression.");
-bssNoDicSnappyCmd.Options.Add(binOption);
-bssNoDicSnappyCmd.SetAction(pr => ParquetSharpConfigBenchmarks.Generate_ByteStreamSplit_NoDic_Snappy(pr.GetValue(binOption)!));
-rootCommand.Subcommands.Add(bssNoDicSnappyCmd);
-
-var bssNoDicZstdCmd = new Command("bss-nodic-zstd", "ByteStreamSplit encoding, no dictionary, Zstd compression.");
-bssNoDicZstdCmd.Options.Add(binOption);
-bssNoDicZstdCmd.SetAction(pr => ParquetSharpConfigBenchmarks.Generate_ByteStreamSplit_NoDic_Zstd(pr.GetValue(binOption)!));
-rootCommand.Subcommands.Add(bssNoDicZstdCmd);
+    ParquetSharpConfigBenchmarks.ConvertData(binPath, encoding, dictionaryEnabled, compression);
+});
+rootCommand.Subcommands.Add(convertDataCmd);
 
 #endregion
 

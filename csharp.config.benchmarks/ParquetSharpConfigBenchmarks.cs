@@ -1,6 +1,6 @@
-﻿using ParquetSharp.Arrow;
+﻿using ParquetSharp;
+using ParquetSharp.Arrow;
 using ParquetSharp.RowOriented;
-using System.Text;
 
 namespace ParquetSharp.Config.Benchmarks
 {
@@ -216,44 +216,25 @@ namespace ParquetSharp.Config.Benchmarks
 
         private const int WriteRowsPerGroup = 1_000_000;
 
-        public static void Generate_Plain_NoDic_None(string binPath) =>
-            Write(binPath, Encoding.Plain, dictionaryEnabled: false, Compression.Uncompressed,
-                "num_plasma_Plain_NoDic_None.parquet");
-
-        public static void Generate_Plain_NoDic_Snappy(string binPath) =>
-            Write(binPath, Encoding.Plain, dictionaryEnabled: false, Compression.Snappy,
-                "num_plasma_Plain_NoDic_Snappy.parquet");
-
-        public static void Generate_Plain_NoDic_Zstd(string binPath) =>
-            Write(binPath, Encoding.Plain, dictionaryEnabled: false, Compression.Zstd,
-                "num_plasma_Plain_NoDic_Zstd.parquet");
-
-        public static void Generate_Plain_Dic_None(string binPath) =>
-            Write(binPath, Encoding.Plain, dictionaryEnabled: true, Compression.Uncompressed,
-                "num_plasma_Plain_Dic_None.parquet");
-
-        public static void Generate_Plain_Dic_Snappy(string binPath) =>
-            Write(binPath, Encoding.Plain, dictionaryEnabled: true, Compression.Snappy,
-                "num_plasma_Plain_Dic_Snappy.parquet");
-
-        public static void Generate_Plain_Dic_Zstd(string binPath) =>
-            Write(binPath, Encoding.Plain, dictionaryEnabled: true, Compression.Zstd,
-                "num_plasma_Plain_Dic_Zstd.parquet");
-
-        public static void Generate_ByteStreamSplit_NoDic_None(string binPath) =>
-            Write(binPath, Encoding.ByteStreamSplit, dictionaryEnabled: false, Compression.Uncompressed,
-                "num_plasma_ByteStreamSplit_NoDic_None.parquet");
-
-        public static void Generate_ByteStreamSplit_NoDic_Snappy(string binPath) =>
-            Write(binPath, Encoding.ByteStreamSplit, dictionaryEnabled: false, Compression.Snappy,
-                "num_plasma_ByteStreamSplit_NoDic_Snappy.parquet");
-
-        public static void Generate_ByteStreamSplit_NoDic_Zstd(string binPath) =>
-            Write(binPath, Encoding.ByteStreamSplit, dictionaryEnabled: false, Compression.Zstd,
-                "num_plasma_ByteStreamSplit_NoDic_Zstd.parquet");
-
-        private static void Write(string binPath, Encoding encoding, bool dictionaryEnabled, Compression compression, string outputFile)
+        public static void ConvertData(string binPath, Encoding encoding, bool dictionaryEnabled, Compression compression)
         {
+            string baseName = Path.GetFileNameWithoutExtension(binPath);
+            string encodingTag = (encoding, dictionaryEnabled) switch
+            {
+                (Encoding.Plain, false) => "Plain_NoDic",
+                (Encoding.Plain, true) => "Plain_Dic",
+                (Encoding.ByteStreamSplit, false) => "ByteStreamSplit_NoDic",
+                _ => encoding.ToString()
+            };
+            string compressionTag = compression switch
+            {
+                Compression.Uncompressed => "None",
+                Compression.Snappy => "Snappy",
+                Compression.Zstd => "Zstd",
+                _ => compression.ToString()
+            };
+            string outputFile = $"{baseName}_{encodingTag}_{compressionTag}.parquet";
+
             byte[] rawBytes = File.ReadAllBytes(binPath);
             int floatCount = rawBytes.Length / sizeof(float);
             float[] values = new float[floatCount];
@@ -263,11 +244,13 @@ namespace ParquetSharp.Config.Benchmarks
 
             var columns = new Column[]
             {
-         new Column<int>("RowIndex"),
-         new Column<float>("Value"),
+                new Column<int>("RowIndex"),
+                new Column<float>("Value"),
             };
 
-            var builder = new WriterPropertiesBuilder().Compression(compression).Encoding(encoding);
+            var builder = new WriterPropertiesBuilder()
+                .Compression(compression)
+                .Encoding(encoding);
 
             if (!dictionaryEnabled)
             {
