@@ -11,7 +11,7 @@ Three encoding strategies where tested, each paired with up to three compression
 ### Encodings tested
 
 - **Plain (no dictionary)** – Raw float values written as-is. No dictionary lookup overhead.
-- **Plain (dictionary enabled)** – Attempts to build a dictionary of unique float values per row group. Only beneficial if floats repeat frequently.
+- **Plain (dictionary enabled)** – Attempts to build a dictionary of unique float values per row group. Only beneficial if floats repeat frequently. Note that **dictionary encoding is enabled by default** in Parquet, so it is important to consider whether it should be disabled for floating-point columns where values are largely unique.
 - **ByteStreamSplit (no dictionary)** – Rearranges the bytes of each float so that all sign/exponent bytes are grouped together, improving compressibility. Only meaningful when paired with a block compressor.
 
 ### Compressions tested
@@ -24,7 +24,7 @@ Three encoding strategies where tested, each paired with up to three compression
 
 ## Datasets
 
-All datasets are IEEE 754 32-bit single-precision (float) scientific data, decompressed from SPDP-compressed files.
+All datasets are IEEE 754 32-bit single-precision (float) scientific data, decompressed from SPDP-compressed files available at the [Texas State University single-precision datasets page](https://userweb.cs.txstate.edu/~burtscher/research/datasets/FPsingle/).
 
 | Dataset | Source binary | Raw size | Float count |
 |---------|--------------|----------|-------------|
@@ -42,7 +42,18 @@ All datasets are IEEE 754 32-bit single-precision (float) scientific data, decom
 - **CPU:** 2 vCPUs
 - **Storage:** Local file system
 - **Runtime:** `dotnet run --no-build --configuration=Release`
-- **Timing:** `/usr/bin/time -v`
+
+### Timing methodology
+
+Write times are measured **inside** `ConvertData` using `Stopwatch`, starting immediately before `new ParquetFileWriter(...)` and stopping after `writer.Close()`. This isolates the Parquet write from the time taken to read the input binary file, which would otherwise dominate the measurement.
+
+```csharp
+var sw = Stopwatch.StartNew();
+using var writer = new ParquetFileWriter(outputFile, columns, builder.Build());
+// ... write row groups ...
+writer.Close();
+sw.Stop();
+```
 
 ---
 
@@ -50,43 +61,43 @@ All datasets are IEEE 754 32-bit single-precision (float) scientific data, decom
 
 ### num_control.sp.bin (76 MB raw · 19,938,093 floats)
 
-| Encoding | Compression | Parquet size (MB) | Wall time (s) | Peak RSS (MB) | Size vs Plain/None |
-|----------|-------------|:-----------------:|:-------------:|:-------------:|:------------------:|
-| Plain, no dict | None | 152.13 | 2.27 | 366 | Baseline |
-| Plain, no dict | Snappy | 151.18 | 2.20 | 368 | −0.6% |
-| Plain, no dict | Zstd | 121.31 | 2.46 | 368 | −20.3% |
-| Plain, dict | Snappy | 174.35 | 3.89 | 389 | +14.6% |
-| Plain, dict | Zstd | 143.60 | 3.35 | 389 | −5.6% |
-| ByteStreamSplit | Snappy | 70.84 | 2.44 | 368 | **−53.4%** |
-| ByteStreamSplit | Zstd | 63.16 | 3.43 | 369 | **−58.5%** |
+| Encoding | Compression | Parquet size (MB) | Write time (s) | Size vs Plain/None |
+|----------|-------------|:-----------------:|:--------------:|:------------------:|
+| Plain, no dict | None | 76.06 | 0.59 | Baseline |
+| Plain, no dict | Snappy | 75.11 | 0.60 | −1.2% |
+| Plain, no dict | Zstd | 70.63 | 0.77 | −7.1% |
+| Plain, dict | Snappy | 87.02 | 1.23 | +14.4% |
+| Plain, dict | Zstd | 82.33 | 1.03 | +8.2% |
+| ByteStreamSplit | Snappy | 67.04 | 0.58 | **−11.9%** |
+| ByteStreamSplit | Zstd | 62.98 | 0.66 | **−17.2%** |
 
 ---
 
 ### num_brain.sp.bin (67.6 MB raw · 17,730,000 floats)
 
-| Encoding | Compression | Parquet size (MB) | Wall time (s) | Peak RSS (MB) | Size vs Plain/None |
-|----------|-------------|:-----------------:|:-------------:|:-------------:|:------------------:|
-| Plain, no dict | None | 135.28 | 2.37 | 332 | Baseline |
-| Plain, no dict | Snappy | 135.29 | 2.68 | 334 | 0.0% |
-| Plain, no dict | Zstd | 105.02 | 3.06 | 334 | −22.4% |
-| Plain, dict | Snappy | 156.06 | 3.32 | 355 | +15.4% |
-| Plain, dict | Zstd | 125.09 | 2.66 | 355 | −7.5% |
-| ByteStreamSplit | Snappy | 55.50 | 2.08 | 335 | **−59.0%** |
-| ByteStreamSplit | Zstd | 48.83 | 1.97 | 336 | **−63.9%** |
+| Encoding | Compression | Parquet size (MB) | Write time (s) | Size vs Plain/None |
+|----------|-------------|:-----------------:|:--------------:|:------------------:|
+| Plain, no dict | None | 67.64 | 0.58 | Baseline |
+| Plain, no dict | Snappy | 67.64 | 0.56 | 0.0% |
+| Plain, no dict | Zstd | 59.99 | 0.49 | −11.3% |
+| Plain, dict | Snappy | 78.28 | 0.97 | +15.7% |
+| Plain, dict | Zstd | 70.52 | 1.11 | +4.3% |
+| ByteStreamSplit | Snappy | 52.12 | 0.59 | **−22.9%** |
+| ByteStreamSplit | Zstd | 48.67 | 0.61 | **−28.0%** |
 
 ---
 
 ### obs_spitzer.sp.bin (94.5 MB raw · 24,772,608 floats)
 
-| Encoding | Compression | Parquet size (MB) | Wall time (s) | Peak RSS (MB) | Size vs Plain/None |
-|----------|-------------|:-----------------:|:-------------:|:-------------:|:------------------:|
-| Plain, no dict | None | 189.02 | 2.31 | 440 | Baseline |
-| Plain, no dict | Snappy | 187.78 | 2.77 | 442 | −0.7% |
-| Plain, no dict | Zstd | 145.49 | 2.75 | 443 | −23.0% |
-| Plain, dict | Snappy | 196.03 | 4.47 | 465 | +3.7% |
-| Plain, dict | Zstd | 158.22 | 3.47 | 466 | −16.3% |
-| ByteStreamSplit | Snappy | 89.28 | 1.79 | 442 | **−52.8%** |
-| ByteStreamSplit | Zstd | 72.03 | 2.07 | 443 | **−61.9%** |
+| Encoding | Compression | Parquet size (MB) | Write time (s) | Size vs Plain/None |
+|----------|-------------|:-----------------:|:--------------:|:------------------:|
+| Plain, no dict | None | 94.51 | 0.49 | Baseline |
+| Plain, no dict | Snappy | 93.27 | 1.40 | −1.3% |
+| Plain, no dict | Zstd | 82.48 | 1.06 | −12.7% |
+| Plain, dict | Snappy | 87.44 | 1.55 | −7.5% |
+| Plain, dict | Zstd | 81.96 | 3.05 | −13.3% |
+| ByteStreamSplit | Snappy | 84.56 | 0.40 | **−10.5%** |
+| ByteStreamSplit | Zstd | 71.81 | 0.52 | **−24.0%** |
 
 ---
 
@@ -94,25 +105,21 @@ All datasets are IEEE 754 32-bit single-precision (float) scientific data, decom
 
 ### Compression ratio
 
-ByteStreamSplit consistently produces the smallest Parquet files across all three datasets, reducing file size by **53–64%** compared to uncompressed Plain. This is expected behaviour: scientific float data has high entropy in the mantissa bytes but low entropy in the sign and exponent bytes. ByteStreamSplit separates these byte planes so the compressor sees long runs of similar bytes, dramatically improving the compression ratio.
+ByteStreamSplit consistently produces the smallest Parquet files across all three datasets, reducing file size by **11–28%** compared to uncompressed Plain. This is expected behaviour: scientific float data has high entropy in the mantissa bytes but low entropy in the sign and exponent bytes. ByteStreamSplit separates these byte planes so the compressor sees long runs of similar bytes, improving the compression ratio.
 
-Plain + Zstd achieves a moderate improvement of **20–23%** over the uncompressed baseline, confirming that standard compression alone can compress float data but without byte-plane separation its gains are limited.
+Plain + Zstd achieves a moderate improvement of **7–13%** over the uncompressed baseline, confirming that standard compression alone can compress float data but without byte-plane separation its gains are limited.
 
-Dictionary encoding is counterproductive for these datasets. Floats from scientific simulations and telescope observations are largely unique values; the dictionary overhead increases file sizes by **4–15%** compared to Plain with no dictionary. This is consistent with the expectation that dictionary encoding only helps when a column has a small number of repeating values.
+Dictionary encoding is counterproductive for these datasets. Floats from scientific simulations and telescope observations are largely unique values; the dictionary overhead increases file sizes by **4–16%** compared to Plain with no dictionary. This is consistent with the expectation that dictionary encoding only helps when a column has a small number of repeating values. Since **dictionary encoding is enabled by default**, it is important to explicitly call `DisableDictionary()` when writing floating-point columns with high cardinality.
 
-Snappy compression on Plain data provides almost no benefit at all (less than 1% reduction), confirming that random-looking float bytes are effectively incompressible without a byte-reordering step first.
+Snappy compression on Plain data provides almost no benefit at all (0–1.3% reduction), confirming that random-looking float bytes are effectively incompressible without a byte-reordering step first.
 
 ### Write time
 
-Wall times are broadly consistent across configurations (1.8–4.5 s for these dataset sizes). Notable observations:
+Write times are fast across all configurations (0.40–3.05 s for these dataset sizes). Notable observations:
 
-- ByteStreamSplit + Snappy is the **fastest** write configuration on two of three datasets, combining the best compression ratio with competitive write speed. The byte-reordering step adds negligible overhead.
-- Dictionary encoding is the **slowest** configuration, taking up to 4.47 s compared to 2.31 s for Plain + None on obs_spitzer. The dictionary building pass over high-cardinality float data wastes CPU time without size benefit.
-- Zstd is consistently slower than Snappy, as expected from a higher-ratio codec.
-
-### Memory (Peak RSS)
-
-Peak resident set size is driven almost entirely by the float array loaded from the binary file, not by the encoding or compression choice. All configurations land within approximately 10–25 MB of each other per dataset. The dictionary configurations show a modest increase (~20–25 MB) due to the in-memory dictionary structure.
+- ByteStreamSplit + Snappy is the **fastest** write configuration on two of three datasets (0.40–0.59 s), combining the best compression ratio with the lowest write overhead. The byte-reordering step adds negligible cost.
+- Dictionary encoding is consistently the **slowest** configuration, taking up to 3.05 s compared to 0.49 s for Plain + None on obs_spitzer. The dictionary building pass over high-cardinality float data wastes CPU time without size benefit.
+- Zstd is consistently slower than Snappy, as expected from a higher-ratio codec, though the difference is small at these dataset sizes.
 
 ---
 
@@ -128,36 +135,14 @@ Peak resident set size is driven almost entirely by the float array loaded from 
 
 ### Key findings
 
-- ByteStreamSplit is the correct encoding choice for IEEE 754 float data. It reduces Parquet file sizes by **53–64%** compared to uncompressed Plain at no measurable memory cost and competitive write speed.
-- Dictionary encoding should be disabled for scientific float datasets. It consistently produces larger files and slower writes.
+- ByteStreamSplit is the correct encoding choice for IEEE 754 float data. It reduces Parquet file sizes by **11–28%** compared to uncompressed Plain at competitive or faster write speed.
+- **Dictionary encoding is enabled by default** and should be explicitly disabled for floating-point columns with high cardinality. It consistently produces larger files and slower writes for scientific float data.
 - Snappy is the practical default compression for ByteStreamSplit — it delivers most of the size benefit with minimal write overhead.
 - Zstd is worth the extra write time when storage cost or I/O bandwidth is the primary constraint.
 
 ---
 
-## Throughput Calculation
-
-Throughput is calculated based on the raw (uncompressed) float data size.
-
-Per-row size: `float` = 4 bytes  
-
-```
-RawDataSize = FloatCount × 4 bytes
-```
-
-| Dataset | Float count | Raw size |
-|---------|------------|----------|
-| num_control | 19,938,093 | ~76 MB |
-| num_brain | 17,730,000 | ~67.6 MB |
-| obs_spitzer | 24,772,608 | ~94.5 MB |
-
-```
-Throughput (MB/s) = RawDataSize (MB) / Wall time (s)
-```
-
----
-
 ## References
 
-- [SPDP Datasets](https://userweb.cs.txstate.edu/~burtscher/research/datasets/FPsingle/)
+- [SPDP single-precision datasets](https://userweb.cs.txstate.edu/~burtscher/research/datasets/FPsingle/)
 - [Apache Parquet encoding definitions](https://parquet.apache.org/docs/file-format/data-pages/encodings/)
