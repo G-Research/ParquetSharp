@@ -236,9 +236,7 @@ namespace ParquetSharp.Config.Benchmarks
             string outputFile = $"{baseName}_{encodingTag}_{compressionTag}.parquet";
 
             byte[] rawBytes = File.ReadAllBytes(binPath);
-            int floatCount = rawBytes.Length / sizeof(float);
-            float[] values = new float[floatCount];
-            Buffer.BlockCopy(rawBytes, 0, values, 0, floatCount * sizeof(float));
+            var values = MemoryMarshal.Cast<byte, float>(rawBytes.AsSpan());
 
             Console.WriteLine($"Read {values.Length:N0} floats from {binPath}");
 
