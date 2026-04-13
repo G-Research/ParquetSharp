@@ -11,7 +11,7 @@ Three encoding strategies where tested, each paired with up to three compression
 ### Encodings tested
 
 - **Plain (no dictionary)** – Raw float values written as-is. No dictionary lookup overhead.
-- **Plain (dictionary enabled)** – Attempts to build a dictionary of unique float values per row group. Only beneficial if floats repeat frequently. Note that **dictionary encoding is enabled by default** in Parquet, so it is important to consider whether it should be disabled for floating-point columns where values are largely unique.
+- **Plain (dictionary enabled)** – Attempts to build a dictionary of unique float values per row group. Only beneficial if floats repeat frequently. Note that **dictionary encoding is enabled by default** in ParquetSharp, so it is important to consider whether it should be disabled for floating-point columns where values are largely unique.
 - **ByteStreamSplit (no dictionary)** – Rearranges the bytes of each float so that all sign/exponent bytes are grouped together, improving compressibility. Only meaningful when paired with a block compressor.
 
 ### Compressions tested
