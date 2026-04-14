@@ -14,7 +14,7 @@ Supported platforms:
 | Chip  | Linux    | Windows  | macOS    |
 | :---- | :------: | :------: | :------: |
 | x64   | &#x2714; | &#x2714; | &#x2714; |
-| arm64 | &#x2714; |          | &#x2714; |
+| arm64 | &#x2714; | &#x2714; | &#x2714; |
 
 ## Why use Parquet?
 

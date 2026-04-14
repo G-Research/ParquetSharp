@@ -135,12 +135,10 @@ ParquetSharp.ByteBuffer.ByteBuffer(int blockSize) -> void
 ParquetSharp.ByteBuffer.Clear() -> void
 ParquetSharp.ByteBuffer.Dispose() -> void
 ParquetSharp.Column
-ParquetSharp.Column.Column(System.Type! logicalSystemType, string! name, ParquetSharp.LogicalType? logicalTypeOverride = null) -> void
 ParquetSharp.Column.Column(System.Type! logicalSystemType, string! name, ParquetSharp.LogicalType? logicalTypeOverride, int length) -> void
 ParquetSharp.Column.CreateSchemaNode() -> ParquetSharp.Schema.Node!
 ParquetSharp.Column.CreateSchemaNode(ParquetSharp.LogicalTypeFactory! typeFactory) -> ParquetSharp.Schema.Node!
 ParquetSharp.Column<TLogicalType>
-ParquetSharp.Column<TLogicalType>.Column(string! name, ParquetSharp.LogicalType? logicalTypeOverride = null) -> void
 ParquetSharp.ColumnChunkMetaData
 ParquetSharp.ColumnChunkMetaData.Compression.get -> ParquetSharp.Compression
 ParquetSharp.ColumnChunkMetaData.CryptoMetadata.get -> ParquetSharp.ColumnCryptoMetaData?
@@ -1039,3 +1037,44 @@ ParquetSharp.IO.ResizableBuffer.ResizableBuffer(long initialSize = 128, ParquetS
 ParquetSharp.IO.ResizableBuffer.ResizableBuffer(long initialSize) -> void
 static ParquetSharp.ReaderProperties.WithMemoryPool(ParquetSharp.MemoryPool! memoryPool) -> ParquetSharp.ReaderProperties!
 ParquetSharp.ReaderProperties.MemoryPool.get -> ParquetSharp.MemoryPool!
+ParquetSharp.Arrow.ArrowReaderProperties.ArrowExtensionEnabled.get -> bool
+ParquetSharp.Arrow.ArrowReaderProperties.ArrowExtensionEnabled.set -> void
+ParquetSharp.Arrow.ArrowReaderProperties.BinaryType.get -> Apache.Arrow.Types.ArrowTypeId
+ParquetSharp.Arrow.ArrowReaderProperties.BinaryType.set -> void
+ParquetSharp.Arrow.ArrowReaderProperties.ListType.get -> Apache.Arrow.Types.ArrowTypeId
+ParquetSharp.Arrow.ArrowReaderProperties.ListType.set -> void
+ParquetSharp.Arrow.ArrowReaderProperties.CacheOptions.get -> ParquetSharp.CacheOptions
+ParquetSharp.Arrow.ArrowReaderProperties.CacheOptions.set -> void
+ParquetSharp.CacheOptions
+ParquetSharp.CacheOptions.CacheOptions() -> void
+ParquetSharp.CacheOptions.CacheOptions(long hole_size_limit, long range_size_limit, bool lazy, long prefetch_limit = 0) -> void
+ParquetSharp.CacheOptions.hole_size_limit -> long
+ParquetSharp.CacheOptions.range_size_limit -> long
+ParquetSharp.CacheOptions.lazy -> bool
+ParquetSharp.CacheOptions.prefetch_limit -> long
+ParquetSharp.ReaderProperties.ThriftStringSizeLimit.get -> int
+ParquetSharp.ReaderProperties.SetThriftStringSizeLimit(int size) -> void
+ParquetSharp.ReaderProperties.ThriftContainerSizeLimit.get -> int
+ParquetSharp.ReaderProperties.SetThriftContainerSizeLimit(int size) -> void
+ParquetSharp.ReaderProperties.FooterReadSize.get -> long
+ParquetSharp.ReaderProperties.SetFooterReadSize(long size) -> void
+ParquetSharp.WriterProperties.StoreDecimalAsInteger.get -> bool
+ParquetSharp.WriterPropertiesBuilder.EnableStoreDecimalAsInteger() -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.WriterPropertiesBuilder.DisableStoreDecimalAsInteger() -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.WriterPropertiesBuilder.SetMaxStatisticsSize(ulong maxStatisticsSize) -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.ParquetDataPageVersion
+ParquetSharp.ParquetDataPageVersion.V1 = 0 -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.ParquetDataPageVersion.V2 = 1 -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.WriterProperties.DataPageVersion.get -> ParquetSharp.ParquetDataPageVersion
+ParquetSharp.WriterPropertiesBuilder.DataPageVersion(ParquetSharp.ParquetDataPageVersion dataPageVersion) -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.SizeStatisticsLevel
+ParquetSharp.SizeStatisticsLevel.None = 0 -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.SizeStatisticsLevel.ColumnChunk = 1 -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.SizeStatisticsLevel.PageAndColumnChunk = 2 -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.WriterProperties.SizeStatisticsLevel.get -> ParquetSharp.SizeStatisticsLevel
+ParquetSharp.WriterPropertiesBuilder.SetSizeStatisticsLevel(ParquetSharp.SizeStatisticsLevel level) -> ParquetSharp.WriterPropertiesBuilder!
+ParquetSharp.Column.Column(System.Type! logicalSystemType, string! name, ParquetSharp.LogicalType? logicalTypeOverride) -> void
+ParquetSharp.Column.Column(System.Type! logicalSystemType, string! name, ParquetSharp.LogicalType? logicalTypeOverride = null, int length = -1, int fieldId = -1) -> void
+ParquetSharp.Column<TLogicalType>.Column(string! name, ParquetSharp.LogicalType? logicalTypeOverride) -> void
+ParquetSharp.Column<TLogicalType>.Column(string! name, ParquetSharp.LogicalType? logicalTypeOverride = null, int fieldId = -1) -> void
+readonly ParquetSharp.Column.FieldId -> int
