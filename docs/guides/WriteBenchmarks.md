@@ -55,49 +55,55 @@ writer.Close();
 sw.Stop();
 ```
 
+Read times are wall clock times measured with `/usr/bin/time -v` using the `logical-chunked-file` command with `--chunk-size 50000`, applied consistently across all variants to allow direct comparison.
+
+```bash
+/usr/bin/time -v dotnet run --no-build --configuration=Release -- logical-chunked-file --file <parquet_file> --chunk-size 50000
+```
+
 ---
 
 ## Results
 
 ### num_control.sp.bin (76 MB raw · 19,938,093 floats)
 
-| Encoding | Compression | Parquet size (MB) | Write time (s) | Size vs Plain/None |
-|----------|-------------|:-----------------:|:--------------:|:------------------:|
-| Plain, no dict | None | 76.06 | 0.59 | Baseline |
-| Plain, no dict | Snappy | 75.11 | 0.60 | −1.2% |
-| Plain, no dict | Zstd | 70.63 | 0.77 | −7.1% |
-| Plain, dict | Snappy | 87.02 | 1.23 | +14.4% |
-| Plain, dict | Zstd | 82.33 | 1.03 | +8.2% |
-| ByteStreamSplit | Snappy | 67.04 | 0.58 | **−11.9%** |
-| ByteStreamSplit | Zstd | 62.98 | 0.66 | **−17.2%** |
+| Encoding | Compression | Parquet size (MB) | Write time (s) | Read time (s) | Size vs Plain/None |
+|----------|-------------|:-----------------:|:--------------:|:-------------:|:------------------:|
+| Plain, no dict | None | 76.06 | 0.59 | 0.91 | Baseline |
+| Plain, no dict | Snappy | 75.11 | 0.60 | 0.94 | −1.2% |
+| Plain, no dict | Zstd | 70.63 | 0.77 | 1.05 | −7.1% |
+| Plain, dict | Snappy | 87.02 | 1.23 | 0.87 | +14.4% |
+| Plain, dict | Zstd | 82.33 | 1.03 | 1.07 | +8.2% |
+| ByteStreamSplit | Snappy | 67.04 | 0.58 | 1.03 | **−11.9%** |
+| ByteStreamSplit | Zstd | 62.98 | 0.66 | 0.97 | **−17.2%** |
 
 ---
 
 ### num_brain.sp.bin (67.6 MB raw · 17,730,000 floats)
 
-| Encoding | Compression | Parquet size (MB) | Write time (s) | Size vs Plain/None |
-|----------|-------------|:-----------------:|:--------------:|:------------------:|
-| Plain, no dict | None | 67.64 | 0.58 | Baseline |
-| Plain, no dict | Snappy | 67.64 | 0.56 | 0.0% |
-| Plain, no dict | Zstd | 59.99 | 0.49 | −11.3% |
-| Plain, dict | Snappy | 78.28 | 0.97 | +15.7% |
-| Plain, dict | Zstd | 70.52 | 1.11 | +4.3% |
-| ByteStreamSplit | Snappy | 52.12 | 0.59 | **−22.9%** |
-| ByteStreamSplit | Zstd | 48.67 | 0.61 | **−28.0%** |
+| Encoding | Compression | Parquet size (MB) | Write time (s) | Read time (s) | Size vs Plain/None |
+|----------|-------------|:-----------------:|:--------------:|:-------------:|:------------------:|
+| Plain, no dict | None | 67.64 | 0.58 | 1.00 | Baseline |
+| Plain, no dict | Snappy | 67.64 | 0.56 | 1.05 | 0.0% |
+| Plain, no dict | Zstd | 59.99 | 0.49 | 0.91 | −11.3% |
+| Plain, dict | Snappy | 78.28 | 0.97 | 1.00 | +15.7% |
+| Plain, dict | Zstd | 70.52 | 1.11 | 0.93 | +4.3% |
+| ByteStreamSplit | Snappy | 52.12 | 0.59 | 0.93 | **−22.9%** |
+| ByteStreamSplit | Zstd | 48.67 | 0.61 | 0.82 | **−28.0%** |
 
 ---
 
 ### obs_spitzer.sp.bin (94.5 MB raw · 24,772,608 floats)
 
-| Encoding | Compression | Parquet size (MB) | Write time (s) | Size vs Plain/None |
-|----------|-------------|:-----------------:|:--------------:|:------------------:|
-| Plain, no dict | None | 94.51 | 0.49 | Baseline |
-| Plain, no dict | Snappy | 93.27 | 1.40 | −1.3% |
-| Plain, no dict | Zstd | 82.48 | 1.06 | −12.7% |
-| Plain, dict | Snappy | 87.44 | 1.55 | −7.5% |
-| Plain, dict | Zstd | 81.96 | 3.05 | −13.3% |
-| ByteStreamSplit | Snappy | 84.56 | 0.40 | **−10.5%** |
-| ByteStreamSplit | Zstd | 71.81 | 0.52 | **−24.0%** |
+| Encoding | Compression | Parquet size (MB) | Write time (s) | Read time (s) | Size vs Plain/None |
+|----------|-------------|:-----------------:|:--------------:|:-------------:|:------------------:|
+| Plain, no dict | None | 94.51 | 0.49 | 1.38 | Baseline |
+| Plain, no dict | Snappy | 93.27 | 1.40 | 1.15 | −1.3% |
+| Plain, no dict | Zstd | 82.48 | 1.06 | 1.73 | −12.7% |
+| Plain, dict | Snappy | 87.44 | 1.55 | 1.44 | −7.5% |
+| Plain, dict | Zstd | 81.96 | 3.05 | 1.02 | −13.3% |
+| ByteStreamSplit | Snappy | 84.56 | 0.40 | 0.93 | **−10.5%** |
+| ByteStreamSplit | Zstd | 71.81 | 0.52 | 1.41 | **−24.0%** |
 
 ---
 
@@ -120,6 +126,14 @@ Write times are fast across all configurations (0.40–3.05 s for these dataset 
 - ByteStreamSplit + Snappy is the **fastest** write configuration on two of three datasets (0.40–0.59 s), combining the best compression ratio with the lowest write overhead. The byte-reordering step adds negligible cost.
 - Dictionary encoding is consistently the **slowest** configuration, taking up to 3.05 s compared to 0.49 s for Plain + None on obs_spitzer. The dictionary building pass over high-cardinality float data wastes CPU time without size benefit.
 - Zstd is consistently slower than Snappy, as expected from a higher-ratio codec, though the difference is small at these dataset sizes.
+
+### Read time
+
+Read times are broadly consistent across configurations (0.82–1.73 s). Notable observations:
+
+- ByteStreamSplit + Zstd achieves the **fastest read** on two of three datasets (0.82–0.97 s) despite requiring byte-plane decoding on read. The smaller file size reduces I/O, which outweighs the decompression overhead at these dataset sizes.
+- Plain + Zstd on obs_spitzer is the **slowest** to read (1.73 s), notably slower than ByteStreamSplit + Zstd (1.41 s) at a similar file size. ByteStreamSplit's byte-plane arrangement makes Zstd decompression more efficient on read as well as write.
+- ByteStreamSplit + Snappy offers consistently fast reads (0.93–1.03 s) across all three datasets, making it the most predictable choice across all three metrics.
 
 ---
 
