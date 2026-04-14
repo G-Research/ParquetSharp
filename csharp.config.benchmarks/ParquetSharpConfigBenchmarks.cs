@@ -28,6 +28,20 @@ namespace ParquetSharp.Config.Benchmarks
             Console.WriteLine($"File size: {new FileInfo(FilePath).Length / (1024 * 1024)} MB");
         }
 
+        public static void EnsureFileExists(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"File '{filePath}' not found.");
+            }
+        }
+
+        public static void PrintFileInfo(string filePath)
+        {
+            Console.WriteLine($"File : {filePath}");
+            Console.WriteLine($"Size : {new FileInfo(filePath).Length / (1024.0 * 1024.0):F2} MB");
+        }
+
         public static void GenerateFile()
         {
             if (File.Exists(FilePath))
@@ -107,6 +121,23 @@ namespace ParquetSharp.Config.Benchmarks
                 var buffer = new DateTime[chunkSize];
                 while (reader.HasNext)
                     reader.ReadBatch(buffer);
+            }
+        }
+
+        public static void LogicalReader_ChunkedFile(string filePath, int chunkSize)
+        {
+            using var file = new ParquetFileReader(filePath);
+
+            for (int rg = 0; rg < file.FileMetaData.NumRowGroups; rg++)
+            {
+                using var rowGroup = file.RowGroup(rg);
+
+                using var reader = rowGroup.Column(0).LogicalReader<float>();
+                var buffer = new float[chunkSize];
+                while (reader.HasNext)
+                {
+                    reader.ReadBatch(buffer);
+                }
             }
         }
 

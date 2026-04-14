@@ -23,6 +23,7 @@ var binOption = new Option<string>("--bin")
     Description = "Path to the decompressed raw float binary (e.g. num_plasma.bin).",
     Required = true
 };
+
 var encodingOption = new Option<string>("--encoding")
 {
     Description = "Parquet encoding to use: plain, dictionary, byte-stream-split.",
@@ -41,23 +42,23 @@ convertDataCmd.Options.Add(encodingOption);
 convertDataCmd.Options.Add(compressionOption);
 convertDataCmd.SetAction(pr =>
 {
-    string binPath = pr.GetValue(binOption)!;
+    string binPath     = pr.GetValue(binOption)!;
     string encodingArg = pr.GetValue(encodingOption)!.ToLowerInvariant();
-    string compArg = pr.GetValue(compressionOption)!.ToLowerInvariant();
+    string compArg     = pr.GetValue(compressionOption)!.ToLowerInvariant();
 
     (Encoding encoding, bool dictionaryEnabled) = encodingArg switch
     {
-        "plain" => (Encoding.Plain, false),
-        "dictionary" => (Encoding.Plain, true),
+        "plain"             => (Encoding.Plain,           false),
+        "dictionary"        => (Encoding.Plain,           true),
         "byte-stream-split" => (Encoding.ByteStreamSplit, false),
         _ => throw new ArgumentException($"Unknown encoding '{encodingArg}'. Valid values: plain, dictionary, byte-stream-split.")
     };
 
     Compression compression = compArg switch
     {
-        "none" => Compression.Uncompressed,
+        "none"   => Compression.Uncompressed,
         "snappy" => Compression.Snappy,
-        "zstd" => Compression.Zstd,
+        "zstd"   => Compression.Zstd,
         _ => throw new ArgumentException($"Unknown compression '{compArg}'. Valid values: none, snappy, zstd.")
     };
 
@@ -88,6 +89,25 @@ logicalChunkedCmd.SetAction(parseResult =>
     ParquetSharpConfigBenchmarks.LogicalReader_Chunked(chunkSize);
 });
 rootCommand.Subcommands.Add(logicalChunkedCmd);
+
+var fileOption = new Option<string>("--file")
+{
+    Description = "Path to the Parquet file to read.",
+    Required = true
+};
+
+var logicalChunkedFileCmd = new Command("logical-chunked-file", "Chunked logical reader for a specified single-column float Parquet file.");
+logicalChunkedFileCmd.Options.Add(fileOption);
+logicalChunkedFileCmd.Options.Add(chunkSizeOption);
+logicalChunkedFileCmd.SetAction(pr =>
+{
+    string filePath = pr.GetValue(fileOption)!;
+    int chunkSize   = pr.GetValue(chunkSizeOption);
+    ParquetSharpConfigBenchmarks.EnsureFileExists(filePath);
+    ParquetSharpConfigBenchmarks.PrintFileInfo(filePath);
+    ParquetSharpConfigBenchmarks.LogicalReader_ChunkedFile(filePath, chunkSize);
+});
+rootCommand.Subcommands.Add(logicalChunkedFileCmd);
 
 var logicalBufferedCmd = new Command("logical-buffered", "Logical reader with a buffered stream.");
 logicalBufferedCmd.Options.Add(bufferSizeOption);
