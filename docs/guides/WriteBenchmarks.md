@@ -55,7 +55,7 @@ writer.Close();
 sw.Stop();
 ```
 
-Read times are wall clock times measured with `/usr/bin/time -v` using the `logical-chunked-file` command with `--chunk-size 50000`, applied consistently across all variants to allow direct comparison.
+Read times are wall clock times measured with `/usr/bin/time -v` using the `logical-chunked-file` command with `--chunk-size 50000`, applied consistently across all variants to allow direct comparison. Each variant was run 5 times and the read time reported is the average.
 
 ```bash
 /usr/bin/time -v dotnet run --no-build --configuration=Release -- logical-chunked-file --file <parquet_file> --chunk-size 50000
@@ -67,43 +67,43 @@ Read times are wall clock times measured with `/usr/bin/time -v` using the `logi
 
 ### num_control.sp.bin (76 MB raw · 19,938,093 floats)
 
-| Encoding | Compression | Parquet size (MB) | Write time (s) | Read time (s) | Size vs Plain/None |
-|----------|-------------|:-----------------:|:--------------:|:-------------:|:------------------:|
-| Plain, no dict | None | 76.06 | 0.59 | 0.91 | Baseline |
-| Plain, no dict | Snappy | 75.11 | 0.60 | 0.94 | −1.2% |
-| Plain, no dict | Zstd | 70.63 | 0.77 | 1.05 | −7.1% |
-| Plain, dict | Snappy | 87.02 | 1.23 | 0.87 | +14.4% |
-| Plain, dict | Zstd | 82.33 | 1.03 | 1.07 | +8.2% |
-| ByteStreamSplit | Snappy | 67.04 | 0.58 | 1.03 | **−11.9%** |
-| ByteStreamSplit | Zstd | 62.98 | 0.66 | 0.97 | **−17.2%** |
+| Encoding | Compression | Parquet size (MB) | Write time (s) | Avg read time (s) | Size vs Plain/None |
+|----------|-------------|:-----------------:|:--------------:|:-----------------:|:------------------:|
+| Plain, no dict | None | 76.06 | 0.59 | 1.00 | Baseline |
+| Plain, no dict | Snappy | 75.11 | 0.60 | 0.97 | −1.2% |
+| Plain, no dict | Zstd | 70.63 | 0.77 | 0.98 | −7.1% |
+| Plain, dict | Snappy | 87.02 | 1.23 | 1.03 | +14.4% |
+| Plain, dict | Zstd | 82.33 | 1.03 | 1.13 | +8.2% |
+| ByteStreamSplit | Snappy | 67.04 | 0.58 | 0.96 | **−11.9%** |
+| ByteStreamSplit | Zstd | 62.98 | 0.66 | 1.00 | **−17.2%** |
 
 ---
 
 ### num_brain.sp.bin (67.6 MB raw · 17,730,000 floats)
 
-| Encoding | Compression | Parquet size (MB) | Write time (s) | Read time (s) | Size vs Plain/None |
-|----------|-------------|:-----------------:|:--------------:|:-------------:|:------------------:|
-| Plain, no dict | None | 67.64 | 0.58 | 1.00 | Baseline |
-| Plain, no dict | Snappy | 67.64 | 0.56 | 1.05 | 0.0% |
-| Plain, no dict | Zstd | 59.99 | 0.49 | 0.91 | −11.3% |
-| Plain, dict | Snappy | 78.28 | 0.97 | 1.00 | +15.7% |
-| Plain, dict | Zstd | 70.52 | 1.11 | 0.93 | +4.3% |
-| ByteStreamSplit | Snappy | 52.12 | 0.59 | 0.93 | **−22.9%** |
-| ByteStreamSplit | Zstd | 48.67 | 0.61 | 0.82 | **−28.0%** |
+| Encoding | Compression | Parquet size (MB) | Write time (s) | Avg read time (s) | Size vs Plain/None |
+|----------|-------------|:-----------------:|:--------------:|:-----------------:|:------------------:|
+| Plain, no dict | None | 67.64 | 0.58 | 0.87 | Baseline |
+| Plain, no dict | Snappy | 67.64 | 0.56 | 0.87 | 0.0% |
+| Plain, no dict | Zstd | 59.99 | 0.49 | 0.97 | −11.3% |
+| Plain, dict | Snappy | 78.28 | 0.97 | 0.95 | +15.7% |
+| Plain, dict | Zstd | 70.52 | 1.11 | 1.07 | +4.3% |
+| ByteStreamSplit | Snappy | 52.12 | 0.59 | 0.92 | **−22.9%** |
+| ByteStreamSplit | Zstd | 48.67 | 0.61 | 0.95 | **−28.0%** |
 
 ---
 
 ### obs_spitzer.sp.bin (94.5 MB raw · 24,772,608 floats)
 
-| Encoding | Compression | Parquet size (MB) | Write time (s) | Read time (s) | Size vs Plain/None |
-|----------|-------------|:-----------------:|:--------------:|:-------------:|:------------------:|
-| Plain, no dict | None | 94.51 | 0.49 | 1.38 | Baseline |
-| Plain, no dict | Snappy | 93.27 | 1.40 | 1.15 | −1.3% |
-| Plain, no dict | Zstd | 82.48 | 1.06 | 1.73 | −12.7% |
-| Plain, dict | Snappy | 87.44 | 1.55 | 1.44 | −7.5% |
-| Plain, dict | Zstd | 81.96 | 3.05 | 1.02 | −13.3% |
-| ByteStreamSplit | Snappy | 84.56 | 0.40 | 0.93 | **−10.5%** |
-| ByteStreamSplit | Zstd | 71.81 | 0.52 | 1.41 | **−24.0%** |
+| Encoding | Compression | Parquet size (MB) | Write time (s) | Avg read time (s) | Size vs Plain/None |
+|----------|-------------|:-----------------:|:--------------:|:-----------------:|:------------------:|
+| Plain, no dict | None | 94.51 | 0.49 | 1.01 | Baseline |
+| Plain, no dict | Snappy | 93.27 | 1.40 | 0.94 | −1.3% |
+| Plain, no dict | Zstd | 82.48 | 1.06 | 1.10 | −12.7% |
+| Plain, dict | Snappy | 87.44 | 1.55 | 1.18 | −7.5% |
+| Plain, dict | Zstd | 81.96 | 3.05 | 0.94 | −13.3% |
+| ByteStreamSplit | Snappy | 84.56 | 0.40 | 0.90 | **−10.5%** |
+| ByteStreamSplit | Zstd | 71.81 | 0.52 | 1.14 | **−24.0%** |
 
 ---
 
@@ -129,11 +129,11 @@ Write times are fast across all configurations (0.40–3.05 s for these dataset 
 
 ### Read time
 
-Read times are broadly consistent across configurations (0.82–1.73 s). Notable observations:
+Average read times are consistent across most configurations (0.87–1.18 s). Notable observations:
 
-- ByteStreamSplit + Zstd achieves the **fastest read** on two of three datasets (0.82–0.97 s) despite requiring byte-plane decoding on read. The smaller file size reduces I/O, which outweighs the decompression overhead at these dataset sizes.
-- Plain + Zstd on obs_spitzer is the **slowest** to read (1.73 s), notably slower than ByteStreamSplit + Zstd (1.41 s) at a similar file size. ByteStreamSplit's byte-plane arrangement makes Zstd decompression more efficient on read as well as write.
-- ByteStreamSplit + Snappy offers consistently fast reads (0.93–1.03 s) across all three datasets, making it the most predictable choice across all three metrics.
+- ByteStreamSplit + Snappy achieves the **fastest average read** across all three datasets (0.90–0.96 s), making it the most consistent performer across all three metrics — file size, write speed, and read speed.
+- Dictionary encoding tends to have **slower average reads** than its Plain no-dictionary counterpart at the same compression, adding overhead without any file size benefit.
+- Read times are closely grouped compared to write times, suggesting that at these dataset sizes the decompression overhead differences are small relative to the fixed cost of launching the .NET runtime.
 
 ---
 
