@@ -1,7 +1,6 @@
-﻿using System.CommandLine;
+﻿using ParquetSharp;
 using ParquetSharp.Config.Benchmarks;
-
-var bench = new ParquetSharpConfigBenchmarks();
+using System.CommandLine;
 
 var bufferSizeOption = new Option<int>("--buffer-size")
 {
@@ -17,10 +16,59 @@ var chunkSizeOption = new Option<int>("--chunk-size")
 
 var rootCommand = new RootCommand("ParquetSharp configuration benchmarks");
 
-var generateCmd = new Command("generate", "Generate the test Parquet file.");
-generateCmd.SetAction(_ => ParquetSharpConfigBenchmarks.GenerateFile());
-rootCommand.Subcommands.Add(generateCmd);
+#region Generate
 
+var binOption = new Option<string>("--bin")
+{
+    Description = "Path to the decompressed raw float binary (e.g. num_plasma.bin).",
+    Required = true
+};
+
+var encodingOption = new Option<string>("--encoding")
+{
+    Description = "Parquet encoding to use: plain, dictionary, byte-stream-split.",
+    Required = true
+};
+
+var compressionOption = new Option<string>("--compression")
+{
+    Description = "Compression to use: none, snappy, zstd.",
+    Required = true
+};
+
+var convertDataCmd = new Command("convert-data", "Convert a raw float binary to Parquet with the specified encoding and compression.");
+convertDataCmd.Options.Add(binOption);
+convertDataCmd.Options.Add(encodingOption);
+convertDataCmd.Options.Add(compressionOption);
+convertDataCmd.SetAction(pr =>
+{
+    string binPath     = pr.GetValue(binOption)!;
+    string encodingArg = pr.GetValue(encodingOption)!.ToLowerInvariant();
+    string compArg     = pr.GetValue(compressionOption)!.ToLowerInvariant();
+
+    (Encoding encoding, bool dictionaryEnabled) = encodingArg switch
+    {
+        "plain"             => (Encoding.Plain,           false),
+        "dictionary"        => (Encoding.Plain,           true),
+        "byte-stream-split" => (Encoding.ByteStreamSplit, false),
+        _ => throw new ArgumentException($"Unknown encoding '{encodingArg}'. Valid values: plain, dictionary, byte-stream-split.")
+    };
+
+    Compression compression = compArg switch
+    {
+        "none"   => Compression.Uncompressed,
+        "snappy" => Compression.Snappy,
+        "zstd"   => Compression.Zstd,
+        _ => throw new ArgumentException($"Unknown compression '{compArg}'. Valid values: none, snappy, zstd.")
+    };
+
+    ParquetSharpConfigBenchmarks.ConvertData(binPath, encoding, dictionaryEnabled, compression);
+});
+rootCommand.Subcommands.Add(convertDataCmd);
+
+#endregion
+
+#region Read Benchmarks
 
 var logicalDefaultCmd = new Command("logical-default", "Logical reader with default settings.");
 logicalDefaultCmd.SetAction(_ =>
@@ -41,6 +89,25 @@ logicalChunkedCmd.SetAction(parseResult =>
     ParquetSharpConfigBenchmarks.LogicalReader_Chunked(chunkSize);
 });
 rootCommand.Subcommands.Add(logicalChunkedCmd);
+
+var fileOption = new Option<string>("--file")
+{
+    Description = "Path to the Parquet file to read.",
+    Required = true
+};
+
+var logicalChunkedFileCmd = new Command("logical-chunked-file", "Chunked logical reader for a specified single-column float Parquet file.");
+logicalChunkedFileCmd.Options.Add(fileOption);
+logicalChunkedFileCmd.Options.Add(chunkSizeOption);
+logicalChunkedFileCmd.SetAction(pr =>
+{
+    string filePath = pr.GetValue(fileOption)!;
+    int chunkSize   = pr.GetValue(chunkSizeOption);
+    ParquetSharpConfigBenchmarks.EnsureFileExists(filePath);
+    ParquetSharpConfigBenchmarks.PrintFileInfo(filePath);
+    ParquetSharpConfigBenchmarks.LogicalReader_ChunkedFile(filePath, chunkSize);
+});
+rootCommand.Subcommands.Add(logicalChunkedFileCmd);
 
 var logicalBufferedCmd = new Command("logical-buffered", "Logical reader with a buffered stream.");
 logicalBufferedCmd.Options.Add(bufferSizeOption);
@@ -90,5 +157,7 @@ rowDefaultCmd.SetAction(_ =>
     ParquetSharpConfigBenchmarks.RowOriented_Default();
 });
 rootCommand.Subcommands.Add(rowDefaultCmd);
+
+#endregion
 
 return rootCommand.Parse(args).Invoke();

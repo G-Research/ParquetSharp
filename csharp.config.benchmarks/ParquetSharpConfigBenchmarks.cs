@@ -1,6 +1,7 @@
-﻿using ParquetSharp.Arrow;
+﻿using ParquetSharp;
+using ParquetSharp.Arrow;
 using ParquetSharp.RowOriented;
-using System.Text;
+using System.Runtime.InteropServices;
 
 namespace ParquetSharp.Config.Benchmarks
 {
@@ -25,6 +26,20 @@ namespace ParquetSharp.Config.Benchmarks
         public static void PrintFileInfo()
         {
             Console.WriteLine($"File size: {new FileInfo(FilePath).Length / (1024 * 1024)} MB");
+        }
+
+        public static void EnsureFileExists(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"File '{filePath}' not found.");
+            }
+        }
+
+        public static void PrintFileInfo(string filePath)
+        {
+            Console.WriteLine($"File : {filePath}");
+            Console.WriteLine($"Size : {new FileInfo(filePath).Length / (1024.0 * 1024.0):F2} MB");
         }
 
         public static void GenerateFile()
@@ -106,6 +121,23 @@ namespace ParquetSharp.Config.Benchmarks
                 var buffer = new DateTime[chunkSize];
                 while (reader.HasNext)
                     reader.ReadBatch(buffer);
+            }
+        }
+
+        public static void LogicalReader_ChunkedFile(string filePath, int chunkSize)
+        {
+            using var file = new ParquetFileReader(filePath);
+
+            for (int rg = 0; rg < file.FileMetaData.NumRowGroups; rg++)
+            {
+                using var rowGroup = file.RowGroup(rg);
+
+                using var reader = rowGroup.Column(0).LogicalReader<float>();
+                var buffer = new float[chunkSize];
+                while (reader.HasNext)
+                {
+                    reader.ReadBatch(buffer);
+                }
             }
         }
 
@@ -208,6 +240,73 @@ namespace ParquetSharp.Config.Benchmarks
                     GC.KeepAlive(row);
                 }
             }
+        }
+
+        #endregion
+
+        #region Generate
+
+        private const int WriteRowsPerGroup = 1_000_000;
+
+        public static void ConvertData(string binPath, Encoding encoding, bool dictionaryEnabled, Compression compression)
+        {
+            string baseName = Path.GetFileNameWithoutExtension(binPath);
+            string encodingTag = (encoding, dictionaryEnabled) switch
+            {
+                (Encoding.Plain,           false) => "Plain_NoDic",
+                (Encoding.Plain,           true)  => "Plain_Dic",
+                (Encoding.ByteStreamSplit, false) => "ByteStreamSplit_NoDic",
+                _                                 => encoding.ToString()
+            };
+            string compressionTag = compression switch
+            {
+                Compression.Uncompressed => "None",
+                Compression.Snappy       => "Snappy",
+                Compression.Zstd         => "Zstd",
+                _                        => compression.ToString()
+            };
+            string outputFile = $"{baseName}_{encodingTag}_{compressionTag}.parquet";
+
+            byte[] rawBytes = File.ReadAllBytes(binPath);
+            var values = MemoryMarshal.Cast<byte, float>(rawBytes.AsSpan());
+
+            Console.WriteLine($"Read {values.Length:N0} floats from {binPath}");
+
+            var columns = new Column[]
+            {
+                new Column<float>("Value"),
+            };
+
+            var builder = new WriterPropertiesBuilder().Compression(compression)
+                                                       .Encoding(encoding);
+
+            if (!dictionaryEnabled)
+            {
+                builder.DisableDictionary();
+            }
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            using var writer = new ParquetFileWriter(outputFile, columns, builder.Build());
+
+            int offset = 0;
+            while (offset < values.Length)
+            {
+                int batchSize = Math.Min(WriteRowsPerGroup, values.Length - offset);
+
+                var chunk = values.Slice(offset, batchSize);
+
+                using var rowGroup = writer.AppendRowGroup();
+                rowGroup.NextColumn().LogicalWriter<float>().WriteBatch(chunk);
+
+                offset += batchSize;
+            }
+
+            writer.Close();
+            sw.Stop();
+
+            long fileSize = new FileInfo(outputFile).Length;
+            Console.WriteLine($"Written: {outputFile} ({fileSize / (1024.0 * 1024.0):F2} MB) in {sw.Elapsed.TotalSeconds:F2}s");
         }
 
         #endregion

@@ -20,3 +20,5 @@
   href: VisitorPatterns.md
 - name: Memory Benchmarks
   href: MemoryBenchmarks.md
+- name: Write Benchmarks
+  href: WriteBenchmarks.md
