@@ -7,7 +7,7 @@ using ParquetSharp.Schema;
 namespace ParquetSharp
 {
     /// <summary>
-    /// Builder pattern for creating and configuring a <see cref="WriterProperties"/> object. 
+    /// Builder pattern for creating and configuring a <see cref="WriterProperties"/> object.
     /// </summary>
     public sealed class WriterPropertiesBuilder : IDisposable
     {
@@ -344,7 +344,7 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Set the maximum size of a row group in bytes.
+        /// Set the maximum number of rows in a row group.
         /// </summary>
         /// <param name="maxRowGroupLength">The maximum row group size to use.</param>
         /// <returns>This builder instance.</returns>
@@ -480,7 +480,7 @@ namespace ParquetSharp
         /// Set the sorting columns to describe how written data is ordered.
         ///
         /// Note that no sorting or validation is done automatically. It is your responsibility to ensure
-        /// that data is written in the specified order. 
+        /// that data is written in the specified order.
         /// </summary>
         /// <param name="sortingColumns">Array of SortingColumn specifications defining the sort order.</param>
         /// <returns>This builder instance.</returns>
@@ -652,7 +652,7 @@ namespace ParquetSharp
         /// <summary>
         /// Disable decimal logical type with precision between 1 and 18 (inclusive) to be stored
         /// as integer physical type.
-        /// 
+        ///
         /// This is the default.
         /// </summary>
         public WriterPropertiesBuilder DisableStoreDecimalAsInteger()
@@ -673,9 +673,9 @@ namespace ParquetSharp
         }
 
         /// <summary>
-        /// Set the level to write size statistics for all columns. 
-        /// 
-        /// Note that if page index is not enabled, 
+        /// Set the level to write size statistics for all columns.
+        ///
+        /// Note that if page index is not enabled,
         /// page level size statistics will not be written even if the level
         /// is set to PageAndColumnChunk.
         /// </summary>
