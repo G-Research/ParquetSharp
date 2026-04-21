@@ -434,6 +434,16 @@ namespace ParquetSharp.Test
             Assert.AreEqual(1e+028M, DecimalConverter.GetScaleMultiplier(28, 29));
         }
 
+        // LogicalTypeFactory override that bypasses decimal precision calculation,
+        // and always assumes a decimal column with FLBA storage.
+        private class LogicalTypeFactoryOverride : LogicalTypeFactory
+        {
+            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeOverride)
+            {
+                return (typeof(FixedLenByteArray), typeof(decimal));
+            }
+        }
+
         [TestCase(100)]
         [TestCase(1_000)]
         [TestCase(10_000_000)] // Causes stack overflow if stackalloc used
@@ -466,6 +476,7 @@ namespace ParquetSharp.Test
             using (var input = new BufferReader(buffer))
             {
                 using var fileReader = new ParquetFileReader(input);
+                fileReader.LogicalTypeFactory = new LogicalTypeFactoryOverride();
                 using var groupReader = fileReader.RowGroup(0);
 
                 using var columnReader = groupReader.Column(0).LogicalReader<decimal>();
