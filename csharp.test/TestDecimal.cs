@@ -434,6 +434,59 @@ namespace ParquetSharp.Test
             Assert.AreEqual(1e+028M, DecimalConverter.GetScaleMultiplier(28, 29));
         }
 
+        // LogicalTypeFactory override that bypasses decimal precision calculation,
+        // and always assumes a decimal column with FLBA storage.
+        private class LogicalTypeFactoryOverride : LogicalTypeFactory
+        {
+            public override (Type physicalType, Type logicalType) GetSystemTypes(ColumnDescriptor descriptor, Type? columnLogicalTypeOverride)
+            {
+                return (typeof(FixedLenByteArray), typeof(decimal));
+            }
+        }
+
+        [TestCase(100)]
+        [TestCase(1_000)]
+        [TestCase(10_000_000)] // Causes stack overflow if stackalloc used
+        public static unsafe void TestVeryWideDecimal(int typeWidth)
+        {
+            using var decimalType = LogicalType.Decimal(precision: 9, scale: 4);
+            // Override type width rather than using computed width:
+            using var colNode = new PrimitiveNode("value", Repetition.Required, decimalType, PhysicalType.FixedLenByteArray, primitiveLength: typeWidth);
+            using var schema = new GroupNode("schema", Repetition.Required, new Node[] { colNode });
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var propertiesBuilder = new WriterPropertiesBuilder();
+                using var writerProperties = propertiesBuilder.Build();
+                using var fileWriter = new ParquetFileWriter(outStream, schema, writerProperties);
+                using var rowGroupWriter = fileWriter.AppendRowGroup();
+
+                using var columnWriter = (ColumnWriter<FixedLenByteArray>) rowGroupWriter.NextColumn();
+                var bytes = new byte[typeWidth];
+                fixed (byte* bytesPtr = bytes)
+                {
+                    var value = new FixedLenByteArray((IntPtr) bytesPtr);
+                    columnWriter.WriteBatch(new[] { value, value });
+                }
+
+                fileWriter.Close();
+            }
+
+            using (var input = new BufferReader(buffer))
+            {
+                using var fileReader = new ParquetFileReader(input);
+                fileReader.LogicalTypeFactory = new LogicalTypeFactoryOverride();
+                using var groupReader = fileReader.RowGroup(0);
+
+                using var columnReader = groupReader.Column(0).LogicalReader<decimal>();
+                var values = columnReader.ReadAll((int) groupReader.MetaData.NumRows);
+                Assert.AreEqual(2, values.Length);
+                Assert.AreEqual(new decimal(0), values[0]);
+                Assert.AreEqual(new decimal(0), values[1]);
+            }
+        }
+
         private static decimal RandomDecimal(Random random, int scale, int parquetPrecision = 29)
         {
             var low = RandomInt(random);

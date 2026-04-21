@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 
 namespace ParquetSharp
@@ -12,48 +13,64 @@ namespace ParquetSharp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe decimal ReadDecimal(ByteArray byteArray, decimal multiplier)
         {
-            if (byteArray.Length == 0)
+            var typeLength = byteArray.Length;
+            if (typeLength == 0)
             {
                 return new decimal(0);
             }
 
-            // Read into little-Endian ordered array
-            var tmp = stackalloc byte[byteArray.Length];
-            for (var byteIdx = 0; byteIdx < byteArray.Length; ++byteIdx)
-            {
-                tmp[byteArray.Length - byteIdx - 1] = *((byte*) byteArray.Pointer + byteIdx);
-            }
+            // Limit the size of stack allocations, as the type width may come from untrusted data and could be large.
+            byte[]? rented = null;
+            Span<byte> tmp = typeLength <= MaxStackAllocSize
+                ? stackalloc byte[typeLength]
+                : (rented = ArrayPool<byte>.Shared.Rent(typeLength)).AsSpan(0, typeLength);
 
-            var negative = false;
-            if ((tmp[byteArray.Length - 1] & (1 << 7)) == 1 << 7)
+            try
             {
-                negative = true;
-                TwosComplement(tmp, byteArray.Length);
-            }
-
-            var unscaled = new decimal(tmp[0]);
-            var numUsableBytes = Math.Min(byteArray.Length, 12);
-            decimal byteMultiplier = 1;
-            for (var byteIdx = 1; byteIdx < numUsableBytes; ++byteIdx)
-            {
-                byteMultiplier *= 256;
-                unscaled += byteMultiplier * tmp[byteIdx];
-            }
-
-            for (var byteIdx = numUsableBytes; byteIdx < byteArray.Length; ++byteIdx)
-            {
-                if (tmp[byteIdx] > 0)
+                // Read into little-Endian ordered array.
+                for (var byteIdx = 0; byteIdx < byteArray.Length; ++byteIdx)
                 {
-                    throw new OverflowException("Decimal value is not representable as a .NET Decimal");
+                    tmp[byteArray.Length - byteIdx - 1] = *((byte*) byteArray.Pointer + byteIdx);
+                }
+
+                var negative = false;
+                if ((tmp[byteArray.Length - 1] & (1 << 7)) == 1 << 7)
+                {
+                    negative = true;
+                    TwosComplement(tmp, byteArray.Length);
+                }
+
+                var unscaled = new decimal(tmp[0]);
+                var numUsableBytes = Math.Min(byteArray.Length, 12);
+                decimal byteMultiplier = 1;
+                for (var byteIdx = 1; byteIdx < numUsableBytes; ++byteIdx)
+                {
+                    byteMultiplier *= 256;
+                    unscaled += byteMultiplier * tmp[byteIdx];
+                }
+
+                for (var byteIdx = numUsableBytes; byteIdx < byteArray.Length; ++byteIdx)
+                {
+                    if (tmp[byteIdx] > 0)
+                    {
+                        throw new OverflowException("Decimal value is not representable as a .NET Decimal");
+                    }
+                }
+
+                if (negative)
+                {
+                    unscaled *= -1;
+                }
+
+                return unscaled / multiplier;
+            }
+            finally
+            {
+                if (rented != null)
+                {
+                    ArrayPool<byte>.Shared.Return(rented);
                 }
             }
-
-            if (negative)
-            {
-                unscaled *= -1;
-            }
-
-            return unscaled / multiplier;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -76,30 +93,45 @@ namespace ParquetSharp
                 unscaled *= -1;
             }
 
+            var typeLength = byteArray.Length;
+            byte[]? rented = null;
+            Span<byte> tmp = typeLength <= MaxStackAllocSize
+                ? stackalloc byte[typeLength]
+                : (rented = ArrayPool<byte>.Shared.Rent(typeLength)).AsSpan(0, typeLength);
+
             // Compute little-endian representation of unscaled value
-            var tmp = stackalloc byte[byteArray.Length];
-            for (var byteIdx = 0; byteIdx < byteArray.Length; ++byteIdx)
+            try
             {
-                var remainder = unscaled % 256;
-                tmp[byteIdx] = (byte) remainder;
-                unscaled = (unscaled - remainder) / 256;
-            }
+                for (var byteIdx = 0; byteIdx < byteArray.Length; ++byteIdx)
+                {
+                    var remainder = unscaled % 256;
+                    tmp[byteIdx] = (byte) remainder;
+                    unscaled = (unscaled - remainder) / 256;
+                }
 
-            if (unscaled != 0)
-            {
-                throw new OverflowException(
-                    $"value {value:E} is too large to be represented by {byteArray.Length} bytes with decimal scale {Math.Log10((double) multiplier)}");
-            }
+                if (unscaled != 0)
+                {
+                    throw new OverflowException(
+                        $"value {value:E} is too large to be represented by {byteArray.Length} bytes with decimal scale {Math.Log10((double) multiplier)}");
+                }
 
-            if (negative)
-            {
-                TwosComplement(tmp, byteArray.Length);
-            }
+                if (negative)
+                {
+                    TwosComplement(tmp, byteArray.Length);
+                }
 
-            // Reverse bytes to get big-Endian representation, writing into output
-            for (var i = 0; i < byteArray.Length; ++i)
+                // Reverse bytes to get big-Endian representation, writing into output
+                for (var i = 0; i < byteArray.Length; ++i)
+                {
+                    *((byte*) byteArray.Pointer + i) = tmp[byteArray.Length - i - 1];
+                }
+            }
+            finally
             {
-                *((byte*) byteArray.Pointer + i) = tmp[byteArray.Length - i - 1];
+                if (rented != null)
+                {
+                    ArrayPool<byte>.Shared.Return(rented);
+                }
             }
         }
 
@@ -119,7 +151,7 @@ namespace ParquetSharp
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static unsafe void TwosComplement(byte* byteArray, int length)
+        private static unsafe void TwosComplement(Span<byte> byteArray, int length)
         {
             byte carry = 0;
             byteArray[0] = AddCarry((byte) ~byteArray[0], 1, ref carry);
@@ -136,5 +168,7 @@ namespace ParquetSharp
             carry = (byte) (r >> 8);
             return (byte) r;
         }
+
+        private const int MaxStackAllocSize = 1024;
     }
 }
