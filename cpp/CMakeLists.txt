@@ -38,6 +38,12 @@ if (MSVC)
 	endforeach()
 endif()
 
+# Link libatomic statically (See https://github.com/G-Research/ParquetSharp/issues/638)
+if (UNIX AND NOT APPLE)
+	add_library(atomic INTERFACE IMPORTED GLOBAL)
+	set_target_properties(atomic PROPERTIES INTERFACE_LINK_LIBRARIES "-l:libatomic.a")
+endif ()
+
 add_library(ParquetSharpNative SHARED 
 	AesKey.h
 	Buffer.cpp

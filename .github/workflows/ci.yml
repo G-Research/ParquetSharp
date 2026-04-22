@@ -284,6 +284,52 @@ jobs:
     - name: Build & Run F# unit tests
       run: dotnet test fsharp.test --configuration=Release --framework ${{ matrix.dotnet }}
 
+  smoke-test-distroless:
+    # https://github.com/dotnet/dotnet-docker/blob/main/documentation/distroless.md
+    strategy:
+      matrix:
+        include:
+        - os: ubuntu-24.04
+          arch: x64
+        - os: ubuntu-24.04-arm
+          arch: arm64
+      fail-fast: false
+    name: Smoke-test NuGet package (chiseled linux-${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    needs: build-nuget
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+    - name: Download NuGet artifact
+      uses: actions/download-artifact@v8
+      with:
+        name: nuget-package
+        path: nuget
+    - name: Setup .NET SDK v10.0.x
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 10.0.x
+    - name: Add local NuGet feed
+      run: |
+        dotnet new nugetconfig
+        dotnet nuget add source -n local $PWD/nuget
+    - name: Add ParquetSharp package reference
+      run: dotnet add csharp.smoketest package ParquetSharp -v ${{ needs.build-nuget.outputs.version }}
+    - name: Publish self-contained linux-${{ matrix.arch }} smoke test app
+      run: |
+        dotnet publish csharp.smoketest \
+          --configuration Release \
+          --framework net10.0 \
+          --runtime linux-${{ matrix.arch }} \
+          --self-contained true \
+          -o publish
+    - name: Run smoke test app in chiseled runtime-deps container
+      run: |
+        docker run --rm \
+          -v "$PWD/publish:/app:ro" \
+          mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled \
+          /app/ParquetSharp.SmokeTest
+
   test-benchmarks:
     name: Run benchmarks in check mode
     runs-on: ubuntu-latest
@@ -325,6 +371,7 @@ jobs:
       - check-format
       - test-nuget
       - test-benchmarks
+      - smoke-test-distroless
     runs-on: ubuntu-latest
     steps:
       - run: echo "All required checks done"
