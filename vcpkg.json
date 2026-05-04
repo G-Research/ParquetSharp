@@ -25,7 +25,8 @@
     },
     {
       "name": "mimalloc",
-      "version": "3.2.8"
+      "version": "3.2.8",
+      "$comment": "Later mimalloc versions cause segfaults. See https://github.com/G-Research/ParquetSharp/pull/647#issuecomment-4368403599"
     }
   ]
 }
