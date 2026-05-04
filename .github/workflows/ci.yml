@@ -113,12 +113,17 @@ jobs:
     # Setup a CentOS 7 container to build on Linux for backwards compatibility.
     - name: Start CentOS container and install toolchain
       if: runner.os == 'Linux'
+      env:
+        BISON_VERSION: 3.8.2
       run: |
         docker run -d --name centos --entrypoint tail --net host \
                    -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT\
                    quay.io/pypa/manylinux2014_$(uname -m) -f /dev/null
-        docker exec centos sh -c "yum install -y devtoolset-10 rh-git227 httpd24-curl flex bison perl-Data-Dumper perl-IPC-Cmd perl-Time-Piece && \
-                                  uv tool install ninja"
+        docker exec centos sh -c "yum install -y devtoolset-10 rh-git227 httpd24-curl flex perl-Data-Dumper perl-IPC-Cmd perl-Time-Piece && \
+                                  uv tool install ninja &&
+                                  curl -L -o /tmp/bison-${BISON_VERSION}.tar.gz https://ftp.gnu.org/gnu/bison/bison-${BISON_VERSION}.tar.gz &&
+                                  tar -xf /tmp/bison-${BISON_VERSION}.tar.gz -C /tmp &&
+                                  cd /tmp/bison-${BISON_VERSION} && ./configure && make && make install"
 
     # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
