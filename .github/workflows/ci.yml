@@ -32,7 +32,7 @@ jobs:
       - name: Code formating check
         run: |
           dotnet tool restore
-          dotnet jb cleanupcode "csharp" "csharp.test" "csharp.benchmark" --profile="Built-in: Reformat Code" --settings="ParquetSharp.DotSettings" --verbosity=WARN
+          dotnet jb cleanupcode "csharp" "csharp.test" "csharp.benchmark" "csharp.config.benchmarks" --profile="Built-in: Reformat Code" --settings="ParquetSharp.DotSettings" --verbosity=WARN
           files=($(git diff --name-only))
           if [ ${#files[@]} -gt 0 ]
           then
