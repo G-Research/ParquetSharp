@@ -101,7 +101,7 @@ namespace ParquetSharp.Config.Benchmarks
             for (int rg = 0; rg < file.FileMetaData.NumRowGroups; rg++)
             {
                 using var rowGroup = file.RowGroup(rg);
-                int numRows = (int)rowGroup.MetaData.NumRows;
+                int numRows = (int) rowGroup.MetaData.NumRows;
 
                 rowGroup.Column(0).LogicalReader<DateTime>().ReadAll(numRows);
                 rowGroup.Column(1).LogicalReader<int>().ReadAll(numRows);
@@ -152,7 +152,7 @@ namespace ParquetSharp.Config.Benchmarks
             for (int rg = 0; rg < file.FileMetaData.NumRowGroups; rg++)
             {
                 using var rowGroup = file.RowGroup(rg);
-                int numRows = (int)rowGroup.MetaData.NumRows;
+                int numRows = (int) rowGroup.MetaData.NumRows;
 
                 rowGroup.Column(0).LogicalReader<DateTime>().ReadAll(numRows);
                 rowGroup.Column(1).LogicalReader<int>().ReadAll(numRows);
@@ -218,7 +218,9 @@ namespace ParquetSharp.Config.Benchmarks
             Apache.Arrow.RecordBatch batch;
             while ((batch = await batchReader.ReadNextRecordBatchAsync()) != null)
             {
-                using (batch) { }
+                using (batch)
+                {
+                }
             }
         }
 
@@ -253,17 +255,17 @@ namespace ParquetSharp.Config.Benchmarks
             string baseName = Path.GetFileNameWithoutExtension(binPath);
             string encodingTag = (encoding, dictionaryEnabled) switch
             {
-                (Encoding.Plain,           false) => "Plain_NoDic",
-                (Encoding.Plain,           true)  => "Plain_Dic",
+                (Encoding.Plain, false) => "Plain_NoDic",
+                (Encoding.Plain, true) => "Plain_Dic",
                 (Encoding.ByteStreamSplit, false) => "ByteStreamSplit_NoDic",
-                _                                 => encoding.ToString()
+                _ => encoding.ToString()
             };
             string compressionTag = compression switch
             {
                 Compression.Uncompressed => "None",
-                Compression.Snappy       => "Snappy",
-                Compression.Zstd         => "Zstd",
-                _                        => compression.ToString()
+                Compression.Snappy => "Snappy",
+                Compression.Zstd => "Zstd",
+                _ => compression.ToString()
             };
             string outputFile = $"{baseName}_{encodingTag}_{compressionTag}.parquet";
 
@@ -278,7 +280,7 @@ namespace ParquetSharp.Config.Benchmarks
             };
 
             var builder = new WriterPropertiesBuilder().Compression(compression)
-                                                       .Encoding(encoding);
+                .Encoding(encoding);
 
             if (!dictionaryEnabled)
             {
@@ -310,5 +312,6 @@ namespace ParquetSharp.Config.Benchmarks
         }
 
         #endregion
+
     }
 }
