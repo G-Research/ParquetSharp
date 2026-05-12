@@ -507,5 +507,20 @@ namespace ParquetSharp.Test
             random.NextBytes(buffer);
             return BitConverter.ToInt32(buffer, 0);
         }
+
+        [TestCase(1, 2)]
+        [TestCase(4, 9)]
+        [TestCase(8, 18)]
+        [TestCase(16, 38)]
+        [TestCase(128, 307)]
+        [TestCase(129, 310)]
+        [TestCase(1000, 2407)]
+        public static void TestMaxPrecision(int typeLength, int expectedPrecision)
+        {
+            // Verify that computing max precision for large lengths does not result in an OverflowException
+            var result = DecimalConverter.MaxPrecision(typeLength);
+
+            Assert.AreEqual(expectedPrecision, result);
+        }
     }
 }

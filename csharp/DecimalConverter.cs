@@ -137,7 +137,7 @@ namespace ParquetSharp
 
         public static int MaxPrecision(int typeLength)
         {
-            return (int) Math.Floor(Math.Log10(Math.Pow(2.0, 8.0 * typeLength - 1) - 1));
+            return (int) Math.Floor((8.0 * typeLength - 1) * Math.Log10(2));
         }
 
         public static decimal GetScaleMultiplier(int scale, int precision)
