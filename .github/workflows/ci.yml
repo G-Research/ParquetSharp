@@ -12,6 +12,8 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   PUBLISH_RELEASE: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && !github.event.repository.fork }}
+  # Pre-built manylinux2014 image with bison + toolchain (built by build-docker.yml).
+  LINUX_CI_IMAGE: ghcr.io/g-research/parquetsharp/linux-ci:latest
 
 permissions:
   contents: read
@@ -110,20 +112,20 @@ jobs:
       run: |
         ./bootstrap-vcpkg.bat
 
-    # Setup a CentOS 7 container to build on Linux for backwards compatibility.
-    - name: Start CentOS container and install toolchain
+    # Pull the pre-built Linux CI image (bison + manylinux2014 toolchain already baked in).
+    # The image is architecture-aware via its manifest list, so the correct variant
+    # (amd64 / arm64) is pulled automatically.
+    - name: Pull Linux CI container image
       if: runner.os == 'Linux'
-      env:
-        BISON_VERSION: 3.8.2
+      run: docker pull ${{ env.LINUX_CI_IMAGE }}
+
+    - name: Start Linux CI container
+      if: runner.os == 'Linux'
       run: |
         docker run -d --name centos --entrypoint tail --net host \
-                   -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT\
-                   quay.io/pypa/manylinux2014_$(uname -m) -f /dev/null
-        docker exec centos sh -c "yum install -y devtoolset-10 rh-git227 httpd24-curl flex perl-Data-Dumper perl-IPC-Cmd perl-Time-Piece && \
-                                  uv tool install ninja &&
-                                  curl -L -o /tmp/bison-${BISON_VERSION}.tar.gz https://ftp.gnu.org/gnu/bison/bison-${BISON_VERSION}.tar.gz &&
-                                  tar -xf /tmp/bison-${BISON_VERSION}.tar.gz -C /tmp &&
-                                  cd /tmp/bison-${BISON_VERSION} && ./configure && make && make install"
+          -v $PWD:$PWD \
+          -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT \
+          ${{ env.LINUX_CI_IMAGE }} -f /dev/null
 
     # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
@@ -175,7 +177,7 @@ jobs:
         name: ${{ steps.vcpkg-info.outputs.triplet }}-native-library
         path: bin
 
-    - name: Stop CentOS container
+    - name: Stop Linux CI container
       if: always() && runner.os == 'Linux'
       run: docker rm -f centos
 

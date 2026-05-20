@@ -1,0 +1,41 @@
+# syntax=docker/dockerfile:1
+#
+# CI image for building the ParquetSharp native library on Linux.
+#
+# Based on the manylinux2014 image so that the resulting shared library is
+# compatible with a wide range of Linux distributions (glibc >= 2.17).
+#
+# Bison and the rest of the build toolchain are baked in here so that CI
+# runners don't have to compile bison from source on every build.
+
+ARG ARCH=x86_64
+FROM quay.io/pypa/manylinux2014_${ARCH}
+
+ARG BISON_VERSION=3.8.2
+
+# Install SCL-based toolchain packages (devtoolset-10 = GCC 10, rh-git227, httpd24-curl)
+# plus flex and perl modules required by some vcpkg ports, then build bison from source
+# (the version shipped in CentOS 7 is too old for Arrow/Parquet).
+RUN yum install -y \
+        devtoolset-10 \
+        rh-git227 \
+        httpd24-curl \
+        flex \
+        perl-Data-Dumper \
+        perl-IPC-Cmd \
+        perl-Time-Piece \
+ && yum clean all \
+ && curl -fsSL -o /tmp/bison-${BISON_VERSION}.tar.gz \
+        https://ftp.gnu.org/gnu/bison/bison-${BISON_VERSION}.tar.gz \
+ && tar -xf /tmp/bison-${BISON_VERSION}.tar.gz -C /tmp \
+ && cd /tmp/bison-${BISON_VERSION} \
+ && ./configure --prefix=/usr/local \
+ && make -j"$(nproc)" \
+ && make install \
+ && rm -rf /tmp/bison-${BISON_VERSION} /tmp/bison-${BISON_VERSION}.tar.gz
+
+RUN uv tool install ninja
+
+# Smoke-check: make the SCL tools and our new bison reachable in a single
+# shell so the image is easy to test interactively.
+RUN echo 'source scl_source enable devtoolset-10 rh-git227 httpd24' >> /etc/bashrc
