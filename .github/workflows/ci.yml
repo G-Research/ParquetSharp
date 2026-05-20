@@ -141,7 +141,7 @@ jobs:
 
     # Setup vcpkg caching
     - name: Setup vcpkg caching
-      uses: ./.github/actions/vcpkg-cache-action
+      uses: G-Research/vcpkg-cache-action@main
 
     # Compile ParquetSharp and C++ dependencies (and upload the native library as an artifact).
     - name: Compile native ParquetSharp library (Linux)
