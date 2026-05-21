@@ -110,8 +110,8 @@ jobs:
       run: |
         ./bootstrap-vcpkg.bat
 
-    # Build a CentOS 7 container image with the toolchain pre-installed,
-    # using Docker layer caching to avoid rebuilding on every CI run.
+    # Setup a CentOS 7 container to build on Linux for backwards compatibility.
+    # We are using Docker layer caching to avoid rebuilding on every CI run.
     - name: Set up Docker Buildx
       if: runner.os == 'Linux'
       uses: docker/setup-buildx-action@v4
