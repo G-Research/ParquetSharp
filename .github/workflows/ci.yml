@@ -123,7 +123,7 @@ jobs:
         context: .github/ci-build
         build-args: MANYLINUX_ARCH=${{ matrix.arch == 'arm64' && 'aarch64' || 'x86_64' }}
         load: true
-        tags: parquetsharp-ci-build:latest
+        tags: manylinux2014-parquetsharp-ci-build:latest
         cache-from: type=gha,scope=ci-build-${{ matrix.arch }}
         cache-to: type=gha,scope=ci-build-${{ matrix.arch }},mode=max
     - name: Start CI build container
@@ -131,7 +131,7 @@ jobs:
       run: |
         docker run -d --name centos --entrypoint tail --net host \
                    -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT \
-                   parquetsharp-ci-build:latest -f /dev/null
+                   manylinux2014-parquetsharp-ci-build:latest -f /dev/null
 
     # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
