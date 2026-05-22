@@ -111,19 +111,27 @@ jobs:
         ./bootstrap-vcpkg.bat
 
     # Setup a CentOS 7 container to build on Linux for backwards compatibility.
-    - name: Start CentOS container and install toolchain
+    # We are using Docker layer caching to avoid rebuilding on every CI run.
+    - name: Set up Docker Buildx
       if: runner.os == 'Linux'
-      env:
-        BISON_VERSION: 3.8.2
+      uses: docker/setup-buildx-action@v4
+    - name: Build CI container image
+      if: runner.os == 'Linux'
+      uses: docker/build-push-action@v7
+      with:
+        file: .github/ci-build/Dockerfile
+        context: .github/ci-build
+        build-args: MANYLINUX_ARCH=${{ matrix.arch == 'arm64' && 'aarch64' || 'x86_64' }}
+        load: true
+        tags: manylinux2014-parquetsharp-ci-build:latest
+        cache-from: type=gha,scope=ci-build-${{ matrix.arch }}
+        cache-to: type=gha,scope=ci-build-${{ matrix.arch }},mode=max
+    - name: Start CI build container
+      if: runner.os == 'Linux'
       run: |
         docker run -d --name centos --entrypoint tail --net host \
-                   -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT\
-                   quay.io/pypa/manylinux2014_$(uname -m) -f /dev/null
-        docker exec centos sh -c "yum install -y devtoolset-10 rh-git227 httpd24-curl flex perl-Data-Dumper perl-IPC-Cmd perl-Time-Piece && \
-                                  uv tool install ninja &&
-                                  curl -L -o /tmp/bison-${BISON_VERSION}.tar.gz https://ftp.gnu.org/gnu/bison/bison-${BISON_VERSION}.tar.gz &&
-                                  tar -xf /tmp/bison-${BISON_VERSION}.tar.gz -C /tmp &&
-                                  cd /tmp/bison-${BISON_VERSION} && ./configure && make && make install"
+                   -v $PWD:$PWD -v $VCPKG_INSTALLATION_ROOT:$VCPKG_INSTALLATION_ROOT \
+                   manylinux2014-parquetsharp-ci-build:latest -f /dev/null
 
     # Install vcpkg dependencies
     - name: Install vcpkg build dependencies (macOS)
