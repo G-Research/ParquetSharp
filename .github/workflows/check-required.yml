@@ -27,11 +27,11 @@ jobs:
     steps:
       - name: Generate an app token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
-      - uses: G-Research/common-actions/check-required@main
+      - uses: G-Research/common-actions/check-required@19d7281a0f9f83e13c78f99a610dbc80fc59ba3b
         with:
           github-token: ${{ steps.app-token.outputs.token }}
