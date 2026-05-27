@@ -219,7 +219,7 @@ jobs:
           $version_suffix=""
           $version="${version_prefix}"
         } else {
-          $version_suffix="$(git rev-parse --short HEAD)"
+          $version_suffix="sha$(git rev-parse --short HEAD)"
           $version="${version_prefix}-${version_suffix}"
         }
         echo "version=${version}"
