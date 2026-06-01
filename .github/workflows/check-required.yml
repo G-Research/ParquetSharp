@@ -32,6 +32,6 @@ jobs:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
-      - uses: G-Research/common-actions/check-required@19d7281a0f9f83e13c78f99a610dbc80fc59ba3b
+      - uses: G-Research/common-actions/check-required@901acf923ac37b7f61777c210cb5145c2d9f489a
         with:
           github-token: ${{ steps.app-token.outputs.token }}
