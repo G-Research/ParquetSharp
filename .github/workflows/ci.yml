@@ -434,7 +434,7 @@ jobs:
     # if version contains "-" treat it as pre-release
     # example: 1.0.0-beta1
     - name: Create release
-      uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
+      uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
       with:
         name: ParquetSharp ${{ needs.build-nuget.outputs.version }}
         draft: true
