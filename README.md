@@ -269,7 +269,7 @@ dotnet jb cleanupcode "csharp" "csharp.test" "csharp.benchmark" --profile="Built
 
 Building ParquetSharp natively requires the following dependencies:
 - A modern C++ compiler toolchain
-- .NET SDK 8.0
+- .NET SDK 10.0
 - Apache Arrow (24.0.0)
 
 For building Arrow (including Parquet) and its dependencies, we recommend using Microsoft's [vcpkg](https://vcpkg.io).
@@ -347,7 +347,7 @@ Please see our [security policy](https://github.com/G-Research/ParquetSharp/blob
 
 ## License
 
-Copyright 2018-2023 G-Research
+Copyright 2018-2026 G-Research
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use these files except in compliance with the License.
 You may obtain a copy of the License at
