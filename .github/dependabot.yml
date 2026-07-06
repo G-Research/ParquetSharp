@@ -5,3 +5,13 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      codeql:
+        patterns:
+          - "github/codeql-action/*"
+      docker:
+        patterns:
+          - "docker/*"
+      artifact:
+        patterns:
+          - "actions/*-artifact"
