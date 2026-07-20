@@ -66,10 +66,12 @@ jobs:
       fail-fast: false
     name: Build native ${{ matrix.arch }} library (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    env:
-      PIPX_HOME: ${{ runner.temp }}/pipx
-      PIPX_BIN_DIR: ${{ runner.temp }}/pipx-bin
     steps:
+    - name: Initialize PIPX env
+      run: |
+        echo "PIPX_HOME=${{ runner.temp }}/pipx" >> $GITHUB_ENV
+        echo "PIPX_BIN_DIR=${{ runner.temp }}/pipx-bin" >> $GITHUB_ENV
+
     - name: Checkout
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
