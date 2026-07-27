@@ -67,6 +67,8 @@ jobs:
     name: Build native ${{ matrix.arch }} library (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
+    # Move pipx to a space-free path; the default PIPX_HOME can contain a
+    # space on Windows, which breaks the vcpkg cache action.
     - name: Initialize PIPX env
       if: runner.os == 'Windows'
       shell: pwsh
