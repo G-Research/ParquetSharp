@@ -162,6 +162,7 @@ For more detailed information on how to use ParquetSharp, see the following guid
 * [Reading Parquet files](guides/Reading.md)
 * [Working with nested data](guides/Nested.md)
 * [Reading and writing Arrow data](guides/Arrow.md) &mdash; how to read and write data using the [Apache Arrow format](https://arrow.apache.org/)
+* [Working with DataFrames via Arrow](guides/DataframesViaArrow.md)
 * [Row-oriented API](guides/RowOriented.md) &mdash; a higher level API that abstracts away the column-oriented nature of Parquet files
 * [Custom types](guides/TypeFactories.md) &mdash; how to customize the mapping between .NET and Parquet types,
     including using the `DateOnly` and `TimeOnly` types added in .NET 6.
