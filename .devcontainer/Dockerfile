@@ -36,8 +36,7 @@ RUN apt-get update \
 && rm -rf /var/lib/apt/lists/*
 
 # Set vcpkg environment variables
-ENV VCPKG_ROOT=/opt/vcpkg \
-    VCPKG_FORCE_SYSTEM_BINARIES=1
+ENV VCPKG_ROOT=/opt/vcpkg
 
 #====================================================================
 
