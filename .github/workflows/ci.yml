@@ -104,6 +104,7 @@ jobs:
       working-directory: ${{ steps.vcpkg-info.outputs.root }}
       run: |
         git reset --hard
+        git checkout master
         git pull
 
     # We may need to re-bootstrap vcpkg after updating
