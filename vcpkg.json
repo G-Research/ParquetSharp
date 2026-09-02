@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "parquetsharp",
   "version-string": "undefined",
-  "builtin-baseline": "0297aaaf1c7879d30af39d87dc484ba56bd7bbde",
+  "builtin-baseline": "30ef65cad98f08e7197c9a1656fbd871bcb72f2d",
   "dependencies": [
     {
       "name": "arrow",
@@ -21,12 +21,7 @@
   "overrides": [
     {
       "name": "arrow",
-      "version": "24.0.0"
-    },
-    {
-      "name": "mimalloc",
-      "version": "3.2.8",
-      "$comment": "Later mimalloc versions cause segfaults. See https://github.com/G-Research/ParquetSharp/pull/647#issuecomment-4368403599"
+      "version": "25.0.1"
     }
   ]
 }
