@@ -337,7 +337,9 @@ jobs:
         dotnet new nugetconfig
         dotnet nuget add source -n local $PWD/nuget
     - name: Add ParquetSharp package reference
-      run: dotnet add csharp.smoketest package ParquetSharp -v ${{ needs.build-nuget.outputs.version }}
+      run: |
+        dotnet remove csharp.smoketest reference csharp/ParquetSharp.csproj
+        dotnet add csharp.smoketest package ParquetSharp -v ${{ needs.build-nuget.outputs.version }}
     - name: Publish self-contained linux-${{ matrix.arch }} smoke test app
       run: |
         dotnet publish csharp.smoketest \
