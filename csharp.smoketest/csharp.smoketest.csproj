@@ -10,4 +10,8 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\csharp\ParquetSharp.csproj" />
+  </ItemGroup>
+
 </Project>
