@@ -42,10 +42,18 @@ public:
 
 	~ManagedOutputStream() override
 	{
-		const Status st = this->Close();
-		if (!st.ok()) 
+		// Close() calls into managed code, which can throw. Letting an exception escape a
+		// destructor calls std::terminate, so swallow everything here.
+		try
 		{
-			ARROW_LOG(ERROR) << "Error ignored when destroying ManagedOutputStream: " << st;
+			const Status st = this->Close();
+			if (!st.ok()) 
+			{
+				ARROW_LOG(ERROR) << "Error ignored when destroying ManagedOutputStream: " << st;
+			}
+		}
+		catch (...)
+		{
 		}
 	}
 
@@ -93,14 +101,14 @@ private:
 			return Result<T>(result);
 		}
 
-		return Result<T>(Status(statusCode, exception));
+		return Result<T>(Status(statusCode, exception == nullptr ? "" : exception));
 	}
 
 	static Status GetStatus(const StatusCode statusCode, const char* const exception)
 	{
 		return statusCode == StatusCode::OK
 			? Status::OK()
-			: Status(statusCode, exception);
+			: Status(statusCode, exception == nullptr ? "" : exception);
 	}
 
 	const WriteFunc write_;

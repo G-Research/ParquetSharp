@@ -86,6 +86,33 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestWriteOutOfMemoryException()
+        {
+            // An OutOfMemoryException in a write callback has a null message, which used to be passed
+            // straight to std::string. See https://github.com/G-Research/ParquetSharp/issues/715
+            Assert.Throws<OutOfMemoryException>(() =>
+            {
+                using var buffer = new OutOfMemoryWriterStream();
+                using var output = new ManagedOutputStream(buffer, leaveOpen: true);
+                using (new ParquetFileWriter(output, new Column[] { new Column<int>("ids") }))
+                {
+                }
+            });
+        }
+
+        [Test]
+        public static void TestCloseOutOfMemoryException()
+        {
+            // The close callback runs from the native destructor, where a throw would call std::terminate.
+            // The error is logged and ignored instead. See https://github.com/G-Research/ParquetSharp/issues/715
+            var buffer = new OutOfMemoryCloseStream();
+            Assert.DoesNotThrow(() =>
+            {
+                using var output = new ManagedOutputStream(buffer);
+            });
+        }
+
+        [Test]
         public static void TestReadExeption()
         {
             var expected = Enumerable.Range(0, 1024 * 1024).ToArray();
@@ -247,6 +274,22 @@ namespace ParquetSharp.Test
         {
             var file = new ManagedRandomAccessFile(buffer);
             return new ParquetFileReader(file);
+        }
+
+        private sealed class OutOfMemoryWriterStream : MemoryStream
+        {
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                throw new OutOfMemoryException();
+            }
+        }
+
+        private sealed class OutOfMemoryCloseStream : MemoryStream
+        {
+            public override void Close()
+            {
+                throw new OutOfMemoryException();
+            }
         }
 
         private sealed class ErroneousReaderStream : MemoryStream
