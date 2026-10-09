@@ -41,10 +41,6 @@ public:
 	}
 
 	~ManagedOutputStream() override
-	{
-		// Close() calls into managed code, which can throw. Letting an exception escape a
-		// destructor calls std::terminate, so swallow everything here.
-		try
 		{
 			const Status st = this->Close();
 			if (!st.ok()) 
@@ -52,10 +48,6 @@ public:
 				ARROW_LOG(ERROR) << "Error ignored when destroying ManagedOutputStream: " << st;
 			}
 		}
-		catch (...)
-		{
-		}
-	}
 
 	Status Write(const void* const data, const int64_t nbytes) override
 	{

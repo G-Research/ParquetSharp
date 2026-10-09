@@ -45,10 +45,6 @@ public:
 	}
 
 	~ManagedRandomAccessFile() override
-	{
-		// Close() calls into managed code, which can throw. Letting an exception escape a
-		// destructor calls std::terminate, so swallow everything here.
-		try
 		{
 			const Status st = this->Close();
 			if (!st.ok()) 
@@ -56,10 +52,6 @@ public:
 				ARROW_LOG(ERROR) << "Error ignored when destroying ManagedRandomAccessFile: " << st;
 			}
 		}
-		catch (...)
-		{
-		}
-	}
 
 	Result<int64_t> Read(const int64_t nbytes, void* const out) override
 	{
