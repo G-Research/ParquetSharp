@@ -93,14 +93,14 @@ private:
 			return Result<T>(result);
 		}
 
-		return Result<T>(Status(statusCode, exception));
+		return Result<T>(Status(statusCode, exception == nullptr ? "" : exception));
 	}
 
 	static Status GetStatus(const StatusCode statusCode, const char* const exception)
 	{
 		return statusCode == StatusCode::OK
 			? Status::OK()
-			: Status(statusCode, exception);
+			: Status(statusCode, exception == nullptr ? "" : exception);
 	}
 
 	const WriteFunc write_;
