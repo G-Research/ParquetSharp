@@ -128,7 +128,7 @@ private:
 	{
 		return statusCode == StatusCode::OK
 			? Status::OK()
-			: Status(statusCode, exception);
+			: Status(statusCode, exception == nullptr ? "" : exception);
 	}
 
 	const ReadFunc read_;
