@@ -56,7 +56,7 @@ namespace ParquetSharp.IO
         {
             try
             {
-#if !NETSTANDARD2_1_OR_GREATER
+#if !(NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER)
                 var buffer = new byte[(int) Math.Min(nbytes, MaxArraySize)];
 #endif
                 var totalRead = 0L;
@@ -64,7 +64,7 @@ namespace ParquetSharp.IO
                 {
                     var bytesToRead = (int) Math.Min(nbytes - totalRead, MaxArraySize);
                     int read;
-#if NETSTANDARD2_1_OR_GREATER
+#if (NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER)
                     unsafe
                     {
                         read = _stream.Read(new Span<byte>(dest.ToPointer(), bytesToRead));
