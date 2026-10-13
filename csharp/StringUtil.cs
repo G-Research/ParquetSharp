@@ -26,7 +26,7 @@ namespace ParquetSharp
 
         public static string? PtrToNullableStringUtf8(IntPtr ptr)
         {
-#if NETSTANDARD2_1_OR_GREATER
+#if (NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER)
             return Marshal.PtrToStringUTF8(ptr);
 #else
             if (ptr == IntPtr.Zero)
