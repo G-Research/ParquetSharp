@@ -2,7 +2,9 @@
 using System.Linq;
 using BenchmarkDotNet.Analysers;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
+using BenchmarkDotNet.Exporters.Json;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
@@ -47,6 +49,8 @@ namespace ParquetSharp.Benchmark
                         .AddLogger(DefaultConfig.Instance.GetLoggers().ToArray())
                         .AddColumnProvider(DefaultConfig.Instance.GetColumnProviders().ToArray())
                         .AddColumn(new SizeInBytesColumn())
+                        .AddDiagnoser(MemoryDiagnoser.Default)
+                        .AddExporter(JsonExporter.FullCompressed)
                         .WithOptions(ConfigOptions.Default | ConfigOptions.StopOnFirstError)
                         .AddJob(Job.Dry.WithToolchain(new InProcessEmitToolchain(TimeSpan.FromHours(1.0), true)));
                 }
@@ -55,6 +59,8 @@ namespace ParquetSharp.Benchmark
                     config = DefaultConfig
                         .Instance
                         .AddColumn(new SizeInBytesColumn())
+                        .AddDiagnoser(MemoryDiagnoser.Default)
+                        .AddExporter(JsonExporter.FullCompressed)
                         .WithOptions(ConfigOptions.Default | ConfigOptions.StopOnFirstError);
                 }
 
@@ -80,6 +86,21 @@ namespace ParquetSharp.Benchmark
                     logger.WriteHeader(summary.Title);
                     MarkdownExporter.Console.ExportToLog(summary, logger);
                     ConclusionHelper.Print(logger, config.GetAnalysers().SelectMany(a => a.Analyse(summary)).ToList());
+                }
+
+                // Exceptions thrown by benchmarks (e.g. by the Check methods in check mode) are
+                // caught and logged by BenchmarkDotNet, so they must be turned into a non-zero
+                // exit code explicitly for the CI to fail.
+                var numFailedBenchmarks = summaries.SelectMany(s => s.Reports).Count(r => !r.Success);
+                if (numFailedBenchmarks != 0)
+                {
+                    var colour = Console.ForegroundColor;
+
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("ERROR: {0} benchmark(s) failed", numFailedBenchmarks);
+                    Console.ForegroundColor = colour;
+
+                    return 1;
                 }
 
                 return 0;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace ParquetSharp.Benchmark
@@ -7,6 +8,19 @@ namespace ParquetSharp.Benchmark
     {
         // Do not enable checks when benchmarking.
         public static bool Enabled { get; set; } = false;
+
+        public static void AllocatedBytesAreWithinBudget(long allocatedBytes, long budgetBytes, string context)
+        {
+            Console.WriteLine("// Allocated {0:N0} bytes of managed memory while {1} (budget: {2:N0} bytes)", allocatedBytes, context, budgetBytes);
+
+            if (allocatedBytes > budgetBytes)
+            {
+                throw new InvalidDataException(
+                    $"allocated {allocatedBytes:N0} bytes of managed memory while {context}, " +
+                    $"exceeding the budget of {budgetBytes:N0} bytes, " +
+                    "which suggests a per-callback copy in the managed stream layer (see https://github.com/G-Research/ParquetSharp/issues/716)");
+            }
+        }
 
         public static void ArraysAreEqual<T>(T[] expected, T[] result)
         {

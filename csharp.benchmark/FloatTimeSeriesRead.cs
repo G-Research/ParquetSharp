@@ -60,6 +60,10 @@ namespace ParquetSharp.Benchmark
                 fileWriter.Close();
             }
 
+            _streamDateTimes = new DateTime[StreamReadBufferLength];
+            _streamObjectIds = new int[StreamReadBufferLength];
+            _streamValues = new float[StreamReadBufferLength];
+
             Console.WriteLine("Wrote {0:N0} rows in {1:N2} sec", _numRows, timer.Elapsed.TotalSeconds);
             Console.WriteLine();
         }
@@ -98,6 +102,62 @@ namespace ParquetSharp.Benchmark
             }
 
             return (dateTimes, objectIds, values);
+        }
+
+        [Benchmark(Description = "ParquetSharp (Stream)")]
+        public void ParquetSharpStream()
+        {
+            var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+            long numRead;
+
+            using (var stream = File.OpenRead(Filename))
+            {
+                using var randomAccessFile = new IO.ManagedRandomAccessFile(stream);
+                using var fileReader = new ParquetFileReader(randomAccessFile);
+                using var groupReader = fileReader.RowGroup(0);
+
+                numRead = ReadAllChunked(groupReader, 0, _streamDateTimes, _allDates);
+                numRead += ReadAllChunked(groupReader, 1, _streamObjectIds, _allObjectIds);
+                numRead += ReadAllChunked(groupReader, 2, _streamValues, _allValues);
+
+                fileReader.Close();
+            }
+
+            if (Check.Enabled)
+            {
+                if (numRead != 3L * _numRows)
+                {
+                    throw new InvalidDataException($"expected to read {3L * _numRows} values, read {numRead}");
+                }
+
+                // Reading through a .NET stream must not allocate managed memory proportional to the
+                // data size (see https://github.com/G-Research/ParquetSharp/issues/716). The values
+                // read are verified incrementally in ReadAllChunked, so unlike the other benchmarks
+                // this one does not allocate arrays for the whole file content.
+                Check.AllocatedBytesAreWithinBudget(
+                    GC.GetAllocatedBytesForCurrentThread() - allocatedBefore, StreamAllocationBudget,
+                    "reading via ManagedRandomAccessFile");
+            }
+        }
+
+        private static long ReadAllChunked<T>(RowGroupReader groupReader, int columnIndex, T[] buffer, T[] expectedValues) where T : IEquatable<T>
+        {
+            using var logicalReader = groupReader.Column(columnIndex).LogicalReader<T>();
+
+            var offset = 0;
+            while (logicalReader.HasNext)
+            {
+                var read = logicalReader.ReadBatch(buffer.AsSpan());
+
+                if (Check.Enabled && !buffer.AsSpan(0, read).SequenceEqual(expectedValues.AsSpan(offset, read)))
+                {
+                    throw new InvalidDataException($"unexpected values in column {columnIndex} at rows [{offset}, {offset + read})");
+                }
+
+                offset += read;
+            }
+
+            return offset;
         }
 
         [Benchmark]
@@ -169,10 +229,15 @@ namespace ParquetSharp.Benchmark
         }
 
         const string Filename = "float_timeseries.parquet";
+        private const int StreamReadBufferLength = 64 * 1024;
+        private const long StreamAllocationBudget = 1024 * 1024;
 
         private readonly DateTime[] _allDates;
         private readonly int[] _allObjectIds;
         private readonly float[] _allValues;
+        private readonly DateTime[] _streamDateTimes;
+        private readonly int[] _streamObjectIds;
+        private readonly float[] _streamValues;
         private readonly int _numRows;
     }
 }
