@@ -387,16 +387,14 @@ jobs:
     - name: Build & Run C# benchmarks in check mode
       run: dotnet run --project=csharp.benchmark --configuration=Release -- --check --small
 
-  # Run the benchmarks in full mode on pushes to master and track the results over time on the
-  # benchmark-data branch, commenting on the commit when a benchmark regresses past the alert
-  # threshold. Timing on shared runners is noisy, so this tracks trends and does not gate merges.
-  track-benchmarks:
-    name: Track benchmark results
+  # Run the benchmarks in full mode on pushes to master and attach the results to the workflow
+  # run as an artifact. Timing on shared runners is noisy, so the results are informational and
+  # do not gate merges.
+  run-benchmarks:
+    name: Run benchmarks
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' && !github.event.repository.fork
     runs-on: ubuntu-latest
     needs: build-nuget
-    permissions:
-      contents: write
     steps:
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -429,30 +427,14 @@ jobs:
       run: |
         jq -s '{Benchmarks: map(.Benchmarks) | add}' BenchmarkDotNet.Artifacts/results/*-report-full-compressed.json > benchmark-results.json
 
-    # github-action-benchmark switches to the data branch, which requires a clean working tree.
-    - name: Restore benchmark project reference
-      run: git checkout -- csharp.benchmark/ParquetSharp.Benchmark.csproj
-
-    - name: Create benchmark-data branch if it does not exist
-      run: |
-        if ! git ls-remote --exit-code --heads origin benchmark-data > /dev/null
-        then
-          commit=$(git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit-tree -m "Initialize benchmark data branch" "$(git hash-object -t tree /dev/null)")
-          git push origin "${commit}:refs/heads/benchmark-data"
-        fi
-
-    - name: Store benchmark results
-      uses: benchmark-action/github-action-benchmark@4322e5726e6334590d251fc4f92bec0efafc45dc # v1.22.2
+    - name: Upload benchmark results
+      if: success() || failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
-        name: ParquetSharp benchmarks
-        tool: benchmarkdotnet
-        output-file-path: benchmark-results.json
-        gh-pages-branch: benchmark-data
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        auto-push: true
-        alert-threshold: 150%
-        comment-on-alert: true
-        summary-always: true
+        name: benchmark-results
+        path: |
+          benchmark-results.json
+          BenchmarkDotNet.Artifacts/results
 
   # Virtual job that can be configured as a required check before a PR can be merged.
   # As GitHub considers a check as successful if it is skipped, we need to check its status in
