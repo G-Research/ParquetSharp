@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 
@@ -42,6 +43,24 @@ namespace ParquetSharp.Benchmark
         public (string[] keys, string[] values) ParquetSharp()
         {
             using var fileReader = new ParquetFileReader(Filename);
+            return ReadImpl(fileReader);
+        }
+
+        [BenchmarkCategory(Categories.CompareRuntimes)]
+        [Benchmark(Description = "ParquetSharp (Stream)")]
+        public (string[] keys, string[] values) ParquetSharpStream()
+        {
+            // Reads through a .NET stream. Unlike FloatTimeSeriesRead there is no allocation
+            // budget check: reading strings allocates one object per value on every target
+            // framework, so allocations are proportional to the data regardless of the stream.
+            using var stream = File.OpenRead(Filename);
+            using var randomAccessFile = new IO.ManagedRandomAccessFile(stream);
+            using var fileReader = new ParquetFileReader(randomAccessFile);
+            return ReadImpl(fileReader);
+        }
+
+        private (string[] keys, string[] values) ReadImpl(ParquetFileReader fileReader)
+        {
             using var groupReader = fileReader.RowGroup(0);
 
             string[] keys;
