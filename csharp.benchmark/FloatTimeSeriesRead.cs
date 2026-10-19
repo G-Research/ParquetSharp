@@ -68,6 +68,7 @@ namespace ParquetSharp.Benchmark
             Console.WriteLine();
         }
 
+        [BenchmarkCategory(Categories.CompareRuntimes)]
         [Benchmark(Baseline = true)]
         public (DateTime[] dateTimes, int[] objectIds, float[] values) ParquetSharp()
         {
@@ -104,10 +105,15 @@ namespace ParquetSharp.Benchmark
             return (dateTimes, objectIds, values);
         }
 
+        [BenchmarkCategory(Categories.CompareRuntimes)]
         [Benchmark(Description = "ParquetSharp (Stream)")]
         public void ParquetSharpStream()
         {
+#if !NETFRAMEWORK
+            // GC.GetAllocatedBytesForCurrentThread is not available on .NET Framework 4.7.2,
+            // so the allocation check below is skipped there. CI runs check mode on net10.0.
             var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+#endif
             long numRead;
 
             using (var stream = File.OpenRead(Filename))
@@ -134,9 +140,11 @@ namespace ParquetSharp.Benchmark
                 // data size (see https://github.com/G-Research/ParquetSharp/issues/716). The values
                 // read are verified incrementally in ReadAllChunked, so unlike the other benchmarks
                 // this one does not allocate arrays for the whole file content.
+#if !NETFRAMEWORK
                 Check.AllocatedBytesAreWithinBudget(
                     GC.GetAllocatedBytesForCurrentThread() - allocatedBefore, StreamAllocationBudget,
                     "reading via ManagedRandomAccessFile");
+#endif
             }
         }
 

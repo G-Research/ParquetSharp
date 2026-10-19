@@ -98,6 +98,7 @@ namespace ParquetSharp.Benchmark
             return new FileInfo("float_timeseries.csv.gz").Length;
         }
 
+        [BenchmarkCategory(Categories.CompareRuntimes)]
         [Benchmark(Baseline = true, Description = "Baseline")]
         public long Parquet()
         {
@@ -118,6 +119,7 @@ namespace ParquetSharp.Benchmark
             return new FileInfo("float_timeseries.parquet").Length;
         }
 
+        [BenchmarkCategory(Categories.CompareRuntimes)]
         [Benchmark(Description = "Baseline (Stream)")]
         public long ParquetStream()
         {

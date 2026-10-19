@@ -2,7 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <!-- net6.0 binds the netstandard2.1 build of ParquetSharp, net10.0 the net8.0 build and
+         net472 the net471 build, so benchmarks can compare the per-framework implementations
+         (see Program.cs). net472 builds on any OS via the automatic
+         Microsoft.NETFramework.ReferenceAssemblies reference and runs on Linux under Mono. -->
+    <TargetFrameworks>net6.0;net10.0;net472</TargetFrameworks>
+    <!-- net6.0 is out of support but benchmarked deliberately; suppress NETSDK1138. -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <AssemblyName>ParquetSharp.Benchmark</AssemblyName>
@@ -11,8 +17,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageReference Include="Parquet.Net" Version="4.6.2" />
+    <!-- Transitive dependency of Parquet.Net (via IronCompress) on net6.0; the version pulled
+         in by default (1.0.0) has a known vulnerability, which NU1903 turns into an error. -->
+    <PackageReference Include="Snappier" Version="1.3.1" />
   </ItemGroup>
 
   <ItemGroup>
