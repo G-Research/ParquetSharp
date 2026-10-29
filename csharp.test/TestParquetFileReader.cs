@@ -110,7 +110,7 @@ namespace ParquetSharp.Test
             Console.WriteLine("- num rows: {0}", fileMetaData.NumRows);
             Console.WriteLine("- num row groups: {0}", fileMetaData.NumRowGroups);
             Console.WriteLine("- num schema elements: {0}", fileMetaData.NumSchemaElements);
-            Console.WriteLine("- size: {0}", fileMetaData.Size);
+            Console.WriteLine("- size: {0}", fileMetaData.MetadataSize);
             Console.WriteLine("- version: {0}", fileMetaData.Version);
             Console.WriteLine("- writer version: {0}", fileMetaData.WriterVersion);
             Console.WriteLine();

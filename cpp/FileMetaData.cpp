@@ -71,7 +71,7 @@ extern "C"
 		TRYCATCH(*schema = (*file_meta_data)->schema();)
 	}
 
-	PARQUETSHARP_EXPORT ExceptionInfo* FileMetaData_Size(const std::shared_ptr<FileMetaData>* file_meta_data, int* size)
+	PARQUETSHARP_EXPORT ExceptionInfo* FileMetaData_Size(const std::shared_ptr<FileMetaData>* file_meta_data, int64_t* size)
 	{
 		TRYCATCH(*size = (*file_meta_data)->size();)
 	}

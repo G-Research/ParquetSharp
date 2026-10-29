@@ -169,6 +169,10 @@ namespace ParquetSharp.Test
             Assert.AreEqual(numRows, fileMetaData.NumRows);
             Assert.AreEqual(1, fileMetaData.NumRowGroups);
             Assert.AreEqual(1 + expectedColumns.Length, fileMetaData.NumSchemaElements);
+            Assert.That(fileMetaData.MetadataSize, Is.GreaterThan(0));
+#pragma warning disable CS0618 // Type or member is obsolete
+            Assert.AreEqual(fileMetaData.MetadataSize, fileMetaData.Size);
+#pragma warning restore CS0618 // Type or member is obsolete
             // The default format version to write is 2.4, but this doesn't correspond exactly
             // to the version read from the file metadata.
             // The parquet format only stores an integer file version (1 or 2) and

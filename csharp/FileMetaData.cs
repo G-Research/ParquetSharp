@@ -66,9 +66,15 @@ namespace ParquetSharp
         /// <returns>A <see cref="SchemaDescriptor"/> object that describes the schema of the file.</returns>
         public SchemaDescriptor Schema => _schema ??= new SchemaDescriptor(ExceptionInfo.Return<IntPtr>(_handle, FileMetaData_Schema));
         /// <summary>
-        /// Get the total size of the file in bytes.
+        /// Get the size in bytes of the serialized file metadata footer.
         /// </summary>
-        public int Size => ExceptionInfo.Return<int>(_handle, FileMetaData_Size);
+        /// <exception cref="OverflowException">The size is too large to be represented as an <see cref="int"/>.</exception>
+        [Obsolete("Deprecated since 26.0.0. Use MetadataSize instead, which returns a long.")]
+        public int Size => checked((int) MetadataSize);
+        /// <summary>
+        /// Get the size in bytes of the serialized file metadata footer.
+        /// </summary>
+        public long MetadataSize => ExceptionInfo.Return<long>(_handle, FileMetaData_Size);
         /// <summary>
         /// Get the Parquet format version of the file.
         /// </summary>
@@ -111,7 +117,7 @@ namespace ParquetSharp
         private static extern IntPtr FileMetaData_Schema(IntPtr fileMetaData, out IntPtr schema);
 
         [DllImport(ParquetDll.Name)]
-        private static extern IntPtr FileMetaData_Size(IntPtr fileMetaData, out int size);
+        private static extern IntPtr FileMetaData_Size(IntPtr fileMetaData, out long size);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr FileMetaData_Version(IntPtr fileMetaData, out CppParquetVersion version);
