@@ -163,18 +163,22 @@ namespace ParquetSharp.Test
 
             var numRows = expectedColumns.First().Values.Length;
 
-            Assert.AreEqual("parquet-cpp-arrow version 25.0.1", fileMetaData.CreatedBy);
+            Assert.AreEqual("parquet-cpp-arrow version 26.0.0", fileMetaData.CreatedBy);
             Assert.AreEqual(new Dictionary<string, string> { { "case", "Test" }, { "Awesome", "true" } }, fileMetaData.KeyValueMetadata);
             Assert.AreEqual(expectedColumns.Length, fileMetaData.NumColumns);
             Assert.AreEqual(numRows, fileMetaData.NumRows);
             Assert.AreEqual(1, fileMetaData.NumRowGroups);
             Assert.AreEqual(1 + expectedColumns.Length, fileMetaData.NumSchemaElements);
+            Assert.That(fileMetaData.MetadataSize, Is.GreaterThan(0));
+#pragma warning disable CS0618 // Type or member is obsolete
+            Assert.AreEqual(fileMetaData.MetadataSize, fileMetaData.Size);
+#pragma warning restore CS0618 // Type or member is obsolete
             // The default format version to write is 2.4, but this doesn't correspond exactly
             // to the version read from the file metadata.
             // The parquet format only stores an integer file version (1 or 2) and
             // 2 gets mapped to the latest 2.x version.
             Assert.AreEqual(ParquetVersion.PARQUET_2_6, fileMetaData.Version);
-            Assert.AreEqual("parquet-cpp-arrow version 25.0.1", fileMetaData.WriterVersion.ToString());
+            Assert.AreEqual("parquet-cpp-arrow version 26.0.0", fileMetaData.WriterVersion.ToString());
 
             using var rowGroupReader = fileReader.RowGroup(0);
             var rowGroupMetaData = rowGroupReader.MetaData;
