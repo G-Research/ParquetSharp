@@ -63,6 +63,18 @@ namespace ParquetSharp
         /// </summary>
         public string BackendName => ExceptionInfo.ReturnString(Handle, MemoryPool_Backend_Name, MemoryPool_Backend_Name_Free);
 
+        /// <summary>
+        /// Attempt to return unused memory held by the underlying allocator to the operating system.
+        /// </summary>
+        /// <remarks>
+        /// This only applies to allocators that hold on to freed memory for reuse, and is best effort:
+        /// a memory pool may not implement it or may be unable to release memory due to fragmentation.
+        /// Depending on the backend this may be relatively expensive, so it is intended to be called
+        /// at points where memory usage is expected to have dropped, such as after closing a buffered
+        /// row group or disposing a file writer.
+        /// </remarks>
+        public void ReleaseUnused() => ExceptionInfo.Check(MemoryPool_Release_Unused(Handle));
+
         internal MemoryPool(IntPtr handle)
         {
             Handle = handle;
@@ -85,6 +97,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr MemoryPool_Max_Memory(IntPtr memoryPool, out long maxMemory);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr MemoryPool_Release_Unused(IntPtr memoryPool);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr MemoryPool_Backend_Name(IntPtr memoryPool, out IntPtr backendName);
