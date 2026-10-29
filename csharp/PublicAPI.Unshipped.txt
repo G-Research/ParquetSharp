@@ -1,2 +1,3 @@
 #nullable enable
 ParquetSharp.FileMetaData.MetadataSize.get -> long
+ParquetSharp.MemoryPool.ReleaseUnused() -> void
