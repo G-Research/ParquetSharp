@@ -43,6 +43,26 @@ extern "C"
 		TRYCATCH(*max_memory = memory_pool->max_memory();)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* MemoryPool_Proxy_Create(arrow::MemoryPool* wrapped_pool, arrow::MemoryPool** memory_pool)
+	{
+		TRYCATCH(*memory_pool = new arrow::ProxyMemoryPool(wrapped_pool);)
+	}
+
+	PARQUETSHARP_EXPORT void MemoryPool_Proxy_Free(arrow::MemoryPool* memory_pool)
+	{
+		delete memory_pool;
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* MemoryPool_Total_Bytes_Allocated(const arrow::MemoryPool* memory_pool, int64_t* total_bytes_allocated)
+	{
+		TRYCATCH(*total_bytes_allocated = memory_pool->total_bytes_allocated();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* MemoryPool_Num_Allocations(const arrow::MemoryPool* memory_pool, int64_t* num_allocations)
+	{
+		TRYCATCH(*num_allocations = memory_pool->num_allocations();)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* MemoryPool_Release_Unused(arrow::MemoryPool* memory_pool)
 	{
 		TRYCATCH(memory_pool->ReleaseUnused();)

@@ -23,12 +23,15 @@ namespace ParquetSharp
         /// <returns>A new <see cref="ReaderProperties"/> object.</returns>
         public static ReaderProperties WithMemoryPool(MemoryPool memoryPool)
         {
-            return new ReaderProperties(ExceptionInfo.Return<IntPtr, IntPtr>(memoryPool.Handle, ReaderProperties_With_Memory_Pool));
+            var readerProperties = new ReaderProperties(ExceptionInfo.Return<IntPtr, IntPtr>(memoryPool.Handle, ReaderProperties_With_Memory_Pool), memoryPool);
+            GC.KeepAlive(memoryPool);
+            return readerProperties;
         }
 
-        internal ReaderProperties(IntPtr handle)
+        internal ReaderProperties(IntPtr handle, MemoryPool? memoryPool = null)
         {
-            Handle = new ParquetHandle(handle, ReaderProperties_Free);
+            Handle = new ParquetHandle(handle, MemoryPool.KeepAliveUntilFreed(ReaderProperties_Free, memoryPool));
+            MemoryPoolReference = memoryPool;
         }
 
         public void Dispose()
@@ -258,5 +261,11 @@ namespace ParquetSharp
         private static extern IntPtr ReaderProperties_Set_Footer_Read_Size(IntPtr readerProperties, long size);
 
         internal readonly ParquetHandle Handle;
+
+        /// <summary>
+        /// The memory pool these properties were configured with, if any.
+        /// Objects created from these properties keep a reference to it so that it outlives them.
+        /// </summary>
+        internal readonly MemoryPool? MemoryPoolReference;
     }
 }

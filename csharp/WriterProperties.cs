@@ -79,9 +79,10 @@ namespace ParquetSharp
             return new WriterProperties(ExceptionInfo.Return<IntPtr>(WriterProperties_Get_Default_Writer_Properties));
         }
 
-        internal WriterProperties(IntPtr handle)
+        internal WriterProperties(IntPtr handle, MemoryPool? memoryPool = null)
         {
-            Handle = new ParquetHandle(handle, WriterProperties_Free);
+            Handle = new ParquetHandle(handle, MemoryPool.KeepAliveUntilFreed(WriterProperties_Free, memoryPool));
+            MemoryPoolReference = memoryPool;
         }
 
         public void Dispose()
@@ -282,6 +283,12 @@ namespace ParquetSharp
         public SizeStatisticsLevel SizeStatisticsLevel => ExceptionInfo.Return<SizeStatisticsLevel>(Handle, WriterProperties_Size_Statistics_Level);
 
         internal readonly ParquetHandle Handle;
+
+        /// <summary>
+        /// The memory pool these properties were configured with, if any.
+        /// Objects created from these properties keep a reference to it so that it outlives them.
+        /// </summary>
+        internal readonly MemoryPool? MemoryPoolReference;
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Get_Default_Writer_Properties(out IntPtr writerProperties);

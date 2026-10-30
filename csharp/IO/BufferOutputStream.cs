@@ -22,6 +22,7 @@ namespace ParquetSharp.IO
         public BufferOutputStream(MemoryPool memoryPool)
             : base(ExceptionInfo.Return<IntPtr, IntPtr>(memoryPool.Handle, BufferOutputStream_Create))
         {
+            _memoryPool = memoryPool;
         }
 
         /// <summary>
@@ -39,7 +40,7 @@ namespace ParquetSharp.IO
         /// <returns>The buffer containing the written data.</returns>
         public Buffer Finish()
         {
-            return new Buffer(ExceptionInfo.Return<IntPtr>(Handle!, BufferOutputStream_Finish));
+            return new Buffer(ExceptionInfo.Return<IntPtr>(Handle!, BufferOutputStream_Finish), _memoryPool);
         }
 
         [DllImport(ParquetDll.Name)]
@@ -50,5 +51,7 @@ namespace ParquetSharp.IO
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr BufferOutputStream_Finish(IntPtr outputStream, out IntPtr buffer);
+
+        private readonly MemoryPool? _memoryPool;
     }
 }

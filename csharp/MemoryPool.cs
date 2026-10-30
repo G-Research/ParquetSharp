@@ -6,7 +6,7 @@ namespace ParquetSharp
     /// <summary>
     /// Base class for memory allocation on the CPU. Tracks the number of allocated bytes.
     /// </summary>
-    public sealed class MemoryPool
+    public class MemoryPool
     {
         /// <summary>
         /// Get the default memory pool for native allocations.
@@ -51,17 +51,67 @@ namespace ParquetSharp
         /// <summary>
         /// The number of bytes currently allocated by this memory pool and not yet freed.
         /// </summary>
-        public long BytesAllocated => ExceptionInfo.Return<long>(Handle, MemoryPool_Bytes_Allocated);
+        public long BytesAllocated
+        {
+            get
+            {
+                var bytesAllocated = ExceptionInfo.Return<long>(Handle, MemoryPool_Bytes_Allocated);
+                GC.KeepAlive(this);
+                return bytesAllocated;
+            }
+        }
 
         /// <summary>
         /// The peak number of bytes allocated by this memory pool.
         /// </summary>
-        public long MaxMemory => ExceptionInfo.Return<long>(Handle, MemoryPool_Max_Memory);
+        public long MaxMemory
+        {
+            get
+            {
+                var maxMemory = ExceptionInfo.Return<long>(Handle, MemoryPool_Max_Memory);
+                GC.KeepAlive(this);
+                return maxMemory;
+            }
+        }
+
+        /// <summary>
+        /// The total number of bytes allocated by this memory pool, including bytes that have since been freed.
+        /// </summary>
+        public long TotalBytesAllocated
+        {
+            get
+            {
+                var totalBytesAllocated = ExceptionInfo.Return<long>(Handle, MemoryPool_Total_Bytes_Allocated);
+                GC.KeepAlive(this);
+                return totalBytesAllocated;
+            }
+        }
+
+        /// <summary>
+        /// The number of allocations made by this memory pool, including allocations that have since been freed.
+        /// </summary>
+        public long NumAllocations
+        {
+            get
+            {
+                var numAllocations = ExceptionInfo.Return<long>(Handle, MemoryPool_Num_Allocations);
+                GC.KeepAlive(this);
+                return numAllocations;
+            }
+        }
 
         /// <summary>
         /// The name of the backend used by this memory pool.
         /// </summary>
-        public string BackendName => ExceptionInfo.ReturnString(Handle, MemoryPool_Backend_Name, MemoryPool_Backend_Name_Free);
+        public string BackendName
+        {
+            get
+            {
+                var backendName = ExceptionInfo.ReturnString(Handle, MemoryPool_Backend_Name, MemoryPool_Backend_Name_Free);
+                GC.KeepAlive(this);
+                return backendName;
+            }
+        }
 
         /// <summary>
         /// Attempt to return unused memory held by the underlying allocator to the operating system.
@@ -73,11 +123,37 @@ namespace ParquetSharp
         /// at points where memory usage is expected to have dropped, such as after closing a buffered
         /// row group or disposing a file writer.
         /// </remarks>
-        public void ReleaseUnused() => ExceptionInfo.Check(MemoryPool_Release_Unused(Handle));
+        public void ReleaseUnused()
+        {
+            ExceptionInfo.Check(MemoryPool_Release_Unused(Handle));
+            GC.KeepAlive(this);
+        }
 
         internal MemoryPool(IntPtr handle)
         {
-            Handle = handle;
+            _handle = handle;
+        }
+
+        /// <summary>
+        /// The native memory pool pointer.
+        /// </summary>
+        internal virtual IntPtr Handle => _handle;
+
+        /// <summary>
+        /// Wrap a native free function so that it keeps a memory pool alive until the native object has been freed.
+        /// </summary>
+        internal static Action<IntPtr> KeepAliveUntilFreed(Action<IntPtr> free, MemoryPool? memoryPool)
+        {
+            if (memoryPool == null)
+            {
+                return free;
+            }
+
+            return ptr =>
+            {
+                free(ptr);
+                GC.KeepAlive(memoryPool);
+            };
         }
 
         [DllImport(ParquetDll.Name)]
@@ -99,6 +175,12 @@ namespace ParquetSharp
         private static extern IntPtr MemoryPool_Max_Memory(IntPtr memoryPool, out long maxMemory);
 
         [DllImport(ParquetDll.Name)]
+        private static extern IntPtr MemoryPool_Total_Bytes_Allocated(IntPtr memoryPool, out long totalBytesAllocated);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr MemoryPool_Num_Allocations(IntPtr memoryPool, out long numAllocations);
+
+        [DllImport(ParquetDll.Name)]
         private static extern IntPtr MemoryPool_Release_Unused(IntPtr memoryPool);
 
         [DllImport(ParquetDll.Name)]
@@ -107,6 +189,6 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern void MemoryPool_Backend_Name_Free(IntPtr backendName);
 
-        internal readonly IntPtr Handle;
+        private readonly IntPtr _handle;
     }
 }

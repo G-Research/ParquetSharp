@@ -56,7 +56,7 @@ namespace ParquetSharp
             var properties = readerProperties ?? defaultProperties!;
 
             ExceptionInfo.Check(ParquetFileReader_OpenFile(path, properties.Handle.IntPtr, out var reader));
-            _handle = new ParquetHandle(reader, ParquetFileReader_Free);
+            _handle = new ParquetHandle(reader, MemoryPool.KeepAliveUntilFreed(ParquetFileReader_Free, properties.MemoryPoolReference));
 
             GC.KeepAlive(readerProperties);
         }
@@ -85,7 +85,7 @@ namespace ParquetSharp
                 GC.KeepAlive(randomAccessFile);
             }
 
-            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle, properties.Handle.IntPtr, ParquetFileReader_Open), Free);
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle, properties.Handle.IntPtr, ParquetFileReader_Open), MemoryPool.KeepAliveUntilFreed(Free, properties.MemoryPoolReference));
             _randomAccessFile = randomAccessFile;
 
             GC.KeepAlive(readerProperties);
@@ -115,7 +115,7 @@ namespace ParquetSharp
                 GC.KeepAlive(randomAccessFile);
             }
 
-            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle!, properties.Handle.IntPtr, ParquetFileReader_Open), Free);
+            _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr>(randomAccessFile.Handle!, properties.Handle.IntPtr, ParquetFileReader_Open), MemoryPool.KeepAliveUntilFreed(Free, properties.MemoryPoolReference));
             _randomAccessFile = randomAccessFile;
             _ownedFile = true;
 

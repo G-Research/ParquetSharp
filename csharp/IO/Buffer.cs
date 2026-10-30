@@ -13,9 +13,9 @@ namespace ParquetSharp.IO
         {
         }
 
-        internal Buffer(IntPtr handle)
+        internal Buffer(IntPtr handle, MemoryPool? memoryPool = null)
         {
-            Handle = new ParquetHandle(handle, Buffer_Free);
+            Handle = new ParquetHandle(handle, MemoryPool.KeepAliveUntilFreed(Buffer_Free, memoryPool));
         }
 
         internal Buffer(ParquetHandle handle)

@@ -521,7 +521,7 @@ namespace ParquetSharp
             GC.KeepAlive(schema);
             GC.KeepAlive(writerProperties);
 
-            return new ParquetHandle(writer, ParquetFileWriter_Free);
+            return new ParquetHandle(writer, MemoryPool.KeepAliveUntilFreed(ParquetFileWriter_Free, writerProperties.MemoryPoolReference));
         }
 
         private static ParquetHandle CreateParquetFileWriter(
@@ -542,7 +542,7 @@ namespace ParquetSharp
             GC.KeepAlive(schema);
             GC.KeepAlive(writerProperties);
 
-            return new ParquetHandle(writer, ParquetFileWriter_Free);
+            return new ParquetHandle(writer, MemoryPool.KeepAliveUntilFreed(ParquetFileWriter_Free, writerProperties.MemoryPoolReference));
         }
 
         private static WriterProperties CreateWriterProperties(Compression compression)

@@ -14,7 +14,7 @@ namespace ParquetSharp.IO
         /// <param name="initialSize">The initial size of the buffer in bytes.</param>
         /// <param name="memoryPool">The memory pool to use to allocate the buffer.</param>
         public ResizableBuffer(long initialSize = 128L, MemoryPool? memoryPool = null)
-            : base(ExceptionInfo.Return<long, IntPtr, IntPtr>(initialSize, memoryPool?.Handle ?? IntPtr.Zero, ResizableBuffer_Create))
+            : base(ExceptionInfo.Return<long, IntPtr, IntPtr>(initialSize, memoryPool?.Handle ?? IntPtr.Zero, ResizableBuffer_Create), memoryPool)
         {
         }
 

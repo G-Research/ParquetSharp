@@ -57,7 +57,7 @@ namespace ParquetSharp.Arrow
             var cSchema = new CArrowSchema();
             CArrowSchemaExporter.ExportSchema(schema, &cSchema);
             ExceptionInfo.Check(FileWriter_OpenPath(path, &cSchema, writerPropertiesPtr, arrowPropertiesPtr, out var writer));
-            _handle = new ParquetHandle(writer, FileWriter_Free);
+            _handle = new ParquetHandle(writer, MemoryPool.KeepAliveUntilFreed(FileWriter_Free, properties?.MemoryPoolReference));
 
             GC.KeepAlive(cSchema);
             GC.KeepAlive(properties);
@@ -91,7 +91,7 @@ namespace ParquetSharp.Arrow
             CArrowSchemaExporter.ExportSchema(schema, &cSchema);
             ExceptionInfo.Check(FileWriter_OpenStream(
                 outputStream.Handle.IntPtr, &cSchema, writerPropertiesPtr, arrowPropertiesPtr, out var writer));
-            _handle = new ParquetHandle(writer, FileWriter_Free);
+            _handle = new ParquetHandle(writer, MemoryPool.KeepAliveUntilFreed(FileWriter_Free, properties?.MemoryPoolReference));
             _outputStream = outputStream;
 
             GC.KeepAlive(cSchema);
@@ -130,7 +130,7 @@ namespace ParquetSharp.Arrow
             CArrowSchemaExporter.ExportSchema(schema, &cSchema);
             ExceptionInfo.Check(FileWriter_OpenStream(
                 _outputStream.Handle!.IntPtr, &cSchema, writerPropertiesPtr, arrowPropertiesPtr, out var writer));
-            _handle = new ParquetHandle(writer, FileWriter_Free);
+            _handle = new ParquetHandle(writer, MemoryPool.KeepAliveUntilFreed(FileWriter_Free, properties?.MemoryPoolReference));
 
             GC.KeepAlive(cSchema);
             GC.KeepAlive(properties);
