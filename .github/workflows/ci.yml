@@ -55,7 +55,7 @@ jobs:
           arch: arm64
         - os: ubuntu-22.04
           arch: x64
-        - os: macos-14
+        - os: macos-15
           arch: arm64
         - os: macos-15-intel
           arch: x64
@@ -252,8 +252,8 @@ jobs:
         - ubuntu-22.04-arm
         - ubuntu-24.04
         - ubuntu-24.04-arm
-        - macos-14
         - macos-15
+        - macos-26
         - macos-15-intel
         - windows-2022
         - windows-2025
