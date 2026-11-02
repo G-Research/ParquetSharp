@@ -6,3 +6,17 @@ ParquetSharp.MemoryPool.TotalBytesAllocated.get -> long
 ParquetSharp.ProxyMemoryPool
 ParquetSharp.ProxyMemoryPool.Dispose() -> void
 ParquetSharp.ProxyMemoryPool.ProxyMemoryPool(ParquetSharp.MemoryPool! wrappedPool) -> void
+ParquetSharp.BufferedWriterStats
+ParquetSharp.BufferedWriterStats.BufferedWriterStats() -> void
+ParquetSharp.BufferedWriterStats.DefLevelBytes.get -> long
+ParquetSharp.BufferedWriterStats.DictBytes.get -> long
+ParquetSharp.BufferedWriterStats.RepLevelBytes.get -> long
+ParquetSharp.BufferedWriterStats.ValueBytes.get -> long
+ParquetSharp.RowGroupWriter.EstimatedBufferedStats.get -> ParquetSharp.BufferedWriterStats
+ParquetSharp.RowGroupWriter.TotalCompressedBytesWritten.get -> long
+override ParquetSharp.BufferedWriterStats.ToString() -> string!
+ParquetSharp.BufferedWriterStats.Equals(ParquetSharp.BufferedWriterStats other) -> bool
+override ParquetSharp.BufferedWriterStats.Equals(object? obj) -> bool
+override ParquetSharp.BufferedWriterStats.GetHashCode() -> int
+static ParquetSharp.BufferedWriterStats.operator !=(ParquetSharp.BufferedWriterStats left, ParquetSharp.BufferedWriterStats right) -> bool
+static ParquetSharp.BufferedWriterStats.operator ==(ParquetSharp.BufferedWriterStats left, ParquetSharp.BufferedWriterStats right) -> bool
