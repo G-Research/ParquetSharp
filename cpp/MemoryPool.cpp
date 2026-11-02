@@ -43,6 +43,11 @@ extern "C"
 		TRYCATCH(*max_memory = memory_pool->max_memory();)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* MemoryPool_Release_Unused(arrow::MemoryPool* memory_pool)
+	{
+		TRYCATCH(memory_pool->ReleaseUnused();)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* MemoryPool_Backend_Name(const arrow::MemoryPool* memory_pool, const char** backend_name)
 	{
 		TRYCATCH(*backend_name = AllocateCString(memory_pool->backend_name());)
