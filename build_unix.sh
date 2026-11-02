@@ -75,6 +75,14 @@ if [ "$os" = "linux" ]; then
   need_custom_triplet=true
 fi
 
+# Pin the minimum supported macOS version for ParquetSharpNative and its static vcpkg dependencies.
+# Otherwise this defaults to the version of macOS the build runs on.
+osx_deployment_target=15.0
+if [ "$os" = "osx" ]; then
+  need_custom_triplet=true
+  options+=" -D CMAKE_OSX_DEPLOYMENT_TARGET=$osx_deployment_target"
+fi
+
 if [ "$need_custom_triplet" = "true" ]; then
   mkdir -p "$custom_triplets_dir"
   for vcpkg_triplet_file in $VCPKG_INSTALLATION_ROOT/triplets/{,community/}$triplet.cmake
@@ -92,6 +100,9 @@ if [ "$need_custom_triplet" = "true" ]; then
           # See also https://github.com/microsoft/mimalloc/issues/147 for more details.
           # Since only mimalloc recognizes this option and other ports ignore it. No overlay port is needed.
           echo 'list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS "-DMI_LOCAL_DYNAMIC_TLS=ON")' >> "$custom_triplet_file"
+        fi
+        if [ "$os" = "osx" ]; then
+          echo "set(VCPKG_OSX_DEPLOYMENT_TARGET $osx_deployment_target)" >> "$custom_triplet_file"
         fi
     fi
   done
