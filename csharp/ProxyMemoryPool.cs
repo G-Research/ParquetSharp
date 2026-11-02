@@ -13,9 +13,12 @@ namespace ParquetSharp
     /// even when they share the same underlying memory pool.
     ///
     /// Unlike the global memory pools, a proxy memory pool owns a native resource.
-    /// It must not be disposed until every object that allocates from it has been disposed,
-    /// for example any writer, reader, properties or buffer it was passed to,
-    /// and any Arrow arrays read using it.
+    /// It must not be disposed until every object that was configured to use it has been disposed,
+    /// for example any writer, reader, properties or output stream it was passed to.
+    ///
+    /// Memory allocated from the pool may safely outlive it, for example buffers or Arrow arrays
+    /// read using it. The native pool is only freed once all allocations made through it have been freed,
+    /// so statistics are no longer available after disposal but the memory remains valid.
     /// </remarks>
     public sealed class ProxyMemoryPool : MemoryPool, IDisposable
     {
@@ -24,15 +27,14 @@ namespace ParquetSharp
         /// </summary>
         /// <param name="wrappedPool">The memory pool to forward allocations to</param>
         public ProxyMemoryPool(MemoryPool wrappedPool)
-            : this(CreateHandle(wrappedPool), wrappedPool)
+            : this(CreateHandle(wrappedPool))
         {
         }
 
-        private ProxyMemoryPool(ProxyMemoryPoolHandle handle, MemoryPool wrappedPool)
+        private ProxyMemoryPool(ProxyMemoryPoolHandle handle)
             : base(handle.DangerousGetHandle())
         {
             _handle = handle;
-            _wrappedPool = wrappedPool;
         }
 
         public void Dispose()
@@ -89,8 +91,8 @@ namespace ParquetSharp
         [DllImport(ParquetDll.Name)]
         private static extern void MemoryPool_Proxy_Free(IntPtr memoryPool);
 
+        // If the wrapped pool is also a proxy, the native proxy holds a reference to it,
+        // so we don't need to keep a reference to the managed wrapped pool.
         private readonly ProxyMemoryPoolHandle _handle;
-        // Keep a reference to the wrapped pool, which may itself be a proxy that must outlive this one
-        private readonly MemoryPool _wrappedPool;
     }
 }

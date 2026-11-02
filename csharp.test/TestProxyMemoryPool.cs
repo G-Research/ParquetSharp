@@ -177,6 +177,185 @@ namespace ParquetSharp.Test
             Assert.Throws<ArgumentNullException>(() => new ProxyMemoryPool(null!));
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public static void TestArrowRecordBatchOutlivesProxy(bool disposeProxy)
+        {
+            const int numRows = 10_000;
+            using var testDir = new TempWorkingDirectory();
+            var path = Path.Combine(testDir.DirectoryPath, "test.parquet");
+            WriteFile(path, numRows);
+
+            var batch = ReadBatchWithUnreferencedPool(path, disposeProxy, out var poolReference);
+            CollectGarbage();
+            Assert.False(poolReference.IsAlive);
+
+            using (batch)
+            {
+                var intArray = (Apache.Arrow.Int32Array) batch.Column(0);
+                Assert.AreEqual(ExpectedInts(intArray.Length), intArray.Values.ToArray());
+            }
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public static void TestBufferReaderOutlivesProxy(bool disposeProxy)
+        {
+            const int numRows = 10_000;
+            using var bufferReader = CreateBufferReaderWithUnreferencedPool(numRows, disposeProxy, out var poolReference);
+            CollectGarbage();
+            Assert.False(poolReference.IsAlive);
+
+            CheckRows(bufferReader, numRows);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public static void TestOutputStreamOutlivesProxy(bool disposeProxy)
+        {
+            const int numRows = 10_000;
+            using var outputStream = CreateOutputStreamWithUnreferencedPool(disposeProxy, out var poolReference);
+            CollectGarbage();
+            Assert.False(poolReference.IsAlive);
+
+            // Writing grows the buffer, which reallocates through the proxy
+            using (var writer = new ParquetFileWriter(outputStream, Columns))
+            {
+                using var rowGroupWriter = writer.AppendRowGroup();
+                WriteRows(rowGroupWriter, numRows);
+                writer.Close();
+            }
+
+            using var buffer = outputStream.Finish();
+            using var bufferReader = new BufferReader(buffer);
+            CheckRows(bufferReader, numRows);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public static void TestWrappedProxyOutlivedByOuterProxy(bool disposeInner)
+        {
+            const int bufferSize = 1024 * 1024;
+            using var outer = CreateProxyWithUnreferencedWrappedProxy(disposeInner, out var innerReference);
+            CollectGarbage();
+            Assert.False(innerReference.IsAlive);
+
+            using (var buffer = new ResizableBuffer(bufferSize, outer))
+            {
+                Assert.GreaterOrEqual(outer.BytesAllocated, bufferSize);
+            }
+
+            Assert.AreEqual(0, outer.BytesAllocated);
+            Assert.IsNotEmpty(outer.BackendName);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Apache.Arrow.RecordBatch ReadBatchWithUnreferencedPool(
+            string path, bool disposeProxy, out WeakReference poolReference)
+        {
+            var pool = new ProxyMemoryPool(MemoryPool.GetDefaultMemoryPool());
+            poolReference = new WeakReference(pool);
+
+            Apache.Arrow.RecordBatch batch;
+            using (var readerProperties = ReaderProperties.WithMemoryPool(pool))
+            using (var reader = new ParquetSharp.Arrow.FileReader(path, readerProperties))
+            using (var stream = reader.GetRecordBatchReader())
+            {
+                batch = stream.ReadNextRecordBatchAsync().AsTask().Result!;
+            }
+
+            Assert.Greater(pool.BytesAllocated, 0);
+            if (disposeProxy)
+            {
+                pool.Dispose();
+            }
+
+            return batch;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static BufferReader CreateBufferReaderWithUnreferencedPool(
+            int numRows, bool disposeProxy, out WeakReference poolReference)
+        {
+            var pool = new ProxyMemoryPool(MemoryPool.GetDefaultMemoryPool());
+            poolReference = new WeakReference(pool);
+
+            BufferReader bufferReader;
+            using (var outputStream = new BufferOutputStream(pool))
+            {
+                using (var writer = new ParquetFileWriter(outputStream, Columns))
+                {
+                    using var rowGroupWriter = writer.AppendRowGroup();
+                    WriteRows(rowGroupWriter, numRows);
+                    writer.Close();
+                }
+
+                using var buffer = outputStream.Finish();
+                bufferReader = new BufferReader(buffer);
+            }
+
+            Assert.Greater(pool.BytesAllocated, 0);
+            if (disposeProxy)
+            {
+                pool.Dispose();
+            }
+
+            return bufferReader;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static BufferOutputStream CreateOutputStreamWithUnreferencedPool(
+            bool disposeProxy, out WeakReference poolReference)
+        {
+            var pool = new ProxyMemoryPool(MemoryPool.GetDefaultMemoryPool());
+            poolReference = new WeakReference(pool);
+
+            BufferOutputStream outputStream;
+            using (var buffer = new ResizableBuffer(128, pool))
+            {
+                outputStream = new BufferOutputStream(buffer);
+            }
+
+            if (disposeProxy)
+            {
+                pool.Dispose();
+            }
+
+            return outputStream;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static ProxyMemoryPool CreateProxyWithUnreferencedWrappedProxy(
+            bool disposeInner, out WeakReference innerReference)
+        {
+            var inner = new ProxyMemoryPool(MemoryPool.GetDefaultMemoryPool());
+            innerReference = new WeakReference(inner);
+            var outer = new ProxyMemoryPool(inner);
+            if (disposeInner)
+            {
+                inner.Dispose();
+            }
+
+            return outer;
+        }
+
+        private static void CollectGarbage()
+        {
+            for (var i = 0; i < 2; ++i)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+
+        private static void WriteFile(string path, int numRows)
+        {
+            using var writer = new ParquetFileWriter(path, Columns);
+            using var rowGroupWriter = writer.AppendRowGroup();
+            WriteRows(rowGroupWriter, numRows);
+            writer.Close();
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static ParquetFileWriter CreateWriterWithUnreferencedPool(string path, MemoryPool wrappedPool, out WeakReference poolReference)
         {
@@ -195,11 +374,11 @@ namespace ParquetSharp.Test
 
         private static void WriteRows(RowGroupWriter rowGroupWriter, int numRows)
         {
-            using (var intWriter = rowGroupWriter.Column(0).LogicalWriter<int>())
+            using (var intWriter = (rowGroupWriter.Buffered ? rowGroupWriter.Column(0) : rowGroupWriter.NextColumn()).LogicalWriter<int>())
             {
                 intWriter.WriteBatch(ExpectedInts(numRows));
             }
-            using (var stringWriter = rowGroupWriter.Column(1).LogicalWriter<string>())
+            using (var stringWriter = (rowGroupWriter.Buffered ? rowGroupWriter.Column(1) : rowGroupWriter.NextColumn()).LogicalWriter<string>())
             {
                 stringWriter.WriteBatch(ExpectedStrings(numRows));
             }
@@ -210,18 +389,29 @@ namespace ParquetSharp.Test
             using (var readerProperties = ReaderProperties.WithMemoryPool(pool))
             using (var reader = new ParquetFileReader(path, readerProperties))
             {
-                var numRowGroups = reader.FileMetaData.NumRowGroups;
-                for (var rowGroup = 0; rowGroup < numRowGroups; ++rowGroup)
-                {
-                    using var rowGroupReader = reader.RowGroup(rowGroup);
-                    using var intReader = rowGroupReader.Column(0).LogicalReader<int>();
-                    Assert.AreEqual(ExpectedInts(numRows), intReader.ReadAll(numRows));
-                    using var stringReader = rowGroupReader.Column(1).LogicalReader<string>();
-                    Assert.AreEqual(ExpectedStrings(numRows), stringReader.ReadAll(numRows));
-                }
+                CheckRows(reader, numRows);
             }
 
             Assert.AreEqual(0, pool.BytesAllocated);
+        }
+
+        private static void CheckRows(RandomAccessFile file, int numRows)
+        {
+            using var reader = new ParquetFileReader(file);
+            CheckRows(reader, numRows);
+        }
+
+        private static void CheckRows(ParquetFileReader reader, int numRows)
+        {
+            var numRowGroups = reader.FileMetaData.NumRowGroups;
+            for (var rowGroup = 0; rowGroup < numRowGroups; ++rowGroup)
+            {
+                using var rowGroupReader = reader.RowGroup(rowGroup);
+                using var intReader = rowGroupReader.Column(0).LogicalReader<int>();
+                Assert.AreEqual(ExpectedInts(numRows), intReader.ReadAll(numRows));
+                using var stringReader = rowGroupReader.Column(1).LogicalReader<string>();
+                Assert.AreEqual(ExpectedStrings(numRows), stringReader.ReadAll(numRows));
+            }
         }
 
         private static int[] ExpectedInts(int numRows) => Enumerable.Range(0, numRows).ToArray();
