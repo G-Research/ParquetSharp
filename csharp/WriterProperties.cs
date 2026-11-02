@@ -263,7 +263,16 @@ namespace ParquetSharp
         /// <summary>
         /// The memory pool that will be used by allocations in the writer.
         /// </summary>
-        public MemoryPool MemoryPool => new MemoryPool(ExceptionInfo.Return<IntPtr>(Handle, WriterProperties_Memory_Pool));
+        public MemoryPool MemoryPool
+        {
+            get
+            {
+                var poolPtr = ExceptionInfo.Return<IntPtr>(Handle, WriterProperties_Memory_Pool);
+                // Return the pool these properties were created with if available,
+                // so that a proxy pool is kept alive by anything it is passed to.
+                return MemoryPoolReference ?? new MemoryPool(poolPtr);
+            }
+        }
 
         /// <summary>
         /// Whether decimals with precision between 1 and 18 (inclusive) are stored as integers.

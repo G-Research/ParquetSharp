@@ -136,7 +136,9 @@ namespace ParquetSharp
             get
             {
                 var poolPtr = ExceptionInfo.Return<IntPtr>(Handle, ReaderProperties_Get_Memory_Pool);
-                return new MemoryPool(poolPtr);
+                // Return the pool these properties were created with if available,
+                // so that a proxy pool is kept alive by anything it is passed to.
+                return MemoryPoolReference ?? new MemoryPool(poolPtr);
             }
         }
 

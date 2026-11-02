@@ -177,6 +177,89 @@ namespace ParquetSharp.Test
             Assert.Throws<ArgumentNullException>(() => new ProxyMemoryPool(null!));
         }
 
+        [Test]
+        public static void TestPropertiesReturnProxy()
+        {
+            using var pool = new ProxyMemoryPool(MemoryPool.GetDefaultMemoryPool());
+
+            using (var readerProperties = ReaderProperties.WithMemoryPool(pool))
+            {
+                Assert.AreSame(pool, readerProperties.MemoryPool);
+            }
+
+            using var testDir = new TempWorkingDirectory();
+            var path = Path.Combine(testDir.DirectoryPath, "test.parquet");
+            using var writer = CreateWriter(path, pool);
+            using (var builder = new WriterPropertiesBuilder())
+            using (var writerProperties = builder.MemoryPool(pool).Build())
+            {
+                Assert.AreSame(pool, writerProperties.MemoryPool);
+            }
+            Assert.AreSame(pool, writer.WriterProperties.MemoryPool);
+            writer.Close();
+        }
+
+        [Test]
+        public static void TestReaderPropertiesMemoryPoolKeepsProxyAlive()
+        {
+            const int numRows = 10_000;
+            using var testDir = new TempWorkingDirectory();
+            var path = Path.Combine(testDir.DirectoryPath, "test.parquet");
+            WriteFile(path, numRows);
+
+            var pool = GetPoolFromReaderPropertiesWithUnreferencedProxy();
+            CollectGarbage();
+
+            CheckRows(path, numRows, pool);
+            Assert.Greater(pool.NumAllocations, 0);
+        }
+
+        [Test]
+        public static void TestWriterPropertiesMemoryPoolKeepsProxyAlive()
+        {
+            const int numRows = 10_000;
+            using var testDir = new TempWorkingDirectory();
+            var path = Path.Combine(testDir.DirectoryPath, "test.parquet");
+
+            var pool = GetPoolFromWriterPropertiesWithUnreferencedProxy();
+            CollectGarbage();
+
+            using (var writer = CreateWriter(path, pool))
+            {
+                using var rowGroupWriter = writer.AppendBufferedRowGroup();
+                WriteRows(rowGroupWriter, numRows);
+                Assert.Greater(pool.BytesAllocated, 0);
+                rowGroupWriter.Close();
+                writer.Close();
+            }
+
+            Assert.AreEqual(0, pool.BytesAllocated);
+            using var readPool = new ProxyMemoryPool(MemoryPool.GetDefaultMemoryPool());
+            CheckRows(path, numRows, readPool);
+        }
+
+        [Test]
+        public static void TestWriterPropertiesFromWriterKeepProxyAlive()
+        {
+            const int numRows = 10_000;
+            using var testDir = new TempWorkingDirectory();
+            var path = Path.Combine(testDir.DirectoryPath, "test.parquet");
+
+            using (var writer = CreateWriterFromWriterPropertiesOfUnreferencedWriter(testDir.DirectoryPath, path, out var poolReference))
+            {
+                CollectGarbage();
+                Assert.True(poolReference.IsAlive);
+
+                using var rowGroupWriter = writer.AppendBufferedRowGroup();
+                WriteRows(rowGroupWriter, numRows);
+                rowGroupWriter.Close();
+                writer.Close();
+            }
+
+            using var readPool = new ProxyMemoryPool(MemoryPool.GetDefaultMemoryPool());
+            CheckRows(path, numRows, readPool);
+        }
+
         [TestCase(true)]
         [TestCase(false)]
         public static void TestArrowRecordBatchOutlivesProxy(bool disposeProxy)
@@ -362,6 +445,38 @@ namespace ParquetSharp.Test
             var pool = new ProxyMemoryPool(wrappedPool);
             poolReference = new WeakReference(pool);
             return CreateWriter(path, pool);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static MemoryPool GetPoolFromReaderPropertiesWithUnreferencedProxy()
+        {
+            var proxy = new ProxyMemoryPool(MemoryPool.GetDefaultMemoryPool());
+            using var readerProperties = ReaderProperties.WithMemoryPool(proxy);
+            return readerProperties.MemoryPool;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static MemoryPool GetPoolFromWriterPropertiesWithUnreferencedProxy()
+        {
+            var proxy = new ProxyMemoryPool(MemoryPool.GetDefaultMemoryPool());
+            using var builder = new WriterPropertiesBuilder();
+            using var writerProperties = builder.MemoryPool(proxy).Build();
+            return writerProperties.MemoryPool;
+        }
+
+        /// <summary>
+        /// Create a writer using the WriterProperties of another writer that used a proxy pool,
+        /// where the original writer and proxy are no longer referenced.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static ParquetFileWriter CreateWriterFromWriterPropertiesOfUnreferencedWriter(
+            string directory, string path, out WeakReference poolReference)
+        {
+            using var firstWriter = CreateWriterWithUnreferencedPool(
+                Path.Combine(directory, "first.parquet"), MemoryPool.GetDefaultMemoryPool(), out poolReference);
+            var writer = new ParquetFileWriter(path, Columns, firstWriter.WriterProperties);
+            firstWriter.Close();
+            return writer;
         }
 
         private static ParquetFileWriter CreateWriter(string path, MemoryPool pool)
