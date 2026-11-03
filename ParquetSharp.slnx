@@ -1,0 +1,12 @@
+<Solution>
+  <Project Path="csharp/ParquetSharp.csproj" />
+  <Project Path="csharp.test/ParquetSharp.Test.csproj" />
+  <Project Path="fsharp.test/ParquetSharp.Test.FSharp.fsproj" />
+  <Folder Name="/benchmarks/">
+    <Project Path="csharp.benchmark/ParquetSharp.Benchmark.csproj" />
+    <Project Path="csharp.config.benchmarks/ParquetSharp.Config.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/smoketest/">
+    <Project Path="csharp.smoketest/csharp.smoketest.csproj" />
+  </Folder>
+</Solution>
