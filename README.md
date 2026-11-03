@@ -297,6 +297,9 @@ Build the C++ code and run the C# tests with:
 dotnet test csharp.test
 ```
 
+To work on the .NET code in an IDE such as Rider or VS Code, open the `ParquetSharp.slnx` solution file.
+You'll need to run `./build_unix.sh` first, and re-run it after changing the C++ code, as the solution only contains the .NET projects.
+
 ### Known Issues
 An issue that may occur when building ParquetSharp locally using `build_windows.ps1` is Visual Studio not being detected by CMake:
 ```pwsh
