@@ -16,6 +16,8 @@ namespace ParquetSharp.IO
         public ResizableBuffer(long initialSize = 128L, MemoryPool? memoryPool = null)
             : base(ExceptionInfo.Return<long, IntPtr, IntPtr>(initialSize, memoryPool?.Handle ?? IntPtr.Zero, ResizableBuffer_Create))
         {
+            // Keep the pool alive until the native buffer has allocated from it and holds a reference to it
+            GC.KeepAlive(memoryPool);
         }
 
         // Backward compatibility overload

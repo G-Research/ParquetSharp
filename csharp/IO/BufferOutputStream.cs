@@ -22,6 +22,8 @@ namespace ParquetSharp.IO
         public BufferOutputStream(MemoryPool memoryPool)
             : base(ExceptionInfo.Return<IntPtr, IntPtr>(memoryPool.Handle, BufferOutputStream_Create))
         {
+            // Keep the pool alive until the native stream has allocated from it and holds a reference to it
+            GC.KeepAlive(memoryPool);
         }
 
         /// <summary>
