@@ -1,3 +1,8 @@
 #nullable enable
 ParquetSharp.FileMetaData.MetadataSize.get -> long
 ParquetSharp.MemoryPool.ReleaseUnused() -> void
+ParquetSharp.MemoryPool.NumAllocations.get -> long
+ParquetSharp.MemoryPool.TotalBytesAllocated.get -> long
+ParquetSharp.ProxyMemoryPool
+ParquetSharp.ProxyMemoryPool.Dispose() -> void
+ParquetSharp.ProxyMemoryPool.ProxyMemoryPool(ParquetSharp.MemoryPool! wrappedPool) -> void

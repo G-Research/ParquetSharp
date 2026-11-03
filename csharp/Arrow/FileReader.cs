@@ -33,7 +33,7 @@ namespace ParquetSharp.Arrow
 
             ExceptionInfo.Check(FileReader_OpenPath(path, readerProperties.Handle.IntPtr, arrowPropertiesPtr, out var reader));
 
-            _handle = new ParquetHandle(reader, FileReader_Free);
+            _handle = new ParquetHandle(reader, MemoryPool.KeepAliveUntilFreed(FileReader_Free, readerProperties.MemoryPoolReference));
 
             GC.KeepAlive(properties);
             GC.KeepAlive(arrowProperties);
@@ -61,7 +61,7 @@ namespace ParquetSharp.Arrow
                 arrowProperties == null ? IntPtr.Zero : arrowProperties.Handle.IntPtr;
 
             _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr, IntPtr>(
-                file.Handle, readerProperties.Handle.IntPtr, arrowPropertiesPtr, FileReader_OpenFile), FileReader_Free);
+                file.Handle, readerProperties.Handle.IntPtr, arrowPropertiesPtr, FileReader_OpenFile), MemoryPool.KeepAliveUntilFreed(FileReader_Free, readerProperties.MemoryPoolReference));
             _randomAccessFile = file;
 
             GC.KeepAlive(properties);
@@ -94,7 +94,7 @@ namespace ParquetSharp.Arrow
                 arrowProperties == null ? IntPtr.Zero : arrowProperties.Handle.IntPtr;
 
             _handle = new ParquetHandle(ExceptionInfo.Return<IntPtr, IntPtr, IntPtr>(
-                _randomAccessFile.Handle!, readerProperties.Handle.IntPtr, arrowPropertiesPtr, FileReader_OpenFile), FileReader_Free);
+                _randomAccessFile.Handle!, readerProperties.Handle.IntPtr, arrowPropertiesPtr, FileReader_OpenFile), MemoryPool.KeepAliveUntilFreed(FileReader_Free, readerProperties.MemoryPoolReference));
 
             GC.KeepAlive(properties);
             GC.KeepAlive(arrowProperties);

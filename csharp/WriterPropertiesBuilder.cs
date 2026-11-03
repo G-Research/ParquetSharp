@@ -32,7 +32,7 @@ namespace ParquetSharp
         /// <returns>The configured <see cref="WriterProperties"/> object.</returns>
         public WriterProperties Build()
         {
-            return new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, WriterPropertiesBuilder_Build));
+            return new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, WriterPropertiesBuilder_Build), _memoryPool);
         }
 
         /// <summary>
@@ -544,8 +544,10 @@ namespace ParquetSharp
         public WriterPropertiesBuilder MemoryPool(MemoryPool memoryPool)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Memory_Pool(_handle.IntPtr, memoryPool.Handle));
+            _memoryPool = memoryPool;
 
             GC.KeepAlive(_handle);
+            GC.KeepAlive(memoryPool);
             return this;
         }
 
@@ -853,5 +855,6 @@ namespace ParquetSharp
 
 
         private readonly ParquetHandle _handle;
+        private MemoryPool? _memoryPool;
     }
 }

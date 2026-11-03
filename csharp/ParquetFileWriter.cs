@@ -35,7 +35,7 @@ namespace ParquetSharp
                 _keyValueMetadata = keyValueMetadata;
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
-            _handle = CreateParquetFileWriter(path, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             Columns = columns;
         }
 
@@ -60,7 +60,7 @@ namespace ParquetSharp
                 _keyValueMetadata = keyValueMetadata;
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
-            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             _outputStream = outputStream;
             Columns = columns;
         }
@@ -88,7 +88,7 @@ namespace ParquetSharp
                 _keyValueMetadata = keyValueMetadata;
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
-            _handle = CreateParquetFileWriter(path, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             Columns = columns;
         }
 
@@ -115,7 +115,7 @@ namespace ParquetSharp
                 _keyValueMetadata = keyValueMetadata;
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
-            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             _outputStream = outputStream;
             Columns = columns;
         }
@@ -147,7 +147,7 @@ namespace ParquetSharp
             }
 
             var outputStream = new ManagedOutputStream(stream, leaveOpen);
-            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             _outputStream = outputStream;
             _ownedStream = true;
             Columns = columns;
@@ -173,7 +173,7 @@ namespace ParquetSharp
                 _keyValueMetadata = keyValueMetadata;
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
-            _handle = CreateParquetFileWriter(path, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             Columns = columns;
         }
 
@@ -197,7 +197,7 @@ namespace ParquetSharp
                 _keyValueMetadata = keyValueMetadata;
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
-            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             _outputStream = outputStream;
             Columns = columns;
         }
@@ -224,7 +224,7 @@ namespace ParquetSharp
                 _keyValueMetadata = keyValueMetadata;
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
-            _handle = CreateParquetFileWriter(path, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             Columns = columns;
         }
 
@@ -250,7 +250,7 @@ namespace ParquetSharp
                 _keyValueMetadata = keyValueMetadata;
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
-            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             _outputStream = outputStream;
             Columns = columns;
         }
@@ -281,7 +281,7 @@ namespace ParquetSharp
             }
 
             var outputStream = new ManagedOutputStream(stream, leaveOpen);
-            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             _outputStream = outputStream;
             _ownedStream = true;
             Columns = columns;
@@ -306,7 +306,7 @@ namespace ParquetSharp
                 _keyValueMetadata = keyValueMetadata;
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
-            _handle = CreateParquetFileWriter(path, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(path, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             Columns = null;
         }
 
@@ -329,7 +329,7 @@ namespace ParquetSharp
                 _keyValueMetadata = keyValueMetadata;
                 _parquetKeyValueMetadata = new KeyValueMetadata();
             }
-            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             _outputStream = outputStream;
             Columns = null;
         }
@@ -357,7 +357,7 @@ namespace ParquetSharp
             }
 
             var outputStream = new ManagedOutputStream(stream, leaveOpen);
-            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata);
+            _handle = CreateParquetFileWriter(outputStream, schema, writerProperties, _parquetKeyValueMetadata, out _memoryPool);
             _outputStream = outputStream;
             _ownedStream = true;
             Columns = null;
@@ -431,7 +431,7 @@ namespace ParquetSharp
         /// <summary>
         /// The <see cref="ParquetSharp.WriterProperties"/> used to configure the writer.
         /// </summary>
-        public WriterProperties WriterProperties => _writerProperties ??= new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Properties));
+        public WriterProperties WriterProperties => _writerProperties ??= new WriterProperties(ExceptionInfo.Return<IntPtr>(_handle, ParquetFileWriter_Properties), _memoryPool);
 
         /// <summary>
         /// The schema of the file.
@@ -506,7 +506,8 @@ namespace ParquetSharp
             string path,
             GroupNode schema,
             WriterProperties writerProperties,
-            KeyValueMetadata? keyValueMetadata)
+            KeyValueMetadata? keyValueMetadata,
+            out MemoryPool? memoryPool)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
             if (schema == null) throw new ArgumentNullException(nameof(schema));
@@ -521,14 +522,16 @@ namespace ParquetSharp
             GC.KeepAlive(schema);
             GC.KeepAlive(writerProperties);
 
-            return new ParquetHandle(writer, ParquetFileWriter_Free);
+            memoryPool = writerProperties.MemoryPoolReference;
+            return new ParquetHandle(writer, MemoryPool.KeepAliveUntilFreed(ParquetFileWriter_Free, memoryPool));
         }
 
         private static ParquetHandle CreateParquetFileWriter(
             OutputStream outputStream,
             GroupNode schema,
             WriterProperties writerProperties,
-            KeyValueMetadata? keyValueMetadata)
+            KeyValueMetadata? keyValueMetadata,
+            out MemoryPool? memoryPool)
         {
             if (outputStream == null) throw new ArgumentNullException(nameof(outputStream));
             if (outputStream.Handle == null) throw new ArgumentNullException(nameof(outputStream.Handle));
@@ -542,7 +545,8 @@ namespace ParquetSharp
             GC.KeepAlive(schema);
             GC.KeepAlive(writerProperties);
 
-            return new ParquetHandle(writer, ParquetFileWriter_Free);
+            memoryPool = writerProperties.MemoryPoolReference;
+            return new ParquetHandle(writer, MemoryPool.KeepAliveUntilFreed(ParquetFileWriter_Free, memoryPool));
         }
 
         private static WriterProperties CreateWriterProperties(Compression compression)
@@ -597,6 +601,8 @@ namespace ParquetSharp
         internal readonly Column[]? Columns;
         private FileMetaData? _fileMetaData;
         private WriterProperties? _writerProperties;
+        // The memory pool the writer properties were configured with, which must outlive any properties returned by WriterProperties
+        private readonly MemoryPool? _memoryPool;
         private bool _keyValueMetadataSet;
         private readonly OutputStream? _outputStream; // Keep a handle to the output stream to prevent GC
         private readonly bool _ownedStream; // Whether this writer created the OutputStream
