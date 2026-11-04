@@ -17,7 +17,11 @@ namespace ParquetSharp
         public WriterPropertiesBuilder()
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Create(out var handle));
-            _handle = new ParquetHandle(handle, WriterPropertiesBuilder_Free);
+            _handle = new ParquetHandle(handle, ptr =>
+            {
+                WriterPropertiesBuilder_Free(ptr);
+                _memoryPool?.ReleaseLease();
+            });
             ApplyDefaults();
         }
 
@@ -544,6 +548,10 @@ namespace ParquetSharp
         public WriterPropertiesBuilder MemoryPool(MemoryPool memoryPool)
         {
             ExceptionInfo.Check(WriterPropertiesBuilder_Memory_Pool(_handle.IntPtr, memoryPool.Handle));
+
+            // The native builder holds a pointer to the pool, so keep it valid until the builder is freed
+            memoryPool.AddLease();
+            _memoryPool?.ReleaseLease();
             _memoryPool = memoryPool;
 
             GC.KeepAlive(_handle);

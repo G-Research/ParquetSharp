@@ -13,8 +13,11 @@ namespace ParquetSharp
     /// even when they share the same underlying memory pool.
     ///
     /// Unlike the global memory pools, a proxy memory pool owns a native resource.
-    /// It must not be disposed until every object that was configured to use it has been disposed,
+    /// It should not be disposed until every object that was configured to use it has been disposed,
     /// for example any writer, reader, properties or output stream it was passed to.
+    /// After disposal, statistics are no longer available and the pool cannot be used to configure new objects.
+    /// Objects already using the pool keep the native pool alive so that disposing it early does not cause
+    /// memory errors, but continuing to use them after the pool is disposed is not recommended.
     ///
     /// Memory allocated from the pool may safely outlive it, for example buffers or Arrow arrays
     /// read using it. The native pool is only freed once all allocations made through it have been freed,
@@ -39,6 +42,7 @@ namespace ParquetSharp
 
         public void Dispose()
         {
+            _disposed = true;
             _handle.Dispose();
         }
 
@@ -46,13 +50,27 @@ namespace ParquetSharp
         {
             get
             {
-                if (_handle.IsClosed)
+                // Objects already using the pool hold a lease that keeps the native pool alive after disposal,
+                // so check the disposed flag rather than only whether the native handle has been released.
+                if (_disposed || _handle.IsClosed)
                 {
                     throw new NullReferenceException("null native handle");
                 }
 
                 return base.Handle;
             }
+        }
+
+        internal override void AddLease()
+        {
+            // Throws ObjectDisposedException if the native pool has already been freed
+            var success = false;
+            _handle.DangerousAddRef(ref success);
+        }
+
+        internal override void ReleaseLease()
+        {
+            _handle.DangerousRelease();
         }
 
         private static ProxyMemoryPoolHandle CreateHandle(MemoryPool wrappedPool)
@@ -94,5 +112,6 @@ namespace ParquetSharp
         // If the wrapped pool is also a proxy, the native proxy holds a reference to it,
         // so we don't need to keep a reference to the managed wrapped pool.
         private readonly ProxyMemoryPoolHandle _handle;
+        private volatile bool _disposed;
     }
 }

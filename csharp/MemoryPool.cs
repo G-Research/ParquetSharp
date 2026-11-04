@@ -140,7 +140,22 @@ namespace ParquetSharp
         internal virtual IntPtr Handle => _handle;
 
         /// <summary>
-        /// Wrap a native free function so that it keeps a memory pool alive until the native object has been freed.
+        /// Take a lease on the native memory pool, which keeps it valid until the lease is released,
+        /// even if this pool is disposed in the meantime.
+        /// </summary>
+        internal virtual void AddLease()
+        {
+        }
+
+        /// <summary>
+        /// Release a lease taken with <see cref="AddLease"/>.
+        /// </summary>
+        internal virtual void ReleaseLease()
+        {
+        }
+
+        /// <summary>
+        /// Wrap a native free function so that it keeps a memory pool alive and valid until the native object has been freed.
         /// </summary>
         internal static Action<IntPtr> KeepAliveUntilFreed(Action<IntPtr> free, MemoryPool? memoryPool)
         {
@@ -149,10 +164,11 @@ namespace ParquetSharp
                 return free;
             }
 
+            memoryPool.AddLease();
             return ptr =>
             {
                 free(ptr);
-                GC.KeepAlive(memoryPool);
+                memoryPool.ReleaseLease();
             };
         }
 
