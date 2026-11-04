@@ -30,8 +30,58 @@ namespace ParquetSharp
         public int NumColumns => ExceptionInfo.Return<int>(_handle, RowGroupWriter_Num_Columns);
         public long NumRows => ExceptionInfo.Return<long>(_handle, RowGroupWriter_Num_Rows);
         public long TotalBytesWritten => ExceptionInfo.Return<long>(_handle, RowGroupWriter_Total_Bytes_Written);
+
+        /// <summary>
+        /// Total compressed bytes of data pages that have been completed but not yet written by the page writers.
+        /// </summary>
+        /// <remarks>
+        /// Data pages are held in memory rather than written while a column is dictionary encoded,
+        /// until the dictionary page is written when the column is closed.
+        /// This is an estimate, as the size of each page header is over-estimated.
+        /// </remarks>
         public long TotalCompressedBytes => ExceptionInfo.Return<long>(_handle, RowGroupWriter_Total_Compressed_Bytes);
+
         public bool Buffered => ExceptionInfo.Return<bool>(_handle, RowGroupWriter_Buffered);
+
+        /// <summary>
+        /// Total compressed bytes written by the page writers so far, including data and dictionary pages.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// For a non-buffered row group, while the row group is open this only includes the bytes
+        /// written for the current column. After calling <see cref="Close"/>, it includes all columns.
+        /// </para>
+        /// <para>
+        /// While a column is dictionary encoded, completed data pages are held in memory until
+        /// the dictionary page is written, and are counted in <see cref="TotalCompressedBytes"/> rather than here.
+        /// See <see cref="BufferedWriterStats"/> for how to estimate the total size of a buffered row group.
+        /// </para>
+        /// </remarks>
+        public long TotalCompressedBytesWritten => ExceptionInfo.Return<long>(_handle, RowGroupWriter_Total_Compressed_Bytes_Written);
+
+        /// <summary>
+        /// Estimated sizes of data buffered by the column writers (levels, values and dictionaries)
+        /// that has not yet been written to pages.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// For a non-buffered row group, this only includes data buffered for the current column.
+        /// Once the row group is closed, all fields are zero.
+        /// </para>
+        /// <para>
+        /// This does not include completed data pages held in memory while a column is dictionary encoded,
+        /// which are reported by <see cref="TotalCompressedBytes"/>. See <see cref="BufferedWriterStats"/> for details.
+        /// </para>
+        /// </remarks>
+        public BufferedWriterStats EstimatedBufferedStats
+        {
+            get
+            {
+                ExceptionInfo.Check(RowGroupWriter_Estimated_Buffered_Stats(
+                    _handle, out var defLevelBytes, out var repLevelBytes, out var valueBytes, out var dictBytes));
+                return new BufferedWriterStats(defLevelBytes, repLevelBytes, valueBytes, dictBytes);
+            }
+        }
 
         /// <summary>
         /// Get the column writer for the i-th column.
@@ -84,6 +134,13 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr RowGroupWriter_Buffered(IntPtr rowGroupWriter, out bool buffered);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr RowGroupWriter_Total_Compressed_Bytes_Written(IntPtr rowGroupWriter, out long totalCompressedBytesWritten);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr RowGroupWriter_Estimated_Buffered_Stats(
+            IntPtr rowGroupWriter, out long defLevelBytes, out long repLevelBytes, out long valueBytes, out long dictBytes);
 
         private readonly IntPtr _handle;
         internal readonly ParquetFileWriter ParquetFileWriter;
