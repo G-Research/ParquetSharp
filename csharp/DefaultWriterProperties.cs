@@ -57,6 +57,11 @@ namespace ParquetSharp
         public static long? MaxRowGroupLength { get; set; }
 
         /// <summary>
+        /// Default maximum number of rows per data page
+        /// </summary>
+        public static long? MaxRowsPerPage { get; set; }
+
+        /// <summary>
         /// Default version of the Parquet format to write
         /// </summary>
         public static ParquetVersion? Version { get; set; }
