@@ -84,6 +84,61 @@ namespace ParquetSharp
         public WriterProperties WriterProperties => new(ExceptionInfo.Return<IntPtr>(Handle, ColumnWriter_Properties));
 
         /// <summary>
+        /// Total compressed bytes of data pages for this column that have been completed but not yet written by the page writer.
+        /// </summary>
+        /// <remarks>
+        /// Data pages are held in memory rather than written while the column is dictionary encoded,
+        /// until the dictionary page is written when the column is closed.
+        /// This is an estimate, as the size of each page header is over-estimated.
+        /// </remarks>
+        public long TotalCompressedBytes => ExceptionInfo.Return<long>(Handle, ColumnWriter_Total_Compressed_Bytes);
+
+        /// <summary>
+        /// Total uncompressed bytes of data and dictionary pages written by the page writer for this column so far.
+        /// </summary>
+        /// <remarks>
+        /// This does not include completed data pages held in memory while the column is dictionary encoded,
+        /// which are reported by <see cref="TotalCompressedBytes"/>.
+        /// </remarks>
+        public long TotalBytesWritten => ExceptionInfo.Return<long>(Handle, ColumnWriter_Total_Bytes_Written);
+
+        /// <summary>
+        /// Total compressed bytes of data and dictionary pages written by the page writer for this column so far.
+        /// If the column is uncompressed, this is equal to <see cref="TotalBytesWritten"/>.
+        /// </summary>
+        /// <remarks>
+        /// This does not include completed data pages held in memory while the column is dictionary encoded,
+        /// which are reported by <see cref="TotalCompressedBytes"/>.
+        /// </remarks>
+        public long TotalCompressedBytesWritten => ExceptionInfo.Return<long>(Handle, ColumnWriter_Total_Compressed_Bytes_Written);
+
+        /// <summary>
+        /// Estimated sizes of data buffered by this column writer (levels, values and dictionary)
+        /// that has not yet been written to pages.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This does not include completed data pages held in memory while the column is dictionary encoded,
+        /// which are reported by <see cref="TotalCompressedBytes"/>.
+        /// </para>
+        /// <para>
+        /// When the column is dictionary encoded, <see cref="BufferedWriterStats.ValueBytes"/> is a conservative
+        /// estimate of the encoded dictionary indices size and may be non-zero when no values are buffered.
+        /// After the column is closed, <see cref="BufferedWriterStats.DictBytes"/> continues to report
+        /// the size of the dictionary, although the dictionary page has been written.
+        /// </para>
+        /// </remarks>
+        public BufferedWriterStats EstimatedBufferedStats
+        {
+            get
+            {
+                ExceptionInfo.Check(ColumnWriter_Estimated_Buffered_Stats(
+                    Handle, out var defLevelBytes, out var repLevelBytes, out var valueBytes, out var dictBytes));
+                return new BufferedWriterStats(defLevelBytes, repLevelBytes, valueBytes, dictBytes);
+            }
+        }
+
+        /// <summary>
         /// Get the element <see cref="Type"/> of the data being written.
         /// </summary>
         public abstract Type ElementType { get; }
@@ -142,6 +197,19 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnWriter_Type(IntPtr columnWriter, out PhysicalType type);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ColumnWriter_Total_Compressed_Bytes(IntPtr columnWriter, out long totalCompressedBytes);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ColumnWriter_Total_Bytes_Written(IntPtr columnWriter, out long totalBytesWritten);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ColumnWriter_Total_Compressed_Bytes_Written(IntPtr columnWriter, out long totalCompressedBytesWritten);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ColumnWriter_Estimated_Buffered_Stats(
+            IntPtr columnWriter, out long defLevelBytes, out long repLevelBytes, out long valueBytes, out long dictBytes);
 
         /// <exclude />
         [DllImport(ParquetDll.Name)]
