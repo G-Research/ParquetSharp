@@ -3,6 +3,12 @@
   "name": "parquetsharp",
   "version-string": "undefined",
   "builtin-baseline": "ab9a05e70421507222d83861ac1a31be7e4272d4",
+  "vcpkg-configuration": {
+    "$comment": "Overlay boost-locale with a fix for CMake 4.5 from https://github.com/microsoft/vcpkg/pull/55069. Remove once the baseline includes boost-locale 1.92.0#1 or later.",
+    "overlay-ports": [
+      "./ports"
+    ]
+  },
   "dependencies": [
     {
       "name": "arrow",
