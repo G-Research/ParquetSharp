@@ -97,27 +97,6 @@ namespace ParquetSharp.Test
         }
 
         [Test]
-        public static void TestEquality()
-        {
-            var values = new[] { "a", null, "bc" };
-            var stats = WriteAndGetSizeStatistics(new Column<string?>("strings"), values)!.Value;
-            var statsAgain = WriteAndGetSizeStatistics(new Column<string?>("strings"), values)!.Value;
-            var otherStats = WriteAndGetSizeStatistics(new Column<string?>("strings"), new[] { "a", "b", "c" })!.Value;
-
-            Assert.True(stats.Equals(statsAgain));
-            Assert.True(stats.Equals((object) statsAgain));
-            Assert.True(stats == statsAgain);
-            Assert.False(stats != statsAgain);
-            Assert.AreEqual(stats.GetHashCode(), statsAgain.GetHashCode());
-
-            Assert.False(stats.Equals(otherStats));
-            Assert.False(stats.Equals((object) otherStats));
-            Assert.False(stats == otherStats);
-            Assert.True(stats != otherStats);
-            Assert.False(stats.Equals(null));
-        }
-
-        [Test]
         public static void TestDefault()
         {
             var stats = default(SizeStatistics);
@@ -125,8 +104,6 @@ namespace ParquetSharp.Test
             Assert.IsNull(stats.UnencodedByteArrayDataBytes);
             Assert.AreEqual(Array.Empty<long>(), stats.DefinitionLevelHistogram);
             Assert.AreEqual(Array.Empty<long>(), stats.RepetitionLevelHistogram);
-            Assert.AreEqual(default(SizeStatistics), stats);
-            Assert.AreEqual(default(SizeStatistics).GetHashCode(), stats.GetHashCode());
         }
 
         [Test]

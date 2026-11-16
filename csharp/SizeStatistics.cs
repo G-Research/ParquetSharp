@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ParquetSharp
 {
@@ -12,7 +11,7 @@ namespace ParquetSharp
     /// Size statistics are written when the <see cref="SizeStatisticsLevel"/> is not <see cref="SizeStatisticsLevel.None"/>,
     /// see <see cref="WriterPropertiesBuilder.SetSizeStatisticsLevel"/>.
     /// </remarks>
-    public readonly struct SizeStatistics : IEquatable<SizeStatistics>
+    public readonly struct SizeStatistics
     {
         internal SizeStatistics(long? unencodedByteArrayDataBytes, long[] definitionLevelHistogram, long[] repetitionLevelHistogram)
         {
@@ -45,45 +44,6 @@ namespace ParquetSharp
         /// This may be empty if the maximum repetition level of the column is zero.
         /// </remarks>
         public IReadOnlyList<long> RepetitionLevelHistogram => _repetitionLevelHistogram ?? Array.Empty<long>();
-
-        public bool Equals(SizeStatistics other)
-        {
-            return UnencodedByteArrayDataBytes == other.UnencodedByteArrayDataBytes &&
-                   DefinitionLevelHistogram.SequenceEqual(other.DefinitionLevelHistogram) &&
-                   RepetitionLevelHistogram.SequenceEqual(other.RepetitionLevelHistogram);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is SizeStatistics other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            var hash = new HashCode();
-            hash.Add(UnencodedByteArrayDataBytes);
-            hash.Add(DefinitionLevelHistogram.Count);
-            foreach (var count in DefinitionLevelHistogram)
-            {
-                hash.Add(count);
-            }
-            hash.Add(RepetitionLevelHistogram.Count);
-            foreach (var count in RepetitionLevelHistogram)
-            {
-                hash.Add(count);
-            }
-            return hash.ToHashCode();
-        }
-
-        public static bool operator ==(SizeStatistics left, SizeStatistics right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(SizeStatistics left, SizeStatistics right)
-        {
-            return !left.Equals(right);
-        }
 
         public override string ToString()
         {
