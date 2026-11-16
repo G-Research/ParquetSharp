@@ -88,6 +88,45 @@ namespace ParquetSharp
         /// </summary>
         /// <value>A <see cref="ParquetSharp.Statistics"/> object representing the statistics for the column chunk, or <see langword="null"/> if no statistics are available.</value>
         public Statistics? Statistics => Statistics.Create(ExceptionInfo.Return<IntPtr>(_handle, ColumnChunkMetaData_Statistics));
+
+        /// <summary>
+        /// Get the size statistics for the column chunk.
+        /// </summary>
+        /// <value>A <see cref="ParquetSharp.SizeStatistics"/> value, or <see langword="null"/> if the file has no size statistics for this column chunk.</value>
+        public unsafe SizeStatistics? SizeStatistics
+        {
+            get
+            {
+                ExceptionInfo.Check(ColumnChunkMetaData_Size_Statistics(
+                    _handle.IntPtr,
+                    out var hasSizeStatistics,
+                    out var hasUnencodedByteArrayDataBytes,
+                    out var unencodedByteArrayDataBytes,
+                    out var definitionLevelHistogram,
+                    out var definitionLevelHistogramLength,
+                    out var repetitionLevelHistogram,
+                    out var repetitionLevelHistogramLength));
+
+                try
+                {
+                    if (!hasSizeStatistics)
+                    {
+                        return null;
+                    }
+
+                    // Copy the histograms while the native metadata that owns them is still alive
+                    return new SizeStatistics(
+                        hasUnencodedByteArrayDataBytes ? unencodedByteArrayDataBytes : null,
+                        new ReadOnlySpan<long>((long*) definitionLevelHistogram, checked((int) definitionLevelHistogramLength)).ToArray(),
+                        new ReadOnlySpan<long>((long*) repetitionLevelHistogram, checked((int) repetitionLevelHistogramLength)).ToArray());
+                }
+                finally
+                {
+                    GC.KeepAlive(_handle);
+                }
+            }
+        }
+
         /// <summary>
         /// Get the physical type of the column chunk.
         /// </summary>
@@ -120,6 +159,17 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnChunkMetaData_Statistics(IntPtr columnChunkMetaData, out IntPtr statistics);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ColumnChunkMetaData_Size_Statistics(
+            IntPtr columnChunkMetaData,
+            [MarshalAs(UnmanagedType.I1)] out bool hasSizeStatistics,
+            [MarshalAs(UnmanagedType.I1)] out bool hasUnencodedByteArrayDataBytes,
+            out long unencodedByteArrayDataBytes,
+            out IntPtr definitionLevelHistogram,
+            out UIntPtr definitionLevelHistogramLength,
+            out IntPtr repetitionLevelHistogram,
+            out UIntPtr repetitionLevelHistogramLength);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ColumnChunkMetaData_Total_Compressed_Size(IntPtr columnChunkMetaData, out long totalCompressedSize);

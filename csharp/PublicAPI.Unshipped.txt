@@ -24,3 +24,10 @@ ParquetSharp.WriterProperties.MaxRowsPerPage.get -> long
 ParquetSharp.WriterPropertiesBuilder.MaxRowsPerPage(long maxRowsPerPage) -> ParquetSharp.WriterPropertiesBuilder!
 static ParquetSharp.DefaultWriterProperties.MaxRowsPerPage.get -> long?
 static ParquetSharp.DefaultWriterProperties.MaxRowsPerPage.set -> void
+ParquetSharp.ColumnChunkMetaData.SizeStatistics.get -> ParquetSharp.SizeStatistics?
+ParquetSharp.SizeStatistics
+ParquetSharp.SizeStatistics.SizeStatistics() -> void
+ParquetSharp.SizeStatistics.DefinitionLevelHistogram.get -> System.Collections.Generic.IReadOnlyList<long>!
+ParquetSharp.SizeStatistics.RepetitionLevelHistogram.get -> System.Collections.Generic.IReadOnlyList<long>!
+ParquetSharp.SizeStatistics.UnencodedByteArrayDataBytes.get -> long?
+override ParquetSharp.SizeStatistics.ToString() -> string!
