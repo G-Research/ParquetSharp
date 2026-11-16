@@ -3,6 +3,7 @@
 #include "ExceptionInfo.h"
 
 #include <parquet/metadata.h>
+#include <parquet/size_statistics.h>
 #include <parquet/statistics.h>
 
 using namespace parquet;
@@ -68,6 +69,32 @@ extern "C"
 		(
 			const auto s = column_chunk_meta_data->statistics();
 			*statistics = s ? new std::shared_ptr(s) : nullptr;
+		)
+	}
+
+	// Fields are copied out individually rather than exposing parquet::SizeStatistics directly,
+	// so that the ABI does not depend on the layout of the Arrow struct.
+	// The histogram pointers remain valid for the lifetime of the column chunk metadata,
+	// which holds the size statistics.
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnChunkMetaData_Size_Statistics(
+		const ColumnChunkMetaData* column_chunk_meta_data,
+		bool* has_size_statistics,
+		bool* has_unencoded_byte_array_data_bytes,
+		int64_t* unencoded_byte_array_data_bytes,
+		const int64_t** definition_level_histogram,
+		size_t* definition_level_histogram_length,
+		const int64_t** repetition_level_histogram,
+		size_t* repetition_level_histogram_length)
+	{
+		TRYCATCH(
+			const auto stats = column_chunk_meta_data->size_statistics();
+			*has_size_statistics = stats != nullptr;
+			*has_unencoded_byte_array_data_bytes = stats && stats->unencoded_byte_array_data_bytes.has_value();
+			*unencoded_byte_array_data_bytes = *has_unencoded_byte_array_data_bytes ? *stats->unencoded_byte_array_data_bytes : 0;
+			*definition_level_histogram = stats ? stats->definition_level_histogram.data() : nullptr;
+			*definition_level_histogram_length = stats ? stats->definition_level_histogram.size() : 0;
+			*repetition_level_histogram = stats ? stats->repetition_level_histogram.data() : nullptr;
+			*repetition_level_histogram_length = stats ? stats->repetition_level_histogram.size() : 0;
 		)
 	}
 

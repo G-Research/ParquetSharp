@@ -20,3 +20,10 @@ override ParquetSharp.BufferedWriterStats.Equals(object? obj) -> bool
 override ParquetSharp.BufferedWriterStats.GetHashCode() -> int
 static ParquetSharp.BufferedWriterStats.operator !=(ParquetSharp.BufferedWriterStats left, ParquetSharp.BufferedWriterStats right) -> bool
 static ParquetSharp.BufferedWriterStats.operator ==(ParquetSharp.BufferedWriterStats left, ParquetSharp.BufferedWriterStats right) -> bool
+ParquetSharp.ColumnChunkMetaData.SizeStatistics.get -> ParquetSharp.SizeStatistics?
+ParquetSharp.SizeStatistics
+ParquetSharp.SizeStatistics.SizeStatistics() -> void
+ParquetSharp.SizeStatistics.DefinitionLevelHistogram.get -> System.Collections.Generic.IReadOnlyList<long>!
+ParquetSharp.SizeStatistics.RepetitionLevelHistogram.get -> System.Collections.Generic.IReadOnlyList<long>!
+ParquetSharp.SizeStatistics.UnencodedByteArrayDataBytes.get -> long?
+override ParquetSharp.SizeStatistics.ToString() -> string!
