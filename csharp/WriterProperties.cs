@@ -119,6 +119,10 @@ namespace ParquetSharp
         /// </summary>
         public long MaxRowGroupLength => ExceptionInfo.Return<long>(Handle, WriterProperties_Max_Row_Group_Length);
         /// <summary>
+        /// The maximum number of rows in a data page.
+        /// </summary>
+        public long MaxRowsPerPage => ExceptionInfo.Return<long>(Handle, WriterProperties_Max_Rows_Per_Page);
+        /// <summary>
         /// The version of the Parquet format to write.
         /// </summary>
         public ParquetVersion Version => ExceptionInfo.Return<CppParquetVersion>(Handle, WriterProperties_Version).ToPublicEnum();
@@ -325,6 +329,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Max_Row_Group_Length(IntPtr writerProperties, out long length);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterProperties_Max_Rows_Per_Page(IntPtr writerProperties, out long maxRows);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterProperties_Version(IntPtr writerProperties, out CppParquetVersion version);

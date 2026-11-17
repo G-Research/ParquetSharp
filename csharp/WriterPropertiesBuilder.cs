@@ -359,6 +359,20 @@ namespace ParquetSharp
         }
 
         /// <summary>
+        /// Set the maximum number of rows in a data page.
+        /// A new page is started once either this limit or the <see cref="DataPagesize"/> limit is reached.
+        /// Defaults to 20,000 rows.
+        /// </summary>
+        /// <param name="maxRowsPerPage">The maximum number of rows per data page.</param>
+        /// <returns>This builder instance.</returns>
+        public WriterPropertiesBuilder MaxRowsPerPage(long maxRowsPerPage)
+        {
+            ExceptionInfo.Check(WriterPropertiesBuilder_Max_Rows_Per_Page(_handle.IntPtr, maxRowsPerPage));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
+        /// <summary>
         /// Set the Parquet version to use for the file.
         /// </summary>
         /// <param name="version">The <see cref="ParquetVersion"/> to use.</param>
@@ -612,6 +626,8 @@ namespace ParquetSharp
 
             OnDefaultProperty(DefaultWriterProperties.MaxRowGroupLength, maxRowGroupLength => { MaxRowGroupLength(maxRowGroupLength); });
 
+            OnDefaultProperty(DefaultWriterProperties.MaxRowsPerPage, maxRowsPerPage => { MaxRowsPerPage(maxRowsPerPage); });
+
             OnDefaultProperty(DefaultWriterProperties.Version, version => { Version(version); });
 
             OnDefaultProperty(DefaultWriterProperties.WriteBatchSize, writeBatchSize => { WriteBatchSize(writeBatchSize); });
@@ -809,6 +825,9 @@ namespace ParquetSharp
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Max_Row_Group_Length(IntPtr builder, long maxRowGroupLength);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr WriterPropertiesBuilder_Max_Rows_Per_Page(IntPtr builder, long maxRowsPerPage);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr WriterPropertiesBuilder_Version(IntPtr builder, CppParquetVersion version);

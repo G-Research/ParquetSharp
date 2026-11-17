@@ -160,6 +160,11 @@ extern "C"
 		TRYCATCH(builder->max_row_group_length(max_row_group_length);)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Max_Rows_Per_Page(WriterProperties::Builder* builder, int64_t max_rows)
+	{
+		TRYCATCH(builder->max_rows_per_page(max_rows);)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterPropertiesBuilder_Version(WriterProperties::Builder* builder, ParquetVersion::type version)
 	{
 		TRYCATCH(builder->version(version);)

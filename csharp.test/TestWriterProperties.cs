@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using NUnit.Framework;
 using ParquetSharp.IO;
 using ParquetSharp.Schema;
@@ -22,6 +23,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(Encoding.Plain, p.DictionaryPageEncoding);
             Assert.AreEqual(1024 * 1024, p.DictionaryPagesizeLimit);
             Assert.AreEqual(1024 * 1024, p.MaxRowGroupLength);
+            Assert.AreEqual(20_000, p.MaxRowsPerPage);
             Assert.AreEqual(ParquetVersion.PARQUET_2_6, p.Version);
             Assert.AreEqual(1024, p.WriteBatchSize);
             Assert.True(p.WritePageIndex);
@@ -45,6 +47,7 @@ namespace ParquetSharp.Test
                 .DictionaryPagesizeLimit(456)
                 .Encoding(Encoding.DeltaByteArray)
                 .MaxRowGroupLength(789)
+                .MaxRowsPerPage(321)
                 .Version(ParquetVersion.PARQUET_1_0)
                 .WriteBatchSize(666)
                 .EnableWritePageIndex()
@@ -65,6 +68,7 @@ namespace ParquetSharp.Test
             Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryPageEncoding);
             Assert.AreEqual(456, p.DictionaryPagesizeLimit);
             Assert.AreEqual(789, p.MaxRowGroupLength);
+            Assert.AreEqual(321, p.MaxRowsPerPage);
             Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
             Assert.AreEqual(666, p.WriteBatchSize);
             Assert.False(p.WritePageIndex);
@@ -112,6 +116,53 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestMaxRowsPerPage()
+        {
+            const int numRows = 10_000;
+            var values = Enumerable.Range(0, numRows).Select(i => (long) i).ToArray();
+
+            // Limiting the rows per page results in more pages, and so more page headers,
+            // without changing the data written.
+            var defaultSize = WriteAndGetColumnSize(builder => builder);
+            var smallPagesSize = WriteAndGetColumnSize(builder => builder.MaxRowsPerPage(100));
+
+            const int minPageHeaderSize = 10;
+            Assert.Greater(smallPagesSize, defaultSize + (numRows / 100 - 1) * minPageHeaderSize);
+
+            long WriteAndGetColumnSize(Func<WriterPropertiesBuilder, WriterPropertiesBuilder> configure)
+            {
+                using var buffer = new ResizableBuffer();
+                using (var output = new BufferOutputStream(buffer))
+                {
+                    using var propertiesBuilder = new WriterPropertiesBuilder();
+                    using var properties = configure(propertiesBuilder
+                            .Compression(Compression.Uncompressed)
+                            .DisableDictionary())
+                        .Build();
+
+                    using var fileWriter = new ParquetFileWriter(output, new Column[] { new Column<long>("values") }, properties);
+                    using var rowGroupWriter = fileWriter.AppendRowGroup();
+                    using (var columnWriter = rowGroupWriter.NextColumn().LogicalWriter<long>())
+                    {
+                        columnWriter.WriteBatch(values);
+                    }
+                    fileWriter.Close();
+                }
+
+                using var input = new BufferReader(buffer);
+                using var fileReader = new ParquetFileReader(input);
+                using var rowGroupReader = fileReader.RowGroup(0);
+                using (var columnReader = rowGroupReader.Column(0).LogicalReader<long>())
+                {
+                    Assert.AreEqual(values, columnReader.ReadAll(numRows));
+                }
+
+                using var columnMetaData = rowGroupReader.MetaData.GetColumnChunkMetaData(0);
+                return columnMetaData.TotalUncompressedSize;
+            }
+        }
+
+        [Test]
         [NonParallelizable]
         public static void TestOverrideDefaults()
         {
@@ -126,6 +177,7 @@ namespace ParquetSharp.Test
                 DefaultWriterProperties.DictionaryPagesizeLimit = 456;
                 DefaultWriterProperties.Encoding = Encoding.DeltaByteArray;
                 DefaultWriterProperties.MaxRowGroupLength = 789;
+                DefaultWriterProperties.MaxRowsPerPage = 321;
                 DefaultWriterProperties.Version = ParquetVersion.PARQUET_1_0;
                 DefaultWriterProperties.WriteBatchSize = 666;
                 DefaultWriterProperties.WritePageIndex = false;
@@ -144,6 +196,7 @@ namespace ParquetSharp.Test
                 Assert.AreEqual(Encoding.PlainDictionary, p.DictionaryPageEncoding);
                 Assert.AreEqual(456, p.DictionaryPagesizeLimit);
                 Assert.AreEqual(789, p.MaxRowGroupLength);
+                Assert.AreEqual(321, p.MaxRowsPerPage);
                 Assert.AreEqual(ParquetVersion.PARQUET_1_0, p.Version);
                 Assert.AreEqual(666, p.WriteBatchSize);
                 Assert.False(p.WritePageIndex);
@@ -161,6 +214,7 @@ namespace ParquetSharp.Test
                 DefaultWriterProperties.DictionaryPagesizeLimit = null;
                 DefaultWriterProperties.Encoding = null;
                 DefaultWriterProperties.MaxRowGroupLength = null;
+                DefaultWriterProperties.MaxRowsPerPage = null;
                 DefaultWriterProperties.Version = null;
                 DefaultWriterProperties.WriteBatchSize = null;
                 DefaultWriterProperties.WritePageIndex = null;
