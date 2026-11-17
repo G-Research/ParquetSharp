@@ -54,6 +54,11 @@ extern "C"
 		TRYCATCH(*length = (*writer_properties)->max_row_group_length();)
 	}
 	
+	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Max_Rows_Per_Page(const std::shared_ptr<WriterProperties>* writer_properties, int64_t* max_rows)
+	{
+		TRYCATCH(*max_rows = (*writer_properties)->max_rows_per_page();)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* WriterProperties_Version(const std::shared_ptr<WriterProperties>* writer_properties, ParquetVersion::type* version)
 	{
 		TRYCATCH(*version = (*writer_properties)->version();)
