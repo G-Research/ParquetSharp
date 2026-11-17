@@ -20,6 +20,10 @@ override ParquetSharp.BufferedWriterStats.Equals(object? obj) -> bool
 override ParquetSharp.BufferedWriterStats.GetHashCode() -> int
 static ParquetSharp.BufferedWriterStats.operator !=(ParquetSharp.BufferedWriterStats left, ParquetSharp.BufferedWriterStats right) -> bool
 static ParquetSharp.BufferedWriterStats.operator ==(ParquetSharp.BufferedWriterStats left, ParquetSharp.BufferedWriterStats right) -> bool
+ParquetSharp.ColumnWriter.EstimatedBufferedStats.get -> ParquetSharp.BufferedWriterStats
+ParquetSharp.ColumnWriter.TotalBytesWritten.get -> long
+ParquetSharp.ColumnWriter.TotalCompressedBytes.get -> long
+ParquetSharp.ColumnWriter.TotalCompressedBytesWritten.get -> long
 ParquetSharp.WriterProperties.MaxRowsPerPage.get -> long
 ParquetSharp.WriterPropertiesBuilder.MaxRowsPerPage(long maxRowsPerPage) -> ParquetSharp.WriterPropertiesBuilder!
 static ParquetSharp.DefaultWriterProperties.MaxRowsPerPage.get -> long?

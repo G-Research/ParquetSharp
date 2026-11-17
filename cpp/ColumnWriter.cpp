@@ -29,6 +29,36 @@ extern "C"
 		TRYCATCH(*rows_written = column_writer->rows_written();)
 	}
 
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnWriter_Total_Compressed_Bytes(const ColumnWriter* column_writer, int64_t* total_compressed_bytes)
+	{
+		TRYCATCH(*total_compressed_bytes = column_writer->total_compressed_bytes();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnWriter_Total_Bytes_Written(const ColumnWriter* column_writer, int64_t* total_bytes_written)
+	{
+		TRYCATCH(*total_bytes_written = column_writer->total_bytes_written();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnWriter_Total_Compressed_Bytes_Written(const ColumnWriter* column_writer, int64_t* total_compressed_bytes_written)
+	{
+		TRYCATCH(*total_compressed_bytes_written = column_writer->total_compressed_bytes_written();)
+	}
+
+	PARQUETSHARP_EXPORT ExceptionInfo* ColumnWriter_Estimated_Buffered_Stats(
+		const ColumnWriter* column_writer,
+		int64_t* def_level_bytes,
+		int64_t* rep_level_bytes,
+		int64_t* value_bytes,
+		int64_t* dict_bytes)
+	{
+		TRYCATCH(
+			*def_level_bytes = column_writer->estimated_buffered_def_level_bytes();
+			*rep_level_bytes = column_writer->estimated_buffered_rep_level_bytes();
+			*value_bytes = column_writer->estimated_buffered_value_bytes();
+			*dict_bytes = column_writer->estimated_buffered_dict_bytes();
+		)
+	}
+
 	PARQUETSHARP_EXPORT ExceptionInfo* ColumnWriter_Type(const ColumnWriter* column_writer, Type::type* type)
 	{
 		TRYCATCH(*type = column_writer->type();)

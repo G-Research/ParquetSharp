@@ -3,8 +3,8 @@ using System;
 namespace ParquetSharp
 {
     /// <summary>
-    /// Estimated sizes in bytes of data buffered by the column writers of a <see cref="RowGroupWriter"/>
-    /// that has not yet been serialized into pages.
+    /// Estimated sizes in bytes of data buffered by a <see cref="ColumnWriter"/>, or by the column writers
+    /// of a <see cref="RowGroupWriter"/>, that has not yet been serialized into pages.
     /// </summary>
     /// <remarks>
     /// <para>
