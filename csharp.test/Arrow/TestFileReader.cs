@@ -114,6 +114,14 @@ namespace ParquetSharp.Test.Arrow
                 writer.Close();
             }
 
+            using (var physicalInput = new BufferReader(buffer))
+            using (var physicalReader = new ParquetFileReader(physicalInput))
+            using (var metadata = physicalReader.FileMetaData)
+            {
+                Assert.That(metadata.Schema.Column(0).PhysicalType, Is.EqualTo(PhysicalType.Int32));
+                Assert.That(metadata.Schema.Column(1).PhysicalType, Is.EqualTo(PhysicalType.Int64));
+            }
+
             using var properties = ArrowReaderProperties.GetDefault();
             properties.SmallestDecimalEnabled = enabled;
             Assert.That(properties.SmallestDecimalEnabled, Is.EqualTo(enabled));
