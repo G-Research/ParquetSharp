@@ -78,30 +78,39 @@ namespace ParquetSharp.Test.Arrow
             Assert.That(rowsRead, Is.EqualTo(RowsPerRowGroup * NumRowGroups));
         }
 
-        [TestCase(false, ArrowTypeId.Decimal128, ArrowTypeId.Decimal128)]
-        [TestCase(true, ArrowTypeId.Decimal32, ArrowTypeId.Decimal64)]
-        public async Task TestReadSmallestDecimal(bool enabled, ArrowTypeId smallType, ArrowTypeId largeType)
+        [TestCase(false, false, ArrowTypeId.Decimal128, ArrowTypeId.Decimal128)]
+        [TestCase(true, false, ArrowTypeId.Decimal32, ArrowTypeId.Decimal64)]
+        [TestCase(true, true, ArrowTypeId.Decimal128, ArrowTypeId.Decimal128)]
+        public async Task TestReadSmallestDecimal(bool enabled, bool storeSchema, ArrowTypeId smallType, ArrowTypeId largeType)
         {
             using var buffer = new ResizableBuffer();
-            var columns = new Column[]
+            var smallDecimal = new Decimal128Type(9, 2);
+            var largeDecimal = new Decimal128Type(18, 2);
+            var schema = new Apache.Arrow.Schema(new[]
             {
-                new Column<decimal>("small", LogicalType.Decimal(9, 2)),
-                new Column<decimal>("large", LogicalType.Decimal(18, 2)),
-            };
+                new Field("small", smallDecimal, false),
+                new Field("large", largeDecimal, false),
+            }, null);
 
             using (var output = new BufferOutputStream(buffer))
-            using (var writerProperties = new WriterPropertiesBuilder().EnableStoreDecimalAsInteger().Build())
-            using (var writer = new ParquetFileWriter(output, columns, writerProperties))
+            using (var writerBuilder = new WriterPropertiesBuilder())
+            using (var writerProperties = writerBuilder.EnableStoreDecimalAsInteger().Build())
+            using (var arrowBuilder = new ArrowWriterPropertiesBuilder())
             {
-                using var group = writer.AppendRowGroup();
-                using (var column = group.NextColumn().LogicalWriter<decimal>())
+                if (storeSchema)
                 {
-                    column.WriteBatch(new[] { 12.34m });
+                    arrowBuilder.StoreSchema();
                 }
-                using (var column = group.NextColumn().LogicalWriter<decimal>())
+
+                using var arrowProperties = arrowBuilder.Build();
+                using var writer = new FileWriter(output, schema, writerProperties, arrowProperties);
+                using var batchToWrite = new RecordBatch(schema, new IArrowArray[]
                 {
-                    column.WriteBatch(new[] { -123456789012.34m });
-                }
+                    new Decimal128Array.Builder(smallDecimal).Append(12.34m).Build(),
+                    new Decimal128Array.Builder(largeDecimal).Append(-123456789012.34m).Build(),
+                }, 1);
+
+                writer.WriteRecordBatch(batchToWrite);
                 writer.Close();
             }
 
@@ -116,9 +125,9 @@ namespace ParquetSharp.Test.Arrow
             Assert.That(batch, Is.Not.Null);
             Assert.That(batch!.Column(0).Data.DataType.TypeId, Is.EqualTo(smallType));
             Assert.That(batch.Column(1).Data.DataType.TypeId, Is.EqualTo(largeType));
-            Assert.That(enabled ? ((Decimal32Array) batch.Column(0)).GetValue(0) : ((Decimal128Array) batch.Column(0)).GetValue(0),
+            Assert.That(smallType == ArrowTypeId.Decimal32 ? ((Decimal32Array) batch.Column(0)).GetValue(0) : ((Decimal128Array) batch.Column(0)).GetValue(0),
                 Is.EqualTo(12.34m));
-            Assert.That(enabled ? ((Decimal64Array) batch.Column(1)).GetValue(0) : ((Decimal128Array) batch.Column(1)).GetValue(0),
+            Assert.That(largeType == ArrowTypeId.Decimal64 ? ((Decimal64Array) batch.Column(1)).GetValue(0) : ((Decimal128Array) batch.Column(1)).GetValue(0),
                 Is.EqualTo(-123456789012.34m));
         }
 
