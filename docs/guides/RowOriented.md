@@ -68,6 +68,30 @@ using (var rowReader = ParquetFile.CreateRowReader<MyRow>("example.parquet"))
 }
 ```
 
+## Ignoring members when reading
+
+Use `[IgnoreColumn]` for computed members or members that the row reader should leave
+to the constructor or initializer. At least one member must remain mapped.
+
+```csharp
+struct QuoteRow
+{
+    [MapToColumn("Bid")]
+    public long Bid { get; set; }
+
+    [MapToColumn("Ask")]
+    public long Ask { get; set; }
+
+    [IgnoreColumn]
+    public long Spread => Ask - Bid;
+}
+```
+
+With implicit column mapping, the remaining members map positionally from the first
+column. To select noncontiguous file columns, annotate every remaining member with
+`[MapToColumn]`. The attribute affects reading only. Row writers continue to include
+the member under the usual mapping rules.
+
 ## Reading and writing custom types
 
 The row-oriented API supports reading and writing custom types by providing a @ParquetSharp.LogicalTypeFactory
