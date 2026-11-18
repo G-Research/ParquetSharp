@@ -327,6 +327,52 @@ namespace ParquetSharp.Test.Arrow
         }
 
         [Test]
+        public void TestWriteTimeAdjustedToUtc([Values] bool adjustedToUtc)
+        {
+            var timeType = new Apache.Arrow.Types.Time32Type(Apache.Arrow.Types.TimeUnit.Millisecond);
+            var timestampType = new Apache.Arrow.Types.TimestampType(Apache.Arrow.Types.TimeUnit.Millisecond, "UTC");
+            var schema = new Apache.Arrow.Schema(new[]
+            {
+                new Field("time", timeType, false),
+                new Field("timestamp", timestampType, false),
+            }, null);
+
+            const int millisecondsSinceMidnight = 12_345;
+            var times = new Time32Array.Builder(timeType).Append(millisecondsSinceMidnight).Build();
+            var timestamps = new TimestampArray.Builder(timestampType).Append(System.DateTimeOffset.UnixEpoch).Build();
+            using var batch = new RecordBatch(schema, new IArrowArray[] { times, timestamps }, 1);
+
+            using var builder = new ArrowWriterPropertiesBuilder()
+                .SetTimeAdjustedToUtc(!adjustedToUtc)
+                .SetTimeAdjustedToUtc(adjustedToUtc);
+            using var properties = builder.Build();
+            Assert.That(properties.TimeAdjustedToUtc, Is.EqualTo(adjustedToUtc));
+
+            using var buffer = new ResizableBuffer();
+            using (var outStream = new BufferOutputStream(buffer))
+            {
+                using var writer = new FileWriter(outStream, schema, arrowProperties: properties);
+                writer.WriteRecordBatch(batch);
+                writer.Close();
+            }
+
+            using var inStream = new BufferReader(buffer);
+            using var reader = new ParquetFileReader(inStream);
+            using var timeLogicalType = (TimeLogicalType) reader.FileMetaData.Schema.Column(0).LogicalType;
+            using var timestampLogicalType = (TimestampLogicalType) reader.FileMetaData.Schema.Column(1).LogicalType;
+            Assert.That(timeLogicalType.IsAdjustedToUtc, Is.EqualTo(adjustedToUtc));
+            Assert.That(timeLogicalType.TimeUnit, Is.EqualTo(TimeUnit.Millis));
+            Assert.That(timestampLogicalType.IsAdjustedToUtc, Is.True);
+
+            using var rowGroup = reader.RowGroup(0);
+            using var column = (ColumnReader<int>) rowGroup.Column(0);
+            var values = new int[1];
+            column.ReadBatch(1, values, out var valuesRead);
+            Assert.That(valuesRead, Is.EqualTo(1));
+            Assert.That(values[0], Is.EqualTo(millisecondsSinceMidnight));
+        }
+
+        [Test]
         public void TestWriteAndReadMetadata()
         {
             // Writing key-value metadata requires using the Arrow schema
