@@ -78,6 +78,50 @@ namespace ParquetSharp.Test.Arrow
             Assert.That(rowsRead, Is.EqualTo(RowsPerRowGroup * NumRowGroups));
         }
 
+        [TestCase(false, ArrowTypeId.Decimal128, ArrowTypeId.Decimal128)]
+        [TestCase(true, ArrowTypeId.Decimal32, ArrowTypeId.Decimal64)]
+        public async Task TestReadSmallestDecimal(bool enabled, ArrowTypeId smallType, ArrowTypeId largeType)
+        {
+            using var buffer = new ResizableBuffer();
+            var columns = new Column[]
+            {
+                new Column<decimal>("small", LogicalType.Decimal(9, 2)),
+                new Column<decimal>("large", LogicalType.Decimal(18, 2)),
+            };
+
+            using (var output = new BufferOutputStream(buffer))
+            using (var writerProperties = new WriterPropertiesBuilder().EnableStoreDecimalAsInteger().Build())
+            using (var writer = new ParquetFileWriter(output, columns, writerProperties))
+            {
+                using var group = writer.AppendRowGroup();
+                using (var column = group.NextColumn().LogicalWriter<decimal>())
+                {
+                    column.WriteBatch(new[] { 12.34m });
+                }
+                using (var column = group.NextColumn().LogicalWriter<decimal>())
+                {
+                    column.WriteBatch(new[] { -123456789012.34m });
+                }
+                writer.Close();
+            }
+
+            using var properties = ArrowReaderProperties.GetDefault();
+            properties.SmallestDecimalEnabled = enabled;
+            Assert.That(properties.SmallestDecimalEnabled, Is.EqualTo(enabled));
+
+            using var input = new BufferReader(buffer);
+            using var reader = new FileReader(input, arrowProperties: properties);
+            using var batches = reader.GetRecordBatchReader();
+            using var batch = await batches.ReadNextRecordBatchAsync();
+            Assert.That(batch, Is.Not.Null);
+            Assert.That(batch!.Column(0).Data.DataType.TypeId, Is.EqualTo(smallType));
+            Assert.That(batch.Column(1).Data.DataType.TypeId, Is.EqualTo(largeType));
+            Assert.That(enabled ? ((Decimal32Array) batch.Column(0)).GetValue(0) : ((Decimal128Array) batch.Column(0)).GetValue(0),
+                Is.EqualTo(12.34m));
+            Assert.That(enabled ? ((Decimal64Array) batch.Column(1)).GetValue(0) : ((Decimal128Array) batch.Column(1)).GetValue(0),
+                Is.EqualTo(-123456789012.34m));
+        }
+
         [Test]
         public async Task TestReadWithBatchSize()
         {
