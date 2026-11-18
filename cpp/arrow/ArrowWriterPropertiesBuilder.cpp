@@ -58,6 +58,11 @@ extern "C"
     TRYCATCH(builder->set_engine_version(engineVersion);)
   }
 
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowWriterPropertiesBuilder_SetTimeAdjustedToUtc(ArrowWriterProperties::Builder* builder, bool adjustedToUtc)
+  {
+    TRYCATCH(builder->set_time_adjusted_to_utc(adjustedToUtc);)
+  }
+
   PARQUETSHARP_EXPORT ExceptionInfo* ArrowWriterPropertiesBuilder_UseThreads(ArrowWriterProperties::Builder* builder, bool useThreads)
   {
     TRYCATCH(builder->set_use_threads(useThreads);)
