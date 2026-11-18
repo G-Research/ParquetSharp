@@ -339,7 +339,9 @@ namespace ParquetSharp.Test.Arrow
 
             const int millisecondsSinceMidnight = 12_345;
             var times = new Time32Array.Builder(timeType).Append(millisecondsSinceMidnight).Build();
-            var timestamps = new TimestampArray.Builder(timestampType).Append(System.DateTimeOffset.UnixEpoch).Build();
+            const long timestampMillis = 6789;
+            var timestamps = new TimestampArray.Builder(timestampType)
+                .Append(System.DateTimeOffset.FromUnixTimeMilliseconds(timestampMillis)).Build();
             using var batch = new RecordBatch(schema, new IArrowArray[] { times, timestamps }, 1);
 
             using var builder = new ArrowWriterPropertiesBuilder()
@@ -370,6 +372,12 @@ namespace ParquetSharp.Test.Arrow
             column.ReadBatch(1, values, out var valuesRead);
             Assert.That(valuesRead, Is.EqualTo(1));
             Assert.That(values[0], Is.EqualTo(millisecondsSinceMidnight));
+
+            using var timestampColumn = (ColumnReader<long>) rowGroup.Column(1);
+            var timestampValues = new long[1];
+            Assert.That(timestampColumn.ReadBatch(1, timestampValues, out var timestampsRead), Is.EqualTo(1));
+            Assert.That(timestampsRead, Is.EqualTo(1));
+            Assert.That(timestampValues[0], Is.EqualTo(timestampMillis));
         }
 
         [Test]
