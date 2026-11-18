@@ -132,6 +132,18 @@ namespace ParquetSharp.Arrow
             return this;
         }
 
+        /// <summary>
+        /// Set the UTC adjustment flag on Parquet TIME columns. The default is false.
+        /// This does not change the stored values or affect TIMESTAMP columns.
+        /// </summary>
+        /// <param name="adjustedToUtc">Whether the TIME values represent UTC-normalized times.</param>
+        public ArrowWriterPropertiesBuilder SetTimeAdjustedToUtc(bool adjustedToUtc)
+        {
+            ExceptionInfo.Check(ArrowWriterPropertiesBuilder_SetTimeAdjustedToUtc(_handle.IntPtr, adjustedToUtc));
+            GC.KeepAlive(_handle);
+            return this;
+        }
+
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowWriterPropertiesBuilder_Create(out IntPtr builder);
 
@@ -166,6 +178,10 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowWriterPropertiesBuilder_UseThreads(IntPtr builder, bool useThreads);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowWriterPropertiesBuilder_SetTimeAdjustedToUtc(
+            IntPtr builder, [MarshalAs(UnmanagedType.I1)] bool adjustedToUtc);
 
         private readonly ParquetHandle _handle;
     }
