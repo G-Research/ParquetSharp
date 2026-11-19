@@ -465,7 +465,7 @@ jobs:
       with:
         user: ${{ secrets.NUGET_USER }}
     - name: Publish to NuGet
-      uses: G-Research/common-actions/publish-nuget@19d7281a0f9f83e13c78f99a610dbc80fc59ba3b # main
+      uses: G-Research/common-actions/publish-nuget@cc68dc93f23397f7256db4046d846cb2aac437b7 # main
       with:
         package-name: ParquetSharp
         nuget-key: ${{ steps.login.outputs.NUGET_API_KEY }}
