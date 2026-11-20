@@ -26,14 +26,14 @@ namespace ParquetSharp.RowOriented
         /// </summary>
         public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path)
         {
-            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var fields = GetFieldsAndProperties(typeof(TTuple), forRead: true);
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
             return new ParquetRowReader<TTuple>(path, readDelegate, fields);
         }
 
         public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(string path, ReaderProperties readerProperties)
         {
-            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var fields = GetFieldsAndProperties(typeof(TTuple), forRead: true);
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
             return new ParquetRowReader<TTuple>(path, readerProperties, readDelegate, fields);
         }
@@ -43,14 +43,14 @@ namespace ParquetSharp.RowOriented
         /// </summary>
         public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile)
         {
-            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var fields = GetFieldsAndProperties(typeof(TTuple), forRead: true);
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
             return new ParquetRowReader<TTuple>(randomAccessFile, readDelegate, fields);
         }
 
         public static ParquetRowReader<TTuple> CreateRowReader<TTuple>(RandomAccessFile randomAccessFile, ReaderProperties readerProperties)
         {
-            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var fields = GetFieldsAndProperties(typeof(TTuple), forRead: true);
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
             return new ParquetRowReader<TTuple>(randomAccessFile, readerProperties, readDelegate, fields);
         }
@@ -63,7 +63,7 @@ namespace ParquetSharp.RowOriented
             LogicalTypeFactory logicalTypeFactory,
             LogicalReadConverterFactory logicalReadConverterFactory)
         {
-            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var fields = GetFieldsAndProperties(typeof(TTuple), forRead: true);
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
             return new ParquetRowReader<TTuple>(path, readDelegate, fields, logicalTypeFactory, logicalReadConverterFactory);
         }
@@ -74,7 +74,7 @@ namespace ParquetSharp.RowOriented
             LogicalTypeFactory logicalTypeFactory,
             LogicalReadConverterFactory logicalReadConverterFactory)
         {
-            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var fields = GetFieldsAndProperties(typeof(TTuple), forRead: true);
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
             return new ParquetRowReader<TTuple>(path, readerProperties, readDelegate, fields, logicalTypeFactory, logicalReadConverterFactory);
         }
@@ -87,7 +87,7 @@ namespace ParquetSharp.RowOriented
             LogicalTypeFactory logicalTypeFactory,
             LogicalReadConverterFactory logicalReadConverterFactory)
         {
-            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var fields = GetFieldsAndProperties(typeof(TTuple), forRead: true);
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
             return new ParquetRowReader<TTuple>(randomAccessFile, readDelegate, fields, logicalTypeFactory, logicalReadConverterFactory);
         }
@@ -98,7 +98,7 @@ namespace ParquetSharp.RowOriented
             LogicalTypeFactory logicalTypeFactory,
             LogicalReadConverterFactory logicalReadConverterFactory)
         {
-            var fields = GetFieldsAndProperties(typeof(TTuple));
+            var fields = GetFieldsAndProperties(typeof(TTuple), forRead: true);
             var readDelegate = GetOrCreateReadDelegate<TTuple>(fields);
             return new ParquetRowReader<TTuple>(randomAccessFile, readerProperties, readDelegate, fields, logicalTypeFactory, logicalReadConverterFactory);
         }
@@ -503,7 +503,7 @@ namespace ParquetSharp.RowOriented
             );
         }
 
-        private static MappedField[] GetFieldsAndProperties(Type type)
+        private static MappedField[] GetFieldsAndProperties(Type type, bool forRead = false)
         {
             // Members mapped to Parquet columns are any public fields and properties,
             // and private fields and properties annotated with the
@@ -520,7 +520,7 @@ namespace ParquetSharp.RowOriented
             foreach (var field in type.GetFields(flags))
             {
                 var mappedColumn = field.GetCustomAttribute<MapToColumnAttribute>()?.ColumnName;
-                if (field.IsPublic || mappedColumn != null)
+                if ((field.IsPublic || mappedColumn != null) && (!forRead || !field.IsDefined(typeof(IgnoreColumnAttribute))))
                 {
                     list.Add(new MappedField(field.Name, mappedColumn, field.FieldType, field));
                 }
@@ -529,10 +529,15 @@ namespace ParquetSharp.RowOriented
             foreach (var property in type.GetProperties(flags))
             {
                 var mappedColumn = property.GetCustomAttribute<MapToColumnAttribute>()?.ColumnName;
-                if ((property.GetMethod?.IsPublic ?? false) || mappedColumn != null)
+                if (((property.GetMethod?.IsPublic ?? false) || mappedColumn != null) && (!forRead || !property.IsDefined(typeof(IgnoreColumnAttribute))))
                 {
                     list.Add(new MappedField(property.Name, mappedColumn, property.PropertyType, property));
                 }
+            }
+
+            if (forRead && list.Count == 0)
+            {
+                throw new ArgumentException($"Type '{type}' has no fields or properties to read from Parquet columns.", nameof(type));
             }
 
             if (list.Count == 0)
