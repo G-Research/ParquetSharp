@@ -66,6 +66,11 @@ namespace ParquetSharp.Arrow
         /// </summary>
         public bool UseThreads => ExceptionInfo.Return<bool>(Handle, ArrowWriterProperties_UseThreads);
 
+        /// <summary>
+        /// Whether the UTC adjustment flag is set on written Parquet TIME columns.
+        /// </summary>
+        public bool TimeAdjustedToUtc => ExceptionInfo.Return<bool>(Handle, ArrowWriterProperties_TimeAdjustedToUtc);
+
         internal ArrowWriterProperties(IntPtr handle)
         {
             Handle = new ParquetHandle(handle, ArrowWriterProperties_Free);
@@ -99,6 +104,10 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowWriterProperties_UseThreads(IntPtr writerProperties, out bool useThreads);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowWriterProperties_TimeAdjustedToUtc(
+            IntPtr writerProperties, [MarshalAs(UnmanagedType.I1)] out bool adjustedToUtc);
 
         [DllImport(ParquetDll.Name)]
         private static extern void ArrowWriterProperties_Free(IntPtr readerProperties);

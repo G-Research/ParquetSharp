@@ -47,6 +47,11 @@ extern "C"
     TRYCATCH(*useThreads = (*properties)->use_threads();)
   }
 
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowWriterProperties_TimeAdjustedToUtc(std::shared_ptr<ArrowWriterProperties>* properties, bool* adjustedToUtc)
+  {
+    TRYCATCH(*adjustedToUtc = (*properties)->write_time_adjusted_to_utc();)
+  }
+
   PARQUETSHARP_EXPORT void ArrowWriterProperties_Free(std::shared_ptr<ArrowWriterProperties>* properties)
   {
     delete properties;
