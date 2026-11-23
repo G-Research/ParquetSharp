@@ -97,6 +97,16 @@ extern "C"
     TRYCATCH(properties->set_arrow_extensions_enabled(extensions_enabled);)
   }
 
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetSmallestDecimalEnabled(const ArrowReaderProperties* properties, bool* enabled)
+  {
+    TRYCATCH(*enabled = properties->smallest_decimal_enabled();)
+  }
+
+  PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_SetSmallestDecimalEnabled(ArrowReaderProperties* properties, bool enabled)
+  {
+    TRYCATCH(properties->set_smallest_decimal_enabled(enabled);)
+  }
+
   PARQUETSHARP_EXPORT ExceptionInfo* ArrowReaderProperties_GetCacheOptions_HoleSizeLimit(const ArrowReaderProperties* properties, int64_t* value)
   {
     TRYCATCH(

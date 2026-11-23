@@ -18,6 +18,7 @@ namespace ParquetSharp.Test.Arrow
             Assert.That(properties.CoerceInt96TimestampUnit, Is.EqualTo(Apache.Arrow.Types.TimeUnit.Nanosecond));
             Assert.That(properties.BinaryType, Is.EqualTo(Apache.Arrow.Types.ArrowTypeId.Binary));
             Assert.That(properties.ListType, Is.EqualTo(Apache.Arrow.Types.ArrowTypeId.List));
+            Assert.That(properties.SmallestDecimalEnabled, Is.False);
             Assert.That(properties.ArrowExtensionEnabled, Is.False);
             Assert.That(properties.CacheOptions.hole_size_limit, Is.EqualTo(8192));
             Assert.That(properties.CacheOptions.range_size_limit, Is.EqualTo(32 * 1024 * 1024));
