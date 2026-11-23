@@ -1,4 +1,6 @@
 #nullable enable
+ParquetSharp.Arrow.ArrowReaderProperties.SmallestDecimalEnabled.get -> bool
+ParquetSharp.Arrow.ArrowReaderProperties.SmallestDecimalEnabled.set -> void
 ParquetSharp.FileMetaData.MetadataSize.get -> long
 ParquetSharp.MemoryPool.ReleaseUnused() -> void
 ParquetSharp.MemoryPool.NumAllocations.get -> long

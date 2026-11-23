@@ -172,6 +172,20 @@ namespace ParquetSharp.Arrow
         }
 
         /// <summary>
+        /// Whether to infer Decimal32 or Decimal64 for Parquet decimal columns when possible.
+        /// Defaults to false. A serialized Arrow schema in the file metadata takes precedence.
+        /// </summary>
+        public bool SmallestDecimalEnabled
+        {
+            get => ExceptionInfo.Return<bool>(Handle, ArrowReaderProperties_GetSmallestDecimalEnabled);
+            set
+            {
+                ExceptionInfo.Check(ArrowReaderProperties_SetSmallestDecimalEnabled(Handle.IntPtr, value));
+                GC.KeepAlive(Handle);
+            }
+        }
+
+        /// <summary>
         /// The options for read coalescing.
         /// This can be used to tune the
         /// implementation for characteristics of different filesystems.
@@ -255,6 +269,12 @@ namespace ParquetSharp.Arrow
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_SetArrowExtensionEnabled(IntPtr readerProperties, bool extensionsEnabled);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_GetSmallestDecimalEnabled(IntPtr readerProperties, out bool enabled);
+
+        [DllImport(ParquetDll.Name)]
+        private static extern IntPtr ArrowReaderProperties_SetSmallestDecimalEnabled(IntPtr readerProperties, bool enabled);
 
         [DllImport(ParquetDll.Name)]
         private static extern IntPtr ArrowReaderProperties_GetCacheOptions_HoleSizeLimit(IntPtr readerProperties, out long holeSizeLimit);

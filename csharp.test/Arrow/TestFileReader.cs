@@ -78,6 +78,67 @@ namespace ParquetSharp.Test.Arrow
             Assert.That(rowsRead, Is.EqualTo(RowsPerRowGroup * NumRowGroups));
         }
 
+        [TestCase(false, false, ArrowTypeId.Decimal128, ArrowTypeId.Decimal128)]
+        [TestCase(true, false, ArrowTypeId.Decimal32, ArrowTypeId.Decimal64)]
+        [TestCase(true, true, ArrowTypeId.Decimal128, ArrowTypeId.Decimal128)]
+        public async Task TestReadSmallestDecimal(bool enabled, bool storeSchema, ArrowTypeId smallType, ArrowTypeId largeType)
+        {
+            using var buffer = new ResizableBuffer();
+            var smallDecimal = new Decimal128Type(9, 2);
+            var largeDecimal = new Decimal128Type(18, 2);
+            var schema = new Apache.Arrow.Schema(new[]
+            {
+                new Field("small", smallDecimal, false),
+                new Field("large", largeDecimal, false),
+            }, null);
+
+            using (var output = new BufferOutputStream(buffer))
+            using (var writerBuilder = new WriterPropertiesBuilder())
+            using (var writerProperties = writerBuilder.EnableStoreDecimalAsInteger().Build())
+            using (var arrowBuilder = new ArrowWriterPropertiesBuilder())
+            {
+                if (storeSchema)
+                {
+                    arrowBuilder.StoreSchema();
+                }
+
+                using var arrowProperties = arrowBuilder.Build();
+                using var writer = new FileWriter(output, schema, writerProperties, arrowProperties);
+                using var batchToWrite = new RecordBatch(schema, new IArrowArray[]
+                {
+                    new Decimal128Array.Builder(smallDecimal).Append(12.34m).Build(),
+                    new Decimal128Array.Builder(largeDecimal).Append(-123456789012.34m).Build(),
+                }, 1);
+
+                writer.WriteRecordBatch(batchToWrite);
+                writer.Close();
+            }
+
+            using (var physicalInput = new BufferReader(buffer))
+            using (var physicalReader = new ParquetFileReader(physicalInput))
+            using (var metadata = physicalReader.FileMetaData)
+            {
+                Assert.That(metadata.Schema.Column(0).PhysicalType, Is.EqualTo(PhysicalType.Int32));
+                Assert.That(metadata.Schema.Column(1).PhysicalType, Is.EqualTo(PhysicalType.Int64));
+            }
+
+            using var properties = ArrowReaderProperties.GetDefault();
+            properties.SmallestDecimalEnabled = enabled;
+            Assert.That(properties.SmallestDecimalEnabled, Is.EqualTo(enabled));
+
+            using var input = new BufferReader(buffer);
+            using var reader = new FileReader(input, arrowProperties: properties);
+            using var batches = reader.GetRecordBatchReader();
+            using var batch = await batches.ReadNextRecordBatchAsync();
+            Assert.That(batch, Is.Not.Null);
+            Assert.That(batch!.Column(0).Data.DataType.TypeId, Is.EqualTo(smallType));
+            Assert.That(batch.Column(1).Data.DataType.TypeId, Is.EqualTo(largeType));
+            Assert.That(smallType == ArrowTypeId.Decimal32 ? ((Decimal32Array) batch.Column(0)).GetValue(0) : ((Decimal128Array) batch.Column(0)).GetValue(0),
+                Is.EqualTo(12.34m));
+            Assert.That(largeType == ArrowTypeId.Decimal64 ? ((Decimal64Array) batch.Column(1)).GetValue(0) : ((Decimal128Array) batch.Column(1)).GetValue(0),
+                Is.EqualTo(-123456789012.34m));
+        }
+
         [Test]
         public async Task TestReadWithBatchSize()
         {
