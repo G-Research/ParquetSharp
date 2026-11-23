@@ -220,11 +220,40 @@ namespace ParquetSharp
             return visitor.OnColumnReader(this);
         }
 
+        /// <summary>
+        /// Read physical values without returning definition or repetition levels.
+        /// </summary>
+        /// <param name="batchSize">The maximum number of level entries to read.</param>
+        /// <param name="values">Destination for physical values, with room for at least <paramref name="batchSize"/> entries.</param>
+        /// <param name="valuesRead">The number of physical values written to <paramref name="values"/>.</param>
+        /// <returns>The number of entries consumed. For this overload, this equals <paramref name="valuesRead"/>.</returns>
+        /// <remarks>
+        /// Use this overload only when the batch has no undefined values and the caller does not need to reconstruct
+        /// repeated rows. Use the overload accepting levels to distinguish null or absent values and row boundaries.
+        /// </remarks>
         public long ReadBatch(long batchSize, Span<TValue> values, out long valuesRead)
         {
             return ReadBatch(batchSize, Span<short>.Empty, Span<short>.Empty, values, out valuesRead);
         }
 
+        /// <summary>
+        /// Read physical values and optionally return their definition and repetition levels.
+        /// </summary>
+        /// <param name="batchSize">The maximum number of level entries to read.</param>
+        /// <param name="defLevels">Destination for definition levels, or an empty span to omit them.</param>
+        /// <param name="repLevels">Destination for repetition levels, or an empty span to omit them.</param>
+        /// <param name="values">Destination for physical values, with room for at least <paramref name="batchSize"/> entries.</param>
+        /// <param name="valuesRead">The number of physical values written to <paramref name="values"/>.</param>
+        /// <returns>The number of level entries consumed. For repeated columns this may differ from the number of logical rows.</returns>
+        /// <remarks>
+        /// Nonempty level buffers must each have room for at least <paramref name="batchSize"/> entries.
+        /// Supply a definition-level buffer when the batch can contain undefined values. The number of physical values
+        /// written can be smaller than the number of level entries consumed because null or absent values are not stored.
+        /// Supply a repetition-level buffer when you need to recover repeated row boundaries.
+        /// A column with a maximum definition or repetition level of zero has no corresponding level data to read.
+        /// A call can return fewer than <paramref name="batchSize"/> entries, even when <see cref="ColumnReader.HasNext"/>
+        /// indicates there is more data.
+        /// </remarks>
         public unsafe long ReadBatch(long batchSize, Span<short> defLevels, Span<short> repLevels, Span<TValue> values, out long valuesRead)
         {
             if (values.Length < batchSize) throw new ArgumentOutOfRangeException(nameof(values), "batchSize is larger than length of values");
