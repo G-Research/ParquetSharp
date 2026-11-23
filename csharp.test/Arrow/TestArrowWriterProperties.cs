@@ -27,6 +27,7 @@ namespace ParquetSharp.Test.Arrow
                 Assert.That(properties.CoerceTimestampsEnabled, Is.False);
                 Assert.That(properties.CompliantNestedTypes, Is.True);
                 Assert.That(properties.TruncatedTimestampsAllowed, Is.False);
+                Assert.That(properties.TimeAdjustedToUtc, Is.False);
                 Assert.That(properties.UseThreads, Is.False);
             }
         }
