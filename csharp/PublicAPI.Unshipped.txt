@@ -1,6 +1,8 @@
 #nullable enable
 ParquetSharp.Arrow.ArrowWriterProperties.TimeAdjustedToUtc.get -> bool
 ParquetSharp.Arrow.ArrowWriterPropertiesBuilder.SetTimeAdjustedToUtc(bool adjustedToUtc) -> ParquetSharp.Arrow.ArrowWriterPropertiesBuilder!
+ParquetSharp.Arrow.ArrowReaderProperties.SmallestDecimalEnabled.get -> bool
+ParquetSharp.Arrow.ArrowReaderProperties.SmallestDecimalEnabled.set -> void
 ParquetSharp.FileMetaData.MetadataSize.get -> long
 ParquetSharp.MemoryPool.ReleaseUnused() -> void
 ParquetSharp.MemoryPool.NumAllocations.get -> long
