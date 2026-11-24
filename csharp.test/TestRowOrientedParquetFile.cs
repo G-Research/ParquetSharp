@@ -35,6 +35,98 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestReadIgnoresComputedProperty()
+        {
+            using var buffer = new ResizableBuffer();
+            using (var stream = new BufferOutputStream(buffer))
+            using (var writer = ParquetFile.CreateRowWriter<ValueTuple<int>>(stream))
+            {
+                writer.WriteRow(ValueTuple.Create(21));
+            }
+
+            using var input = new BufferReader(buffer);
+            using var reader = ParquetFile.CreateRowReader<ProjectedRow>(input);
+            var rows = reader.ReadRows(0);
+            Assert.That(rows.Single().Doubled, Is.EqualTo(42));
+        }
+
+        [Test]
+        public static void TestReadProjectsNamedColumnsAcrossRowGroups()
+        {
+            using var buffer = new ResizableBuffer();
+            using (var stream = new BufferOutputStream(buffer))
+            using (var writer = ParquetFile.CreateRowWriter<(int, int, int)>(
+                stream, new[] { "Bid", "Unused", "Ask" }))
+            {
+                writer.WriteRow((100, 999, 102));
+                writer.StartNewRowGroup();
+                writer.WriteRow((101, 888, 105));
+            }
+
+            using var input = new BufferReader(buffer);
+            using var reader = ParquetFile.CreateRowReader<QuoteProjection>(input);
+            var first = reader.ReadRows(0).Single();
+            var second = reader.ReadRows(1).Single();
+            Assert.That((first.Bid, first.Ask, first.Spread), Is.EqualTo((100, 102, 2)));
+            Assert.That((second.Bid, second.Ask, second.Spread), Is.EqualTo((101, 105, 4)));
+        }
+
+        [Test]
+        public static void TestIgnoreColumnDoesNotChangeWriterSchema()
+        {
+            using var buffer = new ResizableBuffer();
+            using (var stream = new BufferOutputStream(buffer))
+            using (var writer = ParquetFile.CreateRowWriter<ProjectedRow>(stream))
+            {
+                writer.WriteRow(new ProjectedRow(21));
+            }
+
+            using var input = new BufferReader(buffer);
+            using var reader = new ParquetFileReader(input);
+            Assert.That(reader.FileMetaData.Schema.NumColumns, Is.EqualTo(2));
+            Assert.That(reader.FileMetaData.Schema.Column(1).Name, Is.EqualTo(nameof(ProjectedRow.Doubled)));
+        }
+
+        [Test]
+        public static void TestReadRejectsTypeWithAllMembersIgnored()
+        {
+            var error = Assert.Throws<ArgumentException>(
+                () => ParquetFile.CreateRowReader<IgnoredRow>("not-opened.parquet"));
+            Assert.That(error!.Message, Does.Contain("no fields or properties to read"));
+        }
+
+        private struct QuoteProjection
+        {
+            [MapToColumn("Ask")]
+            public int Ask { get; set; }
+
+            [IgnoreColumn]
+            public int Spread => Ask - Bid;
+
+            [MapToColumn("Bid")]
+            public int Bid { get; set; }
+        }
+
+        private struct IgnoredRow
+        {
+            [IgnoreColumn]
+            public int Value => 0;
+        }
+
+        private struct ProjectedRow
+        {
+            public ProjectedRow(int price)
+            {
+                Price = price;
+            }
+
+            public int Price { get; }
+
+            [IgnoreColumn]
+            public int Doubled => 2 * Price;
+        }
+
+        [Test]
         public static void TestRoundtrip()
         {
             TestRoundtrip(new[]

@@ -39,3 +39,5 @@ ParquetSharp.SizeStatistics.DefinitionLevelHistogram.get -> System.Collections.G
 ParquetSharp.SizeStatistics.RepetitionLevelHistogram.get -> System.Collections.Generic.IReadOnlyList<long>!
 ParquetSharp.SizeStatistics.UnencodedByteArrayDataBytes.get -> long?
 override ParquetSharp.SizeStatistics.ToString() -> string!
+ParquetSharp.RowOriented.IgnoreColumnAttribute
+ParquetSharp.RowOriented.IgnoreColumnAttribute.IgnoreColumnAttribute() -> void
