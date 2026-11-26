@@ -32,6 +32,16 @@ namespace ParquetSharp.Test
         }
 
         [Test]
+        public static void TestFromDateTimeWithTimeOfDay()
+        {
+            // The time of day is dropped, also before 1970.
+            Assert.AreEqual(new Date(1970, 01, 01), new Date(new DateTime(1970, 01, 01, 12, 00, 00)));
+            Assert.AreEqual(new Date(1969, 12, 31), new Date(new DateTime(1969, 12, 31, 12, 00, 00)));
+            Assert.AreEqual(new Date(1900, 06, 15), new Date(new DateTime(1900, 06, 15, 23, 59, 59)));
+            Assert.AreEqual(new Date(1, 1, 1), new Date(DateTime.MinValue.AddTicks(1)));
+        }
+
+        [Test]
         public static void TestToString()
         {
             var date = new Date(2023, 1, 26);

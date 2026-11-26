@@ -16,7 +16,7 @@ namespace ParquetSharp
         }
 
         public Date(DateTime dateTime)
-            : this((int) ((dateTime.Ticks - BaseDateTimeTicks) / TimeSpan.TicksPerDay))
+            : this((int) ((dateTime.Date.Ticks - BaseDateTimeTicks) / TimeSpan.TicksPerDay))
         {
         }
 
