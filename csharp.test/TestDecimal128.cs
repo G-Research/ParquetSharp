@@ -52,12 +52,27 @@ namespace ParquetSharp.Test
         [Test]
         public static void TestAgainstThirdParty()
         {
-            using var decimalType = LogicalType.Decimal(precision: 29, scale: 3);
-            var columns = new Column[] { new Column<decimal>("Decimal", decimalType) };
             var values = Enumerable.Range(0, 10_000)
                 .Select(i => ((decimal) i * i * i) / 1000 - 10)
                 .Concat(new[] { decimal.MinValue / 1000, decimal.MaxValue / 1000 })
                 .ToArray();
+
+            Assert.AreEqual(values, WriteAndReadWithParquetNet(values));
+        }
+
+        [Test]
+        public static void TestNegativeValuesTruncatedToZero()
+        {
+            // At scale 3 these truncate to a negative zero, which must be written as 0.
+            var values = new[] { -0.0001m, -0.0009m, decimal.Negate(0m), -1.0009m };
+
+            Assert.AreEqual(new[] { 0m, 0m, 0m, -1.000m }, WriteAndReadWithParquetNet(values));
+        }
+
+        private static decimal[] WriteAndReadWithParquetNet(decimal[] values)
+        {
+            using var decimalType = LogicalType.Decimal(precision: 29, scale: 3);
+            var columns = new Column[] { new Column<decimal>("Decimal", decimalType) };
 
             using var buffer = new ResizableBuffer();
 
@@ -84,8 +99,7 @@ namespace ParquetSharp.Test
             using var fileReader = new ParquetReader(memoryStream);
             using var rowGroupReader = fileReader.OpenRowGroupReader(0);
 
-            var read = (decimal[]) rowGroupReader.ReadColumn(fileReader.Schema.GetDataFields()[0]).Data;
-            Assert.AreEqual(values, read);
+            return (decimal[]) rowGroupReader.ReadColumn(fileReader.Schema.GetDataFields()[0]).Data;
         }
     }
 }

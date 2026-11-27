@@ -29,6 +29,13 @@ namespace ParquetSharp
                 throw new OverflowException($"value {value:E} is too large for decimal scale {Math.Log10((double) multiplier)}", exception);
             }
 
+            // A negative value that truncates to zero (or a negative zero) keeps its sign bit,
+            // which would be written below as -2^96 rather than 0.
+            if (unscaled == decimal.Zero)
+            {
+                unscaled = decimal.Zero;
+            }
+
             var src = (uint*) &unscaled;
 
             // From .NET Core sources (2018-09-24):
